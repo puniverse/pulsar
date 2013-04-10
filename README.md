@@ -1,6 +1,6 @@
 # pulsar
 
-A Clojure library designed to ... well, that part is up to you.
+Erlang-like actors for Clojure
 
 ## Usage
 
@@ -8,6 +8,6 @@ FIXME
 
 ## License
 
-Copyright © 2013 FIXME
+Copyright © 2013 Parallel Universe
 
-Distributed under the Eclipse Public License, the same as Clojure.
+Distributed under the LGPL.
