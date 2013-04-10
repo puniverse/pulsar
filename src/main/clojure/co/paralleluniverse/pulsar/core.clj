@@ -12,14 +12,23 @@
 (use '[clojure.core.match :only (match)])
 
 
-(defn available-processors []
+;; ## lightweight threads
+
+(defn available-processors
+  "Returns the number of available processors"
+  []
   (.availableProcessors (Runtime/getRuntime)))
 
-(def fj-pool 
+;; A global forkjoin pool
+(def fj-pool
   (jsr166e.ForkJoinPool. (available-processors) jsr166e.ForkJoinPool/defaultForkJoinWorkerThreadFactory nil true))
 
-(defn self []
+(defn self
+  "Returns the currently running lightweight-thread or nil if none"
+  []
   (LightweightThread/currentLightweightThread))
+
+;; ## Actors
 
 (def actor1 
   (PulsarActor. "actor1" *fj-pool* -1 -1 
