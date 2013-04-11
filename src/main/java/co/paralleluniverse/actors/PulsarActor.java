@@ -1,47 +1,24 @@
 package co.paralleluniverse.actors;
 
 import co.paralleluniverse.fibers.SuspendExecution;
-import co.paralleluniverse.fibers.SuspendableCallable;
+import co.paralleluniverse.strands.SuspendableCallable;
 import java.util.concurrent.TimeUnit;
-import jsr166e.ForkJoinPool;
 
 /**
  * @author pron
  */
 public class PulsarActor<Message, V> extends Actor<Message, V> {
+    private final SuspendableCallable<V> target;
+    
     @SuppressWarnings("LeakingThisInConstructor")
-    public PulsarActor(String name, ForkJoinPool fjPool, int stackSize, int mailboxSize, ActorTarget<V> target) {
-        super(name, fjPool, stackSize, mailboxSize, wrap(target));
-        ((ActorCallable) getTarget()).self = this;
-    }
-
-    @SuppressWarnings("LeakingThisInConstructor")
-    public PulsarActor(String name, int stackSize, int mailboxSize, ActorTarget<V> target) {
-        super(name, stackSize, mailboxSize, wrap(target));
-        ((ActorCallable) getTarget()).self = this;
-    }
-
-    private static <V> SuspendableCallable<V> wrap(ActorTarget<V> target) {
-        return new ActorCallable<V>(target);
-    }
-
-    private static class ActorCallable<V> implements SuspendableCallable<V> {
-        private final ActorTarget<V> target;
-        Actor self;
-
-        public ActorCallable(ActorTarget<V> target) {
-            this.target = target;
-        }
-
-        @Override
-        public V run() throws SuspendExecution, InterruptedException {
-            return target.run(self);
-        }
+    public PulsarActor(String name, int mailboxSize, SuspendableCallable<V> target) {
+        super(name, mailboxSize);
+        this.target = target;
     }
 
     @Override
-    public V run() throws InterruptedException, SuspendExecution {
-        return getTarget().run();
+    public V doRun() throws InterruptedException, SuspendExecution {
+        return target.run();
     }
 
     @Override

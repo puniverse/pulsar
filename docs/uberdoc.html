@@ -3031,14 +3031,12 @@ net.brehaut.ClojureTools = (function (SH) {
 </script><title>co.paralleluniverse/pulsar -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">co.paralleluniverse/pulsar</h1><h2 class="project-version">0.1.0-SNAPSHOT</h2><br /><p>A Clojure actor library</p>
 </div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.4.0</td></tr><tr><td class="dep-name">jsr166e/jsr166e</td><td class="dotted"><hr /></td><td class="dep-version">0.1</td></tr><tr><td class="dep-name">co.paralleluniverse/quasar</td><td class="dotted"><hr /></td><td class="dep-version">0.1-SNAPSHOT</td></tr><tr><td class="dep-name">com.yammer.metrics/metrics-core</td><td class="dotted"><hr /></td><td class="dep-version">2.0.2</td></tr><tr><td class="dep-name">org.ow2.asm/asm</td><td class="dotted"><hr /></td><td class="dep-version">4.1</td></tr><tr><td class="dep-name">org.ow2.asm/asm-analysis</td><td class="dotted"><hr /></td><td class="dep-version">4.1</td></tr><tr><td class="dep-name">org.ow2.asm/asm-util</td><td class="dotted"><hr /></td><td class="dep-version">4.1</td></tr><tr><td class="dep-name">com.google.guava/guava</td><td class="dotted"><hr /></td><td class="dep-version">11.0.1</td></tr><tr><td class="dep-name">net.sf.trove4j/trove4j</td><td class="dotted"><hr /></td><td class="dep-version">3.0.2</td></tr><tr><td class="dep-name">org.clojure/core.match</td><td class="dotted"><hr /></td><td class="dep-version">0.2.0-alpha12</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#co.paralleluniverse.pulsar.core">co.paralleluniverse.pulsar.core</a></li><li><a href="#pulsar.core-test">pulsar.core-test</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.core" name="co.paralleluniverse.pulsar.core"><h1 class="project-name">co.paralleluniverse.pulsar.core</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar.core
-  (:import [co.paralleluniverse.lwthreads LightweightThread]
+  (:import [java.lang.annotation Retention RetentionPolicy Target ElementType]
+           [co.paralleluniverse.lwthreads LightweightThread]
            [co.paralleluniverse.lwthreads.channels Channel]
-           [co.paralleluniverse.lwthreads.channels ObjectChannel]
-           [co.paralleluniverse.lwthreads.channels IntChannel]
-           [co.paralleluniverse.lwthreads.channels LongChannel]
-           [co.paralleluniverse.lwthreads.channels FloatChannel]
-           [co.paralleluniverse.lwthreads.channels DoubleChannel]
+           [co.paralleluniverse.lwthreads.channels ObjectChannel IntChannel LongChannel FloatChannel DoubleChannel]
            [co.paralleluniverse.actors PulsarActor]
+           [co.paralleluniverse.actors FooException Suspendable]
            [co.paralleluniverse.actors ActorTarget]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(use '[clojure.core.match :only (match)])</pre></td></tr><tr><td class="docs"><h2>lightweight threads</h2>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>Returns the number of available processors</p>
@@ -3049,13 +3047,11 @@ net.brehaut.ClojureTools = (function (SH) {
   (jsr166e.ForkJoinPool. (available-processors) jsr166e.ForkJoinPool/defaultForkJoinWorkerThreadFactory nil true))</pre></td></tr><tr><td class="docs"><p>Returns the currently running lightweight-thread or nil if none</p>
 </td><td class="codes"><pre class="brush: clojure">(defn self
   []
-  (LightweightThread/currentLightweightThread))</pre></td></tr><tr><td class="docs"><h2>Actors</h2>
-</td><td class="codes"></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def actor1 
-  (PulsarActor. &quot;actor1&quot; *fj-pool* -1 -1 
-          (reify ActorTarget
-            (run [this self]
-                 (.receive self)))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#pulsar.core-test" name="pulsar.core-test"><h1 class="project-name">pulsar.core-test</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+  (LightweightThread/currentLightweightThread))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn koko [] 
+  (let [dodo :kuki]
+    (println &quot;foo&quot;)))</pre></td></tr><tr><td class="docs"><h2>Actors</h2>
+</td><td class="codes"></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#pulsar.core-test" name="pulsar.core-test"><h1 class="project-name">pulsar.core-test</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns pulsar.core-test
   (:use clojure.test
         pulsar.core))</pre></td></tr><tr><td class="docs">

@@ -1,4 +1,4 @@
-(ns co.paralleluniverse.pulsar.core
+(ns co.paralleluniverse.pulsar
   (:import [java.lang.annotation Retention RetentionPolicy Target ElementType]
            [co.paralleluniverse.lwthreads LightweightThread]
            [co.paralleluniverse.lwthreads.channels Channel]
@@ -27,18 +27,8 @@
   (LightweightThread/currentLightweightThread))
 
 
-(defn koko [] 
-  (let [dodo :kuki]
-    (println "foo")))
-
-
 ;; ## Actors
 
-#_(def actor1 
-    (PulsarActor. "actor1" *fj-pool* -1 -1 
-                  (reify ActorTarget
-                    (run [this self]
-                         (.receive self)))))
 
 
 

@@ -6,7 +6,7 @@
   :source-paths ["src/main/clojure"]
   :java-source-paths ["src/main/java"]
   :javac-options     ["-target" "1.7" "-source" "1.7"]
-  :jvm-opts ["-server" "-javaagent:/Users/pron/Projects/quasar/build/libs/quasar-0.1-SNAPSHOT.jar=v"] 
+  :jvm-opts ["-server" "-javaagent:/Users/pron/Projects/quasar/build/libs/quasar-0.1-SNAPSHOT.jar"] 
   :repositories {"project" "file:lib"}
   :dependencies [[org.clojure/clojure "1.4.0"]
                  [jsr166e/jsr166e "0.1"]
