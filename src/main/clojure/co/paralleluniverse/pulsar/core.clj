@@ -1,12 +1,10 @@
 (ns co.paralleluniverse.pulsar.core
-  (:import [co.paralleluniverse.lwthreads LightweightThread]
+  (:import [java.lang.annotation Retention RetentionPolicy Target ElementType]
+           [co.paralleluniverse.lwthreads LightweightThread]
            [co.paralleluniverse.lwthreads.channels Channel]
-           [co.paralleluniverse.lwthreads.channels ObjectChannel]
-           [co.paralleluniverse.lwthreads.channels IntChannel]
-           [co.paralleluniverse.lwthreads.channels LongChannel]
-           [co.paralleluniverse.lwthreads.channels FloatChannel]
-           [co.paralleluniverse.lwthreads.channels DoubleChannel]
+           [co.paralleluniverse.lwthreads.channels ObjectChannel IntChannel LongChannel FloatChannel DoubleChannel]
            [co.paralleluniverse.actors PulsarActor]
+           [co.paralleluniverse.actors FooException Suspendable]
            [co.paralleluniverse.actors ActorTarget]))
 
 (use '[clojure.core.match :only (match)])
@@ -28,13 +26,19 @@
   []
   (LightweightThread/currentLightweightThread))
 
+
+(defn koko [] 
+  (let [dodo :kuki]
+    (println "foo")))
+
+
 ;; ## Actors
 
-(def actor1 
-  (PulsarActor. "actor1" *fj-pool* -1 -1 
-          (reify ActorTarget
-            (run [this self]
-                 (.receive self)))))
+#_(def actor1 
+    (PulsarActor. "actor1" *fj-pool* -1 -1 
+                  (reify ActorTarget
+                    (run [this self]
+                         (.receive self)))))
 
 
 
