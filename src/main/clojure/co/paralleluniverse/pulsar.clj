@@ -1,11 +1,11 @@
 (ns co.paralleluniverse.pulsar
   (:import [java.lang.annotation Retention RetentionPolicy Target ElementType]
-           [co.paralleluniverse.lwthreads LightweightThread]
-           [co.paralleluniverse.lwthreads.channels Channel]
-           [co.paralleluniverse.lwthreads.channels ObjectChannel IntChannel LongChannel FloatChannel DoubleChannel]
-           [co.paralleluniverse.actors PulsarActor]
-           [co.paralleluniverse.actors FooException Suspendable]
-           [co.paralleluniverse.actors ActorTarget]))
+           [co.paralleluniverse.fibers Fiber]
+           [co.paralleluniverse.fibers.instrument ClojureRetransform]
+           [co.paralleluniverse.strands Strand]
+           [co.paralleluniverse.strands.channels Channel]
+           [co.paralleluniverse.strands.channels ObjectChannel IntChannel LongChannel FloatChannel DoubleChannel]
+           [co.paralleluniverse.actors PulsarActor]))
 
 (use '[clojure.core.match :only (match)])
 
@@ -21,10 +21,15 @@
 (def fj-pool
   (jsr166e.ForkJoinPool. (available-processors) jsr166e.ForkJoinPool/defaultForkJoinWorkerThreadFactory nil true))
 
-(defn self
+(defn current-strand
+  "Returns the currently running fiber or current thread in case of new active fiber"
+  []
+  (Strand/currentStrand))
+
+(defn current-fiber
   "Returns the currently running lightweight-thread or nil if none"
   []
-  (LightweightThread/currentLightweightThread))
+  (Fiber/currentFiber))
 
 
 ;; ## Actors
