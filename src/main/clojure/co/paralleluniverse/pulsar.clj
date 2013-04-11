@@ -21,16 +21,35 @@
 (def fj-pool
   (jsr166e.ForkJoinPool. (available-processors) jsr166e.ForkJoinPool/defaultForkJoinWorkerThreadFactory nil true))
 
-(defn current-strand
-  "Returns the currently running fiber or current thread in case of new active fiber"
-  []
-  (Strand/currentStrand))
-
 (defn current-fiber
   "Returns the currently running lightweight-thread or nil if none"
   []
   (Fiber/currentFiber))
 
+(defn suspendable
+  "Makes a function suspendable"
+  [f]
+  (ClojureRetransform/retransform f)
+  f)
+
+(defmacro susfn
+  "Creates a suspendable function that can be used by a fiber or actor"
+  [& sigs]
+  (suspendable (fn ~@sigs)))
+
+;; ## Strands
+
+(defn current-strand
+  "Returns the currently running fiber or current thread in case of new active fiber"
+  []
+  (Strand/currentStrand))
+
+;; ## Channels
+
+(set-owner-strand!
+ "Sets a channel's owning strand (fiber or thread)"
+ [^Channel channel strand]
+ (.setStrand channel strand))
 
 ;; ## Actors
 
