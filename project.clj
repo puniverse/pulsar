@@ -6,9 +6,8 @@
   :source-paths ["src/main/clojure"]
   :java-source-paths ["src/main/java"]
   :javac-options     ["-target" "1.7" "-source" "1.7"]
-  :jvm-opts ["-server" "-javaagent:/Users/pron/Projects/quasar/build/libs/quasar-0.1-SNAPSHOT.jar"] 
   :repositories {"project" "file:lib"}
-  :dependencies [[org.clojure/clojure "1.4.0"]
+  :dependencies [[org.clojure/clojure "1.5.0"]
                  [jsr166e/jsr166e "0.1"]
                  [co.paralleluniverse/quasar "0.1-SNAPSHOT"]
                  [com.yammer.metrics/metrics-core "2.0.2"]
@@ -19,4 +18,6 @@
                  [net.sf.trove4j/trove4j "3.0.2"]
                  [org.clojure/core.match "0.2.0-alpha12"]]
   :profiles {:dev 
-             {:plugins [[lein-marginalia "0.7.1"]]}})
+             {:plugins [[lein-marginalia "0.7.1"]]}}
+  :jvm-opts ["-server" "-javaagent:/Users/pron/Projects/quasar/build/libs/quasar-0.1-SNAPSHOT.jar"] 
+  :global-vars {*warn-on-reflection* true})

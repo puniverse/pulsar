@@ -5,6 +5,7 @@
 package co.paralleluniverse.fibers.instrument;
 
 import clojure.lang.AFunction;
+import co.paralleluniverse.fibers.Instrumented;
 import co.paralleluniverse.fibers.SuspendExecution;
 import co.paralleluniverse.strands.SuspendableCallable;
 import java.lang.instrument.UnmodifiableClassException;
@@ -32,6 +33,8 @@ public class ClojureRetransform {
     }
     
     public static SuspendableCallable wrap(final AFunction fn) {
+        if(!isInstrumented(fn.getClass()))
+            throw new IllegalArgumentException("Function " + fn + " has not been instrumented");
         return new SuspendableCallable() {
 
             @Override
@@ -39,5 +42,9 @@ public class ClojureRetransform {
                 return fn.call();
             }
         };
+    }
+    
+    private static boolean isInstrumented(Class clazz) {
+        return clazz.isAnnotationPresent(Instrumented.class);
     }
 }

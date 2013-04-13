@@ -1,6 +1,6 @@
-(ns pulsar.core-test
+(ns co.paralleluniverse.pulsar-test
   (:use clojure.test
-        pulsar.core))
+        co.paralleluniverse.pulsar))
 
 (deftest a-test
   (testing "FIXME, I fail."

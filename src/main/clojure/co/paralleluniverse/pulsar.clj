@@ -4,7 +4,7 @@
 ;;;
 
 (ns co.paralleluniverse.pulsar
-  (:import [jsr166e ForkJoinPool]
+  (:import [jsr166e ForkJoinPool ForkJoinTask]
            [co.paralleluniverse.strands Strand]
            [co.paralleluniverse.strands SuspendableCallable]
            [co.paralleluniverse.fibers Fiber]
@@ -15,25 +15,14 @@
 
 (use '[clojure.core.match :only (match)])
 
+;; Private util functions
 
-;; ## fibers
-
-(defn available-processors
-  "Returns the number of available processors"
-  []
-  (.availableProcessors (Runtime/getRuntime)))
-
-;; A global forkjoin pool
-(def fj-pool
-  (ForkJoinPool. (available-processors) jsr166e.ForkJoinPool/defaultForkJoinWorkerThreadFactory nil true))
-
-(defn- ^SuspendableCallable wrap
-  "wrap a clojure function as a SuspendableCallable"
-  [f]
-  (ClojureRetransform/wrap f))
-
-
-(defn- extract-args [pds xs]
+(defn- extract-args 
+  [pds xs]
+  "Used to simplify optional parameters in functions. 
+  Takes a sequence of [predicate? default] pairs, and a sequence of arguments. Tests the first predicate against
+  the first argument. If the predicate succeeds, emits the argument's value; if not - the default, and tries the
+  next pair with the argument. Any remaining arguments are copied to the output as-is."
   (if (seq pds)
     (let [[p? d] (first pds)
           x      (first xs)] 
@@ -43,24 +32,79 @@
         (cons d (extract-args (rest pds) xs))))
     (seq xs)))
 
-(defn fiber 
-  [& args]
-  (if (seq (filter #(instance? ForkJoinPool %) args))
-    (let [[name pool stacksize f] (extract-args [[string? nil] [#(instance? ForkJoinPool %) nil] [integer? -1]] args)]
-      (Fiber. name pool (int stacksize) (wrap f)))
-    (let [[name stacksize f] (extract-args [[string? nil] [integer? -1]] args)]
-      (Fiber. name (int stacksize) (wrap f)))))
-
-(defn suspendable
-  "Makes a function suspendable"
+(defn- sequentialize
+  "Takes a function of a single argument and returns a function that either takes any number of arguments or a
+  a single sequence, and applies the original function to each argument or each element of the sequence"
   [f]
-  (ClojureRetransform/retransform f)
-  f)
+  (fn 
+    ([x] (if (coll? x) (map f x) (f x)))
+    ([x & xs] (map f (cons x xs)))))
+
+;; ## Global fork/join pool
+
+(defn available-processors
+  "Returns the number of available processors"
+  []
+  (.availableProcessors (Runtime/getRuntime)))
+
+(def fj-pool
+  "A global fork/join pool. The pool uses all available processors and runs in the async mode."
+  (ForkJoinPool. (available-processors) jsr166e.ForkJoinPool/defaultForkJoinWorkerThreadFactory nil true))
+
+(defn- in-fj-pool?
+  []
+  (ForkJoinTask/inForkJoinPool))
+
+;; Make agents use the global fork-join pool
+(set-agent-send-executor! fj-pool)
+(set-agent-send-off-executor! fj-pool)
+
+;; ## Suspendable functions
+;; Only functions that have been especially instrumented can perform blocking actions
+;; while running in a fiber.
+
+(def suspendable!
+  "Makes a function suspendable"
+  (sequentialize 
+   #((ClojureRetransform/retransform %) 
+     %)))
+
+(defn suspendable?
+  [f]
+  (.isAnnotationPresent (.getClass ^Object f) co.paralleluniverse.fibers.Instrumented))
+
+(defn- ^SuspendableCallable wrap
+  "wrap a clojure function as a SuspendableCallable"
+  [f]
+  (suspendable! (ClojureRetransform/wrap f)))
+
 
 (defmacro susfn
-  "Creates a suspendable function that can be used by a fiber or actor"
-  [& sigs]
-  (suspendable (fn ~@sigs)))
+    "Creates a suspendable function that can be used by a fiber or actor"
+    [& sigs]
+    `(suspendable (fn ~@sigs)))
+
+;; ## Fibers
+
+(defn ^Fiber fiber
+  "Creates a new fiber (a lightweight thread) running in a fork/join pool."
+  [& args]
+  (if (or (not (in-fj-pool?))
+          (seq (filter #(instance? ForkJoinPool %) args)))
+    (let [[^String name ^ForkJoinPool pool ^Integer stacksize f] (extract-args [[string? nil] [#(instance? ForkJoinPool %) fj-pool] [integer? -1]] args)]
+      (Fiber. name pool (int stacksize) (wrap f)))
+    (let [[^String name ^Integer stacksize f] (extract-args [[string? nil] [integer? -1]] args)]
+      (Fiber. name (int stacksize) (wrap f)))))
+
+(defn start
+  "Starts a fiber"
+  [^Fiber fiber]
+  (.start fiber))
+
+(defn spawn-fiber
+  "Creates and starts a fiber"
+  [& args]
+  (start (apply fiber args)))
 
 (defn current-fiber
   "Returns the currently running lightweight-thread or nil if none"
@@ -69,30 +113,31 @@
 
 
 ;; ## Strands
+;; A strand is either a thread or a fiber.
 
-(defn current-strand
+(defn ^Strand current-strand
   "Returns the currently running fiber or current thread in case of new active fiber"
   []
   (Strand/currentStrand))
 
 ;; ## Channels
 
-(attach!
- "Sets a channel's owning strand (fiber or thread)"
- [^Channel channel strand]
- (.setStrand channel strand))
+(defn attach!
+  "Sets a channel's owning strand (fiber or thread)"
+  [^Channel channel strand]
+  (.setStrand channel strand))
 
 (defn channel
   "Creates a channel"
   ([size] (ObjectChannel/create size))
   ([] (ObjectChannel/create -1)))
 
-(defn send
-  [channel message]
+(defn send1
+  [^Channel channel message]
   (.send channel message))
 
 (defn receive
-  [channel]
+  [^Channel channel]
   (.receive channel))
 
 ;; ### Primitive channels
