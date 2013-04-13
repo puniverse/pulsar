@@ -4,6 +4,7 @@
   :license {:name "LGPL"
             :url "http://www.gnu.org/copyleft/lesser.html"}
   :source-paths ["src/main/clojure"]
+  :test-paths ["src/test/clojure"]
   :java-source-paths ["src/main/java"]
   :javac-options     ["-target" "1.7" "-source" "1.7"]
   :repositories {"project" "file:lib"}
@@ -18,6 +19,6 @@
                  [net.sf.trove4j/trove4j "3.0.2"]
                  [org.clojure/core.match "0.2.0-alpha12"]]
   :profiles {:dev 
-             {:plugins [[lein-marginalia "0.7.1"]]}}
-  :jvm-opts ["-server" "-javaagent:/Users/pron/Projects/quasar/build/libs/quasar-0.1-SNAPSHOT.jar"] 
-  :global-vars {*warn-on-reflection* true})
+             {:plugins [[lein-marginalia "0.7.1"]]
+              :global-vars {*warn-on-reflection* true}}}
+  :jvm-opts ["-server" "-javaagent:/Users/pron/Projects/quasar/build/libs/quasar-0.1-SNAPSHOT.jar"])
