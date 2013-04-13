@@ -2,6 +2,8 @@
 /lib
 /classes
 /checkouts
+/doc
+/docs
 pom.xml
 pom.xml.asc
 *.jar
