@@ -17,17 +17,17 @@
 
 ;; Private util functions
 
-(defn- extract-args 
+(defn- extract-args
   [pds xs]
-  "Used to simplify optional parameters in functions. 
+  "Used to simplify optional parameters in functions.
   Takes a sequence of [predicate? default] pairs, and a sequence of arguments. Tests the first predicate against
   the first argument. If the predicate succeeds, emits the argument's value; if not - the default, and tries the
   next pair with the argument. Any remaining arguments are copied to the output as-is."
   (if (seq pds)
     (let [[p? d] (first pds)
-          x      (first xs)] 
+          x      (first xs)]
       (println x)
-      (if (p? x) 
+      (if (p? x)
         (cons x (extract-args (rest pds) (rest xs)))
         (cons d (extract-args (rest pds) xs))))
     (seq xs)))
@@ -36,8 +36,8 @@
   "Takes a function of a single argument and returns a function that either takes any number of arguments or a
   a single sequence, and applies the original function to each argument or each element of the sequence"
   [f]
-  (fn 
-    ([x] (if (coll? x) (map f x) (f x)))
+  (fn
+    ([x] (if (sequential? x) (map f x) (f x)))
     ([x & xs] (map f (cons x xs)))))
 
 ;; ## Global fork/join pool
@@ -65,8 +65,8 @@
 
 (def suspendable!
   "Makes a function suspendable"
-  (sequentialize 
-   #((ClojureRetransform/retransform %) 
+  (sequentialize
+   #((ClojureRetransform/retransform %)
      %)))
 
 (defn suspendable?
@@ -80,9 +80,9 @@
 
 
 (defmacro susfn
-    "Creates a suspendable function that can be used by a fiber or actor"
-    [& sigs]
-    `(suspendable (fn ~@sigs)))
+  "Creates a suspendable function that can be used by a fiber or actor"
+  [& sigs]
+  `(suspendable (fn ~@sigs)))
 
 ;; ## Fibers
 
@@ -196,9 +196,3 @@
 
 
 ;; ## Actors
-
-
-
-
-
-
