@@ -10,19 +10,16 @@
            [jsr166e ForkJoinPool ForkJoinTask]
            [co.paralleluniverse.strands Strand]
            [co.paralleluniverse.strands SuspendableCallable]
-           [co.paralleluniverse.fibers Fiber]
+           [co.paralleluniverse.fibers Fiber Joinable FiberInterruptedException]
            [co.paralleluniverse.fibers.instrument ClojureRetransform]
-           [co.paralleluniverse.strands.channels Channel]
-           [co.paralleluniverse.strands.channels ObjectChannel IntChannel LongChannel FloatChannel DoubleChannel]
+           [co.paralleluniverse.strands.channels Channel ObjectChannel IntChannel LongChannel FloatChannel DoubleChannel]
            [co.paralleluniverse.actors Actor PulsarActor])
   (:use [clojure.core.match :only [match]]
         [clojure.core.incubator :only [-?>]]))
 
 
-
 ;; ## Private util functions
 ;; These are internal functions aided to assist other functions in handling variadic arguments and the like.
-
 
 (defn- ops-args
   [pds xs]
@@ -57,22 +54,24 @@
 
 ;; ## Global fork/join pool
 
-(defn available-processors
+(defn- available-processors
   "Returns the number of available processors"
   []
   (.availableProcessors (Runtime/getRuntime)))
 
-(def fj-pool
-  "A global fork/join pool. The pool uses all available processors and runs in the async mode."
-  (ForkJoinPool. (available-processors) jsr166e.ForkJoinPool/defaultForkJoinWorkerThreadFactory nil true))
-
 (defn- in-fj-pool?
+  "Returns true if we're running inside a fork/join pool; false otherwise."
   []
   (ForkJoinTask/inForkJoinPool))
 
 (defn- current-fj-pool
+  "Returns the fork/join pool we're running in; nil if we're not in a fork/join pool."
   []
   (ForkJoinTask/getPool))
+
+(def fj-pool
+  "A global fork/join pool. The pool uses all available processors and runs in the async mode."
+  (ForkJoinPool. (available-processors) jsr166e.ForkJoinPool/defaultForkJoinWorkerThreadFactory nil true))
 
 ;; *Make agents use the global fork-join pool*
 
@@ -84,6 +83,7 @@
 ;; while running in a fiber.
 
 (defn suspendable?
+  "Returns true of a function has been instrumented as suspendable; false otherwise."
   [f]
   (or (contains? (meta f) ::suspendable) 
       ((.isAnnotationPresent (.getClass ^Object f) co.paralleluniverse.fibers.Instrumented))))
@@ -96,45 +96,59 @@
        (ClojureRetransform/retransform f)
        (with-meta f {::suspendable true})))))
 
-(defn- ^SuspendableCallable wrap
+(defn ^SuspendableCallable wrap
   "wrap a clojure function as a SuspendableCallable"
+  {:no-doc true}
   [f]
   (suspendable! (ClojureRetransform/wrap f)))
 
 
 (defmacro susfn
   "Creates a suspendable function that can be used by a fiber or actor"
-  [& sigs]
-  `(suspendable (fn ~@sigs)))
+  [& expr]
+  `(suspendable! (fn ~@expr)))
+
+(defmacro defsusfn
+  "Defines a suspendable function that can be used by a fiber or actor"
+  [& expr]
+  `(suspendable! (defn ~@expr)))
 
 ;; ## Fibers
 
-(defn- fiber1
-  [^String name ^ForkJoinPool pool ^Integer stacksize f]
-  (let [^ForkJoinPool pool (or pool (current-fj-pool) fj-pool)]
-    (Fiber. name (int stacksize) (wrap f))))
+(defn ^ForkJoinPool get-pool 
+  {:no-doc true}
+  [^ForkJoinPool pool]
+  (or pool (current-fj-pool) fj-pool))
 
 (defn ^Fiber fiber
   "Creates a new fiber (a lightweight thread) running in a fork/join pool."
   [& args]
   (let [[^String name ^ForkJoinPool pool ^Integer stacksize f] (ops-args [[string? nil] [#(instance? ForkJoinPool %) fj-pool] [integer? -1]] args)]
-    (fiber1 name pool (int stacksize) (wrap f))))
+    (Fiber. name (get-pool pool) (int stacksize) (wrap f))))
 
 (defn start
   "Starts a fiber"
   [^Fiber fiber]
   (.start fiber))
 
-(defn spawn-fiber
-  "Creates and starts a fiber"
+(defmacro spawn-fiber
+  "Creates and starts a new fiber"
   [& args]
-  (start (apply fiber args)))
+  (let [[{:keys [^String name ^Integer stack-size ^ForkJoinPool pool], :or {stack-size -1}} body] (kps-args args)]
+    `(let [f# (suspendable! (fn [] ~@body))
+           fiber# (Fiber. ~name (get-pool ~pool) ~stack-size (wrap f#))]
+       (start fiber#))))
 
 (defn current-fiber
   "Returns the currently running lightweight-thread or nil if none"
   []
   (Fiber/currentFiber))
 
+(defn join 
+  ([^Joinable s]
+  (.get s))
+  ([^Joinable s timeout ^TimeUnit unit]
+   (.get s timeout unit)))
 
 ;; ## Strands
 ;; A strand is either a thread or a fiber.
@@ -143,6 +157,7 @@
   "Returns the currently running fiber or current thread in case of new active fiber"
   []
   (Strand/currentStrand))
+
 
 ;; ## Channels
 
@@ -225,19 +240,22 @@
 
 (defn ^Actor actor
   "Creates a new actor."
-  [& args]
-  (let [[^String name ^Integer mailbox-size f] (ops-args [[string? nil] [integer? -1]] args)]
-    (PulsarActor. name (int mailbox-size) (wrap f))))
+  ([^String name ^Integer mailbox-size f]
+   (PulsarActor. name (int mailbox-size) (wrap f)))
+  ([f]
+   (PulsarActor. nil -1 (wrap f)))
+  ([arg1 arg2]
+   (let [[^String name ^Integer mailbox-size f] (ops-args [[string? nil] [integer? -1]] [arg1 arg2])]
+     (PulsarActor. name (int mailbox-size) (wrap f)))))
 
-(defn spawn
+(defmacro spawn
   "Creates and starts a new actor"
   [& args]
-  (let [[{:keys [name mailbox-size stack-size], :or {mailbox-size -1 stack-size -1}} ps] (kps-args args)
-        f     (last ps)
-        pool  (if (instance? ForkJoinPool (first ps)) (first ps) nil)
-        actor (actor name mailbox-size f)
-        fiber (fiber1 name pool stack-size actor)]
-    (start fiber)))
+  (let [[{:keys [^String name ^Integer mailbox-size ^Integer stack-size ^ForkJoinPool pool], :or {mailbox-size -1 stack-size -1}} body] (kps-args args)]
+    `(let [f# (suspendable! (fn [] ~@body))
+           actor# (actor ~name ~mailbox-size (wrap f#))
+           fiber# (Fiber. ~name (get-pool ~pool) ~stack-size actor#)]
+       (start fiber#))))
 
 (def ^Actor self
   "@self is the currently running actor"
@@ -265,13 +283,13 @@
 
 (defmacro receive
   [& args]
-  (let [[{^Integer timeout# :timeout ^TimeUnit unit# :unit, :or {timeout# 0 unit# TimeUnit/MILLISECONDS}} body#] (kps-args args)]
-     `(if (not (seq body#))
-       (.receive @self timeout# unit#)
-       (.receive @self timeout# unit# 
+  (let [[{:keys [^Integer timeout ^TimeUnit unit], :or {timeout 0 unit TimeUnit/MILLISECONDS}} body] (kps-args args)]
+     `(if (not (seq body))
+       (.receive @self ~timeout ~unit)
+       (.receive @self ~timeout ~unit 
                  (suspendable! (fn [m] 
                                (try 
-                                 (match m ~@body#)
+                                 (match m ~@body)
                                  (catch Exception e 
                                    (if (-?> e .getMessage .startsWith "No match found.")
                                      false
@@ -282,16 +300,15 @@
   [^Actor actor1 ^Actor actor2]
   (.link actor1 actor2))
 
-(defn spawn-link
+(defmacro spawn-link
   "Creates and starts a new actor, and links it to @self"
   [& args]
-  (let [[{:keys [name mailbox-size stack-size], :or {mailbox-size -1 stack-size -1}} ps] (kps-args args)
-        f     (last ps)
-        pool  (if (instance? ForkJoinPool (first ps)) (first ps) nil)
-        actor (actor name mailbox-size f)
-        fiber (fiber1 name pool stack-size actor)]
-    (link! @self actor)
-    (start fiber)))
+  (let [[{:keys [^String name ^Integer mailbox-size ^Integer stack-size ^ForkJoinPool pool], :or {mailbox-size -1 stack-size -1}} body] (kps-args args)]
+    `(let [f# (suspendable! (fn [] ~@body))
+           actor# (actor ~name ~mailbox-size (wrap f#))
+           fiber# (Fiber. ~name (get-pool ~pool) ~stack-size actor#)]
+       (link! @self actor)
+       (start fiber#))))
 
 (defn unlink!
   "Unlinks two actors"
