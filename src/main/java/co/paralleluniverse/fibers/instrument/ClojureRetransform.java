@@ -33,10 +33,10 @@ public class ClojureRetransform {
         Retransform.retransform(fn.getClass());
     }
 
-    public static SuspendableCallable wrap(final IFn fn) {
+    public static SuspendableCallable<Object> wrap(final IFn fn) {
         if (!isInstrumented(fn.getClass()))
             throw new IllegalArgumentException("Function " + fn + " has not been instrumented");
-        return new SuspendableCallable() {
+        return new SuspendableCallable<Object>() {
             @Override
             public Object run() throws SuspendExecution, InterruptedException {
                 try {

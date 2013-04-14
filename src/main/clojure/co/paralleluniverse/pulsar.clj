@@ -10,7 +10,7 @@
            [jsr166e ForkJoinPool ForkJoinTask]
            [co.paralleluniverse.strands Strand]
            [co.paralleluniverse.strands SuspendableCallable]
-           [co.paralleluniverse.fibers Fiber Joinable FiberInterruptedException]
+           [co.paralleluniverse.fibers Fiber PulsarFiber Joinable FiberInterruptedException]
            [co.paralleluniverse.fibers.instrument ClojureRetransform]
            [co.paralleluniverse.strands.channels Channel ObjectChannel IntChannel LongChannel FloatChannel DoubleChannel]
            [co.paralleluniverse.actors Actor PulsarActor])
@@ -85,16 +85,15 @@
 (defn suspendable?
   "Returns true of a function has been instrumented as suspendable; false otherwise."
   [f]
-  (or (contains? (meta f) ::suspendable) 
-      ((.isAnnotationPresent (.getClass ^Object f) co.paralleluniverse.fibers.Instrumented))))
+  (.isAnnotationPresent (.getClass ^Object f) co.paralleluniverse.fibers.Instrumented))
 
 (def suspendable!
   "Makes a function suspendable"
   (sequentialize
    (fn [f] 
      (when (not (suspendable? f))
-       (ClojureRetransform/retransform f)
-       (with-meta f {::suspendable true})))))
+       (ClojureRetransform/retransform f))
+     f)))
 
 (defn ^SuspendableCallable wrap
   "wrap a clojure function as a SuspendableCallable"
@@ -124,7 +123,7 @@
   "Creates a new fiber (a lightweight thread) running in a fork/join pool."
   [& args]
   (let [[^String name ^ForkJoinPool pool ^Integer stacksize f] (ops-args [[string? nil] [#(instance? ForkJoinPool %) fj-pool] [integer? -1]] args)]
-    (Fiber. name (get-pool pool) (int stacksize) (wrap f))))
+    (PulsarFiber. name (get-pool pool) (int stacksize) (wrap f))))
 
 (defn start
   "Starts a fiber"
@@ -136,7 +135,7 @@
   [& args]
   (let [[{:keys [^String name ^Integer stack-size ^ForkJoinPool pool], :or {stack-size -1}} body] (kps-args args)]
     `(let [f# (suspendable! (fn [] ~@body))
-           fiber# (Fiber. ~name (get-pool ~pool) ~stack-size (wrap f#))]
+           fiber# (PulsarFiber. ~name (get-pool ~pool) ~stack-size (wrap f#))]
        (start fiber#))))
 
 (defn current-fiber
@@ -254,7 +253,7 @@
   (let [[{:keys [^String name ^Integer mailbox-size ^Integer stack-size ^ForkJoinPool pool], :or {mailbox-size -1 stack-size -1}} body] (kps-args args)]
     `(let [f# (suspendable! (fn [] ~@body))
            actor# (actor ~name ~mailbox-size (wrap f#))
-           fiber# (Fiber. ~name (get-pool ~pool) ~stack-size actor#)]
+           fiber# (PulsarFiber. ~name (get-pool ~pool) ~stack-size actor#)]
        (start fiber#))))
 
 (def ^Actor self
@@ -306,7 +305,7 @@
   (let [[{:keys [^String name ^Integer mailbox-size ^Integer stack-size ^ForkJoinPool pool], :or {mailbox-size -1 stack-size -1}} body] (kps-args args)]
     `(let [f# (suspendable! (fn [] ~@body))
            actor# (actor ~name ~mailbox-size (wrap f#))
-           fiber# (Fiber. ~name (get-pool ~pool) ~stack-size actor#)]
+           fiber# (PulsarFiber. ~name (get-pool ~pool) ~stack-size actor#)]
        (link! @self actor)
        (start fiber#))))
 
