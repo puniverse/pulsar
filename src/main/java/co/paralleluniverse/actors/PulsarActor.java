@@ -32,12 +32,12 @@ public class PulsarActor<Message, V> extends Actor<Message, V> {
     }
 
     @Override
-    public Message receive(long timeout, TimeUnit unit, MessageProcessor<Message> proc) throws SuspendExecution, InterruptedException {
-        return super.receive(timeout, unit, proc);
+    public Message receive(MessageProcessor<Message> proc) throws SuspendExecution, InterruptedException {
+        return super.receive(proc);
     }
 
     @Override
-    public Message receive(MessageProcessor<Message> proc) throws SuspendExecution, InterruptedException {
-        return super.receive(proc);
+    public Message receive(long timeout, TimeUnit unit, MessageProcessor<Message> proc) throws SuspendExecution, InterruptedException {
+        return super.receive(timeout, unit, proc);
     }
 }

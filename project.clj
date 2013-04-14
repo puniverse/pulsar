@@ -24,5 +24,5 @@
              {:plugins [[codox "0.6.4"]
                         [lein-marginalia "0.7.1"]]
               :codox {:exclude co.paralleluniverse.pulsar-test}
-              :jvm-opts ["-Dco.paralleluniverse.lwthreads.verifyInstrumentation"]
+              :jvm-opts ["-Dco.paralleluniverse.lwthreads.verifyInstrumentation=true"]
               :global-vars {*warn-on-reflection* true}}})

@@ -4,9 +4,13 @@
   (:import [java.util.concurrent TimeUnit]
            [jsr166e ForkJoinPool ForkJoinTask]
            [co.paralleluniverse.strands Strand]
-           [co.paralleluniverse.fibers Fiber Joinable FiberInterruptedException]
+           [co.paralleluniverse.fibers Fiber Joinable FiberInterruptedException TimeoutException]
            [co.paralleluniverse.strands.channels Channel]
            [co.paralleluniverse.actors Actor PulsarActor]))
+
+
+(defn fail []
+  (do-report {:type :fail}))
 
 ;; ## fibers
 
@@ -30,7 +34,7 @@
 
 (deftest interrupt-fiber
   (testing "When fiber interrupted while sleeping then InterruptedException thrown"
-    (let [fib (spawn-fiber 
+    (let [fib (spawn-fiber
                (is (thrown? FiberInterruptedException (Fiber/sleep 100))))]
       (Thread/sleep 20)
       (.interrupt fib))))
@@ -48,11 +52,65 @@
 (deftest actor-ret-value
   (testing "When actor returns a value then join returns it"
     (is (= 42
-           (let [actor (spawn (println "hi!") 42)]
+           (let [actor (spawn (+ 41 1))]
              (join actor))))))
+
+
+(def ^:dynamic *foo* 40)
+
+(deftest actor-bindings
+  (testing "Test dynamic binding around spawn"
+    (is (= 40 (let [actor 
+                    (binding [*foo* 20]
+                      (spawn 
+                       (let [v1 *foo*]
+                         (Strand/sleep 200)
+                         (let [v2 *foo*]
+                           (+ v1 v2)))))]
+                (join actor)))))
+  (testing "Test dynamic binding in spawn"
+    (is (= 30 (let [actor 
+                    (spawn (binding [*foo* 15]
+                             (let [v1 *foo*]
+                               (Strand/sleep 200)
+                               (let [v2 *foo*]
+                                 (+ v1 v2)))))]
+                (join actor))))))
 
 (deftest actor-receive
   (testing "Test simple actor send/receive"
     (is (= :abc (let [actor (spawn (receive))]
                   (! actor :abc)
-                  (join actor))))))
+                  (join actor)))))
+  (testing "Test receive after sleep"
+    (is (= 25 (let [actor 
+                    (spawn (let [m1 (receive)
+                                 m2 (receive)]
+                             (+ m1 m2)))]
+                (! actor 13)
+                (Thread/sleep 200)
+                (! actor 12)
+                (join actor)))))
+  (testing "When simple receive and timeout then return nil"
+    (let [actor 
+          (spawn (let [m1 (receive :timeout 50)
+                       m2 (receive :timeout 50)
+                       m3 (receive :timeout 50)]
+                   (is (= 1 m1))
+                   (is (= 2 m2))
+                   (is (nil? m3))))]
+      (! actor 1)
+      (Thread/sleep 20)
+      (! actor 2)
+      (Thread/sleep 100)
+      (! actor 3)
+      (join actor)))
+  (testing "When matching receive and timeout then throw exception"
+    (let [actor 
+          (spawn 
+           (is (thrown? TimeoutException 
+                        (receive :timeout 100
+                                 [_] (println "got it!")))))]
+      (Thread/sleep 150)
+      (! actor 1)
+      (join actor))))
