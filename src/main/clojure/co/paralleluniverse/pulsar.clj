@@ -10,7 +10,7 @@
            [jsr166e ForkJoinPool ForkJoinTask]
            [co.paralleluniverse.strands Strand]
            [co.paralleluniverse.strands SuspendableCallable]
-           [co.paralleluniverse.fibers Fiber PulsarFiber Joinable FiberInterruptedException]
+           [co.paralleluniverse.fibers Fiber Joinable FiberInterruptedException]
            [co.paralleluniverse.fibers.instrument ClojureRetransform]
            [co.paralleluniverse.strands.channels Channel ObjectChannel IntChannel LongChannel FloatChannel DoubleChannel]
            [co.paralleluniverse.actors Actor PulsarActor])
@@ -99,7 +99,7 @@
   "wrap a clojure function as a SuspendableCallable"
   {:no-doc true}
   [f]
-  (suspendable! (ClojureRetransform/wrap f)))
+  (ClojureRetransform/wrap f))
 
 
 (defmacro susfn
@@ -123,7 +123,7 @@
   "Creates a new fiber (a lightweight thread) running in a fork/join pool."
   [& args]
   (let [[^String name ^ForkJoinPool pool ^Integer stacksize f] (ops-args [[string? nil] [#(instance? ForkJoinPool %) fj-pool] [integer? -1]] args)]
-    (PulsarFiber. name (get-pool pool) (int stacksize) (wrap f))))
+    (Fiber. name (get-pool pool) (int stacksize) (wrap f))))
 
 (defn start
   "Starts a fiber"
@@ -135,7 +135,7 @@
   [& args]
   (let [[{:keys [^String name ^Integer stack-size ^ForkJoinPool pool], :or {stack-size -1}} body] (kps-args args)]
     `(let [f# (suspendable! (fn [] ~@body))
-           fiber# (PulsarFiber. ~name (get-pool ~pool) ~stack-size (wrap f#))]
+           fiber# (Fiber. ~name (get-pool ~pool) ~stack-size (wrap f#))]
        (start fiber#))))
 
 (defn current-fiber
@@ -252,11 +252,12 @@
   [& args]
   (let [[{:keys [^String name ^Integer mailbox-size ^Integer stack-size ^ForkJoinPool pool], :or {mailbox-size -1 stack-size -1}} body] (kps-args args)]
     `(let [f# (suspendable! (fn [] ~@body))
-           actor# (actor ~name ~mailbox-size (wrap f#))
-           fiber# (PulsarFiber. ~name (get-pool ~pool) ~stack-size actor#)]
-       (start fiber#))))
+           actor# (actor ~name ~mailbox-size f#)
+           fiber# (Fiber. ~name (get-pool ~pool) ~stack-size actor#)]
+       (start fiber#)
+       actor#)))
 
-(def ^Actor self
+(def self
   "@self is the currently running actor"
   (reify 
     clojure.lang.IDeref
@@ -277,22 +278,24 @@
   [& args]
   (let [[{:keys [^Long timeout ^TimeUnit unit], :or {timeout 0 unit TimeUnit/MILLISECONDS}} ps] (kps-args args)]
      (if (not (seq ps))
-       (.receive ^PulsarActor @self (long timeout) unit)
-       (.receive ^PulsarActor @self (long timeout) unit (suspendable! (first ps))))))
+       (.receive ^PulsarActor @self timeout unit)
+       (.receive ^PulsarActor @self timeout unit (suspendable! (first ps))))))
 
 (defmacro receive
   [& args]
-  (let [[{:keys [^Integer timeout ^TimeUnit unit], :or {timeout 0 unit TimeUnit/MILLISECONDS}} body] (kps-args args)]
-     `(if (not (seq body))
-       (.receive @self ~timeout ~unit)
-       (.receive @self ~timeout ~unit 
-                 (suspendable! (fn [m] 
+  (let [[{:keys [^Long timeout ^TimeUnit unit], :or {timeout 0 unit `TimeUnit/MILLISECONDS}} body] (kps-args args)]
+     `(if (not (seq ~body))
+       (.receive ^PulsarActor @self ~timeout ~unit)
+       (.receive ^PulsarActor @self ~timeout ~unit 
+                 (suspendable! (fn [m#] 
                                (try 
-                                 (match m ~@body)
-                                 (catch Exception e 
-                                   (if (-?> e .getMessage .startsWith "No match found.")
-                                     false
-                                     (throw e))))))))))
+                                 (match [m#] ~@body)
+                                 true
+                                 (catch Exception e# 
+                                   (let [emsg# (.getMessage e#)]
+                                     (if (and emsg# (.startsWith emsg# "No match found."))
+                                       false
+                                       (throw e#)))))))))))
 
 (defn link!
   "links two actors"
@@ -304,10 +307,11 @@
   [& args]
   (let [[{:keys [^String name ^Integer mailbox-size ^Integer stack-size ^ForkJoinPool pool], :or {mailbox-size -1 stack-size -1}} body] (kps-args args)]
     `(let [f# (suspendable! (fn [] ~@body))
-           actor# (actor ~name ~mailbox-size (wrap f#))
-           fiber# (PulsarFiber. ~name (get-pool ~pool) ~stack-size actor#)]
+           actor# (actor ~name ~mailbox-size f#)
+           fiber# (Fiber. ~name (get-pool ~pool) ~stack-size actor#)]
        (link! @self actor)
-       (start fiber#))))
+       (start fiber#)
+       actor#)))
 
 (defn unlink!
   "Unlinks two actors"
