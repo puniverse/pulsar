@@ -5,6 +5,7 @@
 package co.paralleluniverse.fibers.instrument;
 
 import clojure.lang.IFn;
+import clojure.lang.Var;
 import co.paralleluniverse.common.util.Exceptions;
 import co.paralleluniverse.fibers.Instrumented;
 import co.paralleluniverse.fibers.SuspendExecution;
@@ -36,10 +37,13 @@ public class ClojureRetransform {
     public static SuspendableCallable<Object> wrap(final IFn fn) {
         if (!isInstrumented(fn.getClass()))
             throw new IllegalArgumentException("Function " + fn + " has not been instrumented");
+        
+        final Object binding = Var.cloneThreadBindingFrame(); // Clojure treats bindings as an InheritableThreadLocal, yet sets them in a ThreadLocal...
         return new SuspendableCallable<Object>() {
             @Override
             public Object run() throws SuspendExecution, InterruptedException {
                 try {
+                    Var.resetThreadBindingFrame(binding);
                     return fn.call();
                 } catch (Exception e) {
                     throw Exceptions.rethrow(e);
