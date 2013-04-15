@@ -2,11 +2,8 @@
   (:use clojure.test
         co.paralleluniverse.pulsar)
   (:import [java.util.concurrent TimeUnit]
-           [jsr166e ForkJoinPool ForkJoinTask]
            [co.paralleluniverse.strands Strand]
-           [co.paralleluniverse.fibers Fiber Joinable FiberInterruptedException TimeoutException]
-           [co.paralleluniverse.strands.channels Channel]
-           [co.paralleluniverse.actors Actor PulsarActor]))
+           [co.paralleluniverse.fibers Fiber FiberInterruptedException TimeoutException]))
 
 
 (defn fail []
@@ -64,17 +61,21 @@
                     (binding [*foo* 20]
                       (spawn 
                        (let [v1 *foo*]
-                         (Strand/sleep 200)
+                         (Fiber/sleep 200)
                          (let [v2 *foo*]
                            (+ v1 v2)))))]
                 (join actor)))))
-  (testing "Test dynamic binding in spawn"
+  #_(testing "Test dynamic binding in spawn"
     (is (= 30 (let [actor 
-                    (spawn (binding [*foo* 15]
-                             (let [v1 *foo*]
-                               (Strand/sleep 200)
-                               (let [v2 *foo*]
-                                 (+ v1 v2)))))]
+                    (spawn 
+                     (println "-- " (get-thread-bindings))
+                     (binding [*foo* 15]
+                       (println "== " (get-thread-bindings))
+                       (let [v1 *foo*]
+                         (Fiber/sleep 200)
+                         (let [v2 *foo*]
+                           (+ v1 v2)))
+                       (println "~~ " (get-thread-bindings))))]
                 (join actor))))))
 
 (deftest actor-receive
@@ -93,9 +94,9 @@
                 (join actor)))))
   (testing "When simple receive and timeout then return nil"
     (let [actor 
-          (spawn (let [m1 (receive :timeout 50)
-                       m2 (receive :timeout 50)
-                       m3 (receive :timeout 50)]
+          (spawn (let [m1 (receive-timed 50)
+                       m2 (receive-timed 50)
+                       m3 (receive-timed 50)]
                    (is (= 1 m1))
                    (is (= 2 m2))
                    (is (nil? m3))))]
@@ -106,11 +107,23 @@
       (! actor 3)
       (join actor)))
   (testing "When matching receive and timeout then throw exception"
-    (let [actor 
-          (spawn 
-           (is (thrown? TimeoutException 
-                        (receive :timeout 100
-                                 [_] (println "got it!")))))]
-      (Thread/sleep 150)
-      (! actor 1)
-      (join actor))))
+      (let [actor 
+            (spawn 
+             (is (thrown? TimeoutException 
+                          (receive-timed 100
+                                   [:foo] nil
+                                   :else (println "got it!")))))]
+        (Thread/sleep 150)
+        (! actor 1)
+        (join actor))))
+
+(deftest actor-link
+  (testing "When am actor dies, it's link gets an exception"
+    (let [actor1 (spawn (Fiber/sleep 100))
+          actor2 (spawn 
+                  (try 
+                    (loop [] (receive) (recur)) 
+                      (catch co.paralleluniverse.actors.LifecycleException e nil)))]
+      (link! actor1 actor2)
+      (join actor1)
+      (join actor2))))

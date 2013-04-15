@@ -8,6 +8,7 @@
   :java-source-paths ["src/main/java"]
   :javac-options     ["-target" "1.7" "-source" "1.7"]
   :repositories {"project" "file:lib"}
+  :test-selectors {:selected :selected}
   :dependencies [[org.clojure/clojure "1.5.0"]
                  [org.clojure/core.incubator "0.1.2"]
                  [jsr166e/jsr166e "0.1"]
@@ -24,5 +25,5 @@
              {:plugins [[codox "0.6.4"]
                         [lein-marginalia "0.7.1"]]
               :codox {:exclude co.paralleluniverse.pulsar-test}
-              :jvm-opts ["-Dco.paralleluniverse.lwthreads.verifyInstrumentation=true"]
+              :jvm-opts ["-ea" "-Dco.paralleluniverse.lwthreads.verifyInstrumentation=true"]
               :global-vars {*warn-on-reflection* true}}})

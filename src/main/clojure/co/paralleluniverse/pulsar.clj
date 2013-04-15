@@ -11,9 +11,10 @@
            [co.paralleluniverse.strands Strand]
            [co.paralleluniverse.strands SuspendableCallable]
            [co.paralleluniverse.fibers Fiber Joinable FiberInterruptedException]
-           [co.paralleluniverse.fibers.instrument ClojureRetransform]
+           [co.paralleluniverse.fibers.instrument]
            [co.paralleluniverse.strands.channels Channel ObjectChannel IntChannel LongChannel FloatChannel DoubleChannel]
-           [co.paralleluniverse.actors Actor PulsarActor])
+           [co.paralleluniverse.actors Actor]
+           [co.paralleluniverse.pulsar PulsarActor ClojureHelper])
   (:use [clojure.core.match :only [match]]
         [clojure.core.incubator :only [-?>]]))
 
@@ -30,7 +31,6 @@
   (if (seq pds)
     (let [[p? d] (first pds)
           x      (first xs)]
-      (println x)
       (if (p? x)
         (cons x (ops-args (rest pds) (rest xs)))
         (cons d (ops-args (rest pds) xs))))
@@ -51,6 +51,11 @@
   (fn
     ([x] (if (sequential? x) (map f x) (f x)))
     ([x & xs] (map f (cons x xs)))))
+
+(defn- as-timeunit [x]
+  (if (keyword? x)
+    (ClojureHelper/keywordToUnit x)
+    x))
 
 ;; ## Global fork/join pool
 
@@ -92,14 +97,14 @@
   (sequentialize
    (fn [f] 
      (when (not (suspendable? f))
-       (ClojureRetransform/retransform f))
+       (ClojureHelper/retransform f))
      f)))
 
-(defn ^SuspendableCallable wrap
+(defn ^SuspendableCallable asSuspendableCallable
   "wrap a clojure function as a SuspendableCallable"
   {:no-doc true}
   [f]
-  (ClojureRetransform/wrap f))
+  (ClojureHelper/asSuspendableCallable f))
 
 
 (defmacro susfn
@@ -110,7 +115,8 @@
 (defmacro defsusfn
   "Defines a suspendable function that can be used by a fiber or actor"
   [& expr]
-  `(suspendable! (defn ~@expr)))
+  `(do (defn ~@expr)
+     (suspendable! ~(first expr))))
 
 ;; ## Fibers
 
@@ -119,11 +125,17 @@
   [^ForkJoinPool pool]
   (or pool (current-fj-pool) fj-pool))
 
+(defn ^Fiber fiber1
+  "Creates a new fiber (a lightweight thread) running in a fork/join pool."
+  {:no-doc true}
+  [^String name ^ForkJoinPool pool ^Integer stacksize target]
+  (Fiber. name (get-pool pool) (int stacksize) target))
+
 (defn ^Fiber fiber
   "Creates a new fiber (a lightweight thread) running in a fork/join pool."
   [& args]
   (let [[^String name ^ForkJoinPool pool ^Integer stacksize f] (ops-args [[string? nil] [#(instance? ForkJoinPool %) fj-pool] [integer? -1]] args)]
-    (Fiber. name (get-pool pool) (int stacksize) (wrap f))))
+    (fiber1 name pool stacksize (asSuspendableCallable f))))
 
 (defn start
   "Starts a fiber"
@@ -135,7 +147,7 @@
   [& args]
   (let [[{:keys [^String name ^Integer stack-size ^ForkJoinPool pool], :or {stack-size -1}} body] (kps-args args)]
     `(let [f# (suspendable! (fn [] ~@body))
-           fiber# (Fiber. ~name (get-pool ~pool) ~stack-size (wrap f#))]
+           fiber# (fiber1 ~name ~pool ~stack-size (asSuspendableCallable f#))]
        (start fiber#))))
 
 (defn current-fiber
@@ -145,7 +157,7 @@
 
 (defn join 
   ([^Joinable s]
-  (.get s))
+   (.get s))
   ([^Joinable s timeout ^TimeUnit unit]
    (.get s timeout unit)))
 
@@ -175,7 +187,7 @@
   [^Channel channel message]
   (.send channel message))
 
-(defn rcv
+(defsusfn rcv
   "Receives a message from a channel"
   [^Channel channel]
   (.receive channel))
@@ -191,7 +203,7 @@
   [^IntChannel channel message]
   (.send channel (int message)))
 
-(defn ^int receive-int
+(defsusfn ^int receive-int
   [^IntChannel channel]
   (.receiveInt channel))
 
@@ -204,7 +216,7 @@
   [^LongChannel channel message]
   (.send channel (long message)))
 
-(defn ^long receive-long
+(defsusfn ^long receive-long
   [^LongChannel channel]
   (.receiveLong channel))
 
@@ -217,7 +229,7 @@
   [^FloatChannel channel message]
   (.send channel (float message)))
 
-(defn ^float receive-float
+(defsusfn ^float receive-float
   [^FloatChannel channel]
   (.receiveFloat channel))
 
@@ -230,7 +242,7 @@
   [^FloatChannel channel message]
   (.send channel (double message)))
 
-(defn ^double receive-double
+(defsusfn ^double receive-double
   [^DoubleChannel channel]
   (.receiveDouble channel))
 
@@ -240,12 +252,18 @@
 (defn ^Actor actor
   "Creates a new actor."
   ([^String name ^Integer mailbox-size f]
-   (PulsarActor. name (int mailbox-size) (wrap f)))
+   (PulsarActor. name (int mailbox-size) (asSuspendableCallable f)))
   ([f]
-   (PulsarActor. nil -1 (wrap f)))
+   (PulsarActor. nil -1 (asSuspendableCallable f)))
   ([arg1 arg2]
    (let [[^String name ^Integer mailbox-size f] (ops-args [[string? nil] [integer? -1]] [arg1 arg2])]
-     (PulsarActor. name (int mailbox-size) (wrap f)))))
+     (PulsarActor. name (int mailbox-size) (asSuspendableCallable f)))))
+
+(def self
+  "@self is the currently running actor"
+  (reify 
+    clojure.lang.IDeref
+    (deref [_] (Actor/currentActor))))
 
 (defmacro spawn
   "Creates and starts a new actor"
@@ -253,15 +271,34 @@
   (let [[{:keys [^String name ^Integer mailbox-size ^Integer stack-size ^ForkJoinPool pool], :or {mailbox-size -1 stack-size -1}} body] (kps-args args)]
     `(let [f# (suspendable! (fn [] ~@body))
            actor# (actor ~name ~mailbox-size f#)
-           fiber# (Fiber. ~name (get-pool ~pool) ~stack-size actor#)]
+           fiber# (fiber1 ~name ~pool ~stack-size actor#)]
        (start fiber#)
        actor#)))
 
-(def self
-  "@self is the currently running actor"
-  (reify 
-    clojure.lang.IDeref
-    (deref [_] (Actor/currentActor))))
+(def no-match
+  ^{:no-doc true}
+  PulsarActor/NO_MATCH)
+
+(defn- process-receive-body 
+  [body]
+  (if (seq (filter #(= (first %) :else) (partition 2 body))) body (concat body '(:else ~no-match))))
+
+(defmacro receive
+  ([]
+   `(.receive ^co.paralleluniverse.pulsar.PulsarActor @self))
+  ([& body]
+   (let [body (process-receive-body body)]
+     `(.receive ^co.paralleluniverse.pulsar.PulsarActor @self
+               (suspendable! (fn [m#] 
+                               (match m# ~@body)))))))
+(defmacro receive-timed
+  ([^Integer timeout]
+   `(.receive ^co.paralleluniverse.pulsar.PulsarActor @self ~timeout))
+  ([^Integer timeout & body]
+   (let [body (process-receive-body body)]
+     `(.receive ^co.paralleluniverse.pulsar.PulsarActor @self ~timeout
+               (suspendable! (fn [m#] 
+                               (match m# ~@body)))))))
 
 (defn !
   "Sends a message to an actor"
@@ -272,30 +309,6 @@
   "Sends a message to an actor synchronously"
   [^Actor actor message]
   (.sendSync actor message))
-
-
-(defn receive1
-  [& args]
-  (let [[{:keys [^Long timeout ^TimeUnit unit], :or {timeout 0 unit TimeUnit/MILLISECONDS}} ps] (kps-args args)]
-     (if (not (seq ps))
-       (.receive ^PulsarActor @self timeout unit)
-       (.receive ^PulsarActor @self timeout unit (suspendable! (first ps))))))
-
-(defmacro receive
-  [& args]
-  (let [[{:keys [^Long timeout ^TimeUnit unit], :or {timeout 0 unit `TimeUnit/MILLISECONDS}} body] (kps-args args)]
-     `(if (not (seq ~body))
-       (.receive ^PulsarActor @self ~timeout ~unit)
-       (.receive ^PulsarActor @self ~timeout ~unit 
-                 (suspendable! (fn [m#] 
-                               (try 
-                                 (match [m#] ~@body)
-                                 true
-                                 (catch Exception e# 
-                                   (let [emsg# (.getMessage e#)]
-                                     (if (and emsg# (.startsWith emsg# "No match found."))
-                                       false
-                                       (throw e#)))))))))))
 
 (defn link!
   "links two actors"
@@ -308,7 +321,7 @@
   (let [[{:keys [^String name ^Integer mailbox-size ^Integer stack-size ^ForkJoinPool pool], :or {mailbox-size -1 stack-size -1}} body] (kps-args args)]
     `(let [f# (suspendable! (fn [] ~@body))
            actor# (actor ~name ~mailbox-size f#)
-           fiber# (Fiber. ~name (get-pool ~pool) ~stack-size actor#)]
+           fiber# (fiber1 ~name (get-pool ~pool) ~stack-size actor#)]
        (link! @self actor)
        (start fiber#)
        actor#)))
