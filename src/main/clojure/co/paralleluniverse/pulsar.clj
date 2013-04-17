@@ -186,15 +186,17 @@
   ([size] (ObjectChannel/create size))
   ([] (ObjectChannel/create -1)))
 
-(defn snd
+(defmacro snd
   "Sends a message to a channel"
-  [^Channel channel message]
-  (.send channel message))
+  [channel message]
+  (co.paralleluniverse.pulsar.ChannelsHelper/send channel message))
 
-(defsusfn rcv
+(defmacro rcv
   "Receives a message from a channel"
-  [^Channel channel]
-  (.receive channel))
+  ([channel]
+   `(co.paralleluniverse.pulsar.ChannelsHelper/receive ~channel))
+  ([channel timeout unit]
+   `(co.paralleluniverse.pulsar.ChannelsHelper/receive ~channel (long ~timeout) ~unit)))
 
 ;; ### Primitive channels
 
@@ -203,52 +205,60 @@
   ([size] (IntChannel/create size))
   ([] (IntChannel/create -1)))
 
-(defn send-int
-  [^IntChannel channel message]
-  (.send channel (int message)))
+(defmacro send-int
+  [channel message]
+  `(co.paralleluniverse.pulsar.ChannelsHelper/sendInt ~channel (int ~message)))
 
-(defsusfn ^int receive-int
-  [^IntChannel channel]
-  (.receiveInt channel))
+(defmacro receive-int
+  ([channel]
+   `(int (co.paralleluniverse.pulsar.ChannelsHelper/receiveInt ~channel)))
+  ([channel timeout unit]
+   `(int (co.paralleluniverse.pulsar.ChannelsHelper/receiveInt ~channel (long ~timeout) ~unit))))
 
 (defn ^LongChannel long-channel
   "Creates a long channel"
   ([size] (LongChannel/create size))
   ([] (LongChannel/create -1)))
 
-(defn send-long
-  [^LongChannel channel message]
-  (.send channel (long message)))
+(defmacro send-long
+  [channel message]
+  `(co.paralleluniverse.pulsar.ChannelsHelper/sendLong ~channel (long ~message)))
 
-(defsusfn ^long receive-long
-  [^LongChannel channel]
-  (.receiveLong channel))
+(defmacro receive-long
+  ([channel]
+   `(long (co.paralleluniverse.pulsar.ChannelsHelper/receiveLong ~channel)))
+  ([channel timeout unit]
+   `(long (co.paralleluniverse.pulsar.ChannelsHelper/receiveLong ~channel (long ~timeout) ~unit))))
 
 (defn ^FloatChannel float-channel
   "Creates a float channel"
   ([size] (FloatChannel/create size))
   ([] (FloatChannel/create -1)))
 
-(defn send-float
-  [^FloatChannel channel message]
-  (.send channel (float message)))
+(defmacro send-float
+  [channel message]
+  `(co.paralleluniverse.pulsar.ChannelsHelper/sendLong ~channel (float ~message)))
 
-(defsusfn ^float receive-float
-  [^FloatChannel channel]
-  (.receiveFloat channel))
+(defmacro receive-float
+  ([channel]
+   `(float (co.paralleluniverse.pulsar.ChannelsHelper/receiveFloat ~channel)))
+  ([channel timeout unit]
+   `(float (co.paralleluniverse.pulsar.ChannelsHelper/receiveFloat ~channel (long ~timeout) ~unit))))
 
 (defn ^DoubleChannel double-channel
   "Creates a double channel"
   ([size] (DoubleChannel/create size))
   ([] (DoubleChannel/create -1)))
 
-(defn send-double
-  [^FloatChannel channel message]
-  (.send channel (double message)))
+(defmacro send-double
+  [channel message]
+  `(co.paralleluniverse.pulsar.ChannelsHelper/sendLong ~channel (double ~message)))
 
-(defsusfn ^double receive-double
-  [^DoubleChannel channel]
-  (.receiveDouble channel))
+(defmacro receive-double
+  ([channel]
+   `(double (co.paralleluniverse.pulsar.ChannelsHelper/receiveDouble ~channel)))
+  ([channel timeout unit]
+   `(double (co.paralleluniverse.pulsar.ChannelsHelper/receiveDouble ~channel (long ~timeout) ~unit))))
 
 
 ;; ## Actors
@@ -296,30 +306,30 @@
 
 (defmacro receive
   ([]
-   `(.receive ^co.paralleluniverse.pulsar.PulsarActor @self))
+   `(co.paralleluniverse.pulsar.PulsarActor/selfReceive))
   ([& body]
    (let [body (process-receive-body body)]
-     `(.receive ^co.paralleluniverse.pulsar.PulsarActor @self
+     `(co.paralleluniverse.pulsar.PulsarActor/selfReceive
                (suspendable! (fn [m#] 
                                (match m# ~@body)))))))
 (defmacro receive-timed
   ([^Integer timeout]
-   `(.receive ^co.paralleluniverse.pulsar.PulsarActor @self ~timeout))
+   `(co.paralleluniverse.pulsar.PulsarActor/selfReceive ~timeout))
   ([^Integer timeout & body]
    (let [body (process-receive-body body)]
-     `(.receive ^co.paralleluniverse.pulsar.PulsarActor @self ~timeout
+     `(co.paralleluniverse.pulsar.PulsarActor/selfReceive ~timeout
                (suspendable! (fn [m#] 
                                (match m# ~@body)))))))
 
-(defn !
+(defmacro !
   "Sends a message to an actor"
-  [^Actor actor message]
-  (.send actor message))
+  [actor message]
+  `(co.paralleluniverse.pulsar.PulsarActor/send ~actor ~message))
 
-(defn !!
+(defmacro !!
   "Sends a message to an actor synchronously"
-  [^Actor actor message]
-  (.sendSync actor message))
+  [actor message]
+  `(co.paralleluniverse.pulsar.PulsarActor/sendSync ~actor ~message))
 
 (defn link!
   "links two actors"

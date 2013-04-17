@@ -3,18 +3,13 @@
   (:import [co.paralleluniverse.fibers Fiber FiberInterruptedException TimeoutException]))
 
 
-(defsusfn foo1 [prev]
-  (! prev (inc (co.paralleluniverse.pulsar.PulsarActor/selfReceive)))
-  (recur prev))
-
 (defn spawn-relay-actor [prev n]
-  (if (= n 0)
+  (if (== n 0)
     prev
     (let [actor (spawn :mailbox-size 10 
-                       (foo1 prev)
-                       #_(loop []
-                           (! prev (co.paralleluniverse.pulsar.PulsarActor/selfReceive))
-                           (recur)))]
+                       (loop []
+                         (! prev (inc (receive)))
+                         (recur)))]
       (recur actor (dec n)))))
 
 
@@ -30,7 +25,7 @@
                           (let [last-actor (spawn-relay-actor @self (dec N))]
                             (! last-actor 1) ; start things off
                             (loop [j (int 1)]
-                              (let [m (co.paralleluniverse.pulsar.PulsarActor/selfReceive)]
+                              (let [m (receive)]
                                 ;(println "- j: " j " m: " m)
                                 (if (< j M)
                                   (do

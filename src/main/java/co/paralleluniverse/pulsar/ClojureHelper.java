@@ -7,12 +7,14 @@ package co.paralleluniverse.pulsar;
 import clojure.lang.IFn;
 import clojure.lang.Keyword;
 import clojure.lang.Var;
+import co.paralleluniverse.actors.Actor;
 import co.paralleluniverse.actors.MessageProcessor;
 import co.paralleluniverse.fibers.Instrumented;
 import co.paralleluniverse.fibers.SuspendExecution;
 import co.paralleluniverse.fibers.instrument.MethodDatabase;
 import co.paralleluniverse.fibers.instrument.Retransform;
 import co.paralleluniverse.strands.SuspendableCallable;
+import co.paralleluniverse.strands.channels.Channel;
 import java.lang.instrument.UnmodifiableClassException;
 import java.lang.reflect.Method;
 import java.util.concurrent.TimeUnit;
@@ -62,7 +64,9 @@ public class ClojureHelper {
     private static Object suspendableInvoke(IFn fn) throws SuspendExecution {
         return fn.invoke();
     }
-
+    
+    
+    ////////
     public static TimeUnit keywordToUnit(Keyword unit) {
         switch (unit.getName()) {
             case "nanoseconds":
@@ -89,11 +93,6 @@ public class ClojureHelper {
             default:
                 throw new IllegalArgumentException("Unrecognized time unit " + unit);
         }
-    }
-
-    public static void profile(String name, long time) {
-        //System.out.println(name + ": " + time);
-        // arguments captured by btrace
     }
 
     private static boolean isInstrumented(Class clazz) {

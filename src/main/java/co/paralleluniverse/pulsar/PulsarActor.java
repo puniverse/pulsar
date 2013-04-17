@@ -11,6 +11,31 @@ import java.util.concurrent.TimeUnit;
  * @author pron
  */
 public class PulsarActor extends Actor<Object, Object> {
+    public static Object selfReceive() throws SuspendExecution, InterruptedException {
+        return ((PulsarActor) currentActor()).receive();
+    }
+
+    public static Object selfReceive(long timeout) throws SuspendExecution, InterruptedException {
+        return ((PulsarActor) currentActor()).receive(timeout);
+    }
+
+    public static Object selfReceive(IFn fn) throws SuspendExecution, InterruptedException {
+        return ((PulsarActor) currentActor()).receive(fn);
+    }
+
+    public static Object selfReceive(long timeout, IFn fn) throws SuspendExecution, InterruptedException {
+        return ((PulsarActor) currentActor()).receive(timeout, fn);
+    }
+
+    public static void send(Actor actor, Object m) {
+        actor.send(m);
+    }
+
+    public static void sendSync(Actor actor, Object m) {
+        actor.sendSync(m);
+    }
+    
+    ///////////////////////////////////////////////////////////////
     public static final Object NO_MATCH = new Object();
     private final SuspendableCallable<Object> target;
 
@@ -25,22 +50,6 @@ public class PulsarActor extends Actor<Object, Object> {
         return target.run();
     }
 
-    public static Object selfReceive() throws SuspendExecution, InterruptedException {
-        return ((PulsarActor)currentActor()).receive();
-    }
-    
-    public static Object selfReceive(long timeout) throws SuspendExecution, InterruptedException {
-        return ((PulsarActor)currentActor()).receive(timeout);
-    }
-    
-    public static Object selfReceive(IFn fn) throws SuspendExecution, InterruptedException {
-        return ((PulsarActor)currentActor()).receive(fn);
-    }
-    
-    public static Object selfReceive(long timeout, IFn fn) throws SuspendExecution, InterruptedException {
-        return ((PulsarActor)currentActor()).receive(timeout, fn);
-    }
-    
     @Override
     public Object receive() throws SuspendExecution, InterruptedException {
         return super.receive();
