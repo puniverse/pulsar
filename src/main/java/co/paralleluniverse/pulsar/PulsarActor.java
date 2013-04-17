@@ -25,6 +25,22 @@ public class PulsarActor extends Actor<Object, Object> {
         return target.run();
     }
 
+    public static Object selfReceive() throws SuspendExecution, InterruptedException {
+        return ((PulsarActor)currentActor()).receive();
+    }
+    
+    public static Object selfReceive(long timeout) throws SuspendExecution, InterruptedException {
+        return ((PulsarActor)currentActor()).receive(timeout);
+    }
+    
+    public static Object selfReceive(IFn fn) throws SuspendExecution, InterruptedException {
+        return ((PulsarActor)currentActor()).receive(fn);
+    }
+    
+    public static Object selfReceive(long timeout, IFn fn) throws SuspendExecution, InterruptedException {
+        return ((PulsarActor)currentActor()).receive(timeout, fn);
+    }
+    
     @Override
     public Object receive() throws SuspendExecution, InterruptedException {
         return super.receive();

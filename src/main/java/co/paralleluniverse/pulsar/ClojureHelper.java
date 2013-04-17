@@ -23,19 +23,19 @@ import org.objectweb.asm.Type;
  * @author pron
  */
 public class ClojureHelper {
-    public static void retransform(IFn fn) throws UnmodifiableClassException {
+    public static IFn retransform(IFn fn) throws UnmodifiableClassException {
         final Class clazz = fn.getClass();
+        if(clazz.isAnnotationPresent(Instrumented.class))
+            return fn;
         MethodDatabase.ClassEntry entry = Retransform.getMethodDB().getClassEntry(Type.getInternalName(clazz));
         entry.setRequiresInstrumentation(true);
         Method[] methods = clazz.getMethods();
         for (Method method : methods) {
-            if (method.getName().equals("invoke") || method.getName().equals("doInvoke")) {
-                // System.out.println("X: request retransform " + Type.getInternalName(clazz) + "." + method.getName() + Type.getMethodDescriptor(method));
+            if (method.getName().equals("invoke") || method.getName().equals("doInvoke"))
                 entry.set(method.getName(), Type.getMethodDescriptor(method), true);
-            }
         }
-        //System.out.println("XXXX: " + fn.getClass());
         Retransform.retransform(fn.getClass());
+        return fn;
     }
 
     public static SuspendableCallable<Object> asSuspendableCallable(final IFn fn) {
@@ -49,7 +49,7 @@ public class ClojureHelper {
                 final Object origBinding = Var.getThreadBindingFrame();
                 try {
                     Var.resetThreadBindingFrame(binding);
-                    return fn.invoke();
+                    return suspendableInvoke(fn);
                 } catch (Exception e) {
                     throw sneakyThrow(e);
                 } finally {
@@ -57,6 +57,10 @@ public class ClojureHelper {
                 }
             }
         };
+    }
+    
+    private static Object suspendableInvoke(IFn fn) throws SuspendExecution {
+        return fn.invoke();
     }
 
     public static TimeUnit keywordToUnit(Keyword unit) {
@@ -87,13 +91,9 @@ public class ClojureHelper {
         }
     }
 
-    public static MessageProcessor<Object> asMessageProcessor(final IFn fn) {
-        return new MessageProcessor<Object>() {
-            @Override
-            public boolean process(Object msg) throws SuspendExecution, InterruptedException {
-                throw new UnsupportedOperationException("Not supported yet.");
-            }
-        };
+    public static void profile(String name, long time) {
+        //System.out.println(name + ": " + time);
+        // arguments captured by btrace
     }
 
     private static boolean isInstrumented(Class clazz) {

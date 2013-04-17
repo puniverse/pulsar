@@ -57,6 +57,12 @@
     (ClojureHelper/keywordToUnit x)
     x))
 
+(defmacro profile [^String name expr]
+  `(let [start# (long (System/nanoTime))
+         ret# ~expr]
+     (co.paralleluniverse.pulsar.ClojureHelper/profile ~name (- (long (System/nanoTime)) start#))
+     ret#))
+
 ;; ## Global fork/join pool
 
 (defn- available-processors
@@ -76,7 +82,7 @@
 
 (def fj-pool
   "A global fork/join pool. The pool uses all available processors and runs in the async mode."
-  (ForkJoinPool. (available-processors) jsr166e.ForkJoinPool/defaultForkJoinWorkerThreadFactory nil true))
+  (ForkJoinPool. 4 jsr166e.ForkJoinPool/defaultForkJoinWorkerThreadFactory nil true))
 
 ;; *Make agents use the global fork-join pool*
 
@@ -96,9 +102,7 @@
   "Makes a function suspendable"
   (sequentialize
    (fn [f] 
-     (when (not (suspendable? f))
-       (ClojureHelper/retransform f))
-     f)))
+     (ClojureHelper/retransform f))))
 
 (defn ^SuspendableCallable asSuspendableCallable
   "wrap a clojure function as a SuspendableCallable"
@@ -128,14 +132,14 @@
 (defn ^Fiber fiber1
   "Creates a new fiber (a lightweight thread) running in a fork/join pool."
   {:no-doc true}
-  [^String name ^ForkJoinPool pool ^Integer stacksize target]
+  [^String name ^ForkJoinPool pool ^Integer stacksize ^SuspendableCallable target]
   (Fiber. name (get-pool pool) (int stacksize) target))
 
 (defn ^Fiber fiber
   "Creates a new fiber (a lightweight thread) running in a fork/join pool."
   [& args]
   (let [[^String name ^ForkJoinPool pool ^Integer stacksize f] (ops-args [[string? nil] [#(instance? ForkJoinPool %) fj-pool] [integer? -1]] args)]
-    (fiber1 name pool stacksize (asSuspendableCallable f))))
+    (Fiber. name (get-pool pool) (int stacksize) (asSuspendableCallable f))))
 
 (defn start
   "Starts a fiber"
@@ -147,8 +151,8 @@
   [& args]
   (let [[{:keys [^String name ^Integer stack-size ^ForkJoinPool pool], :or {stack-size -1}} body] (kps-args args)]
     `(let [f# (suspendable! (fn [] ~@body))
-           fiber# (fiber1 ~name ~pool ~stack-size (asSuspendableCallable f#))]
-       (start fiber#))))
+           fiber# (co.paralleluniverse.fibers.Fiber. ~name (get-pool ~pool) (int ~stack-size) (asSuspendableCallable f#))]
+       (.start fiber#))))
 
 (defn current-fiber
   "Returns the currently running lightweight-thread or nil if none"
@@ -259,6 +263,9 @@
    (let [[^String name ^Integer mailbox-size f] (ops-args [[string? nil] [integer? -1]] [arg1 arg2])]
      (PulsarActor. name (int mailbox-size) (asSuspendableCallable f)))))
 
+(defn current-actor []
+  (Actor/currentActor))
+
 (def self
   "@self is the currently running actor"
   (reify 
@@ -269,10 +276,10 @@
   "Creates and starts a new actor"
   [& args]
   (let [[{:keys [^String name ^Integer mailbox-size ^Integer stack-size ^ForkJoinPool pool], :or {mailbox-size -1 stack-size -1}} body] (kps-args args)]
-    `(let [f# (suspendable! (fn [] ~@body))
-           actor# (actor ~name ~mailbox-size f#)
-           fiber# (fiber1 ~name ~pool ~stack-size actor#)]
-       (start fiber#)
+    `(let [f#     (suspendable! (fn [] ~@body))
+           actor# (co.paralleluniverse.pulsar.PulsarActor. ~name (int ~mailbox-size) (asSuspendableCallable f#))
+           fiber# (co.paralleluniverse.fibers.Fiber. ~name (get-pool ~pool) (int ~stack-size) actor#)]
+       (.start fiber#)
        actor#)))
 
 (def no-match
@@ -282,6 +289,10 @@
 (defn- process-receive-body 
   [body]
   (if (seq (filter #(= (first %) :else) (partition 2 body))) body (concat body '(:else ~no-match))))
+
+(defsusfn receive1
+  []
+  (.receive ^PulsarActor @self))
 
 (defmacro receive
   ([]
@@ -319,10 +330,10 @@
   "Creates and starts a new actor, and links it to @self"
   [& args]
   (let [[{:keys [^String name ^Integer mailbox-size ^Integer stack-size ^ForkJoinPool pool], :or {mailbox-size -1 stack-size -1}} body] (kps-args args)]
-    `(let [f# (suspendable! (fn [] ~@body))
-           actor# (actor ~name ~mailbox-size f#)
-           fiber# (fiber1 ~name (get-pool ~pool) ~stack-size actor#)]
-       (link! @self actor)
+    `(let [f#     (suspendable! (fn [] ~@body))
+           actor# (co.paralleluniverse.pulsar.PulsarActor. ~name (int ~mailbox-size) (asSuspendableCallable f#))
+           fiber# (co.paralleluniverse.fibers.Fiber. ~name (get-pool ~pool) (int ~stack-size) actor#)]
+       (link! (current-actor) actor)
        (start fiber#)
        actor#)))
 

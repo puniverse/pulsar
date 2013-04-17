@@ -65,20 +65,17 @@
                          (let [v2 *foo*]
                            (+ v1 v2)))))]
                 (join actor)))))
-  #_(testing "Test dynamic binding in spawn"
+  (testing "Test dynamic binding in spawn"
     (is (= 30 (let [actor 
                     (spawn 
-                     (println "-- " (get-thread-bindings))
                      (binding [*foo* 15]
-                       (println "== " (get-thread-bindings))
                        (let [v1 *foo*]
                          (Fiber/sleep 200)
                          (let [v2 *foo*]
-                           (+ v1 v2)))
-                       (println "~~ " (get-thread-bindings))))]
+                           (+ v1 v2)))))]
                 (join actor))))))
 
-(deftest actor-receive
+(deftest ^:selected actor-receive
   (testing "Test simple actor send/receive"
     (is (= :abc (let [actor (spawn (receive))]
                   (! actor :abc)
@@ -107,23 +104,26 @@
       (! actor 3)
       (join actor)))
   (testing "When matching receive and timeout then throw exception"
-      (let [actor 
-            (spawn 
-             (is (thrown? TimeoutException 
-                          (receive-timed 100
-                                   [:foo] nil
-                                   :else (println "got it!")))))]
-        (Thread/sleep 150)
-        (! actor 1)
-        (join actor))))
+    (let [actor 
+          (spawn 
+           ;(is (thrown? TimeoutException 
+           (try
+             (receive-timed 100
+                            [:foo] nil
+                            :else (println "got it!"))
+             (do-report :fail)
+             (catch TimeoutException e nil)))]
+      (Thread/sleep 150)
+      (! actor 1)
+      (join actor))))
 
 (deftest actor-link
-  (testing "When am actor dies, it's link gets an exception"
+  (testing "When an actor dies, it's link gets an exception"
     (let [actor1 (spawn (Fiber/sleep 100))
           actor2 (spawn 
                   (try 
                     (loop [] (receive) (recur)) 
-                      (catch co.paralleluniverse.actors.LifecycleException e nil)))]
+                    (catch co.paralleluniverse.actors.LifecycleException e nil)))]
       (link! actor1 actor2)
       (join actor1)
       (join actor2))))
