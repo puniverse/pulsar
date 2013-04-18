@@ -10,7 +10,6 @@
   :repositories {"project" "file:lib"}
   :test-selectors {:selected :selected}
   :dependencies [[org.clojure/clojure "1.5.0"]
-                 [org.clojure/core.incubator "0.1.2"]
                  [jsr166e/jsr166e "0.1"]
                  [co.paralleluniverse/quasar "0.1-SNAPSHOT"]
                  [com.yammer.metrics/metrics-core "2.0.2"]
@@ -20,10 +19,12 @@
                  [com.google.guava/guava "11.0.1"]
                  [net.sf.trove4j/trove4j "3.0.2"]
                  [org.clojure/core.match "0.2.0-alpha12"]]
-  :jvm-opts ["-server" "-javaagent:/Users/pron/Projects/quasar/build/libs/quasar-0.1-SNAPSHOT.jar"]
+  :jvm-opts ["-server"
+             "-javaagent:/Users/pron/Projects/quasar/build/libs/quasar-0.1-SNAPSHOT.jar"]
+;             "-javaagent:/Users/pron/Projects/lib/btrace-bin/build/btrace-agent.jar=script=/Users/pron/Projects/btraces/build/classes/PulsarTrace.class"]
   :profiles {:dev 
              {:plugins [[codox "0.6.4"]
                         [lein-marginalia "0.7.1"]]
               :codox {:exclude co.paralleluniverse.pulsar-test}
-              :jvm-opts ["-ea" "-Dco.paralleluniverse.lwthreads.verifyInstrumentation=true"]
+              :jvm-opts ["-Dco.paralleluniverse.lwthreads.verifyInstrumentation=true"]
               :global-vars {*warn-on-reflection* true}}})

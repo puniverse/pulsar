@@ -15,8 +15,7 @@
            [co.paralleluniverse.strands.channels Channel ObjectChannel IntChannel LongChannel FloatChannel DoubleChannel]
            [co.paralleluniverse.actors Actor]
            [co.paralleluniverse.pulsar PulsarActor ClojureHelper])
-  (:use [clojure.core.match :only [match]]
-        [clojure.core.incubator :only [-?>]]))
+  (:use [clojure.core.match :only [match]]))
 
 
 ;; ## Private util functions

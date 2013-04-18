@@ -3,7 +3,7 @@
   (:import [co.paralleluniverse.fibers Fiber FiberInterruptedException TimeoutException]))
 
 
-(defn spawn-relay-actor [prev n]
+(defn spawn-relay-actor [^co.paralleluniverse.actors.Actor prev n]
   (if (== n 0)
     prev
     (let [actor (spawn :mailbox-size 10 
@@ -26,7 +26,6 @@
                             (! last-actor 1) ; start things off
                             (loop [j (int 1)]
                               (let [m (receive)]
-                                ;(println "- j: " j " m: " m)
                                 (if (< j M)
                                   (do
                                     (! last-actor (inc m))

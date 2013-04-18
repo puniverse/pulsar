@@ -7,14 +7,11 @@ package co.paralleluniverse.pulsar;
 import clojure.lang.IFn;
 import clojure.lang.Keyword;
 import clojure.lang.Var;
-import co.paralleluniverse.actors.Actor;
-import co.paralleluniverse.actors.MessageProcessor;
 import co.paralleluniverse.fibers.Instrumented;
 import co.paralleluniverse.fibers.SuspendExecution;
 import co.paralleluniverse.fibers.instrument.MethodDatabase;
 import co.paralleluniverse.fibers.instrument.Retransform;
 import co.paralleluniverse.strands.SuspendableCallable;
-import co.paralleluniverse.strands.channels.Channel;
 import java.lang.instrument.UnmodifiableClassException;
 import java.lang.reflect.Method;
 import java.util.concurrent.TimeUnit;
@@ -27,7 +24,7 @@ import org.objectweb.asm.Type;
 public class ClojureHelper {
     public static IFn retransform(IFn fn) throws UnmodifiableClassException {
         final Class clazz = fn.getClass();
-        if(clazz.isAnnotationPresent(Instrumented.class))
+        if (clazz.isAnnotationPresent(Instrumented.class))
             return fn;
         MethodDatabase.ClassEntry entry = Retransform.getMethodDB().getClassEntry(Type.getInternalName(clazz));
         entry.setRequiresInstrumentation(true);
@@ -48,24 +45,23 @@ public class ClojureHelper {
         return new SuspendableCallable<Object>() {
             @Override
             public Object run() throws SuspendExecution, InterruptedException {
-                final Object origBinding = Var.getThreadBindingFrame();
-                try {
-                    Var.resetThreadBindingFrame(binding);
-                    return suspendableInvoke(fn);
-                } catch (Exception e) {
-                    throw sneakyThrow(e);
-                } finally {
-                    Var.resetThreadBindingFrame(origBinding);
-                }
+                Var.resetThreadBindingFrame(binding);
+                return suspendableInvoke(fn);
+//                final Object origBinding = Var.getThreadBindingFrame();
+//                try {
+//                    Var.resetThreadBindingFrame(binding);
+//                    return suspendableInvoke(fn);
+//                } finally {
+//                    Var.resetThreadBindingFrame(origBinding);
+//                }
             }
         };
     }
-    
+
     private static Object suspendableInvoke(IFn fn) throws SuspendExecution {
         return fn.invoke();
     }
-    
-    
+
     ////////
     public static TimeUnit keywordToUnit(Keyword unit) {
         switch (unit.getName()) {

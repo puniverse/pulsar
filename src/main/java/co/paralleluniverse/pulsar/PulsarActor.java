@@ -11,6 +11,14 @@ import java.util.concurrent.TimeUnit;
  * @author pron
  */
 public class PulsarActor extends Actor<Object, Object> {
+    public static <Message> void send(Actor<Message, ?> actor, Message m) {
+        actor.send(m);
+    }
+
+    public static <Message> void sendSync(Actor<Message, ?> actor, Message m) {
+        actor.sendSync(m);
+    }
+
     public static Object selfReceive() throws SuspendExecution, InterruptedException {
         return ((PulsarActor) currentActor()).receive();
     }
@@ -26,15 +34,6 @@ public class PulsarActor extends Actor<Object, Object> {
     public static Object selfReceive(long timeout, IFn fn) throws SuspendExecution, InterruptedException {
         return ((PulsarActor) currentActor()).receive(timeout, fn);
     }
-
-    public static void send(Actor actor, Object m) {
-        actor.send(m);
-    }
-
-    public static void sendSync(Actor actor, Object m) {
-        actor.sendSync(m);
-    }
-    
     ///////////////////////////////////////////////////////////////
     public static final Object NO_MATCH = new Object();
     private final SuspendableCallable<Object> target;
