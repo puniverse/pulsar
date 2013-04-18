@@ -75,7 +75,7 @@ public class ClojureHelper {
             case "millis":
             case "ms":
                 return TimeUnit.MILLISECONDS;
-            case "sconds":
+            case "seconds":
             case "sec":
                 return TimeUnit.SECONDS;
             case "minutes":

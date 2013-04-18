@@ -51,18 +51,22 @@
     ([x] (if (sequential? x) (map f x) (f x)))
     ([x & xs] (map f (cons x xs)))))
 
-(defn- as-timeunit [x]
+(defn as-timeunit
+  "Converts a keyword to a java.util.concurrent.TimeUnit
+  :nanoseconds | :nanos         -> TimeUnit.NANOSECONDS
+  :microseconds | :us           -> TimeUnit.MICROSECONDS
+  :milliseconds | :millis | :ms -> TimeUnit.MILLISECONDS
+  :seconds | :sec               -> TimeUnit.SECONDS
+  :minutes | :mins              -> TimeUnit.MINUTES
+  :hours | :hrs                 -> TimeUnit.HOURS
+  :days                         -> TimeUnit.DAYS
+  "
+  [x]
   (if (keyword? x)
     (ClojureHelper/keywordToUnit x)
     x))
 
-(defmacro profile [^String name expr]
-  `(let [start# (long (System/nanoTime))
-         ret# ~expr]
-     (co.paralleluniverse.pulsar.ClojureHelper/profile ~name (- (long (System/nanoTime)) start#))
-     ret#))
-
-;; ## Global fork/join pool
+;; ## fork/join pool
 
 (defn- in-fj-pool?
   "Returns true if we're running inside a fork/join pool; false otherwise."
@@ -74,10 +78,14 @@
   []
   (ForkJoinTask/getPool))
 
+(defn make-fj-pool
+  "Creates a new ForkJoinPool with the given parallelism and with the given async mode"
+  [^Integer parallelism ^Boolean async]
+  (ForkJoinPool. parallelism jsr166e.ForkJoinPool/defaultForkJoinWorkerThreadFactory nil aync))
+
 (def fj-pool
   "A global fork/join pool. The pool uses all available processors and runs in the async mode."
-  (ForkJoinPool. 4 jsr166e.ForkJoinPool/defaultForkJoinWorkerThreadFactory nil true))
-;  (ForkJoinPool. (.availableProcessors (Runtime/getRuntime)) jsr166e.ForkJoinPool/defaultForkJoinWorkerThreadFactory nil true))
+  (make-fj-pool (.availableProcessors (Runtime/getRuntime)) true))
 
 ;; *Make agents use the global fork-join pool*
 
@@ -172,7 +180,8 @@
 ;; ## Channels
 
 (defn attach!
-  "Sets a channel's owning strand (fiber or thread)"
+  "Sets a channel's owning strand (fiber or thread).
+  This is done automatically the first time a rcv (or one of the primitive-type receive-xxx) is called on the channel."
   [^Channel channel strand]
   (.setStrand channel strand))
 
@@ -181,17 +190,17 @@
   ([size] (ObjectChannel/create size))
   ([] (ObjectChannel/create -1)))
 
-(defmacro snd
+(defn snd
   "Sends a message to a channel"
-  [channel message]
-  `(co.paralleluniverse.pulsar.ChannelsHelper/send ~channel ~message))
+  [^Channel channel message]
+  (co.paralleluniverse.pulsar.ChannelsHelper/send channel message))
 
-(defmacro rcv
+(defn rcv
   "Receives a message from a channel"
-  ([channel]
-   `(co.paralleluniverse.pulsar.ChannelsHelper/receive ~channel))
+  ([^Channel channel]
+   (co.paralleluniverse.pulsar.ChannelsHelper/receive channel))
   ([channel timeout unit]
-   `(co.paralleluniverse.pulsar.ChannelsHelper/receive ~channel (long ~timeout) ~unit)))
+   (co.paralleluniverse.pulsar.ChannelsHelper/receive channel (long timeout) unit)))
 
 ;; ### Primitive channels
 
@@ -295,26 +304,22 @@
   [body]
   (if (seq (filter #(= (first %) :else) (partition 2 body))) body (concat body '(:else ~no-match))))
 
-(defsusfn receive1
-  []
-  (.receive ^PulsarActor @self))
-
 (defmacro receive
   ([]
    `(co.paralleluniverse.pulsar.PulsarActor/selfReceive))
   ([& body]
    (let [body (process-receive-body body)]
      `(co.paralleluniverse.pulsar.PulsarActor/selfReceive
-               (suspendable! (fn [m#] 
-                               (match m# ~@body)))))))
+       (suspendable! (fn [m#] 
+                       (match m# ~@body)))))))
 (defmacro receive-timed
   ([^Integer timeout]
    `(co.paralleluniverse.pulsar.PulsarActor/selfReceive ~timeout))
   ([^Integer timeout & body]
    (let [body (process-receive-body body)]
      `(co.paralleluniverse.pulsar.PulsarActor/selfReceive ~timeout
-               (suspendable! (fn [m#] 
-                               (match m# ~@body)))))))
+                                                          (suspendable! (fn [m#] 
+                                                                          (match m# ~@body)))))))
 
 (defmacro !
   "Sends a message to an actor"
