@@ -1,9 +1,9 @@
 (ns co.paralleluniverse.pulsar.examples.ring-benchmark
   (:use co.paralleluniverse.pulsar)
-  (:import [co.paralleluniverse.fibers Fiber FiberInterruptedException TimeoutException]))
+  (:import [co.paralleluniverse.actors Actor]))
 
 
-(defn spawn-relay-actor [^co.paralleluniverse.actors.Actor prev n]
+(defn spawn-relay-actor [^Actor prev n]
   (if (== n 0)
     prev
     (let [actor (spawn :mailbox-size 10 

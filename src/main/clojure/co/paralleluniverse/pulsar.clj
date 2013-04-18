@@ -64,11 +64,6 @@
 
 ;; ## Global fork/join pool
 
-(defn- available-processors
-  "Returns the number of available processors"
-  []
-  (.availableProcessors (Runtime/getRuntime)))
-
 (defn- in-fj-pool?
   "Returns true if we're running inside a fork/join pool; false otherwise."
   []
@@ -82,6 +77,7 @@
 (def fj-pool
   "A global fork/join pool. The pool uses all available processors and runs in the async mode."
   (ForkJoinPool. 4 jsr166e.ForkJoinPool/defaultForkJoinWorkerThreadFactory nil true))
+;  (ForkJoinPool. (.availableProcessors (Runtime/getRuntime)) jsr166e.ForkJoinPool/defaultForkJoinWorkerThreadFactory nil true))
 
 ;; *Make agents use the global fork-join pool*
 
@@ -188,7 +184,7 @@
 (defmacro snd
   "Sends a message to a channel"
   [channel message]
-  (co.paralleluniverse.pulsar.ChannelsHelper/send channel message))
+  `(co.paralleluniverse.pulsar.ChannelsHelper/send ~channel ~message))
 
 (defmacro rcv
   "Receives a message from a channel"
