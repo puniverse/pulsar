@@ -3,6 +3,7 @@
   :url "http://github.com/puniverse/pulsar"
   :license {:name "LGPL"
             :url "http://www.gnu.org/copyleft/lesser.html"}
+  :distribution :repo
   :source-paths ["src/main/clojure"]
   :test-paths ["src/test/clojure"]
   :java-source-paths ["src/main/java"]
@@ -19,9 +20,9 @@
                  [com.google.guava/guava "11.0.1"]
                  [net.sf.trove4j/trove4j "3.0.2"]
                  [org.clojure/core.match "0.2.0-alpha12"]]
-  :jvm-opts ["-server"
-             "-javaagent:/Users/pron/Projects/quasar/build/libs/quasar-0.1-SNAPSHOT.jar"]
-;             "-javaagent:/Users/pron/Projects/lib/btrace-bin/build/btrace-agent.jar=script=/Users/pron/Projects/btraces/build/classes/PulsarTrace.class"]
+  :jvm-opts ^:replace ["-server"
+                       "-javaagent:/Users/pron/Projects/quasar/build/libs/quasar-0.1-SNAPSHOT.jar"]
+  ;             "-javaagent:/Users/pron/Projects/lib/btrace-bin/build/btrace-agent.jar=script=/Users/pron/Projects/btraces/build/classes/PulsarTrace.class"]
   :profiles {:dev 
              {:plugins [[codox "0.6.4"]
                         [lein-marginalia "0.7.1"]]

@@ -323,7 +323,7 @@
 
 (defmacro receive
   ([]
-   `(co.paralleluniverse.pulsar.PulsarActor/selfReceive))
+   `(co.paralleluniverse.pulsar.PulsarActor/selfReceiveSimple))
   ([& body]
    (let [body (process-receive-body body)]
      `(co.paralleluniverse.pulsar.PulsarActor/selfReceive
@@ -332,7 +332,7 @@
 
 (defmacro receive-timed
   ([^Integer timeout]
-   `(co.paralleluniverse.pulsar.PulsarActor/selfReceive ~timeout))
+   `(co.paralleluniverse.pulsar.PulsarActor/selfReceiveSimple ~timeout))
   ([^Integer timeout & body]
    (let [body (process-receive-body body)]
      `(co.paralleluniverse.pulsar.PulsarActor/selfReceive ~timeout
@@ -369,6 +369,25 @@
   [^Actor actor1 ^Actor actor2 monitor]
   (.demonitor actor1 actor2 monitor))
 
+(defn register
+  "Registers an actor"
+  ([^Actor actor ^String name]
+   (.register actor name))
+  ([^Actor actor]
+   (.register actor)))
+
+(defn unregister
+  "Un-registers an actor"
+  [x]
+  (if (instance? Actor x)
+    (let [^Actor actor x]
+      (.unregister actor))
+    (Actor/unregister x)))
+
+(defn ^Actor whereis
+  "Returns a registered actor by name"
+  [name]
+  (Actor/getActor name))
 
 
 

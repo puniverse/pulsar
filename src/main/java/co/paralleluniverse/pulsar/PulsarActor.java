@@ -1,6 +1,7 @@
 package co.paralleluniverse.pulsar;
 
 import clojure.lang.IFn;
+import clojure.lang.IObj;
 import clojure.lang.Keyword;
 import clojure.lang.PersistentVector;
 import co.paralleluniverse.actors.Actor;
@@ -23,11 +24,11 @@ public class PulsarActor extends Actor<Object, Object> {
         actor.sendSync(m);
     }
 
-    public static Object selfReceive() throws SuspendExecution, InterruptedException {
+    public static Object selfReceiveSimple() throws SuspendExecution, InterruptedException {
         return ((PulsarActor) currentActor()).receive();
     }
 
-    public static Object selfReceive(long timeout) throws SuspendExecution, InterruptedException {
+    public static Object selfReceiveSimple(long timeout) throws SuspendExecution, InterruptedException {
         return ((PulsarActor) currentActor()).receive(timeout);
     }
 
@@ -70,6 +71,7 @@ public class PulsarActor extends Actor<Object, Object> {
 
     public Object receive(long timeout, final IFn fn) throws SuspendExecution, InterruptedException {
         try {
+            curMP = fn;
             super.receive(timeout, TimeUnit.MILLISECONDS, new MessageProcessor<Object>() {
                 @Override
                 public boolean process(Object msg) throws SuspendExecution, InterruptedException {
@@ -86,15 +88,20 @@ public class PulsarActor extends Actor<Object, Object> {
 
     @Override
     protected void handleLifecycleMessage(LifecycleMessage msg) {
+        super.handleLifecycleMessage(msg);
         if (curMP != null) {
             if (msg instanceof ExitMessage) {
-                final ExitMessage m = (ExitMessage)msg;
-                curMP.invoke(PersistentVector.create(keyword("exit"), m.monitor, m.actor, m.reason));
+                final ExitMessage m = (ExitMessage) msg;
+
+                final IObj v = PersistentVector.create(keyword("exit"), m.monitor, m.actor, m.reason);
+                mpRetValue = curMP.invoke(v);
+                if (mpRetValue == NO_MATCH)
+                    throw new RuntimeException("Unprocessed lifecycle message: " + v);
             }
         }
     }
-    
+
     private static Keyword keyword(String s) {
-        return Keyword.intern("co.paralleluniverse.pulsar", "s");
+        return Keyword.intern(s);
     }
 }

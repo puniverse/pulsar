@@ -75,7 +75,7 @@
                            (+ v1 v2)))))]
                 (join actor))))))
 
-(deftest ^:selected actor-receive
+(deftest actor-receive
   (testing "Test simple actor send/receive"
     (is (= :abc (let [actor (spawn (receive))]
                   (! actor :abc)
@@ -102,7 +102,24 @@
       (! actor 2)
       (Thread/sleep 100)
       (! actor 3)
-      (join actor)))
+      (join actor))))
+
+(deftest matching-receive
+  (testing "Test actor matching receive 1"
+    (is (= "yes!" (let [actor (spawn 
+                               (receive
+                                :abc "yes!"
+                                :else "oy"))]
+                    (! actor :abc)
+                    (join actor)))))
+  (testing "Test actor matching receive 2"
+    (is (= "because!" (let [actor (spawn 
+                                   (receive
+                                    :abc "yes!"
+                                    [:why? answer] answer
+                                    :else "oy"))]
+                        (! actor [:why? "because!"])
+                        (join actor)))))
   (testing "When matching receive and timeout then throw exception"
     (let [actor 
           (spawn 
@@ -118,7 +135,7 @@
       (join actor))))
 
 (deftest actor-link
-  (testing "When an actor dies, it's link gets an exception"
+  (testing "When an actor dies, its link gets an exception"
     (let [actor1 (spawn (Fiber/sleep 100))
           actor2 (spawn 
                   (try 
@@ -127,3 +144,14 @@
       (link! actor1 actor2)
       (join actor1)
       (join actor2))))
+
+(deftest ^:selected actor-monitor
+  (testing "When an actor dies, its monitor gets a message"
+    (let [actor1 (spawn (Fiber/sleep 100))
+          actor2 (spawn 
+                  (receive
+                   [:exit monitor actor reason] monitor
+                   :else (throw (Exception. "fail"))))]
+      (let [mon (monitor! actor2 actor1)]
+        (join actor1)
+        (is (= mon (join actor2)))))))
