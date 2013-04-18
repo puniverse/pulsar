@@ -1,7 +1,11 @@
 package co.paralleluniverse.pulsar;
 
 import clojure.lang.IFn;
+import clojure.lang.Keyword;
+import clojure.lang.PersistentVector;
 import co.paralleluniverse.actors.Actor;
+import co.paralleluniverse.actors.ExitMessage;
+import co.paralleluniverse.actors.LifecycleMessage;
 import co.paralleluniverse.actors.MessageProcessor;
 import co.paralleluniverse.fibers.SuspendExecution;
 import co.paralleluniverse.strands.SuspendableCallable;
@@ -37,6 +41,8 @@ public class PulsarActor extends Actor<Object, Object> {
     ///////////////////////////////////////////////////////////////
     public static final Object NO_MATCH = new Object();
     private final SuspendableCallable<Object> target;
+    private IFn curMP; // current Message Processor
+    private Object mpRetValue;
 
     @SuppressWarnings("LeakingThisInConstructor")
     public PulsarActor(String name, int mailboxSize, SuspendableCallable<Object> target) {
@@ -63,19 +69,32 @@ public class PulsarActor extends Actor<Object, Object> {
     }
 
     public Object receive(long timeout, final IFn fn) throws SuspendExecution, InterruptedException {
-        final Result result = new Result();
-        super.receive(timeout, TimeUnit.MILLISECONDS, new MessageProcessor<Object>() {
-            @Override
-            public boolean process(Object msg) throws SuspendExecution, InterruptedException {
-                Object res = fn.invoke(msg);
-                result.res = res;
-                return res != NO_MATCH;
-            }
-        });
-        return result.res;
+        try {
+            super.receive(timeout, TimeUnit.MILLISECONDS, new MessageProcessor<Object>() {
+                @Override
+                public boolean process(Object msg) throws SuspendExecution, InterruptedException {
+                    mpRetValue = fn.invoke(msg);
+                    return mpRetValue != NO_MATCH;
+                }
+            });
+            return mpRetValue;
+        } finally {
+            curMP = null;
+            mpRetValue = null;
+        }
     }
 
-    private static class Result {
-        Object res;
+    @Override
+    protected void handleLifecycleMessage(LifecycleMessage msg) {
+        if (curMP != null) {
+            if (msg instanceof ExitMessage) {
+                final ExitMessage m = (ExitMessage)msg;
+                curMP.invoke(PersistentVector.create(keyword("exit"), m.monitor, m.actor, m.reason));
+            }
+        }
+    }
+    
+    private static Keyword keyword(String s) {
+        return Keyword.intern("co.paralleluniverse.pulsar", "s");
     }
 }
