@@ -25,6 +25,7 @@
   :profiles {:dev 
              {:plugins [[codox "0.6.4"]
                         [lein-marginalia "0.7.1"]]
-              :codox {:include co.paralleluniverse.pulsar}
+              :codox {:include co.paralleluniverse.pulsar
+                      :output-dir "docs"}
               :jvm-opts ["-Dco.paralleluniverse.lwthreads.verifyInstrumentation=true"]
               :global-vars {*warn-on-reflection* true}}})

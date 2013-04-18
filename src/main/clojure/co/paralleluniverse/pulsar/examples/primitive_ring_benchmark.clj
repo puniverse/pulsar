@@ -1,4 +1,5 @@
 (ns co.paralleluniverse.pulsar.examples.primitive-ring-benchmark
+  "An implementation of the ring benchmark using fibers and primitive (int) channels"
   (:use co.paralleluniverse.pulsar)
   (:import [co.paralleluniverse.fibers Fiber FiberInterruptedException TimeoutException]
            [co.paralleluniverse.strands.channels Channel IntChannel]))

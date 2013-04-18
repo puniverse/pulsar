@@ -53,6 +53,7 @@
 
 (defn as-timeunit
   "Converts a keyword to a java.util.concurrent.TimeUnit
+  <pre>
   :nanoseconds | :nanos         -> TimeUnit.NANOSECONDS
   :microseconds | :us           -> TimeUnit.MICROSECONDS
   :milliseconds | :millis | :ms -> TimeUnit.MILLISECONDS
@@ -60,6 +61,7 @@
   :minutes | :mins              -> TimeUnit.MINUTES
   :hours | :hrs                 -> TimeUnit.HOURS
   :days                         -> TimeUnit.DAYS
+  </pre>
   "
   [x]
   (if (keyword? x)
@@ -81,13 +83,13 @@
 (defn make-fj-pool
   "Creates a new ForkJoinPool with the given parallelism and with the given async mode"
   [^Integer parallelism ^Boolean async]
-  (ForkJoinPool. parallelism jsr166e.ForkJoinPool/defaultForkJoinWorkerThreadFactory nil aync))
+  (ForkJoinPool. parallelism jsr166e.ForkJoinPool/defaultForkJoinWorkerThreadFactory nil async))
 
 (def fj-pool
   "A global fork/join pool. The pool uses all available processors and runs in the async mode."
   (make-fj-pool (.availableProcessors (Runtime/getRuntime)) true))
 
-;; *Make agents use the global fork-join pool*
+;; ***Make agents use the global fork-join pool***
 
 (set-agent-send-executor! fj-pool)
 (set-agent-send-off-executor! fj-pool)
@@ -277,9 +279,6 @@
    (let [[^String name ^Integer mailbox-size f] (ops-args [[string? nil] [integer? -1]] [arg1 arg2])]
      (PulsarActor. name (int mailbox-size) (asSuspendableCallable f)))))
 
-(defn current-actor []
-  (Actor/currentActor))
-
 (def self
   "@self is the currently running actor"
   (reify 
@@ -296,13 +295,31 @@
        (.start fiber#)
        actor#)))
 
-(def no-match
-  ^{:no-doc true}
-  PulsarActor/NO_MATCH)
+(defmacro spawn-link
+  "Creates and starts a new actor, and links it to @self"
+  [& args]
+  (let [[{:keys [^String name ^Integer mailbox-size ^Integer stack-size ^ForkJoinPool pool], :or {mailbox-size -1 stack-size -1}} body] (kps-args args)]
+    `(let [f#     (suspendable! (fn [] ~@body))
+           actor# (co.paralleluniverse.pulsar.PulsarActor. ~name (int ~mailbox-size) (asSuspendableCallable f#))
+           fiber# (co.paralleluniverse.fibers.Fiber. ~name (get-pool ~pool) (int ~stack-size) actor#)]
+       (link! @self actor#)
+       (start fiber#)
+       actor#)))
+
+(defmacro spawn-monitor
+  "Creates and starts a new actor, and makes @self monitor it"
+  [& args]
+  (let [[{:keys [^String name ^Integer mailbox-size ^Integer stack-size ^ForkJoinPool pool], :or {mailbox-size -1 stack-size -1}} body] (kps-args args)]
+    `(let [f#     (suspendable! (fn [] ~@body))
+           actor# (co.paralleluniverse.pulsar.PulsarActor. ~name (int ~mailbox-size) (asSuspendableCallable f#))
+           fiber# (co.paralleluniverse.fibers.Fiber. ~name (get-pool ~pool) (int ~stack-size) actor#)]
+       (monitor! @self actor#)
+       (start fiber#)
+       actor#)))
 
 (defn- process-receive-body 
   [body]
-  (if (seq (filter #(= (first %) :else) (partition 2 body))) body (concat body '(:else ~no-match))))
+  (if (seq (filter #(= (first %) :else) (partition 2 body))) body (concat body '(:else PulsarActor/NO_MATCH))))
 
 (defmacro receive
   ([]
@@ -312,6 +329,7 @@
      `(co.paralleluniverse.pulsar.PulsarActor/selfReceive
        (suspendable! (fn [m#] 
                        (match m# ~@body)))))))
+
 (defmacro receive-timed
   ([^Integer timeout]
    `(co.paralleluniverse.pulsar.PulsarActor/selfReceive ~timeout))
@@ -335,17 +353,6 @@
   "links two actors"
   [^Actor actor1 ^Actor actor2]
   (.link actor1 actor2))
-
-(defmacro spawn-link
-  "Creates and starts a new actor, and links it to @self"
-  [& args]
-  (let [[{:keys [^String name ^Integer mailbox-size ^Integer stack-size ^ForkJoinPool pool], :or {mailbox-size -1 stack-size -1}} body] (kps-args args)]
-    `(let [f#     (suspendable! (fn [] ~@body))
-           actor# (co.paralleluniverse.pulsar.PulsarActor. ~name (int ~mailbox-size) (asSuspendableCallable f#))
-           fiber# (co.paralleluniverse.fibers.Fiber. ~name (get-pool ~pool) (int ~stack-size) actor#)]
-       (link! (current-actor) actor)
-       (start fiber#)
-       actor#)))
 
 (defn unlink!
   "Unlinks two actors"
