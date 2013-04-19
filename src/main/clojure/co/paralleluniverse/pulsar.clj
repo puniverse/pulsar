@@ -419,9 +419,8 @@
                                (.unlock ~mailbox)))
                             (recur ~n)))))))]
           ; now, mtc# is the number of the matching clause and m# is the message. 
-          ; we'll match again (to get the bindings)
-          (match [mtc# m#] ~@(mapcat #(list [%2 (first %1)] (second %1)); we help the second match by matching on the number
-                                     pbody (range))))))))
+          ; we'll match again (to get the bindings), but we'll help the match by mathing on mtc
+          (match [mtc# m#] ~@(mapcat #(list [%2 (first %1)] (second %1)) pbody (range))))))))
 
 ;; For examples of this macro's expansions, try:
 ;; (macroexpand-1 '(receive-timed 300))
@@ -460,13 +459,13 @@
                                                             ~%2))
                                                   pbody (range))
                                           `(:else -1))]
-                       `(if (not (nil? ~n))
-                          (let [m# (co.paralleluniverse.actors.PulsarActor/convert (.value ~mailbox ~n))]
-                            (.unlock ~mailbox)
-                            (let [act# (int (match m# ~@quick-match))]
-                              (if (>= 0 act#)
-                                [act# m#]; we've got a match!
-                                (recur ~n)))) ; no match. try the next 
+                         `(if (not (nil? ~n))
+                            (let [m# (co.paralleluniverse.actors.PulsarActor/convert (.value ~mailbox ~n))]
+                              (.unlock ~mailbox)
+                              (let [act# (int (match m# ~@quick-match))]
+                                (if (>= 0 act#)
+                                  [act# m#]; we've got a match!
+                                  (recur ~n)))) ; no match. try the next 
                             (do
                               (try
                                 (.await ~mailbox (- ~exp (long (System/nanoTime))) java.util.concurrent.TimeUnit/NANOSECONDS)
@@ -474,6 +473,5 @@
                                  (.unlock ~mailbox)))
                               (recur ~n))))))))]
           ; now, mtc# is the number of the matching clause and m# is the message. 
-          ; we'll match again (to get the bindings), but only this clause
-          (match [mtc# m#] ~@(mapcat #(list [%2 (first %1)] (second %1)); we help the second match by matching on the number
-                                     pbody (range))))))))
+          ; we'll match again (to get the bindings), but we'll help the match by mathing on mtc
+          (match [mtc# m#] ~@(mapcat #(list [%2 (first %1)] (second %1)) pbody (range))))))))
