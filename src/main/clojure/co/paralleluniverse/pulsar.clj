@@ -269,7 +269,7 @@
 
 ;; ## Actors
 
-(defn ^Actor actor
+(defn ^PulsarActor actor
   "Creates a new actor."
   ([^String name ^Integer mailbox-size f]
    (PulsarActor. name (int mailbox-size) (asSuspendableCallable f)))
@@ -361,64 +361,50 @@
   "Sends a message to an actor"
   ([actor message]
    `(co.paralleluniverse.actors.PulsarActor/send ~actor ~message))
-  ([actor & args]
-   `(co.paralleluniverse.actors.PulsarActor/send ~actor ~args)))
+  ([actor arg & args]
+   `(co.paralleluniverse.actors.PulsarActor/send ~actor [~arg ~@args])))
 
 (defmacro !!
   "Sends a message to an actor synchronously"
   ([actor message]
    `(co.paralleluniverse.actors.PulsarActor/sendSync ~actor ~message))
-  ([actor & args]
-   `(co.paralleluniverse.actors.PulsarActor/sendSync ~actor ~args)))
-
-; this function runs at compile time
-(defn- process-receive-body 
-  [n body]
-  (let [pbody (partition 2 body)]
-    (if (seq (filter #(= (first %) :else) pbody)) 
-      ; if we have an :else then every message is processed and our job is easy
-      (cons '(co.paralleluniverse.actors.PulsarActor.del ~n) 'body)
-      ; if we don't
-      (concat (flatten body) '(:else PulsarActor/NO_MATCH)))))
+  ([actor arg & args]
+   `(co.paralleluniverse.actors.PulsarActor/sendSync ~actor [~arg ~@args])))
 
 
-(defn- process-receive-body 
-  [n body]
-  (let [pbody (map #('(~(first %) ; the match descriptor
-                        (do (co.paralleluniverse.actors.PulsarActor.del ~n) ~(second %)))) 
-                   (partition 2 body))]
-    (if (seq (filter #(= (first %) :else) pbody)) 
-      (flatten body)
-      (concat (flatten body) '(:else PulsarActor/NO_MATCH)))))
-
+;; For examples of this macro's expansions, try:
+;; (macroexpand-1 '(receive))
+;; (macroexpand-1 '(receive [:a] :hi :else :bye))
+;; (macroexpand-1 '(receive [:a x] [:hi x] [:b x] [:bye x]))
 
 (defmacro receive
+  "Receives a message in the current actor and processes it"
   ([]
    `(co.paralleluniverse.actors.PulsarActor/selfReceive))
   ([& body]
-   (if (seq (filter #(= # :else) (take-nth 2 body))) 
+   (if (seq (filter #(= % :else) (take-nth 2 body))) 
      ; if we have an :else then every message is processed and our job is easy
      `(let [m# (co.paralleluniverse.actors.PulsarActor/selfReceive)] 
-        (match m# body))
+        (match m# ~@body))
      ; if we don't, well, we have our work cut out for us
      (let [pbody (partition 2 body)]
        `(let [[mtc# m#]
               (let [^co.paralleluniverse.actors.PulsarActor self# @self
-                    ^co.paralleluniverse.strands.channels.Mailbox mailbox# (.mailbox self)]
+                    ^co.paralleluniverse.strands.channels.Mailbox mailbox# (.mailbox self#)]
                 (loop [prev# nil]
                   (.lock mailbox#)
                   (let [n# (.succ mailbox# prev#)
                         m# (co.paralleluniverse.actors.PulsarActor/convert (.value mailbox# n#))]
                     ; ((pat1 act1) (pat2 act2)...) => (pat1 (do (.del mailbox# n#) 0) pat2 (do (del mailbox# n#) 1)... :else -1)
                     ~(let [quick-match (concat
-                                        (mapcat #(`(~(first %1) ; the match pattern
-                                                     (do (.del mailbox# n#) 
-                                                       ~%2)))
+                                        (mapcat #(list (first %1) ; the match pattern
+                                                       `(do (.del mailbox# n#) 
+                                                          ~%2))
                                                 pbody (range))
-                                        '(:else -1))]
+                                        `(:else -1))]
                        `(if (not (nil? m#))
                           (do (.unlock mailbox#)
-                            (let [act# (int (match m# ~quick-match))]
+                            (let [act# (int (match m# ~@quick-match))]
                               (if (>= 0 act#)
                                 [act# m#]; we've got a match!
                                 (recur n#)))) ; no match. try the next 
@@ -430,23 +416,27 @@
                             (recur n#)))))))]
           ; now, mtc# is the number of the matching clause and m# is the message. 
           ; we'll match again (to get the bindings)
-          (match [mtch# m#] ~(mapcat #(`(~[%2 (first %1)] ~(second %1))); we help the second match by matching on the number
-                                     pbody range)))))))
+          (match [mtc# m#] ~@(mapcat #(list [%2 (first %1)] (second %1)); we help the second match by matching on the number
+                                     pbody (range))))))))
 
+;; For examples of this macro's expansions, try:
+;; (macroexpand-1 '(receive-timed 300))
+;; (macroexpand-1 '(receive-timed 300 [:a] :hi :else :bye))
+;; (macroexpand-1 '(receive-timed 300 [:a x] [:hi x] [:b x] [:bye x]))
 
 (defmacro receive-timed
   ([timeout]
    `(co.paralleluniverse.actors.PulsarActor/selfReceive (long ~timeout)))
-  ([& body]
-   (if (seq (filter #(= # :else) (take-nth 2 body))) 
+  ([timeout & body]
+   (if (seq (filter #(= % :else) (take-nth 2 body))) 
      ; if we have an :else then every message is processed and our job is easy
-     `(let [m# (co.paralleluniverse.actors.PulsarActor/selfReceive)] 
-        (match m# body))
+     `(let [m# (co.paralleluniverse.actors.PulsarActor/selfReceive (long ~timeout))] 
+        (match m# ~@body))
      ; if we don't, well, we have our work cut out for us
      (let [pbody (partition 2 body)]
        `(let [[mtc# m#]
               (let [^co.paralleluniverse.actors.PulsarActor self# @self
-                    ^co.paralleluniverse.strands.channels.Mailbox mailbox# (.mailbox self)
+                    ^co.paralleluniverse.strands.channels.Mailbox mailbox# (.mailbox self#)
                     exp# (long (+ (long (System/nanoTime)) (long (* 1000000 ~timeout))))]
                 (loop [prev# nil]
                   (if (> (long (System/nanoTime)) exp#)
@@ -457,28 +447,28 @@
                           m# (co.paralleluniverse.actors.PulsarActor/convert (.value mailbox# n#))]
                       ; ((pat1 act1) (pat2 act2)...) => (pat1 (do (.del mailbox# n#) 0) pat2 (do (del mailbox# n#) 1)... :else -1)
                       ~(let [quick-match (concat
-                                          (mapcat #(`(~(first %1) ; the match pattern
-                                                       (do (.del mailbox# n#) 
-                                                         ~%2)))
+                                          (mapcat #(list (first %1) ; the match pattern
+                                                         `(do (.del mailbox# n#) 
+                                                            ~%2))
                                                   pbody (range))
-                                          '(:else -1))]
+                                          `(:else -1))]
                          `(if (not (nil? m#))
                             (do 
                               (.unlock mailbox#)
-                              (let [act# (int (match m# ~quick-match))]
+                              (let [act# (int (match m# ~@quick-match))]
                                 (if (>= 0 act#)
                                   [act# m#]; we've got a match!
                                   (recur n#)))) ; no match. try the next 
                             (do
                               (try
-                                (.await mailbox# (- #exp (long (System/nanoTime))) java.util.concurrent.TimeUnit/NANOSECONDS)
+                                (.await mailbox# (- exp# (long (System/nanoTime))) java.util.concurrent.TimeUnit/NANOSECONDS)
                                 (finally
                                  (.unlock mailbox#)))
                               (recur n#))))))))]
           ; now, mtc# is the number of the matching clause and m# is the message. 
           ; we'll match again (to get the bindings), but only this clause
-          (match [mtch# m#] ~(mapcat #(`(~[%2 (first %1)] ~(second %1))); we help the second match by matching on the number
-                                     pbody range)))))))
+          (match [mtc# m#] ~@(mapcat #(list [%2 (first %1)] (second %1)); we help the second match by matching on the number
+                                     pbody (range))))))))
 
 
 

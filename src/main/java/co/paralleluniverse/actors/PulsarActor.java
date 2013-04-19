@@ -1,6 +1,5 @@
 package co.paralleluniverse.actors;
 
-import clojure.lang.IFn;
 import clojure.lang.IObj;
 import clojure.lang.Keyword;
 import clojure.lang.PersistentVector;
@@ -12,7 +11,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author pron
  */
-public class PulsarActor extends SimpleActor<Object, Object> {
+public class PulsarActor extends Actor<Object, Object> {
     public static <Message> void send(Actor<Message, ?> actor, Message m) {
         actor.send(m);
     }
