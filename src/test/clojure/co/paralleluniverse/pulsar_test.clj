@@ -123,7 +123,6 @@
   (testing "When matching receive and timeout then throw exception"
     (let [actor 
           (spawn 
-           ;(is (thrown? TimeoutException 
            (try
              (receive-timed 100
                             [:foo] nil
@@ -151,7 +150,7 @@
           actor2 (spawn 
                   (receive
                    [:exit monitor actor reason] monitor
-                   :else (throw (Exception. "fail"))))]
+                   ))]
       (let [mon (monitor! actor2 actor1)]
         (join actor1)
         (is (= mon (join actor2)))))))

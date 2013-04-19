@@ -28,11 +28,17 @@ public class PulsarActor extends Actor<Object, Object> {
         return ((PulsarActor) currentActor()).receive(timeout);
     }
 
+    public static Object selfReceiveAll() throws SuspendExecution, InterruptedException {
+        return ((PulsarActor) currentActor()).receiveAll();
+    }
+
+    public static Object selfReceiveAll(long timeout) throws SuspendExecution, InterruptedException {
+        return ((PulsarActor) currentActor()).receiveAll(timeout);
+    }
+
     public static Mailbox<Object> selfMailbox() throws SuspendExecution, InterruptedException {
         return currentActor().mailbox();
     }
-
-
     ///////////////////////////////////////////////////////////////
     private final SuspendableCallable<Object> target;
 
@@ -57,11 +63,11 @@ public class PulsarActor extends Actor<Object, Object> {
     }
 
     public Object receiveAll() throws InterruptedException, SuspendExecution {
-        Object m = mailbox().receive();
-        if (m instanceof LifecycleMessage)
-            return lifecycleMessageToClojure((LifecycleMessage) m);
-        else
-            return m;
+        return convert(mailbox().receive());
+    }
+
+    public Object receiveAll(long timeout) throws InterruptedException, SuspendExecution {
+        return convert(mailbox().receive(timeout, TimeUnit.MILLISECONDS));
     }
 
     public static Object convert(Object m) {
