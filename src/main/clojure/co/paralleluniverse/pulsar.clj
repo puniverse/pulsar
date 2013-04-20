@@ -303,7 +303,7 @@
            actor# (co.paralleluniverse.actors.PulsarActor. ~name (int ~mailbox-size) (asSuspendableCallable f#))
            fiber# (co.paralleluniverse.fibers.Fiber. ~name (get-pool ~pool) (int ~stack-size) actor#)]
        (link! @self actor#)
-       (start fiber#)
+       (.start fiber#)
        actor#)))
 
 (defmacro spawn-monitor
@@ -314,7 +314,7 @@
            actor# (co.paralleluniverse.actors.PulsarActor. ~name (int ~mailbox-size) (asSuspendableCallable f#))
            fiber# (co.paralleluniverse.fibers.Fiber. ~name (get-pool ~pool) (int ~stack-size) actor#)]
        (monitor! @self actor#)
-       (start fiber#)
+       (.start fiber#)
        actor#)))
 
 (defn link!
@@ -405,21 +405,20 @@
                                         `(:else -1))]
                        `(if (not (nil? ~n))
                           (let [m# (co.paralleluniverse.actors.PulsarActor/convert (.value ~mailbox ~n))]
-                            (println "DDDD " m#)
                             (.unlock ~mailbox)
                             (let [act# (int (match m# ~@quick-match))]
                               (if (>= 0 act#)
                                 [act# m#]; we've got a match!
                                 (recur ~n)))) ; no match. try the next 
                           (do
-                            (println "PPPPP")
                             (try
                               (.await ~mailbox)
                               (finally
                                (.unlock ~mailbox)))
                             (recur ~n)))))))]
           ; now, mtc# is the number of the matching clause and m# is the message. 
-          ; we'll match again (to get the bindings), but we'll help the match by mathing on mtc
+          ; we could have used a simple (case) to match on mtc#, but the patterns might have wildcards
+          ; so we'll match again (to get the bindings), but we'll help the match by mathing on mtc#
           (match [mtc# m#] ~@(mapcat #(list [%2 (first %1)] (second %1)) pbody (range))))))))
 
 ;; For examples of this macro's expansions, try:
@@ -473,5 +472,6 @@
                                  (.unlock ~mailbox)))
                               (recur ~n))))))))]
           ; now, mtc# is the number of the matching clause and m# is the message. 
-          ; we'll match again (to get the bindings), but we'll help the match by mathing on mtc
+          ; we could have used a simple (case) to match on mtc#, but the patterns might have wildcards
+          ; so we'll match again (to get the bindings), but we'll help the match by mathing on mtc#
           (match [mtc# m#] ~@(mapcat #(list [%2 (first %1)] (second %1)) pbody (range))))))))
