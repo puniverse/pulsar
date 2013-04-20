@@ -4,6 +4,7 @@ import clojure.lang.IObj;
 import clojure.lang.Keyword;
 import clojure.lang.PersistentVector;
 import co.paralleluniverse.fibers.SuspendExecution;
+import co.paralleluniverse.fibers.TimeoutException;
 import co.paralleluniverse.strands.SuspendableCallable;
 import co.paralleluniverse.strands.channels.Mailbox;
 import java.util.concurrent.TimeUnit;
@@ -35,6 +36,10 @@ public class PulsarActor extends Actor<Object, Object> {
     public static Object selfReceiveAll(long timeout) throws SuspendExecution, InterruptedException {
         return ((PulsarActor) currentActor()).receiveAll(timeout);
     }
+    
+    public static PulsarActor currentActor() {
+        return (PulsarActor)Actor.currentActor();
+    }
 
     public static Mailbox<Object> selfMailbox() throws SuspendExecution, InterruptedException {
         return currentActor().mailbox();
@@ -63,14 +68,68 @@ public class PulsarActor extends Actor<Object, Object> {
     }
 
     public Object receiveAll() throws InterruptedException, SuspendExecution {
-        return convert(mailbox().receive());
+        record(1, "PulsarActor", "receiveAll", "%s waiting for a message", this);
+        final Object m = convert(mailbox().receive());
+        record(1, "PulsarActor", "receive", "Received %s <- %s", this, m);
+        return m;
     }
 
     public Object receiveAll(long timeout) throws InterruptedException, SuspendExecution {
-        return convert(mailbox().receive(timeout, TimeUnit.MILLISECONDS));
+        if (flightRecorder != null)
+            record(1, "PulsarActor", "receiveAll", "%s waiting for a message. Millis left: %s", this, timeout);
+        final Object m = convert(mailbox().receive(timeout, TimeUnit.MILLISECONDS));
+        if (m == null)
+            record(1, "PulsarActor", "receiveAll", "%s timed out", this);
+        else
+            record(1, "PulsarActor", "receive", "Received %s <- %s", this, m);
+        return m;
+    }
+
+    public Object succ(Object n) {
+        return mailbox().succ(n);
+    }
+
+    public Object del(Object n) {
+        return mailbox().del(n);
+    }
+
+    public Object value(Object n) {
+        final Object m = convert(mailbox().value(n));
+        record(1, "PulsarActor", "receive", "Received %s <- %s", this, m);
+        return m;
+    }
+
+    public void maybeSetCurrentStrandAsOwner() {
+        mailbox().maybeSetCurrentStrandAsOwner();
+    }
+
+    public void lock() {
+        mailbox().lock();
+    }
+
+    public void unlock() {
+        mailbox().unlock();
+    }
+
+    public void await() throws SuspendExecution, InterruptedException {
+        record(1, "PulsarActor", "receive", "%s waiting for a message", this);
+        mailbox().await();
+    }
+
+    public void await(long timeout, TimeUnit unit) throws SuspendExecution, InterruptedException {
+        if (flightRecorder != null)
+            record(1, "PulsarActor", "receive", "%s waiting for a message.Millis left: %s ", this, TimeUnit.MILLISECONDS.convert(timeout, unit));
+        mailbox().await(timeout, unit);
+    }
+
+    public void timeout() {
+        record(1, "PulsarActor", "receive", "%s timed out", this);
+        throw new TimeoutException();
     }
 
     public static Object convert(Object m) {
+        if (m == null)
+            return null;
         if (m instanceof LifecycleMessage)
             return lifecycleMessageToClojure((LifecycleMessage) m);
         else

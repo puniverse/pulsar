@@ -392,7 +392,8 @@
            mailbox (gensym "mailbox")
            n (gensym "n")]
        `(let [[mtc# m#]
-              (let [^co.paralleluniverse.strands.channels.Mailbox ~mailbox (co.paralleluniverse.actors.PulsarActor/selfMailbox)]
+              (let [^co.paralleluniverse.actors.PulsarActorco.paralleluniverse.actors.PulsarActor ~mailbox (co.paralleluniverse.actors.PulsarActor/currentActor)]
+                (.maybeSetCurrentStrandAsOwner ~mailbox)
                 (loop [prev# nil]
                   (.lock ~mailbox)
                   (let [~n (.succ ~mailbox prev#)]
@@ -404,10 +405,10 @@
                                                 pbody (range))
                                         `(:else -1))]
                        `(if (not (nil? ~n))
-                          (let [m# (co.paralleluniverse.actors.PulsarActor/convert (.value ~mailbox ~n))]
+                          (let [m# (.value ~mailbox ~n)]
                             (.unlock ~mailbox)
                             (let [act# (int (match m# ~@quick-match))]
-                              (if (>= 0 act#)
+                              (if (>= act# 0)
                                 [act# m#]; we've got a match!
                                 (recur ~n)))) ; no match. try the next 
                           (do
@@ -443,11 +444,12 @@
            n (gensym "n")
            exp (gensym "exp")]
        `(let [[mtc# m#]
-              (let [^co.paralleluniverse.strands.channels.Mailbox ~mailbox (co.paralleluniverse.actors.PulsarActor/selfMailbox)
+              (let [^co.paralleluniverse.actors.PulsarActor ~mailbox (co.paralleluniverse.actors.PulsarActor/currentActor)
                     ~exp (long (+ (long (System/nanoTime)) (long (* 1000000 ~timeout))))]
+                (.maybeSetCurrentStrandAsOwner ~mailbox)
                 (loop [prev# nil]
                   (if (> (long (System/nanoTime)) ~exp)
-                    (throw (co.paralleluniverse.fibers.TimeoutException.))
+                    (.timeout ~mailbox)
                     
                     (.lock ~mailbox)
                     (let [~n (.succ ~mailbox prev#)]
@@ -459,10 +461,10 @@
                                                   pbody (range))
                                           `(:else -1))]
                          `(if (not (nil? ~n))
-                            (let [m# (co.paralleluniverse.actors.PulsarActor/convert (.value ~mailbox ~n))]
+                            (let [m# (.value ~mailbox ~n)]
                               (.unlock ~mailbox)
                               (let [act# (int (match m# ~@quick-match))]
-                                (if (>= 0 act#)
+                                (if (>= act# 0)
                                   [act# m#]; we've got a match!
                                   (recur ~n)))) ; no match. try the next 
                             (do

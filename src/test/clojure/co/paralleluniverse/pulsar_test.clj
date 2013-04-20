@@ -133,6 +133,24 @@
       (! actor 1)
       (join actor))))
 
+(deftest ^:selected selective-receive
+  (testing "Test selective receive"
+    (let [res (atom [])
+          actor (spawn
+                 (dotimes [i 2]
+                   (receive
+                    [:foo x] (do
+                               (swap! res conj x)
+                               (receive 
+                                  [:baz z] (swap! res conj z)))
+                    [:bar y] (swap! res conj y)     
+                    [:baz z] (swap! res conj z))))]
+      (! actor [:foo 1])
+      (! actor [:bar 2])
+      (! actor [:baz 3])
+      (join actor)
+      (is (= @res [1 3 2])))))
+
 (deftest actor-link
   (testing "When an actor dies, its link gets an exception"
     (let [actor1 (spawn (Fiber/sleep 100))
@@ -144,9 +162,9 @@
       (join actor1)
       (join actor2))))
 
-(deftest ^:selected actor-monitor
+(deftest actor-monitor
   (testing "When an actor dies, its monitor gets a message"
-    (let [actor1 (spawn (Fiber/sleep 100))
+    (let [actor1 (spawn (Fiber/sleep 200))
           actor2 (spawn 
                   (receive
                    [:exit monitor actor reason] monitor
@@ -154,3 +172,4 @@
       (let [mon (monitor! actor2 actor1)]
         (join actor1)
         (is (= mon (join actor2)))))))
+
