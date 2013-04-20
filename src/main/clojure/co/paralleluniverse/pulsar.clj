@@ -285,6 +285,13 @@
     clojure.lang.IDeref
     (deref [_] (Actor/currentActor))))
 
+(defn ^Actor get-actor 
+  "If the argument is an actor -- returns it. If not, looks up a registered actor with the argument as its name"
+  [a]
+  (if (instance? Actor a)
+    a
+    (Actor/getActor a)))
+
 (defmacro spawn
   "Creates and starts a new actor"
   [& args]
@@ -319,30 +326,40 @@
 
 (defn link!
   "links two actors"
-  [^Actor actor1 ^Actor actor2]
-  (.link actor1 actor2))
+  ([actor2]
+   (.link ^Actor @self actor2))
+  ([actor1 actor2]
+   (.link (get-actor actor1) (get-actor actor2))))
 
 (defn unlink!
   "Unlinks two actors"
-  [^Actor actor1 ^Actor actor2]
-  (.unlink actor1 actor2))
+  ([actor2]
+   (.unlink ^Actor @self actor2))
+  ([actor1 actor2]
+   (.unlink (get-actor actor1) (get-actor actor2))))
 
 (defn monitor!
   "Makes an actor monitor another actor. Returns a monitor object which should be used when calling demonitor."
-  [^Actor actor1 ^Actor actor2]
-  (.monitor actor1 actor2))
+  ([actor2]
+   (.monitor ^Actor @self actor2))
+  ([actor1 actor2]
+   (.monitor (get-actor actor1) (get-actor actor2))))
 
 (defn demonitor!
   "Makes an actor stop monitoring another actor"
-  [^Actor actor1 ^Actor actor2 monitor]
-  (.demonitor actor1 actor2 monitor))
+  ([actor2 monitor]
+   (.demonitor ^Actor @self actor2 monitor))
+  ([actor1 actor2 monitor]
+   (.demonitor (get-actor actor1) (get-actor actor2) monitor)))
 
 (defn register
   "Registers an actor"
-  ([^Actor actor ^String name]
-   (.register actor name))
+  ([name ^Actor actor]
+   (.register actor name)
+   actor)
   ([^Actor actor]
-   (.register actor)))
+   (.register actor)
+   actor))
 
 (defn unregister
   "Un-registers an actor"
@@ -360,16 +377,16 @@
 (defmacro !
   "Sends a message to an actor"
   ([actor message]
-   `(co.paralleluniverse.actors.PulsarActor/send ~actor ~message))
+   `(co.paralleluniverse.actors.PulsarActor/send (get-actor ~actor) ~message))
   ([actor arg & args]
-   `(co.paralleluniverse.actors.PulsarActor/send ~actor [~arg ~@args])))
+   `(co.paralleluniverse.actors.PulsarActor/send (get-actor ~actor) [~arg ~@args])))
 
 (defmacro !!
   "Sends a message to an actor synchronously"
   ([actor message]
-   `(co.paralleluniverse.actors.PulsarActor/sendSync ~actor ~message))
+   `(co.paralleluniverse.actors.PulsarActor/sendSync (get-actor ~actor) ~message))
   ([actor arg & args]
-   `(co.paralleluniverse.actors.PulsarActor/sendSync ~actor [~arg ~@args])))
+   `(co.paralleluniverse.actors.PulsarActor/sendSync (get-actor ~actor) [~arg ~@args])))
 
 
 ;; For examples of this macro's expansions, try:
