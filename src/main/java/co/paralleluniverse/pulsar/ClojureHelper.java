@@ -9,11 +9,12 @@ import clojure.lang.Keyword;
 import clojure.lang.Var;
 import co.paralleluniverse.fibers.Instrumented;
 import co.paralleluniverse.fibers.SuspendExecution;
-import co.paralleluniverse.fibers.instrument.MethodDatabase;
+import co.paralleluniverse.fibers.instrument.MethodDatabase.ClassEntry;
 import co.paralleluniverse.fibers.instrument.Retransform;
 import co.paralleluniverse.strands.SuspendableCallable;
 import java.lang.instrument.UnmodifiableClassException;
 import java.lang.reflect.Method;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.objectweb.asm.Type;
 
@@ -26,14 +27,25 @@ public class ClojureHelper {
         final Class clazz = fn.getClass();
         if (clazz.isAnnotationPresent(Instrumented.class))
             return fn;
-        MethodDatabase.ClassEntry entry = Retransform.getMethodDB().getClassEntry(Type.getInternalName(clazz));
-        entry.setRequiresInstrumentation(true);
-        Method[] methods = clazz.getMethods();
-        for (Method method : methods) {
-            if (method.getName().equals("invoke") || method.getName().equals("doInvoke"))
-                entry.set(method.getName(), Type.getMethodDescriptor(method), true);
+
+        try {
+            // Clojure might break up a single function into several classes. We must instrument them all.
+            for (Map.Entry<String, ClassEntry> entry : Retransform.getMethodDB().getInnerClassesEntries(Type.getInternalName(clazz)).entrySet()) {
+                final String className = entry.getKey();
+                final ClassEntry ce = entry.getValue();
+                final Class cls = Class.forName(className.replaceAll("/", "."), false, clazz.getClassLoader());
+                //System.out.println("---- " + cls + " " + IFn.class.isAssignableFrom(cls));
+                ce.setRequiresInstrumentation(true);
+                Method[] methods = cls.getMethods();
+                for (Method method : methods) {
+                    if (method.getName().equals("invoke") || method.getName().equals("doInvoke"))
+                        ce.set(method.getName(), Type.getMethodDescriptor(method), true);
+                }
+                Retransform.retransform(cls);
+            }
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
         }
-        Retransform.retransform(fn.getClass());
         return fn;
     }
 
