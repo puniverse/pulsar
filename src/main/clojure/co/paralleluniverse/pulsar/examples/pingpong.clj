@@ -2,6 +2,10 @@
   "The classic ping-pong example from the Erlang tutorial"
   (:use co.paralleluniverse.pulsar))
 
+;; This example is intended to be a line-by-line translation of the canonical 
+;; Erlang [ping-pong example](http://www.erlang.org/doc/getting_started/conc_prog.html#id66868),
+;; so it is not written in idiomatic Clojure.
+
 (defsusfn ping [n]
   (if (== n 0)
     (do
