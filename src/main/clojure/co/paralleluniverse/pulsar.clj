@@ -43,6 +43,14 @@
         positionals (reduce into [] ps)]
     [options positionals]))
 
+(defn extract-keys
+  [ks pargs]
+  (if (not (seq ks))
+    [[] pargs]
+    (let [[k ps] (split-with #(= (first ks) (first %)) pargs)
+          [rks rpargs] (extract-keys (next ks) ps)]
+      [(vec (cons (first k) rks)) rpargs])))
+
 (defn- sequentialize
   "Takes a function of a single argument and returns a function that either takes any number of arguments or a
   a single sequence, and applies the original function to each argument or each element of the sequence"
@@ -390,54 +398,65 @@
 
 
 ;; For examples of this macro's expansions, try:
-;; (macroexpand-1 '(receive))
-;; (macroexpand-1 '(receive [:a] :hi :else :bye))
-;; (macroexpand-1 '(receive [:a x] [:hi x] [:b x] [:bye x]))
+;; (pprint (macroexpand-1 '(receive)))
+;; (pprint (macroexpand-1 '(receive [:a] :hi :else :bye)))
+;; (pprint (macroexpand-1 '(receive [msg] [:a] :hi :else :bye)))
+;; (pprint (macroexpand-1 '(receive [msg #(* % %)] [:a] :hi :else :bye)))
+;;
+;; (pprint (macroexpand-1 '(receive [:a x] [:hi x] [:b x] [:bye x])))
 
 (defmacro receive
   "Receives a message in the current actor and processes it"
   ([]
    `(co.paralleluniverse.actors.PulsarActor/selfReceive))
   ([& body]
-   (if (seq (filter #(= % :else) (take-nth 2 body))) 
-     ; if we have an :else then every message is processed and our job is easy
-     `(let [m# (co.paralleluniverse.actors.PulsarActor/selfReceiveAll)] 
-        (match m# ~@body))
-     ; if we don't, well, we have our work cut out for us
-     (let [pbody (partition 2 body)
-           ; symbols:
-           mailbox (gensym "mailbox")
-           n (gensym "n")]
-       `(let [[mtc# m#]
-              (let [^co.paralleluniverse.actors.PulsarActorco.paralleluniverse.actors.PulsarActor ~mailbox (co.paralleluniverse.actors.PulsarActor/currentActor)]
-                (.maybeSetCurrentStrandAsOwner ~mailbox)
-                (loop [prev# nil]
-                  (.lock ~mailbox)
-                  (let [~n (.succ ~mailbox prev#)]
-                    ; ((pat1 act1) (pat2 act2)...) => (pat1 (do (.del mailbox# n#) 0) pat2 (do (del mailbox# n#) 1)... :else -1)
-                    ~(let [quick-match (concat
-                                        (mapcat #(list (first %1) ; the match pattern
-                                                       `(do (.del ~mailbox ~n) 
-                                                          ~%2))
-                                                pbody (range))
-                                        `(:else -1))]
-                       `(if (not (nil? ~n))
-                          (let [m# (.value ~mailbox ~n)]
-                            (.unlock ~mailbox)
-                            (let [act# (int (match m# ~@quick-match))]
-                              (if (>= act# 0)
-                                [act# m#]; we've got a match!
-                                (recur ~n)))) ; no match. try the next 
-                          (do
-                            (try
-                              (.await ~mailbox)
-                              (finally
-                               (.unlock ~mailbox)))
-                            (recur ~n)))))))]
-          ; now, mtc# is the number of the matching clause and m# is the message. 
-          ; we could have used a simple (case) to match on mtc#, but the patterns might have wildcards
-          ; so we'll match again (to get the bindings), but we'll help the match by mathing on mtc#
-          (match [mtc# m#] ~@(mapcat #(list [%2 (first %1)] (second %1)) pbody (range))))))))
+   (let [odd-forms (odd? (count body))
+         bind-clause (if odd-forms (first body) nil)
+         transform (second bind-clause)
+         body (if odd-forms (next body) body)
+         pbody (partition 2 body)
+         [[after-clause] pbody] (extract-keys [:after] pbody)
+         m (if bind-clause (first bind-clause) (gensym "m"))]
+     (if (seq (filter #(= % :else) (take-nth 2 body))) 
+       ; if we have an :else then every message is processed and our job is easy
+       `(let [~m ~(if transform `(~transform (co.paralleluniverse.actors.PulsarActor/selfReceiveAll)) `(co.paralleluniverse.actors.PulsarActor/selfReceiveAll))] 
+          (match ~m ~@(flatten pbody)))
+       ; if we don't, well, we have our work cut out for us
+       (let [pbody (partition 2 body)
+             ; symbols:
+             mailbox (gensym "mailbox")
+             n (gensym "n")]
+         `(let [[mtc# m#]
+                (let [^co.paralleluniverse.actors.PulsarActorco.paralleluniverse.actors.PulsarActor ~mailbox (co.paralleluniverse.actors.PulsarActor/currentActor)]
+                  (.maybeSetCurrentStrandAsOwner ~mailbox)
+                  (loop [prev# nil]
+                    (.lock ~mailbox)
+                    (let [~n (.succ ~mailbox prev#)]
+                      ; ((pat1 act1) (pat2 act2)...) => (pat1 (do (.processed mailbox# n#) 0) pat2 (do (del mailbox# n#) 1)... :else -1)
+                      ~(let [quick-match (concat
+                                          (mapcat #(list (first %1) ; the match pattern
+                                                         `(do (.processed ~mailbox ~n) 
+                                                            ~%2))
+                                                  pbody (range))
+                                          `(:else (do (.skipped ~mailbox ~n) 
+                                                    -1)))]
+                         `(if (not (nil? ~n))
+                            (let [~m ~(if transform `(~transform (.value ~mailbox ~n)) `(.value ~mailbox ~n))]
+                              (.unlock ~mailbox)
+                              (let [act# (int (match ~m ~@quick-match))]
+                                (if (>= act# 0)
+                                  [act# ~m]; we've got a match!
+                                  (recur ~n)))) ; no match. try the next 
+                            (do
+                              (try
+                                (.await ~mailbox)
+                                (finally
+                                 (.unlock ~mailbox)))
+                              (recur ~n)))))))]
+            ; now, mtc# is the number of the matching clause and m# is the message. 
+            ; we could have used a simple (case) to match on mtc#, but the patterns might have wildcards
+            ; so we'll match again (to get the bindings), but we'll help the match by mathing on mtc#
+            (match [mtc# m#] ~@(mapcat #(list [%2 (first %1)] (second %1)) pbody (range)))))))))
 
 ;; For examples of this macro's expansions, try:
 ;; (macroexpand-1 '(receive-timed 300))
@@ -473,10 +492,11 @@
                       ; ((pat1 act1) (pat2 act2)...) => (pat1 (do (.del mailbox# n#) 0) pat2 (do (del mailbox# n#) 1)... :else -1)
                       ~(let [quick-match (concat
                                           (mapcat #(list (first %1) ; the match pattern
-                                                         `(do (.del ~mailbox ~n) 
+                                                         `(do (.processed ~mailbox ~n) 
                                                             ~%2))
                                                   pbody (range))
-                                          `(:else -1))]
+                                          `(:else (do (.skipped ~mailbox ~n) 
+                                                  -1)))]
                          `(if (not (nil? ~n))
                             (let [m# (.value ~mailbox ~n)]
                               (.unlock ~mailbox)

@@ -81,16 +81,22 @@ public class PulsarActor extends Actor<Object, Object> {
         if (m == null)
             record(1, "PulsarActor", "receiveAll", "%s timed out", this);
         else
-            record(1, "PulsarActor", "receive", "Received %s <- %s", this, m);
+            record(1, "PulsarActor", "receiveAll", "Received %s <- %s", this, m);
         return m;
     }
 
+    public void processed(Object n) {
+        mailbox().del(n);
+    }
+    
+    public void skipped(Object n) {
+        final Object m = mailbox().value(n);
+        if(m instanceof LifecycleMessage)
+            handleLifecycleMessage((LifecycleMessage)m);
+    }
+    
     public Object succ(Object n) {
         return mailbox().succ(n);
-    }
-
-    public Object del(Object n) {
-        return mailbox().del(n);
     }
 
     public Object value(Object n) {
