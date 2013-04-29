@@ -83,10 +83,7 @@ public class PulsarActor extends Actor<Object, Object> {
 
     public Object receiveAll(long timeout) throws InterruptedException, SuspendExecution {
         if(!trap) {
-            System.out.println("receiveAll: " + timeout);
-            Object res = timeout == 0 ? super.tryReceive() : super.receive(timeout, TimeUnit.MILLISECONDS);
-            System.out.println("res: " + res);
-            return res;
+            return timeout == 0 ? super.tryReceive() : super.receive(timeout, TimeUnit.MILLISECONDS);
         }
         
         if (flightRecorder != null)

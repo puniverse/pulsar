@@ -439,7 +439,7 @@
 
 (defsusfn receive-timed
   [^Integer timeout]
-  (co.paralleluniverse.actors.PulsarActor/selfReceiveAll))
+  (co.paralleluniverse.actors.PulsarActor/selfReceiveAll timeout))
 
 ;; For examples of this macro's expansions, try:
 ;; (pprint (macroexpand-1 '(receive)))

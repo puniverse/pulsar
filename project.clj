@@ -22,14 +22,13 @@
                  [org.clojure/core.match "0.2.0-alpha12"]]
   :jvm-opts ^:replace ["-server"
                        "-javaagent:/Users/pron/Projects/quasar/build/libs/quasar-0.1-SNAPSHOT.jar"]
-  ;             "-javaagent:/Users/pron/Projects/lib/btrace-bin/build/btrace-agent.jar=script=/Users/pron/Projects/btraces/build/classes/PulsarTrace.class"]
   :profiles {:dev 
              {:plugins [[codox "0.6.4"]
                         [lein-marginalia "0.7.1"]]
               :codox {:include co.paralleluniverse.pulsar
                       :output-dir "docs"}
               :jvm-opts ["-ea" 
-                         "-Dco.paralleluniverse.debugMode=true" 
+                         ;"-Dco.paralleluniverse.debugMode=true" 
                          "-Dco.paralleluniverse.lwthreads.verifyInstrumentation=true"
                          "-Dco.paralleluniverse.globalFlightRecorder=true" "-Dco.paralleluniverse.flightRecorderDumpFile=pulsar.log"]
               :global-vars {*warn-on-reflection* true}}})

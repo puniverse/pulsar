@@ -79,11 +79,11 @@
                 (join actor))))))
 
 (deftest ^:selected actor-receive
-  #_(testing "Test simple actor send/receive"
+  (testing "Test simple actor send/receive"
     (is (= :abc (let [actor (spawn #(receive))]
                   (! actor :abc)
                   (join actor)))))
-  #_(testing "Test receive after sleep"
+  (testing "Test receive after sleep"
     (is (= 25 (let [actor 
                     (spawn #(let [m1 (receive)
                                   m2 (receive)]
@@ -93,23 +93,19 @@
                 (! actor 12)
                 (join actor)))))
   (testing "When simple receive and timeout then return nil"
-    (Debug/dumpAfter 2000)
     (let [actor 
-          (spawn #(let [a (dbg 1)
-                        m1 (dbg (do (println "a") (receive-timed 50)))
-                        m2 (dbg (do (println "b") (receive-timed 50)))
-                        m3 (dbg (do (println "c") (receive-timed 50)))]
+          (spawn #(let [m1 (receive-timed 50)
+                        m2 (receive-timed 50)
+                        m3 (receive-timed 50)]
                     (is (= 1 m1))
                     (is (= 2 m2))
-                    (is (nil? m3))
-                    (println "ZZZZ")))]
+                    (is (nil? m3))))]
       (! actor 1)
       (Thread/sleep 20)
       (! actor 2)
       (Thread/sleep 100)
       (! actor 3)
-      (join actor)
-      (println "XXXXXX DONE XXXXXX"))))
+      (join actor))))
 
 #_(deftest matching-receive
     (testing "Test actor matching receive 1"
