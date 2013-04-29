@@ -23,6 +23,10 @@ import org.objectweb.asm.Type;
  * @author pron
  */
 public class ClojureHelper {
+    static {
+        // mark all IFn methods as suspendable
+        Retransform.getMethodDB().getClassEntry(Type.getInternalName(IFn.class)).setAll(true);
+    }
     public static IFn retransform(IFn fn) throws UnmodifiableClassException {
         final Class clazz = fn.getClass();
         if (clazz.isAnnotationPresent(Instrumented.class))
