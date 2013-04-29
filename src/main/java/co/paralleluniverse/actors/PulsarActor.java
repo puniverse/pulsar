@@ -46,11 +46,21 @@ public class PulsarActor extends Actor<Object, Object> {
     }
     ///////////////////////////////////////////////////////////////
     private final SuspendableCallable<Object> target;
+    private boolean trap;
 
     @SuppressWarnings("LeakingThisInConstructor")
-    public PulsarActor(String name, int mailboxSize, SuspendableCallable<Object> target) {
+    public PulsarActor(String name, boolean trap, int mailboxSize, SuspendableCallable<Object> target) {
         super(name, mailboxSize);
         this.target = target;
+        this.trap = trap;
+    }
+
+    public void setTrap(boolean trap) {
+        this.trap = trap;
+    }
+
+    public boolean isTrap() {
+        return trap;
     }
 
     @Override
@@ -58,16 +68,13 @@ public class PulsarActor extends Actor<Object, Object> {
         return target.run();
     }
 
-    @Override
-    public Object receive() throws SuspendExecution, InterruptedException {
-        return super.receive();
-    }
-
     public Object receive(long timeout) throws SuspendExecution, InterruptedException {
         return super.receive(timeout, TimeUnit.MILLISECONDS);
     }
 
     public Object receiveAll() throws InterruptedException, SuspendExecution {
+        if(!trap)
+            return super.receive();
         record(1, "PulsarActor", "receiveAll", "%s waiting for a message", this);
         final Object m = convert(mailbox().receive());
         record(1, "PulsarActor", "receive", "Received %s <- %s", this, m);
@@ -75,9 +82,16 @@ public class PulsarActor extends Actor<Object, Object> {
     }
 
     public Object receiveAll(long timeout) throws InterruptedException, SuspendExecution {
+        if(!trap) {
+            System.out.println("receiveAll: " + timeout);
+            Object res = timeout == 0 ? super.tryReceive() : super.receive(timeout, TimeUnit.MILLISECONDS);
+            System.out.println("res: " + res);
+            return res;
+        }
+        
         if (flightRecorder != null)
             record(1, "PulsarActor", "receiveAll", "%s waiting for a message. Millis left: %s", this, timeout);
-        final Object m = convert(mailbox().receive(timeout, TimeUnit.MILLISECONDS));
+        final Object m = convert(timeout == 0 ? mailbox().tryReceive() : mailbox().receive(timeout, TimeUnit.MILLISECONDS));
         if (m == null)
             record(1, "PulsarActor", "receiveAll", "%s timed out", this);
         else
@@ -94,6 +108,35 @@ public class PulsarActor extends Actor<Object, Object> {
         if(m instanceof LifecycleMessage)
             handleLifecycleMessage((LifecycleMessage)m);
     }
+
+    @Override
+    protected void handleLifecycleMessage(LifecycleMessage m) {
+        super.handleLifecycleMessage(m);
+    }
+    
+    public static Object convert(Object m) {
+        if (m == null)
+            return null;
+        if (m instanceof LifecycleMessage)
+            return lifecycleMessageToClojure((LifecycleMessage) m);
+        else
+            return m;
+    }
+
+    public static IObj lifecycleMessageToClojure(LifecycleMessage msg) {
+        if (msg instanceof ExitMessage) {
+            final ExitMessage m = (ExitMessage) msg;
+            final IObj v = PersistentVector.create(keyword("exit"), m.monitor, m.actor, m.reason);
+            return v;
+        }
+        throw new RuntimeException("Unknown lifecycle message: " + msg);
+    }
+
+    private static Keyword keyword(String s) {
+        return Keyword.intern(s);
+    }
+    
+    ///////////////// Simple delegates ////////////////////////////
     
     public Object succ(Object n) {
         return mailbox().succ(n);
@@ -131,27 +174,5 @@ public class PulsarActor extends Actor<Object, Object> {
     public void timeout() {
         record(1, "PulsarActor", "receive", "%s timed out", this);
         throw new TimeoutException();
-    }
-
-    public static Object convert(Object m) {
-        if (m == null)
-            return null;
-        if (m instanceof LifecycleMessage)
-            return lifecycleMessageToClojure((LifecycleMessage) m);
-        else
-            return m;
-    }
-
-    public static IObj lifecycleMessageToClojure(LifecycleMessage msg) {
-        if (msg instanceof ExitMessage) {
-            final ExitMessage m = (ExitMessage) msg;
-            final IObj v = PersistentVector.create(keyword("exit"), m.monitor, m.actor, m.reason);
-            return v;
-        }
-        throw new RuntimeException("Unknown lifecycle message: " + msg);
-    }
-
-    private static Keyword keyword(String s) {
-        return Keyword.intern(s);
     }
 }

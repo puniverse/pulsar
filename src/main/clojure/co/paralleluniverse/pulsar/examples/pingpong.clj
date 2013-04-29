@@ -26,7 +26,7 @@
                   (recur))))
 
 (defn -main []
-  (let [a1 (register :pong (spawn (pong)))
-        b1 (spawn (ping 3))]
+  (let [a1 (register :pong (spawn pong))
+        b1 (spawn ping 3)]
     (join a1)
     (join b1)))

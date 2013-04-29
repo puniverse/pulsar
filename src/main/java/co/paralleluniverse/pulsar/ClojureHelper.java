@@ -58,7 +58,14 @@ public class ClojureHelper {
             @Override
             public Object run() throws SuspendExecution, InterruptedException {
                 Var.resetThreadBindingFrame(binding);
+                try {
                 return suspendableInvoke(fn);
+                } catch(Throwable e) {
+                    e.printStackTrace();
+                    return null;
+                } finally {
+                    System.out.println("DONE!");
+                }
 //                final Object origBinding = Var.getThreadBindingFrame();
 //                try {
 //                    Var.resetThreadBindingFrame(binding);
