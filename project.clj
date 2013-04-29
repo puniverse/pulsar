@@ -28,6 +28,8 @@
                         [lein-marginalia "0.7.1"]]
               :codox {:include co.paralleluniverse.pulsar
                       :output-dir "docs"}
-              :jvm-opts ["-ea" "-Dco.paralleluniverse.lwthreads.verifyInstrumentation=true"
-                         "-Dco.paralleluniverse.debugMode=true" "-Dco.paralleluniverse.globalFlightRecorder=true" "-Dco.paralleluniverse.flightRecorderDumpFile=pulsar.log"]
+              :jvm-opts ["-ea" 
+                         "-Dco.paralleluniverse.debugMode=true" 
+                         "-Dco.paralleluniverse.lwthreads.verifyInstrumentation=true"
+                         "-Dco.paralleluniverse.globalFlightRecorder=true" "-Dco.paralleluniverse.flightRecorderDumpFile=pulsar.log"]
               :global-vars {*warn-on-reflection* true}}})
