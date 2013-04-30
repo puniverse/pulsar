@@ -24,6 +24,11 @@ import org.objectweb.asm.Type;
  */
 public class ClojureHelper {
     static {
+        // These methods need not be instrumented. we mark them so that verifyInstrumentation doesn't fail when they're on the call-stack
+        Retransform.addWaiver("clojure.lang.AFn", "applyToHelper");
+        Retransform.addWaiver("clojure.lang.AFn", "applyTo");
+        Retransform.addWaiver("clojure.core$apply", "invoke");
+
         // mark all IFn methods as suspendable
         Retransform.getMethodDB().getClassEntry(Type.getInternalName(IFn.class)).setAll(true);
     }
