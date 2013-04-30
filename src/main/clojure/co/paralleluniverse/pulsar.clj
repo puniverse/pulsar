@@ -13,7 +13,7 @@
            [co.paralleluniverse.fibers Fiber Joinable FiberInterruptedException]
            [co.paralleluniverse.fibers.instrument]
            [co.paralleluniverse.strands.channels Channel ObjectChannel IntChannel LongChannel FloatChannel DoubleChannel]
-           [co.paralleluniverse.actors Actor PulsarActor]
+           [co.paralleluniverse.actors ActorRegistry Actor PulsarActor]
            [co.paralleluniverse.pulsar ClojureHelper])
   (:use [clojure.core.match :only [match]]))
 
@@ -150,7 +150,7 @@
 (def suspendable!
   "Makes a function suspendable"
   (sequentialize
-   (fn [f] 
+   (fn [f]
      (ClojureHelper/retransform f))))
 
 (defn ^SuspendableCallable asSuspendableCallable
@@ -173,7 +173,7 @@
 
 ;; ## Fibers
 
-(defn ^ForkJoinPool get-pool 
+(defn ^ForkJoinPool get-pool
   {:no-doc true}
   [^ForkJoinPool pool]
   (or pool (current-fj-pool) fj-pool))
@@ -208,7 +208,7 @@
   []
   (Fiber/currentFiber))
 
-(defn join 
+(defn join
   ([^Joinable s]
    (.get s))
   ([^Joinable s timeout ^TimeUnit unit]
@@ -315,7 +315,7 @@
 
 (def self
   "@self is the currently running actor"
-  (reify 
+  (reify
     clojure.lang.IDeref
     (deref [_] (Actor/currentActor))))
 
@@ -334,7 +334,7 @@
   []
   (.setTrap ^PulsarActor @self true))
 
-(defn ^Actor get-actor 
+(defn ^Actor get-actor
   "If the argument is an actor -- returns it. If not, looks up a registered actor with the argument as its name"
   [a]
   (if (instance? Actor a)
@@ -412,11 +412,13 @@
 
 (defn unregister
   "Un-registers an actor"
-  [x]
-  (if (instance? Actor x)
-    (let [^Actor actor x]
-      (.unregister actor))
-    (Actor/unregister x)))
+  ([x]
+   (if (instance? Actor x)
+     (let [^Actor actor x]
+       (.unregister actor))
+     (ActorRegistry/unregister x)))
+  ([^Actor actor name]
+   (.unregister actor name)))
 
 (defn ^Actor whereis
   "Returns a registered actor by name"
@@ -471,9 +473,9 @@
          body        (if odd-forms (next body) body)
          m           (if bind-clause (first bind-clause) (gensym "m"))
          timeout     (gensym "timeout")]
-     (if (seq (filter #(= % :else) (take-nth 2 body))) 
+     (if (seq (filter #(= % :else) (take-nth 2 body)))
        ; if we have an :else then every message is processed and our job is easy
-       `(let ~(into [] (concat 
+       `(let ~(into [] (concat
                         (if after-clause `[~timeout ~(second after-clause)] [])
                         `[~m ~(concat `(co.paralleluniverse.actors.PulsarActor/selfReceiveAll) (if after-clause `(~timeout) ()))]
                         (if transform `[~m (~transform ~m)] [])))
@@ -491,10 +493,10 @@
                     (.lock ~mailbox)
                     (let [~n (.succ ~mailbox prev#)]
                       ~(let [quick-match (concat ; ((pat1 act1) (pat2 act2)...) => (pat1 (do (.processed mailbox# n#) 0) pat2 (do (del mailbox# n#) 1)... :else -1)
-                                          (mapcat #(list (first %1) `(do (.processed ~mailbox ~n) ~%2)) pbody (range)); for each match pattern, call processed and return an ordinal 
+                                          (mapcat #(list (first %1) `(do (.processed ~mailbox ~n) ~%2)) pbody (range)); for each match pattern, call processed and return an ordinal
                                           `(:else (do (.skipped ~mailbox ~n) -1)))]
                          `(if ~n
-                            (do 
+                            (do
                               (.unlock ~mailbox)
                               (let [m1# (.value ~mailbox ~n)]
                                 (when (and (not (.isTrap ~mailbox)) (instance? co.paralleluniverse.actors.LifecycleMessage m1#))
@@ -509,7 +511,7 @@
                             ~(if after-clause
                                `(if (== ~timeout 0)
                                   nil ; timeout == 0 and ~n == nil
-                                  (do 
+                                  (do
                                     (try
                                       (.await ~mailbox (- ~exp (long (System/nanoTime))) java.util.concurrent.TimeUnit/NANOSECONDS)
                                       (finally
@@ -517,14 +519,14 @@
                                     (if (> (long (System/nanoTime)) ~exp)
                                       nil ; timeout
                                       (recur ~n))))
-                               `(do 
+                               `(do
                                   (try
-                                    (.await ~mailbox) 
+                                    (.await ~mailbox)
                                     (finally
                                      (.unlock ~mailbox)))
                                   (recur ~n))))))))]
             ~@(surround-with (if after-clause `(if (nil? ~mtc) ~(nth after-clause 2)) nil)
-                             ; now, mtc# is the number of the matching clause and m# is the message. we could have used a simple (case) to match on mtc#, 
+                             ; now, mtc# is the number of the matching clause and m# is the message. we could have used a simple (case) to match on mtc#,
                              ; but the patterns might have wildcards so we'll match again (to get the bindings), but we'll help the match by mathing on mtc#
                              `(match [~mtc ~m] ~@(mapcat #(list [%2 (first %1)] (second %1)) pbody (range))))))))))
 
