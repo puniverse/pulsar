@@ -78,6 +78,7 @@ public class PulsarActor extends Actor<Object, Object> {
         record(1, "PulsarActor", "receiveAll", "%s waiting for a message", this);
         final Object m = convert(mailbox().receive());
         record(1, "PulsarActor", "receive", "Received %s <- %s", this, m);
+        monitorAddMessage();
         return m;
     }
 
@@ -91,16 +92,20 @@ public class PulsarActor extends Actor<Object, Object> {
         final Object m = convert(timeout == 0 ? mailbox().tryReceive() : mailbox().receive(timeout, TimeUnit.MILLISECONDS));
         if (m == null)
             record(1, "PulsarActor", "receiveAll", "%s timed out", this);
-        else
+        else {
             record(1, "PulsarActor", "receiveAll", "Received %s <- %s", this, m);
+            monitorAddMessage();
+        }
         return m;
     }
 
     public void processed(Object n) {
+        monitorAddMessage();
         mailbox().del(n);
     }
     
     public void skipped(Object n) {
+        monitorSkippedMessage();
         final Object m = mailbox().value(n);
         if(m instanceof LifecycleMessage)
             handleLifecycleMessage((LifecycleMessage)m);
@@ -136,6 +141,8 @@ public class PulsarActor extends Actor<Object, Object> {
     ///////////////// Simple delegates ////////////////////////////
     
     public Object succ(Object n) {
+        if(n == null)
+            monitorResetSkippedMessages();
         return mailbox().succ(n);
     }
 
