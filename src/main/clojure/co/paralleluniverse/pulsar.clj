@@ -313,12 +313,6 @@
 
 ;; ## Actors
 
-(def self
-  "@self is the currently running actor"
-  (reify
-    clojure.lang.IDeref
-    (deref [_] (Actor/currentActor))))
-
 (defn ^PulsarActor actor
   "Creates a new actor."
   ([^String name ^Integer mailbox-size f]
@@ -372,6 +366,35 @@
        (monitor! @self actor#)
        (.start fiber#)
        actor#)))
+
+(def self
+  "@self is the currently running actor"
+  (reify
+    clojure.lang.IDeref
+    (deref [_] (PulsarActor/self))))
+
+(def state
+  "@state is the state of the currently running actor"
+  (reify
+    clojure.lang.IDeref
+    (deref [_] (PulsarActor/selfGetState))))
+
+(defn set-state!
+  "Sets the state of the currently running actor"
+  [x]
+  (PulsarActor/selfSetState x))
+
+(defn trap!
+  "Sets the current actor to trap lifecycle events (like a dead linked actor) and turn them into messages"
+  []
+  (.setTrap ^PulsarActor @self true))
+
+(defn ^Actor get-actor
+  "If the argument is an actor -- returns it. If not, looks up a registered actor with the argument as its name"
+  [a]
+  (if (instance? Actor a)
+    a
+    (Actor/getActor a)))
 
 (defn link!
   "links two actors"
@@ -485,7 +508,7 @@
        (let [pbody   (partition 2 body)
              mailbox (gensym "mailbox") n (gensym "n") m2 (gensym "m2") mtc (gensym "mtc") exp (gensym "exp")] ; symbols
          `(let [[~mtc ~m]
-                (let ~(into [] (concat `[^co.paralleluniverse.actors.PulsarActor ~mailbox (co.paralleluniverse.actors.PulsarActor/currentActor)]
+                (let ~(into [] (concat `[^co.paralleluniverse.actors.PulsarActor ~mailbox (co.paralleluniverse.actors.PulsarActor/self)]
                                        (if after-clause `[~timeout ~(second after-clause)
                                                           ~exp (if (> ~timeout 0) (long (+ (long (System/nanoTime)) (long (* 1000000 ~timeout)))) 0)] [])))
                   (.maybeSetCurrentStrandAsOwner ~mailbox)

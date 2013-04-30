@@ -6,7 +6,6 @@ import clojure.lang.PersistentVector;
 import co.paralleluniverse.fibers.SuspendExecution;
 import co.paralleluniverse.fibers.TimeoutException;
 import co.paralleluniverse.strands.SuspendableCallable;
-import co.paralleluniverse.strands.channels.Mailbox;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -21,24 +20,34 @@ public class PulsarActor extends Actor<Object, Object> {
         actor.sendSync(m);
     }
 
+    public static PulsarActor self() {
+        final PulsarActor self = (PulsarActor) Actor.currentActor();
+        if(self == null)
+            throw new RuntimeException("Not running within an actor");
+        return self;
+    }
+
     public static Object selfReceive() throws SuspendExecution, InterruptedException {
-        return ((PulsarActor) currentActor()).receive();
+        return self().receive();
     }
 
     public static Object selfReceive(long timeout) throws SuspendExecution, InterruptedException {
-        return ((PulsarActor) currentActor()).receive(timeout);
+        return self().receive(timeout);
     }
 
-    public static PulsarActor currentActor() {
-        return (PulsarActor) Actor.currentActor();
+    public static Object selfGetState() {
+        return self().getState();
     }
-
-    public static Mailbox<Object> selfMailbox() throws SuspendExecution, InterruptedException {
-        return currentActor().mailbox();
+    
+    public static Object selfSetState(Object newState) {
+        self().setState(newState);
+        return newState;
     }
+    
     ///////////////////////////////////////////////////////////////
     private final SuspendableCallable<Object> target;
     private boolean trap;
+    private Object state;
 
     @SuppressWarnings("LeakingThisInConstructor")
     public PulsarActor(String name, boolean trap, int mailboxSize, SuspendableCallable<Object> target) {
@@ -53,6 +62,14 @@ public class PulsarActor extends Actor<Object, Object> {
 
     public boolean isTrap() {
         return trap;
+    }
+
+    private Object getState() {
+        return state;
+    }
+
+    private void setState(Object state) {
+        this.state = state;
     }
 
     @Override
