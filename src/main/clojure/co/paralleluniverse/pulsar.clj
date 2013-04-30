@@ -239,14 +239,14 @@
 (defn snd
   "Sends a message to a channel"
   [^Channel channel message]
-  (co.paralleluniverse.pulsar.ChannelsHelper/send channel message))
+  (.send channel message))
 
 (defsusfn rcv
   "Receives a message from a channel"
   ([^Channel channel]
-   (co.paralleluniverse.pulsar.ChannelsHelper/receive channel))
-  ([channel timeout unit]
-   (co.paralleluniverse.pulsar.ChannelsHelper/receive channel (long timeout) unit)))
+   (.receive channel))
+  ([^Channel channel timeout unit]
+   (.receive channel (long timeout) unit)))
 
 ;; ### Primitive channels
 
