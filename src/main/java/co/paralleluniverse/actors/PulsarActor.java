@@ -29,16 +29,8 @@ public class PulsarActor extends Actor<Object, Object> {
         return ((PulsarActor) currentActor()).receive(timeout);
     }
 
-    public static Object selfReceiveAll() throws SuspendExecution, InterruptedException {
-        return ((PulsarActor) currentActor()).receiveAll();
-    }
-
-    public static Object selfReceiveAll(long timeout) throws SuspendExecution, InterruptedException {
-        return ((PulsarActor) currentActor()).receiveAll(timeout);
-    }
-    
     public static PulsarActor currentActor() {
-        return (PulsarActor)Actor.currentActor();
+        return (PulsarActor) Actor.currentActor();
     }
 
     public static Mailbox<Object> selfMailbox() throws SuspendExecution, InterruptedException {
@@ -68,12 +60,9 @@ public class PulsarActor extends Actor<Object, Object> {
         return target.run();
     }
 
-    public Object receive(long timeout) throws SuspendExecution, InterruptedException {
-        return super.receive(timeout, TimeUnit.MILLISECONDS);
-    }
-
-    public Object receiveAll() throws InterruptedException, SuspendExecution {
-        if(!trap)
+    @Override
+    public Object receive() throws InterruptedException, SuspendExecution {
+        if (!trap)
             return super.receive();
         record(1, "PulsarActor", "receiveAll", "%s waiting for a message", this);
         final Object m = convert(mailbox().receive());
@@ -82,11 +71,12 @@ public class PulsarActor extends Actor<Object, Object> {
         return m;
     }
 
-    public Object receiveAll(long timeout) throws InterruptedException, SuspendExecution {
-        if(!trap) {
+    @Override
+    public Object receive(long timeout, TimeUnit unit) throws SuspendExecution, InterruptedException {
+        if (!trap) {
             return timeout == 0 ? super.tryReceive() : super.receive(timeout, TimeUnit.MILLISECONDS);
         }
-        
+
         if (flightRecorder != null)
             record(1, "PulsarActor", "receiveAll", "%s waiting for a message. Millis left: %s", this, timeout);
         final Object m = convert(timeout == 0 ? mailbox().tryReceive() : mailbox().receive(timeout, TimeUnit.MILLISECONDS));
@@ -99,23 +89,27 @@ public class PulsarActor extends Actor<Object, Object> {
         return m;
     }
 
+    public Object receive(long timeout) throws SuspendExecution, InterruptedException {
+        return receive(timeout, TimeUnit.MILLISECONDS);
+    }
+
     public void processed(Object n) {
         monitorAddMessage();
         mailbox().del(n);
     }
-    
+
     public void skipped(Object n) {
         monitorSkippedMessage();
         final Object m = mailbox().value(n);
-        if(m instanceof LifecycleMessage)
-            handleLifecycleMessage((LifecycleMessage)m);
+        if (m instanceof LifecycleMessage)
+            handleLifecycleMessage((LifecycleMessage) m);
     }
 
     @Override
     public void handleLifecycleMessage(LifecycleMessage m) {
         super.handleLifecycleMessage(m);
     }
-    
+
     public static Object convert(Object m) {
         if (m == null)
             return null;
@@ -137,11 +131,10 @@ public class PulsarActor extends Actor<Object, Object> {
     private static Keyword keyword(String s) {
         return Keyword.intern(s);
     }
-    
+
     ///////////////// Simple delegates ////////////////////////////
-    
     public Object succ(Object n) {
-        if(n == null)
+        if (n == null)
             monitorResetSkippedMessages();
         return mailbox().succ(n);
     }

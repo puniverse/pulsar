@@ -444,7 +444,7 @@
 
 (defsusfn receive-timed
   [^Integer timeout]
-  (co.paralleluniverse.actors.PulsarActor/selfReceiveAll timeout))
+  (co.paralleluniverse.actors.PulsarActor/selfReceive timeout))
 
 ;; For examples of this macro's expansions, try:
 ;; (pprint (macroexpand-1 '(receive)))
@@ -464,7 +464,7 @@
 (defmacro receive
   "Receives a message in the current actor and processes it"
   ([]
-   `(co.paralleluniverse.actors.PulsarActor/selfReceiveAll))
+   `(co.paralleluniverse.actors.PulsarActor/selfReceive))
   ([& body]
    (let [[body after-clause] (if (= :after (nth-from-last body 2 nil)) (split-at-from-last 2 body) [body nil])
          odd-forms   (odd? (count body))
@@ -477,7 +477,7 @@
        ; if we have an :else then every message is processed and our job is easy
        `(let ~(into [] (concat
                         (if after-clause `[~timeout ~(second after-clause)] [])
-                        `[~m ~(concat `(co.paralleluniverse.actors.PulsarActor/selfReceiveAll) (if after-clause `(~timeout) ()))]
+                        `[~m ~(concat `(co.paralleluniverse.actors.PulsarActor/selfReceive) (if after-clause `(~timeout) ()))]
                         (if transform `[~m (~transform ~m)] [])))
           ~@(surround-with (if after-clause `(if (nil? ~m) ~(nth after-clause 2)) nil)
                            `(match ~m ~@body)))
