@@ -107,7 +107,7 @@ public class PulsarActor extends Actor<Object, Object> {
     }
 
     @Override
-    protected void handleLifecycleMessage(LifecycleMessage m) {
+    public void handleLifecycleMessage(LifecycleMessage m) {
         super.handleLifecycleMessage(m);
     }
     
