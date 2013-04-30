@@ -1,8 +1,8 @@
-(ns co.paralleluniverse.pulsar.examples.pingpong
+(ns co.paralleluniverse.pulsar-test.examples.pingpong
   "The classic ping-pong example from the Erlang tutorial"
   (:use co.paralleluniverse.pulsar))
 
-;; This example is intended to be a line-by-line translation of the canonical 
+;; This example is intended to be a line-by-line translation of the canonical
 ;; Erlang [ping-pong example](http://www.erlang.org/doc/getting_started/conc_prog.html#id66868),
 ;; so it is not written in idiomatic Clojure.
 
@@ -11,9 +11,9 @@
     (do
       (! :pong :finished)
       (println "ping finished"))
-    (do 
+    (do
       (! :pong [:ping @self])
-      (receive 
+      (receive
        :pong (println "Ping received pong"))
       (recur (dec n)))))
 

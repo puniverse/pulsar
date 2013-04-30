@@ -1,4 +1,4 @@
-(ns co.paralleluniverse.pulsar.examples.ring-benchmark
+(ns co.paralleluniverse.pulsar-test.examples.ring-benchmark
   "An implementation of the ring benchmark using actors"
   (:use co.paralleluniverse.pulsar)
   (:import [co.paralleluniverse.actors Actor]))
@@ -7,7 +7,7 @@
 (defn spawn-relay-actor [^Actor prev n]
   (if (== n 0)
     prev
-    (let [actor (spawn :mailbox-size 10 
+    (let [actor (spawn :mailbox-size 10
                        #(loop []
                           (! prev (inc (receive)))
                           (recur)))]
@@ -21,8 +21,8 @@
     (dotimes [i 1000]
       (let [num-messages
             (time
-             (let [manager 
-                   (spawn :mailbox-size 10 
+             (let [manager
+                   (spawn :mailbox-size 10
                           #(let [last-actor (spawn-relay-actor @self (dec N))]
                              (! last-actor 1) ; start things off
                              (loop [j (int 1)]

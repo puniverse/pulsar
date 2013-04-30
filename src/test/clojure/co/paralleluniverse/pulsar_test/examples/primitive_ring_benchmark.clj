@@ -1,4 +1,4 @@
-(ns co.paralleluniverse.pulsar.examples.primitive-ring-benchmark
+(ns co.paralleluniverse.pulsar-test.examples.primitive-ring-benchmark
   "An implementation of the ring benchmark using fibers and primitive (int) channels"
   (:use co.paralleluniverse.pulsar)
   (:import [co.paralleluniverse.fibers Fiber FiberInterruptedException TimeoutException]
@@ -26,7 +26,7 @@
             (time
              (let [manager-channel (int-channel 10)
                    last-channel (spawn-relay manager-channel (dec N))
-                   manager (spawn-fiber 
+                   manager (spawn-fiber
                             #(do (send-int last-channel 1)  ; start things off
                                (loop [j (int 1)]
                                  (let [m (receive-int manager-channel)]
