@@ -497,16 +497,14 @@
                             (do 
                               (.unlock ~mailbox)
                               (let [m1# (.value ~mailbox ~n)]
-                                (if (and (not (.isTrap ~mailbox)) (instance? co.paralleluniverse.actors.LifecycleMessage m1#))
-                                  (do
-                                    (.handleLifecycleMessage ~mailbox m1#)
-                                    (recur ~n))
-                                  (let [~m2 (co.paralleluniverse.actors.PulsarActor/convert m1#)
-                                        ~m ~(if transform `(~transform ~m2) `~m2)
-                                        act# (int (match ~m ~@quick-match))]
-                                    (if (>= act# 0)
-                                      [act# ~m]     ; we've got a match!
-                                      (recur ~n)))))) ; no match. try the next
+                                (when (and (not (.isTrap ~mailbox)) (instance? co.paralleluniverse.actors.LifecycleMessage m1#))
+                                  (.handleLifecycleMessage ~mailbox m1#))
+                                (let [~m2 (co.paralleluniverse.actors.PulsarActor/convert m1#)
+                                      ~m ~(if transform `(~transform ~m2) `~m2)
+                                      act# (int (match ~m ~@quick-match))]
+                                  (if (>= act# 0)
+                                    [act# ~m]     ; we've got a match!
+                                    (recur ~n))))) ; no match. try the next
                             ; ~n == nil
                             ~(if after-clause
                                `(if (== ~timeout 0)

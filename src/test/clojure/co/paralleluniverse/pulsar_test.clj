@@ -22,8 +22,8 @@
     (is (= 15 
            (let [fib (spawn-fiber 
                       #(do
-                        (Fiber/park 100 TimeUnit/MILLISECONDS)
-                        15))]
+                         (Fiber/park 100 TimeUnit/MILLISECONDS)
+                         15))]
              (join fib 200 TimeUnit/MILLISECONDS))))))
 
 (deftest fiber-exception
@@ -78,7 +78,7 @@
                             (+ v1 v2)))))]
                 (join actor))))))
 
-(deftest ^:selected actor-receive
+(deftest actor-receive
   (testing "Test simple actor send/receive"
     (is (= :abc (let [actor (spawn #(receive))]
                   (! actor :abc)
@@ -107,36 +107,34 @@
       (! actor 3)
       (join actor))))
 
-#_(deftest matching-receive
-    (testing "Test actor matching receive 1"
+(deftest ^:selected matching-receive
+  (testing "Test actor matching receive 1"
       (is (= "yes!" (let [actor (spawn 
-                                 (receive
-                                  :abc "yes!"
-                                  :else "oy"))]
+                                 #(receive
+                                   :abc "yes!"
+                                   :else "oy"))]
                       (! actor :abc)
                       (join actor)))))
-    (testing "Test actor matching receive 2"
-    (is (= "because!" (let [actor (spawn 
-                                   #(receive
-                                     :abc "yes!"
-                                     [:why? answer] answer
-                                     :else "oy"))]
-                        (! actor [:why? "because!"])
-                        (join actor)))))
-  (testing "When matching receive and timeout then throw exception"
+  (testing "Test actor matching receive 2"
+      (is (= "because!" (let [actor (spawn 
+                                     #(receive
+                                       :abc "yes!"
+                                       [:why? answer] answer
+                                       :else "oy"))]
+                          (! actor [:why? "because!"])
+                          (join actor)))))
+  (testing "When matching receive and timeout then run :after clause"
     (let [actor 
           (spawn 
-           #(try
-              (receive-timed 100
-                             [:foo] nil
-                             :else (println "got it!"))
-              (do-report :fail)
-              (catch TimeoutException e nil)))]
+           #(receive
+             [:foo] nil
+             :else (println "got it!")
+             :after 30 :timeout))]
       (Thread/sleep 150)
       (! actor 1)
-      (join actor))))
+      (is (= :timeout (join actor))))))
 
-#_(deftest ^:selected selective-receive
+(deftest selective-receive
   (testing "Test selective receive"
     (let [res (atom [])
           actor (spawn
@@ -154,21 +152,29 @@
       (join actor)
       (is (= @res [1 3 2])))))
 
-#_(deftest actor-link
+(deftest actor-link
   (testing "When an actor dies, its link gets an exception"
     (let [actor1 (spawn #(Fiber/sleep 100))
           actor2 (spawn 
                   #(try 
-                     (loop [] (receive) (recur)) 
+                     (loop [] (receive [m] :foo :bar) (recur)) 
                      (catch co.paralleluniverse.actors.LifecycleException e nil)))]
       (link! actor1 actor2)
       (join actor1)
-      (join actor2))))
+      (join actor2)))
+  (testing "When an actor dies, and its link traps, then its link gets a message"
+    (let [actor1 (spawn #(Fiber/sleep 100))
+          actor2 (spawn :trap true
+                        #(receive [m] 
+                                  [:exit _ actor reason] actor))]
+      (link! actor1 actor2)
+      (join actor1)
+      (is (= actor1 (join actor2))))))
 
-#_(deftest actor-monitor
+(deftest actor-monitor
   (testing "When an actor dies, its monitor gets a message"
     (let [actor1 (spawn #(Fiber/sleep 200))
-          actor2 (spawn 
+          actor2 (spawn
                   #(receive
                     [:exit monitor actor reason] monitor
                     ))]

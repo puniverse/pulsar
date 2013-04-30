@@ -140,7 +140,7 @@ public class PulsarActor extends Actor<Object, Object> {
     }
 
     public Object value(Object n) {
-        final Object m = convert(mailbox().value(n));
+        final Object m = mailbox().value(n);
         record(1, "PulsarActor", "receive", "Received %s <- %s", this, m);
         return m;
     }
