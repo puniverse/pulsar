@@ -8,9 +8,9 @@
   (if (== n 0)
     prev
     (let [actor (spawn :mailbox-size 10 
-                       (loop []
-                         (! prev (inc (receive)))
-                         (recur)))]
+                       #(loop []
+                          (! prev (inc (receive)))
+                          (recur)))]
       (recur actor (dec n)))))
 
 
@@ -23,14 +23,14 @@
             (time
              (let [manager 
                    (spawn :mailbox-size 10 
-                          (let [last-actor (spawn-relay-actor @self (dec N))]
-                            (! last-actor 1) ; start things off
-                            (loop [j (int 1)]
-                              (let [m (receive)]
-                                (if (< j M)
-                                  (do
-                                    (! last-actor (inc m))
-                                    (recur (inc j)))
-                                  m)))))]
+                          #(let [last-actor (spawn-relay-actor @self (dec N))]
+                             (! last-actor 1) ; start things off
+                             (loop [j (int 1)]
+                               (let [m (receive)]
+                                 (if (< j M)
+                                   (do
+                                     (! last-actor (inc m))
+                                     (recur (inc j)))
+                                   m)))))]
                (join manager)))]
         (println i ": Messages " num-messages)))))
