@@ -3,7 +3,7 @@
   (:use co.paralleluniverse.pulsar))
 
 ;; This example is intended to be a line-by-line translation of the canonical
-;; Erlang [ping-pong example](http://www.erlang.org/doc/getting_started/conc_prog.html#id66868),
+;; Erlang [ping-pong example](http://www.erlang.org/doc/getting_started/conc_prog.html#id67347),
 ;; so it is not written in idiomatic Clojure.
 
 (defsusfn ping [n]
@@ -26,7 +26,13 @@
                   (recur))))
 
 (defn -main []
+  (register :pong (spawn pong))
+  (spawn ping 3)
+  :ok)
+
+#_(defn -main []
   (let [a1 (register :pong (spawn pong))
         b1 (spawn ping 3)]
     (join a1)
-    (join b1)))
+    (join b1)
+    (System/exit 0)))
