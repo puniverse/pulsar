@@ -95,6 +95,11 @@
           [rks rpargs] (extract-keys (next ks) ps)]
       [(vec (cons (first k) rks)) rpargs])))
 
+(defn merge-meta
+  {:no-doc true}
+  [s m]
+  (with-meta s (merge-with #(%1) m (meta s))))
+
 (defn as-timeunit
   "Converts a keyword to a java.util.concurrent.TimeUnit
   <pre>
@@ -313,12 +318,30 @@
 
 ;; ## Actors
 
+(defn def-stateful-actor [type fs body]
+  (dbg type)
+  (let [fs (vec (map #(merge-meta % {:unsynchronized-mutable true}) fs))]
+    `(deftype ~type ~fs
+       clojure.lang.IFn
+       (invoke [~'this] ~@body)
+       (applyTo [this# args#] (clojure.lang.AFn/applyToHelper this# args#)))))
+
 (defmacro actor
   "Creates a new actor."
   [& args]
   (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size] :or {trap false mailbox-size -1}} body] (kps-args args)]
-    `(let [f# (suspendable! ~(if (== (count body) 1) (first body) `(fn [] (apply ~(first body) (list ~@(rest body))))))]
-       (co.paralleluniverse.actors.PulsarActor. ~name ~trap (int ~mailbox-size) (asSuspendableCallable f#)))))
+    (if (vector? (first body))
+      ; actor with state fields
+      (let [type (gensym "actor")
+            bs (first body)
+            fs (vec (take-nth 2 bs)) ; field names
+            ivs (take-nth 2 (next bs))] ; initial values
+        (eval (def-stateful-actor type fs (rest body)))
+        `(let [f# (suspendable! (new ~type ~@ivs))]
+           (co.paralleluniverse.actors.PulsarActor. ~name ~trap (int ~mailbox-size) (asSuspendableCallable f#))))
+      ; regular actor
+      `(let [f# (suspendable! ~(if (== (count body) 1) (first body) `(fn [] (apply ~(first body) (list ~@(rest body))))))]
+         (co.paralleluniverse.actors.PulsarActor. ~name ~trap (int ~mailbox-size) (asSuspendableCallable f#))))))
 
 (defmacro spawn
   "Creates and starts a new actor"

@@ -15,12 +15,12 @@
 
 (deftest fiber-timeout
   (testing "When join and timeout then throw exception"
-    (is (thrown? java.util.concurrent.TimeoutException 
+    (is (thrown? java.util.concurrent.TimeoutException
                  (let [fib (spawn-fiber #(Fiber/park 100 TimeUnit/MILLISECONDS))]
                    (join fib 2 TimeUnit/MILLISECONDS)))))
   (testing "When join and no timeout then join"
-    (is (= 15 
-           (let [fib (spawn-fiber 
+    (is (= 15
+           (let [fib (spawn-fiber
                       #(do
                          (Fiber/park 100 TimeUnit/MILLISECONDS)
                          15))]
@@ -60,17 +60,17 @@
 
 (deftest actor-bindings
   (testing "Test dynamic binding around spawn"
-    (is (= 40 (let [actor 
+    (is (= 40 (let [actor
                     (binding [*foo* 20]
-                      (spawn 
+                      (spawn
                        #(let [v1 *foo*]
                           (Fiber/sleep 200)
                           (let [v2 *foo*]
                             (+ v1 v2)))))]
                 (join actor)))))
   (testing "Test dynamic binding in spawn"
-    (is (= 30 (let [actor 
-                    (spawn 
+    (is (= 30 (let [actor
+                    (spawn
                      #(binding [*foo* 15]
                         (let [v1 *foo*]
                           (Fiber/sleep 200)
@@ -84,7 +84,7 @@
                   (! actor :abc)
                   (join actor)))))
   (testing "Test receive after sleep"
-    (is (= 25 (let [actor 
+    (is (= 25 (let [actor
                     (spawn #(let [m1 (receive)
                                   m2 (receive)]
                               (+ m1 m2)))]
@@ -93,7 +93,7 @@
                 (! actor 12)
                 (join actor)))))
   (testing "When simple receive and timeout then return nil"
-    (let [actor 
+    (let [actor
           (spawn #(let [m1 (receive-timed 50)
                         m2 (receive-timed 50)
                         m3 (receive-timed 50)]
@@ -107,16 +107,16 @@
       (! actor 3)
       (join actor))))
 
-(deftest ^:selected matching-receive
+(deftest matching-receive
   (testing "Test actor matching receive 1"
-      (is (= "yes!" (let [actor (spawn 
+      (is (= "yes!" (let [actor (spawn
                                  #(receive
                                    :abc "yes!"
                                    :else "oy"))]
                       (! actor :abc)
                       (join actor)))))
   (testing "Test actor matching receive 2"
-      (is (= "because!" (let [actor (spawn 
+      (is (= "because!" (let [actor (spawn
                                      #(receive
                                        :abc "yes!"
                                        [:why? answer] answer
@@ -124,8 +124,8 @@
                           (! actor [:why? "because!"])
                           (join actor)))))
   (testing "When matching receive and timeout then run :after clause"
-    (let [actor 
-          (spawn 
+    (let [actor
+          (spawn
            #(receive
              [:foo] nil
              :else (println "got it!")
@@ -142,9 +142,9 @@
                     (receive
                      [:foo x] (do
                                 (swap! res conj x)
-                                (receive 
+                                (receive
                                  [:baz z] (swap! res conj z)))
-                     [:bar y] (swap! res conj y)     
+                     [:bar y] (swap! res conj y)
                      [:baz z] (swap! res conj z))))]
       (! actor [:foo 1])
       (! actor [:bar 2])
@@ -155,9 +155,9 @@
 (deftest actor-link
   (testing "When an actor dies, its link gets an exception"
     (let [actor1 (spawn #(Fiber/sleep 100))
-          actor2 (spawn 
-                  #(try 
-                     (loop [] (receive [m] :foo :bar) (recur)) 
+          actor2 (spawn
+                  #(try
+                     (loop [] (receive [m] :foo :bar) (recur))
                      (catch co.paralleluniverse.actors.LifecycleException e nil)))]
       (link! actor1 actor2)
       (join actor1)
@@ -165,7 +165,7 @@
   (testing "When an actor dies, and its link traps, then its link gets a message"
     (let [actor1 (spawn #(Fiber/sleep 100))
           actor2 (spawn :trap true
-                        #(receive [m] 
+                        #(receive [m]
                                   [:exit _ actor reason] actor))]
       (link! actor1 actor2)
       (join actor1)
@@ -181,4 +181,34 @@
       (let [mon (monitor! actor2 actor1)]
         (join actor1)
         (is (= mon (join actor2)))))))
+
+(deftest ^:selected actor-state
+  (testing "Test recur actor-state"
+    (is (= 25 (let [actor
+                    (spawn #(loop [i (int 2)
+                                   state (int 0)]
+                              (if (== i 0)
+                                state
+                                (recur (dec i) (+ state (int (receive)))))))]
+                (! actor 13)
+                (! actor 12)
+                (join actor)))))
+  (testing "Test simple actor-state"
+    (is (= 25 (let [actor
+                    (spawn #(do
+                              (set-state! 0)
+                              (set-state! (+ @state (receive)))
+                              (set-state! (+ @state (receive)))
+                              @state))]
+                (! actor 13)
+                (! actor 12)
+                (join actor)))))
+  (testing "Test primitive actor-state"
+    (is (= 25 (let [actor (spawn (actor [^int sum 0]
+                                        (set! sum (int (+ sum (receive))))
+                                        (set! sum (int (+ sum (receive))))
+                                        sum))]
+                (! actor 13)
+                (! actor 12)
+                (join actor))))))
 
