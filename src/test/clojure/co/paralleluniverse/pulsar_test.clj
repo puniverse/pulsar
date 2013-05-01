@@ -109,20 +109,20 @@
 
 (deftest matching-receive
   (testing "Test actor matching receive 1"
-      (is (= "yes!" (let [actor (spawn
-                                 #(receive
-                                   :abc "yes!"
-                                   :else "oy"))]
-                      (! actor :abc)
-                      (join actor)))))
+    (is (= "yes!" (let [actor (spawn
+                               #(receive
+                                 :abc "yes!"
+                                 :else "oy"))]
+                    (! actor :abc)
+                    (join actor)))))
   (testing "Test actor matching receive 2"
-      (is (= "because!" (let [actor (spawn
-                                     #(receive
-                                       :abc "yes!"
-                                       [:why? answer] answer
-                                       :else "oy"))]
-                          (! actor [:why? "because!"])
-                          (join actor)))))
+    (is (= "because!" (let [actor (spawn
+                                   #(receive
+                                     :abc "yes!"
+                                     [:why? answer] answer
+                                     :else "oy"))]
+                        (! actor [:why? "because!"])
+                        (join actor)))))
   (testing "When matching receive and timeout then run :after clause"
     (let [actor
           (spawn
@@ -211,4 +211,43 @@
                 (! actor 13)
                 (! actor 12)
                 (join actor))))))
+
+(defsusfn f1 []
+  (inc (receive)))
+
+(defsusfn f2 [x]
+  (+ x (receive)))
+
+(defactor a1 []
+  (inc (receive)))
+
+(defactor a2 [^double x]
+  (+ x (receive)))
+
+(deftest spawn-syntax
+  (testing "Test spawn inline function"
+    (is (= 42 (let [actor
+                    (spawn #(inc (receive)))]
+                (! actor 41)
+                (join actor)))))
+  (testing "Test spawn simple function"
+    (is (= 42 (let [actor
+                    (spawn f1)]
+                (! actor 41)
+                (join actor)))))
+  (testing "Test spawn function with args"
+    (is (= 42 (let [actor
+                    (spawn f2 5)]
+                (! actor 37)
+                (join actor)))))
+  (testing "Test spawn simple actor"
+    (is (= 42 (let [actor
+                    (spawn a1)]
+                (! actor 41)
+                (join actor)))))
+  (testing "Test spawn simple actor with constructor args"
+    (is (= 42.0 (let [actor
+                      (spawn a2 3.4)]
+                  (! actor 38.6)
+                  (join actor))))))
 

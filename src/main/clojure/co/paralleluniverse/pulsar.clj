@@ -173,7 +173,8 @@
 (defmacro defsusfn
   "Defines a suspendable function that can be used by a fiber or actor"
   [& expr]
-  `(do (defn ~@expr)
+  `(do
+     (defn ~@expr)
      (suspendable! ~(first expr))))
 
 ;; ## Fibers
@@ -318,50 +319,70 @@
 
 ;; ## Actors
 
-(defn def-stateful-actor [type fs body]
-  (dbg type)
-  (let [fs (vec (map #(merge-meta % {:unsynchronized-mutable true}) fs))]
-    `(deftype ~type ~fs
-       clojure.lang.IFn
-       (invoke [~'this] ~@body)
-       (applyTo [this# args#] (clojure.lang.AFn/applyToHelper this# args#)))))
-
 (defmacro actor
   "Creates a new actor."
-  [& args]
-  (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size] :or {trap false mailbox-size -1}} body] (kps-args args)]
-    (if (vector? (first body))
+  [bs & body]
+  `(suspendable!
+    ~(if (> (count bs) 0)
+       ; actor with state fields
+       (let [type (gensym "actor")
+             fs (vec (take-nth 2 bs)) ; field names
+             ivs (take-nth 2 (next bs))] ; initial values
+         (eval ; this runs at compile time!
+          (let [fs (vec (map #(merge-meta % {:unsynchronized-mutable true}) fs))]
+            `(deftype ~type ~fs
+               clojure.lang.IFn
+               (invoke [this#] ~@body)
+               (applyTo [this# args#] (clojure.lang.AFn/applyToHelper this# args#)))))
+         `(new ~type ~@ivs))
+       ; regular actor
+       `(fn [] ~@body))))
+
+(defmacro defactor
+  "Defines a new actor template."
+  [n & decl]
+  (let [decl1 decl
+        decl1 (if (string? (first decl1)) (next decl1) decl1) ; strip docstring
+        decl1 (if (map? (first decl1)) (next decl1) decl1)    ; strip meta
+        fs (first decl1)]
+    (if (> (count fs) 0)
       ; actor with state fields
-      (let [type (gensym "actor")
-            bs (first body)
-            fs (vec (take-nth 2 bs)) ; field names
-            ivs (take-nth 2 (next bs))] ; initial values
-        (eval (def-stateful-actor type fs (rest body)))
-        `(let [f# (suspendable! (new ~type ~@ivs))]
-           (co.paralleluniverse.actors.PulsarActor. ~name ~trap (int ~mailbox-size) (asSuspendableCallable f#))))
+      (let [fs1 (vec (map #(merge-meta % {:unsynchronized-mutable true}) fs))
+            body (next decl1)
+            type (symbol (str (name n) "_type"))
+            arity (count fs)
+            args  (repeatedly arity gensym)]
+        `(do
+           (deftype ~type ~fs1
+             clojure.lang.IFn
+             (invoke [this#] ~@body)
+             (applyTo [this# args#] (clojure.lang.AFn/applyToHelper this# args#)))
+           (suspendable! ~type)
+            (defn ~n [~@args]
+              ((new ~type ~@args)))
+           (suspendable! ~n)))
       ; regular actor
-      `(let [f# (suspendable! ~(if (== (count body) 1) (first body) `(fn [] (apply ~(first body) (list ~@(rest body))))))]
-         (co.paralleluniverse.actors.PulsarActor. ~name ~trap (int ~mailbox-size) (asSuspendableCallable f#))))))
+      `(do
+         (defn ~n ~@decl)
+         (suspendable! ~n)))))
 
 (defmacro spawn
   "Creates and starts a new actor"
   [& args]
-  (let [[{:keys [^String name ^Integer stack-size ^ForkJoinPool pool] :or {mailbox-size -1 stack-size -1}} body] (kps-args args)]
-    `(let [^co.paralleluniverse.actors.Actor actor#  ~(if (== 1 (count body))
-                                                        `(if (instance? co.paralleluniverse.actors.Actor ~(first body)) ~(first body) (actor ~@args))
-                                                        `(actor ~@args))
-           fiber#  (co.paralleluniverse.fibers.Fiber. ~name (get-pool ~pool) (int ~stack-size) actor#)]
+  (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size ^Integer stack-size ^ForkJoinPool pool], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)]
+    `(let [f#     (suspendable! ~(if (== (count body) 1) (first body) `(fn [] (apply ~(first body) (list ~@(rest body))))))
+           actor# (co.paralleluniverse.actors.PulsarActor. ~name ~trap (int ~mailbox-size) (asSuspendableCallable f#))
+           fiber# (co.paralleluniverse.fibers.Fiber. ~name (get-pool ~pool) (int ~stack-size) actor#)]
        (.start fiber#)
        actor#)))
 
 (defmacro spawn-link
   "Creates and starts a new actor, and links it to @self"
   [& args]
-  (let [[{:keys [^String name ^Integer stack-size ^ForkJoinPool pool] :or {mailbox-size -1 stack-size -1}} body] (kps-args args)]
-    `(let [^co.paralleluniverse.actors.Actor actor#  ~(if (== 1 (count body))
-                                                        `(if (instance? co.paralleluniverse.actors.Actor ~(first body)) ~(first body) (actor ~@args))
-                                                        `(actor ~@args))
-           fiber#  (co.paralleluniverse.fibers.Fiber. ~name (get-pool ~pool) (int ~stack-size) actor#)]
+  (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size ^Integer stack-size ^ForkJoinPool pool], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)]
+    `(let [f#     (suspendable! ~(if (== (count body) 1) (first body) `(fn [] (apply ~(first body) (list ~@(rest body))))))
+           actor# (co.paralleluniverse.actors.PulsarActor. ~name ~trap (int ~mailbox-size) (asSuspendableCallable f#))
+           fiber# (co.paralleluniverse.fibers.Fiber. ~name (get-pool ~pool) (int ~stack-size) actor#)]
        (link! @self actor#)
        (.start fiber#)
        actor#)))
@@ -369,11 +390,10 @@
 (defmacro spawn-monitor
   "Creates and starts a new actor, and makes @self monitor it"
   [& args]
-  (let [[{:keys [^String name ^Integer stack-size ^ForkJoinPool pool] :or {mailbox-size -1 stack-size -1}} body] (kps-args args)]
-    `(let [^co.paralleluniverse.actors.Actor actor#  ~(if (== 1 (count body))
-                                                        `(if (instance? co.paralleluniverse.actors.Actor ~(first body)) ~(first body) (actor ~@args))
-                                                        `(actor ~@args))
-           fiber#  (co.paralleluniverse.fibers.Fiber. ~name (get-pool ~pool) (int ~stack-size) actor#)]
+  (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size ^Integer stack-size ^ForkJoinPool pool], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)]
+    `(let [f#     (suspendable! ~(if (== (count body) 1) (first body) `(fn [] (apply ~(first body) (list ~@(rest body))))))
+           actor# (co.paralleluniverse.actors.PulsarActor. ~name ~trap (int ~mailbox-size) (asSuspendableCallable f#))
+           fiber# (co.paralleluniverse.fibers.Fiber. ~name (get-pool ~pool) (int ~stack-size) actor#)]
        (monitor! @self actor#)
        (.start fiber#)
        actor#)))

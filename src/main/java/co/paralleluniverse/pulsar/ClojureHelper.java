@@ -32,10 +32,19 @@ public class ClojureHelper {
         // mark all IFn methods as suspendable
         Retransform.getMethodDB().getClassEntry(Type.getInternalName(IFn.class)).setAll(true);
     }
-    public static IFn retransform(IFn fn) throws UnmodifiableClassException {
-        final Class clazz = fn.getClass();
+    public static Object retransform(Object thing) throws UnmodifiableClassException {
+        final Class clazz;
+        if(thing instanceof IFn)
+            clazz = thing.getClass();
+        else if(thing instanceof Class)
+            clazz = (Class)thing;
+        else
+            throw new IllegalArgumentException("Not a class or an IFn: " + thing + " (type: " + thing.getClass() + ")");
+        if(!(IFn.class.isAssignableFrom(clazz)))
+            throw new IllegalArgumentException("Class " + clazz + " does not implement IFn");
+        
         if (clazz.isAnnotationPresent(Instrumented.class))
-            return fn;
+            return thing;
 
         try {
             // Clojure might break up a single function into several classes. We must instrument them all.
@@ -55,7 +64,7 @@ public class ClojureHelper {
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
-        return fn;
+        return thing;
     }
 
     public static SuspendableCallable<Object> asSuspendableCallable(final IFn fn) {

@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package co.paralleluniverse.pulsar;
 
 import co.paralleluniverse.fibers.SuspendExecution;
@@ -11,6 +7,9 @@ import co.paralleluniverse.strands.channels.IntChannel;
 import co.paralleluniverse.strands.channels.LongChannel;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * This class contains static methods to help Clojure avoid reflection for primitive channel operations.
+ */
 public class ChannelsHelper {
     public static void sendInt(IntChannel channel, int m) {
         channel.send(m);
