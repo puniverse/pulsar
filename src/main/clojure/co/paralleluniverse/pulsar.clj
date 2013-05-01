@@ -29,6 +29,16 @@
      (println "dbg:" '~@body "=" y# (if more# "..." ""))
      x#))
 
+;; from core.clj:
+(defmacro ^{:private true} assert-args
+  [& pairs]
+  `(do (when-not ~(first pairs)
+         (throw (IllegalArgumentException.
+                 (str (first ~'&form) " requires " ~(second pairs) " in " ~'*ns* ":" (:line (meta ~'&form))))))
+     ~(let [more (nnext pairs)]
+        (when more
+          (list* `assert-args more)))))
+
 (defn- sequentialize
   "Takes a function of a single argument and returns a function that either takes any number of arguments or a
   a single sequence, and applies the original function to each argument or each element of the sequence"
@@ -321,7 +331,11 @@
 
 (defmacro actor
   "Creates a new actor."
+  {:arglists '([bindings & body])}
   [bs & body]
+  (assert-args
+   (vector? bs) "a vector for its binding"
+   (even? (count bs)) "an even number of forms in binding vector")
   `(suspendable!
     ~(if (> (count bs) 0)
        ; actor with state fields
@@ -340,11 +354,14 @@
 
 (defmacro defactor
   "Defines a new actor template."
+  {:arglists '([name doc-string? attr-map? [params*] body])}
   [n & decl]
   (let [decl1 decl
         decl1 (if (string? (first decl1)) (next decl1) decl1) ; strip docstring
         decl1 (if (map? (first decl1)) (next decl1) decl1)    ; strip meta
         fs (first decl1)]
+    (assert-args
+     (vector? fs) "a vector for its binding")
     (if (> (count fs) 0)
       ; actor with state fields
       (let [fs1 (vec (map #(merge-meta % {:unsynchronized-mutable true}) fs))
@@ -358,8 +375,8 @@
              (invoke [this#] ~@body)
              (applyTo [this# args#] (clojure.lang.AFn/applyToHelper this# args#)))
            (suspendable! ~type)
-            (defn ~n [~@args]
-              ((new ~type ~@args)))
+           (defn ~n [~@args]
+             ((new ~type ~@args)))
            (suspendable! ~n)))
       ; regular actor
       `(do
@@ -368,6 +385,7 @@
 
 (defmacro spawn
   "Creates and starts a new actor"
+  {:arglists '([:name? :mailbox-size? :stack-size? :pool? f & args])}
   [& args]
   (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size ^Integer stack-size ^ForkJoinPool pool], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)]
     `(let [f#     (suspendable! ~(if (== (count body) 1) (first body) `(fn [] (apply ~(first body) (list ~@(rest body))))))
@@ -378,6 +396,7 @@
 
 (defmacro spawn-link
   "Creates and starts a new actor, and links it to @self"
+  {:arglists '([:name? :mailbox-size? :stack-size? :pool? f & args])}
   [& args]
   (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size ^Integer stack-size ^ForkJoinPool pool], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)]
     `(let [f#     (suspendable! ~(if (== (count body) 1) (first body) `(fn [] (apply ~(first body) (list ~@(rest body))))))
@@ -389,6 +408,7 @@
 
 (defmacro spawn-monitor
   "Creates and starts a new actor, and makes @self monitor it"
+  {:arglists '([:name? :mailbox-size? :stack-size? :pool? f & args])}
   [& args]
   (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size ^Integer stack-size ^ForkJoinPool pool], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)]
     `(let [f#     (suspendable! ~(if (== (count body) 1) (first body) `(fn [] (apply ~(first body) (list ~@(rest body))))))
@@ -497,6 +517,7 @@
    `(co.paralleluniverse.actors.PulsarActor/sendSync (get-actor ~actor) [~arg ~@args])))
 
 (defsusfn receive-timed
+  "Waits (and returns) for a message for up to timeout ms. If time elapses -- returns nil."
   [^Integer timeout]
   (co.paralleluniverse.actors.PulsarActor/selfReceive timeout))
 
@@ -517,9 +538,14 @@
 
 (defmacro receive
   "Receives a message in the current actor and processes it"
+  {:arglists '([]
+               [patterns* <:after ms action>?]
+               [[binding transformation?] patterns* <:after ms action>?])}
   ([]
    `(co.paralleluniverse.actors.PulsarActor/selfReceive))
   ([& body]
+   (assert-args
+    (or (even? (count body)) (vector? bs)) "a vector for its binding")
    (let [[body after-clause] (if (= :after (nth-from-last body 2 nil)) (split-at-from-last 2 body) [body nil])
          odd-forms   (odd? (count body))
          bind-clause (if odd-forms (first body) nil)
@@ -583,4 +609,5 @@
                              ; now, mtc# is the number of the matching clause and m# is the message. we could have used a simple (case) to match on mtc#,
                              ; but the patterns might have wildcards so we'll match again (to get the bindings), but we'll help the match by mathing on mtc#
                              `(match [~mtc ~m] ~@(mapcat #(list [%2 (first %1)] (second %1)) pbody (range))))))))))
+
 
