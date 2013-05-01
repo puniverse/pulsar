@@ -499,6 +499,12 @@
   [name]
   (Actor/getActor name))
 
+(defn maketag
+  "Returns a random, probably unique, identifier.
+  (this is similar to Erlang's makeref)."
+  []
+  (Actor/randtag))
+
 (defmacro !
   "Sends a message to an actor.
   This function returns nil."
