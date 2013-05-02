@@ -1,0 +1,53 @@
+This product contains modified source code from Continuations Library, by Matthias Mann:
+
+    Copyright (c) 2008-2013, Matthias Mann
+    * LICENSE: New BSD (http://directory.fsf.org/wiki/License:BSD_3Clause)
+    * HOMEPAGE: http://www.matthiasmann.de/content/view/24/26/
+
+This product depends on ASM, an all purpose Java bytecode manipulation and analysis framework
+
+    Copyright (c) 2012 France Télécom
+    * LICENSE: New BSD (http://directory.fsf.org/wiki/License:BSD_3Clause)
+    * HOMEPAGE: http://asm.ow2.org/
+
+This product includes code derived from the JSR-166 project (ThreadLocalRandom), which was released
+with the following comments:
+
+    Written by Doug Lea with assistance from members of JCP JSR-166
+    Expert Group and released to the public domain, as explained at
+    http://creativecommons.org/publicdomain/zero/1.0/
+
+This product depends on 'Google Guava Libraries'
+  
+    * LICENSE: Apache 2.0 (http://www.apache.org/licenses/LICENSE-2.0.html)
+    * HOMEPAGE: http://code.google.com/p/guava-libraries/ (Apache 2.0)
+
+This product depends on 'Metrics', capturing JVM- and application-level metrics,
+software developed by Coda Hale and Yammer, Inc:
+
+    * LICENSE: Apache 2.0 (http://www.apache.org/licenses/LICENSE-2.0.html)
+    * HOMEPAGE: http://metrics.codahale.com/
+
+This product depends on 'core.match, an optimized pattern match and predicate dispatch library for Clojure'
+
+    Copyright © 2010-2012 David Nolen, Rich Hickey & contributors.
+    * LICENSE: Eclipse Public License v1.0 (http://www.eclipse.org/legal/epl-v10.html)
+    * HOMEPAGE: https://github.com/clojure/core.match
+
+This product depends on 'Gloss', a byte-format DSL
+
+    Copyright (c) Zachary Tellman.
+    * LICENSE: Eclipse Public License v1.0 (http://www.eclipse.org/legal/epl-v10.html)
+    * HOMEPAGE: https://github.com/ztellman/gloss
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
