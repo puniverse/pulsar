@@ -1,8 +1,7 @@
 (defproject co.paralleluniverse/pulsar "0.1.0"
   :description "A Clojure actor library"
   :url "http://github.com/puniverse/pulsar"
-  :licenses [{:name "GNU Lesser General Public License v3.0" :url "http://www.gnu.org/copyleft/lesser.html"}
-             {:name "Eclipse Public License - v 1.0"         :url "http://www.eclipse.org/legal/epl-v10.html"}]
+  :license {:name "Eclipse Public License - v 1.0" :url "http://www.eclipse.org/legal/epl-v10.html"}
   :distribution :repo
   :source-paths ["src/main/clojure"]
   :test-paths ["src/test/clojure"]
