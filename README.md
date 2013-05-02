@@ -1,6 +1,5 @@
 # Pulsar: lightweight threads and Erlang-like actors for Clojure
 
-Erlang-like actors for Clojure
 
 ## Getting started
 
