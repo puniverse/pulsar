@@ -2,6 +2,14 @@
 
 Erlang-like actors for Clojure
 
+## Getting started
+
+Add the following dependency to [Leiningen](http://github.com/technomancy/leiningen/)'s project.clj:
+
+
+```
+[co.paralleluniverse/pulsar "0.1.0"]
+```
 
 ## Usage
 
