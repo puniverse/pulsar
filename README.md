@@ -12,7 +12,14 @@ Add the following dependency to [Leiningen](http://github.com/technomancy/leinin
 [co.paralleluniverse/pulsar "0.1.0"]
 ```
 
-Then run:
+Then, the following must be added to the `java` command line or to project.clj's `:jvm-opts`
+section:
+
+```
+-javaagent:path-to-quasar-jar.jar
+```
+
+Alternatively, to build Pulsar from the source, clone the repository and run:
 
 ```
 lein uberjar
