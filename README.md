@@ -2,6 +2,8 @@
 
 **NOTE: This is alpha software**
 
+Pulsar wraps the [Quasar](https://github.com/puniverse/quasar) library with a Clojure API that's very similar to Erlang.
+
 ## Requirements
 
 Java 7 and Clojure 1.5 are required to run Pulsar.
