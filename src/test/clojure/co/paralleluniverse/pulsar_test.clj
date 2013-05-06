@@ -41,6 +41,26 @@
 
 ;; ## channels
 
+(deftest channels-seq
+  (testing "Send and receive sequence"
+    (let [ch (channel)
+          fiber (spawn-fiber #(doall (take 5 (rcv-seq ch))))]
+      (snd-seq ch (take 10 (range)))
+      (is (= '(0 1 2 3 4)
+             (join fiber)))))
+  (testing "Map received sequence"
+    (let [ch (channel)
+          fiber (spawn-fiber (fn [] (doall (map #(* % %) (take 5 (rcv-seq ch))))))]
+      (snd-seq ch (take 10 (range)))
+      (is (= '(0 1 4 9 16)
+             (join fiber)))))
+  (testing "Map received sequence"
+    (let [ch (channel)
+          fiber (spawn-fiber #(doall (filter even? (take 5 (rcv-seq ch)))))]
+      (snd-seq ch (take 10 (range)))
+      (is (= '(0 2 4)
+             (join fiber))))))
+
 ;; ## actors
 
 (deftest actor-exception
@@ -251,3 +271,19 @@
                   (! actor 38.6)
                   (join actor))))))
 
+(deftest mailbox-seq
+  (testing "Send and receive sequence"
+    (let [actor (spawn #(doall (take 5 (rcv-seq @mailbox))))]
+      (snd-seq (mailbox-of actor) (take 10 (range)))
+      (is (= '(0 1 2 3 4)
+             (join actor)))))
+  (testing "Map received sequence"
+    (let [actor (spawn (fn [] (doall (map #(* % %) (take 5 (rcv-seq @mailbox))))))]
+      (snd-seq (mailbox-of actor) (take 10 (range)))
+      (is (= '(0 1 4 9 16)
+             (join actor)))))
+  (testing "Map received sequence"
+    (let [actor (spawn #(doall (filter even? (take 5 (rcv-seq @mailbox)))))]
+      (snd-seq (mailbox-of actor) (take 10 (range)))
+      (is (= '(0 2 4)
+             (join actor))))))

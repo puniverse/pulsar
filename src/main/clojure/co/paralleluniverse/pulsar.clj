@@ -264,6 +264,23 @@
   ([^Channel channel timeout unit]
    (.receive channel (long timeout) unit)))
 
+(defsusfn rcv-seq
+  "Turns a channel into a lazy-seq"
+  ([^Channel channel]
+   (when-let [m (.receive channel)]
+     (lazy-seq
+      (cons m (rcv-seq channel)))))
+  ([^Channel channel timeout unit]
+   (when-let [m (.receive channel (long timeout) unit)]
+     (lazy-seq
+      (cons m (rcv-seq channel timeout unit))))))
+
+(defn snd-seq
+  "Sends a sequence of messages to a channel"
+  [^Channel channel ms]
+  (doseq [m ms]
+    (.send channel m)))
+
 ;; ### Primitive channels
 
 (defn ^IntChannel int-channel
@@ -385,22 +402,22 @@
 
 (defmacro spawn
   "Creates and starts a new actor"
-  {:arglists '([:name? :mailbox-size? :stack-size? :pool? f & args])}
+  {:arglists '([:name? :mailbox-size? :lifecycle-handler? :stack-size? :pool? f & args])}
   [& args]
-  (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size ^Integer stack-size ^ForkJoinPool pool], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)]
+  (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size ^IFn lifecycle-handler ^Integer stack-size ^ForkJoinPool pool], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)]
     `(let [f#     (suspendable! ~(if (== (count body) 1) (first body) `(fn [] (apply ~(first body) (list ~@(rest body))))))
-           actor# (co.paralleluniverse.actors.PulsarActor. ~name ~trap (int ~mailbox-size) (asSuspendableCallable f#))
+           actor# (co.paralleluniverse.actors.PulsarActor. ~name ~trap (int ~mailbox-size) ~lifecycle-handler f#)
            fiber# (co.paralleluniverse.fibers.Fiber. ~name (get-pool ~pool) (int ~stack-size) actor#)]
        (.start fiber#)
        actor#)))
 
 (defmacro spawn-link
   "Creates and starts a new actor, and links it to @self"
-  {:arglists '([:name? :mailbox-size? :stack-size? :pool? f & args])}
+  {:arglists '([:name? :mailbox-size? :lifecycle-handler? :stack-size? :pool? f & args])}
   [& args]
-  (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size ^Integer stack-size ^ForkJoinPool pool], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)]
+  (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size ^IFn lifecycle-handler ^Integer stack-size ^ForkJoinPool pool], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)]
     `(let [f#     (suspendable! ~(if (== (count body) 1) (first body) `(fn [] (apply ~(first body) (list ~@(rest body))))))
-           actor# (co.paralleluniverse.actors.PulsarActor. ~name ~trap (int ~mailbox-size) (asSuspendableCallable f#))
+           actor# (co.paralleluniverse.actors.PulsarActor. ~name ~trap (int ~mailbox-size) ~lifecycle-handler f#)
            fiber# (co.paralleluniverse.fibers.Fiber. ~name (get-pool ~pool) (int ~stack-size) actor#)]
        (link! @self actor#)
        (.start fiber#)
@@ -408,11 +425,11 @@
 
 (defmacro spawn-monitor
   "Creates and starts a new actor, and makes @self monitor it"
-  {:arglists '([:name? :mailbox-size? :stack-size? :pool? f & args])}
+  {:arglists '([:name? :mailbox-size? :lifecycle-handler? :stack-size? :pool? f & args])}
   [& args]
-  (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size ^Integer stack-size ^ForkJoinPool pool], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)]
+  (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size ^IFn lifecycle-handler ^Integer stack-size ^ForkJoinPool pool], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)]
     `(let [f#     (suspendable! ~(if (== (count body) 1) (first body) `(fn [] (apply ~(first body) (list ~@(rest body))))))
-           actor# (co.paralleluniverse.actors.PulsarActor. ~name ~trap (int ~mailbox-size) (asSuspendableCallable f#))
+           actor# (co.paralleluniverse.actors.PulsarActor. ~name ~trap (int ~mailbox-size) ~lifecycle-handler f#)
            fiber# (co.paralleluniverse.fibers.Fiber. ~name (get-pool ~pool) (int ~stack-size) actor#)]
        (monitor! @self actor#)
        (.start fiber#)
@@ -429,6 +446,12 @@
   (reify
     clojure.lang.IDeref
     (deref [_] (PulsarActor/selfGetState))))
+
+(def mailbox
+  "@mailbox is the mailbox channel of the currently running actor"
+  (reify
+    clojure.lang.IDeref
+    (deref [_] (PulsarActor/selfMailbox))))
 
 (defn set-state!
   "Sets the state of the currently running actor"
@@ -493,6 +516,10 @@
      (ActorRegistry/unregister x)))
   ([^Actor actor name]
    (.unregister actor name)))
+
+(defn ^Channel mailbox-of
+  [^PulsarActor actor]
+  (.mailbox actor))
 
 (defn ^Actor whereis
   "Returns a registered actor by name"

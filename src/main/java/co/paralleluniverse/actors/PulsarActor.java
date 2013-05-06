@@ -13,12 +13,16 @@
  */
 package co.paralleluniverse.actors;
 
+import clojure.lang.IFn;
 import clojure.lang.IObj;
 import clojure.lang.Keyword;
 import clojure.lang.PersistentVector;
+import clojure.lang.Var;
 import co.paralleluniverse.fibers.SuspendExecution;
 import co.paralleluniverse.fibers.TimeoutException;
+import co.paralleluniverse.pulsar.ClojureHelper;
 import co.paralleluniverse.strands.SuspendableCallable;
+import co.paralleluniverse.strands.channels.Mailbox;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -35,9 +39,16 @@ public class PulsarActor extends Actor<Object, Object> {
 
     public static PulsarActor self() {
         final PulsarActor self = (PulsarActor) Actor.currentActor();
-        if(self == null)
+        if (self == null)
             throw new RuntimeException("Not running within an actor");
         return self;
+    }
+
+    public static Mailbox selfMailbox() {
+        final PulsarActor self = (PulsarActor) Actor.currentActor();
+        if (self == null)
+            throw new RuntimeException("Not running within an actor");
+        return self.mailbox();
     }
 
     public static Object selfReceive() throws SuspendExecution, InterruptedException {
@@ -51,22 +62,23 @@ public class PulsarActor extends Actor<Object, Object> {
     public static Object selfGetState() {
         return self().getState();
     }
-    
+
     public static Object selfSetState(Object newState) {
         self().setState(newState);
         return newState;
     }
-    
     ///////////////////////////////////////////////////////////////
     private final SuspendableCallable<Object> target;
+    private final IFn lifecycleMessageHandler;
     private boolean trap;
     private Object state;
 
     @SuppressWarnings("LeakingThisInConstructor")
-    public PulsarActor(String name, boolean trap, int mailboxSize, SuspendableCallable<Object> target) {
+    public PulsarActor(String name, boolean trap, int mailboxSize, IFn lifecycleMessageHandler, IFn target) {
         super(name, mailboxSize);
-        this.target = target;
+        this.target = ClojureHelper.asSuspendableCallable(target);
         this.trap = trap;
+        this.lifecycleMessageHandler = lifecycleMessageHandler;
     }
 
     public void setTrap(boolean trap) {
@@ -137,9 +149,17 @@ public class PulsarActor extends Actor<Object, Object> {
 
     @Override
     public void handleLifecycleMessage(LifecycleMessage m) {
-        super.handleLifecycleMessage(m);
+        if (lifecycleMessageHandler != null)
+            lifecycleMessageHandler.invoke(lifecycleMessageToClojure(m));
+        else
+            super.handleLifecycleMessage(m);
     }
 
+    @Override
+    public Mailbox<Object> mailbox() {
+        return super.mailbox();
+    }
+    
     public static Object convert(Object m) {
         if (m == null)
             return null;
@@ -161,8 +181,9 @@ public class PulsarActor extends Actor<Object, Object> {
     private static Keyword keyword(String s) {
         return Keyword.intern(s);
     }
-
+    
     ///////////////// Simple delegates ////////////////////////////
+
     public Object succ(Object n) {
         if (n == null)
             monitorResetSkippedMessages();

@@ -41,17 +41,18 @@ public class ClojureHelper {
         // mark all IFn methods as suspendable
         Retransform.getMethodDB().getClassEntry(Type.getInternalName(IFn.class)).setAll(true);
     }
+
     public static Object retransform(Object thing) throws UnmodifiableClassException {
         final Class clazz;
-        if(thing instanceof IFn)
+        if (thing instanceof IFn)
             clazz = thing.getClass();
-        else if(thing instanceof Class)
-            clazz = (Class)thing;
+        else if (thing instanceof Class)
+            clazz = (Class) thing;
         else
             throw new IllegalArgumentException("Not a class or an IFn: " + thing + " (type: " + thing.getClass() + ")");
-        if(!(IFn.class.isAssignableFrom(clazz)))
+        if (!(IFn.class.isAssignableFrom(clazz)))
             throw new IllegalArgumentException("Class " + clazz + " does not implement IFn");
-        
+
         if (clazz.isAnnotationPresent(Instrumented.class))
             return thing;
 
@@ -76,8 +77,9 @@ public class ClojureHelper {
         return thing;
     }
 
+    ////////
     public static SuspendableCallable<Object> asSuspendableCallable(final IFn fn) {
-        if (!isInstrumented(fn.getClass()))
+        if (!ClojureHelper.isInstrumented(fn.getClass()))
             throw new IllegalArgumentException("Function " + fn + " has not been instrumented");
 
         final Object binding = Var.cloneThreadBindingFrame(); // Clojure treats bindings as an InheritableThreadLocal, yet sets them in a ThreadLocal...
@@ -101,7 +103,6 @@ public class ClojureHelper {
         return fn.invoke();
     }
 
-    ////////
     public static TimeUnit keywordToUnit(Keyword unit) {
         switch (unit.getName()) {
             case "nanoseconds":
@@ -130,7 +131,7 @@ public class ClojureHelper {
         }
     }
 
-    private static boolean isInstrumented(Class clazz) {
+    public static boolean isInstrumented(Class clazz) {
         return clazz.isAnnotationPresent(Instrumented.class);
     }
 
