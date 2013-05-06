@@ -41,7 +41,7 @@
 
 ;; ## channels
 
-(deftest channels-seq
+#_(deftest channels-seq
   (testing "Send and receive sequence"
     (let [ch (channel)
           fiber (spawn-fiber #(doall (take 5 (rcv-seq ch))))]
