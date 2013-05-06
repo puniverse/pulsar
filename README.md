@@ -47,6 +47,11 @@ or to the `:jvm-opts` section in project.clj:
 -javaagent:path-to-quasar-jar.jar
 ```
 
+## Documentation
+
+* [API docs](http://puniverse.github.io/pulsar/docs/)
+* [Marginalia](http://puniverse.github.io/pulsar/docs/uberdoc.html)
+
 ## Getting help
 
 Questions and suggestions are welcome at this [forum/mailing list](https://groups.google.com/forum/?fromgroups#!forum/quasar-pulsar-user).
