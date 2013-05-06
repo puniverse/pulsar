@@ -1,4 +1,4 @@
-(defproject co.paralleluniverse/pulsar "0.1.1"
+(defproject co.paralleluniverse/pulsar "0.2-SNAPSHOT"
   :description "A Clojure actor library"
   :url "http://github.com/puniverse/pulsar"
   :license {:name "Eclipse Public License - v 1.0" :url "http://www.eclipse.org/legal/epl-v10.html"}
