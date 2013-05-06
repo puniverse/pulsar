@@ -271,7 +271,7 @@
                   (! actor 38.6)
                   (join actor))))))
 
-(deftest mailbox-seq
+#_(deftest mailbox-seq
   (testing "Send and receive sequence (via @mailbox)"
     (let [actor (spawn #(doall (take 5 (rcv-seq @mailbox))))]
       (snd-seq (mailbox-of actor) (take 10 (range)))
