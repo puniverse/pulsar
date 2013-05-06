@@ -1,4 +1,4 @@
-(defproject co.paralleluniverse/pulsar "0.1.0"
+(defproject co.paralleluniverse/pulsar "0.1.1"
   :description "A Clojure actor library"
   :url "http://github.com/puniverse/pulsar"
   :license {:name "Eclipse Public License - v 1.0" :url "http://www.eclipse.org/legal/epl-v10.html"}
@@ -10,8 +10,7 @@
   :repositories {"project" "file:lib"}
   :test-selectors {:selected :selected}
   :dependencies [[org.clojure/clojure "1.5.1"]
-                 [jsr166e/jsr166e "0.1"]
-                 [co.paralleluniverse/quasar "0.1"]
+                 [co.paralleluniverse/quasar "0.1.1"]
                  [com.yammer.metrics/metrics-core "2.0.2"]
                  [org.ow2.asm/asm "4.1"]
                  [org.ow2.asm/asm-analysis "4.1"]
@@ -21,14 +20,14 @@
                  [gloss "0.2.2-beta4" :exclusions [com.yammer.metrics/metrics-core]]]
   :manifest {"Premain-Class" "co.paralleluniverse.fibers.instrument.JavaAgent"
              "Can-Retransform-Classes" "true"}
-  :jvm-opts ^:replace ["-server"
-                       "-javaagent:target/pulsar-0.1.0-standalone.jar"]
   :profiles {:dev
              {:plugins [[codox "0.6.4"]
                         [lein-marginalia "0.7.1"]]
               :codox {:include co.paralleluniverse.pulsar
                       :output-dir "docs"}
-              :jvm-opts [;"-ea"
+              :jvm-opts ["-server"
+                         "-javaagent:target/pulsar-0.1.1-standalone.jar"
+                         ;"-ea"
                          ;"-Dco.paralleluniverse.debugMode=true"
                          "-Dco.paralleluniverse.lwthreads.verifyInstrumentation=true"
                          "-Dco.paralleluniverse.globalFlightRecorder=true" "-Dco.paralleluniverse.flightRecorderDumpFile=pulsar.log"]

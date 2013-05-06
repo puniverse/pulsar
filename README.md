@@ -10,19 +10,10 @@ Java 7 and Clojure 1.5 are required to run Pulsar.
 
 ## Getting started
 
-Getting started with Pulsar is a bit clunky at this stage because of its dependency on jsr166e.
-
-1. Install [lein-localrepo](https://github.com/kumarshantanu/lein-localrepo) by adding
-    `{:user {:plugins [[lein-localrepo "0.4.1"]]}}` to your `~/.lein/profiles.clj` file.
-2. Donwload jsr166e by clicking [here](http://gee.cs.oswego.edu/dl/jsr166/dist/jsr166e.jar).
-3. Deploy the jsr166e to the local maven repository with this command:
-    ```
-    lein localrepo install jsr166e.jar jsr166e/jsr166e 0.1
-    ```
-4. Finally, add the following dependency to [Leiningen](http://github.com/technomancy/leiningen/)'s project.clj:
+Add the following dependency to [Leiningen](http://github.com/technomancy/leiningen/)'s project.clj:
 
     ```clojure
-    [co.paralleluniverse/pulsar "0.1.0"]
+    [co.paralleluniverse/pulsar "0.1.1"]
     ```
 
 Then, the following must be added to the `java` command line or to project.clj's `:jvm-opts`
