@@ -1,5 +1,7 @@
 # Pulsar: lightweight threads and Erlang-like actors for Clojure
 
+[![Build Status](https://travis-ci.org/puniverse/pulsar.png)](https://travis-ci.org/puniverse/pulsar)
+
 **NOTE: This is alpha software**
 
 Pulsar wraps the [Quasar](https://github.com/puniverse/quasar) library with a Clojure API that's very similar to Erlang.
@@ -26,7 +28,6 @@ section:
 Alternatively, to build Pulsar from the source, clone the repository and run:
 
 ```
-lein uberjar
 lein test
 ```
 
