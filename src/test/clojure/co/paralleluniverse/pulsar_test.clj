@@ -54,7 +54,7 @@
       (snd-seq ch (take 10 (range)))
       (is (= '(0 1 4 9 16)
              (join fiber)))))
-  (testing "Map received sequence"
+  (testing "Filter received sequence"
     (let [ch (channel)
           fiber (spawn-fiber #(doall (filter even? (take 5 (rcv-seq ch)))))]
       (snd-seq ch (take 10 (range)))
@@ -282,7 +282,7 @@
       (snd-seq (mailbox-of actor) (take 10 (range)))
       (is (= '(0 1 4 9 16)
              (join actor)))))
-  (testing "Map received sequence (via @mailbox)"
+  (testing "Filter received sequence (via @mailbox)"
     (let [actor (spawn #(doall (filter even? (take 5 (rcv-seq @mailbox)))))]
       (snd-seq (mailbox-of actor) (take 10 (range)))
       (is (= '(0 2 4)
