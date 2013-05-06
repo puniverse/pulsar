@@ -26,7 +26,7 @@
               :codox {:include co.paralleluniverse.pulsar
                       :output-dir "docs"}
               :jvm-opts ["-server"
-                         "-javaagent:target/pulsar-0.1.1-standalone.jar"
+                         ~(str "-javaagent:" (System/getProperty "user.home") "/.m2/repository/co/paralleluniverse/quasar/0.1.1/quasar-0.1.1.jar")
                          ;"-ea"
                          ;"-Dco.paralleluniverse.debugMode=true"
                          "-Dco.paralleluniverse.lwthreads.verifyInstrumentation=true"
