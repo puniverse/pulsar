@@ -565,7 +565,7 @@
                         (if after-clause `[~timeout ~(second after-clause)] [])
                         `[~m ~(concat `(co.paralleluniverse.actors.PulsarActor/selfReceive) (if after-clause `(~timeout) ()))]
                         (if transform `[~m (~transform ~m)] [])))
-          ~@(surround-with (if after-clause `(if (nil? ~m) ~(nth after-clause 2)) nil)
+          ~@(surround-with (when after-clause `(if (nil? ~m) ~(nth after-clause 2)))
                            `(match ~m ~@body)))
        ; if we don't, well, we have our work cut out for us
        (let [pbody   (partition 2 body)
@@ -595,15 +595,13 @@
                                     (recur ~n))))) ; no match. try the next
                             ; ~n == nil
                             ~(if after-clause
-                               `(if (== ~timeout 0)
-                                  nil ; timeout == 0 and ~n == nil
-                                  (do
+                               `(when-not (== ~timeout 0)
+                                  (do ; timeout != 0 and ~n == nil
                                     (try
                                       (.await ~mailbox (- ~exp (long (System/nanoTime))) java.util.concurrent.TimeUnit/NANOSECONDS)
                                       (finally
                                        (.unlock ~mailbox)))
-                                    (if (> (long (System/nanoTime)) ~exp)
-                                      nil ; timeout
+                                    (when-not (> (long (System/nanoTime)) ~exp)
                                       (recur ~n))))
                                `(do
                                   (try
@@ -611,7 +609,7 @@
                                     (finally
                                      (.unlock ~mailbox)))
                                   (recur ~n))))))))]
-            ~@(surround-with (if after-clause `(if (nil? ~mtc) ~(nth after-clause 2)) nil)
+            ~@(surround-with (when after-clause `(if (nil? ~mtc) ~(nth after-clause 2)))
                              ; now, mtc# is the number of the matching clause and m# is the message. we could have used a simple (case) to match on mtc#,
                              ; but the patterns might have wildcards so we'll match again (to get the bindings), but we'll help the match by mathing on mtc#
                              `(match [~mtc ~m] ~@(mapcat #(list [%2 (first %1)] (second %1)) pbody (range))))))))))
