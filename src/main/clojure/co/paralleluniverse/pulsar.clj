@@ -1,3 +1,15 @@
+ ; Pulsar: lightweight threads and Erlang-like actors for Clojure.
+ ; Copyright (C) 2013, Parallel Universe Software Co. All rights reserved.
+ ;
+ ; This program and the accompanying materials are dual-licensed under
+ ; either the terms of the Eclipse Public License v1.0 as published by
+ ; the Eclipse Foundation
+ ;
+ ;   or (per the licensee's choosing)
+ ;
+ ; under the terms of the GNU Lesser General Public License version 3.0
+ ; as published by the Free Software Foundation.
+
 ;;;
 ;;;
 ;;;
@@ -15,7 +27,7 @@
            [co.paralleluniverse.strands.channels Channel ObjectChannel IntChannel LongChannel FloatChannel DoubleChannel]
            [co.paralleluniverse.actors ActorRegistry Actor PulsarActor]
            [co.paralleluniverse.pulsar ClojureHelper])
-  (:use [clojure.core.match :only [match]]))
+  (:require [clojure.core.match :refer [match]]))
 
 
 ;; ## Private util functions
@@ -264,23 +276,6 @@
   ([^Channel channel timeout unit]
    (.receive channel (long timeout) unit)))
 
-(defsusfn rcv-seq
-  "Turns a channel into a lazy-seq"
-  ([^Channel channel]
-   (when-let [m (.receive channel)]
-     (lazy-seq
-      (cons m (rcv-seq channel)))))
-  ([^Channel channel timeout unit]
-   (when-let [m (.receive channel (long timeout) unit)]
-     (lazy-seq
-      (cons m (rcv-seq channel timeout unit))))))
-
-(defn snd-seq
-  "Sends a sequence of messages to a channel"
-  [^Channel channel ms]
-  (doseq [m ms]
-    (.send channel m)))
-
 ;; ### Primitive channels
 
 (defn ^IntChannel int-channel
@@ -354,7 +349,7 @@
    (vector? bs) "a vector for its binding"
    (even? (count bs)) "an even number of forms in binding vector")
   `(suspendable!
-    ~(if (> (count bs) 0)
+    ~(if (pos? (count bs))
        ; actor with state fields
        (let [type (gensym "actor")
              fs (vec (take-nth 2 bs)) ; field names
@@ -379,7 +374,7 @@
         fs (first decl1)]
     (assert-args
      (vector? fs) "a vector for its binding")
-    (if (> (count fs) 0)
+    (if (pos? (count fs))
       ; actor with state fields
       (let [fs1 (vec (map #(merge-meta % {:unsynchronized-mutable true}) fs))
             body (next decl1)
@@ -600,7 +595,7 @@
          `(let [[~mtc ~m]
                 (let ~(into [] (concat `[^co.paralleluniverse.actors.PulsarActor ~mailbox (co.paralleluniverse.actors.PulsarActor/self)]
                                        (if after-clause `[~timeout ~(second after-clause)
-                                                          ~exp (if (> ~timeout 0) (long (+ (long (System/nanoTime)) (long (* 1000000 ~timeout)))) 0)] [])))
+                                                          ~exp (if (pos? ~timeout) (long (+ (long (System/nanoTime)) (long (* 1000000 ~timeout)))) 0)] [])))
                   (.maybeSetCurrentStrandAsOwner ~mailbox)
                   (loop [prev# nil]
                     (.lock ~mailbox)

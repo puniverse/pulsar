@@ -1,6 +1,19 @@
-(ns co.paralleluniverse.pulsar-test
+ ; Pulsar: lightweight threads and Erlang-like actors for Clojure.
+ ; Copyright (C) 2013, Parallel Universe Software Co. All rights reserved.
+ ;
+ ; This program and the accompanying materials are dual-licensed under
+ ; either the terms of the Eclipse Public License v1.0 as published by
+ ; the Eclipse Foundation
+ ;
+ ;   or (per the licensee's choosing)
+ ;
+ ; under the terms of the GNU Lesser General Public License version 3.0
+ ; as published by the Free Software Foundation.
+
+ (ns co.paralleluniverse.pulsar-test
   (:use clojure.test
         co.paralleluniverse.pulsar)
+  (:require [co.paralleluniverse.pulsar.lazyseq :as s :refer [channel->lazy-seq snd-seq]])
   (:import [java.util.concurrent TimeUnit]
            [co.paralleluniverse.common.util Debug]
            [co.paralleluniverse.strands Strand]
@@ -41,22 +54,72 @@
 
 ;; ## channels
 
-#_(deftest channels-seq
-  (testing "Send and receive sequence"
-    (let [ch (channel)
-          fiber (spawn-fiber #(doall (take 5 (rcv-seq ch))))]
-      (snd-seq ch (take 10 (range)))
+(deftest ^:selected channels-seq
+  (testing "Receive sequence with sleep"
+      (let [ch (channel)
+            fiber (spawn-fiber
+                 (fn []
+                   (let [s (s/take 5 (channel->lazy-seq ch))]
+                     (s/doall s))))]
+        (dotimes [m 10]
+        (Thread/sleep 20)
+        (snd ch m))
       (is (= '(0 1 2 3 4)
              (join fiber)))))
+  (testing "Map received sequence with sleep"
+    (let [ch (channel)
+          fiber (spawn-fiber (fn [] (s/doall (s/map #(* % %) (s/take 5 (channel->lazy-seq ch))))))]
+      (dotimes [m 10]
+        (Thread/sleep 20)
+        (snd ch m))
+      (is (= '(0 1 4 9 16)
+             (join fiber)))))
+  (testing "Filter received sequence with sleep (odd)"
+    (let [ch (channel)
+          fiber (spawn-fiber
+                 #(s/doall (s/filter odd? (s/take 5 (channel->lazy-seq ch)))))]
+      (dotimes [m 10]
+        (Thread/sleep 20)
+        (snd ch m))
+      (is (= '(1 3)
+             (join fiber)))))
+  (testing "Filter received sequence with sleep (even)"
+    (let [ch (channel)
+          fiber (spawn-fiber
+                 #(s/doall (s/filter even? (s/take 5 (channel->lazy-seq ch)))))]
+      (dotimes [m 10]
+        (Thread/sleep 20)
+        (snd ch m))
+      (is (= '(0 2 4)
+             (join fiber)))))
+  (testing "Filter and map received sequence with sleep (even)"
+    (let [ch (channel)
+          fiber (spawn-fiber
+                 (fn [] (s/doall
+                         (s/filter #(> % 10)
+                                   (s/map #(* % %)
+                                          (s/filter even?
+                                                    (s/take 5 (channel->lazy-seq ch))))))))]
+      (dotimes [m 10]
+        (Thread/sleep 20)
+        (snd ch m))
+      (is (= '(16)
+             (join fiber)))))
+  (testing "Send and receive sequence"
+      (let [ch (channel)
+            fiber (spawn-fiber #(s/doall (s/take 5 (channel->lazy-seq ch))))]
+        (snd-seq ch (take 10 (range)))
+        (is (= '(0 1 2 3 4)
+               (join fiber)))))
   (testing "Map received sequence"
     (let [ch (channel)
-          fiber (spawn-fiber (fn [] (doall (map #(* % %) (take 5 (rcv-seq ch))))))]
+          fiber (spawn-fiber (fn [] (s/doall (s/map #(* % %) (s/take 5 (channel->lazy-seq ch))))))]
       (snd-seq ch (take 10 (range)))
       (is (= '(0 1 4 9 16)
              (join fiber)))))
   (testing "Filter received sequence"
     (let [ch (channel)
-          fiber (spawn-fiber #(doall (filter even? (take 5 (rcv-seq ch)))))]
+          fiber (spawn-fiber #(s/doall (s/filter even? (s/take 5 (channel->lazy-seq ch)))))]
       (snd-seq ch (take 10 (range)))
       (is (= '(0 2 4)
              (join fiber))))))
@@ -202,7 +265,7 @@
         (join actor1)
         (is (= mon (join actor2)))))))
 
-(deftest ^:selected actor-state
+(deftest actor-state
   (testing "Test recur actor-state"
     (is (= 25 (let [actor
                     (spawn #(loop [i (int 2)
@@ -271,19 +334,19 @@
                   (! actor 38.6)
                   (join actor))))))
 
-#_(deftest mailbox-seq
+(deftest mailbox-seq
   (testing "Send and receive sequence (via @mailbox)"
-    (let [actor (spawn #(doall (take 5 (rcv-seq @mailbox))))]
+    (let [actor (spawn #(s/doall (s/take 5 (channel->lazy-seq @mailbox))))]
       (snd-seq (mailbox-of actor) (take 10 (range)))
       (is (= '(0 1 2 3 4)
              (join actor)))))
   (testing "Map received sequence (via @mailbox)"
-    (let [actor (spawn (fn [] (doall (map #(* % %) (take 5 (rcv-seq @mailbox))))))]
+    (let [actor (spawn (fn [] (s/doall (s/map #(* % %) (s/take 5 (channel->lazy-seq @mailbox))))))]
       (snd-seq (mailbox-of actor) (take 10 (range)))
       (is (= '(0 1 4 9 16)
              (join actor)))))
   (testing "Filter received sequence (via @mailbox)"
-    (let [actor (spawn #(doall (filter even? (take 5 (rcv-seq @mailbox)))))]
+    (let [actor (spawn #(s/doall (s/filter even? (s/take 5 (channel->lazy-seq @mailbox)))))]
       (snd-seq (mailbox-of actor) (take 10 (range)))
       (is (= '(0 2 4)
              (join actor))))))

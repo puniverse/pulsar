@@ -5,12 +5,13 @@
   :distribution :repo
   :source-paths ["src/main/clojure"]
   :test-paths ["src/test/clojure"]
+  :resource-paths ["src/main/resources"]
   :java-source-paths ["src/main/java"]
   :javac-options     ["-target" "1.7" "-source" "1.7"]
   :repositories {"project" "file:lib"}
   :test-selectors {:selected :selected}
   :dependencies [[org.clojure/clojure "1.5.1"]
-                 [co.paralleluniverse/quasar "0.1.1"]
+                 [co.paralleluniverse/quasar "0.2-SNAPSHOT"]
                  [com.yammer.metrics/metrics-core "2.0.2"]
                  [org.ow2.asm/asm "4.1"]
                  [org.ow2.asm/asm-analysis "4.1"]
@@ -27,8 +28,10 @@
                       :output-dir "docs"}
               :jvm-opts ["-server"
                          ~(str "-javaagent:" (System/getProperty "user.home") "/.m2/repository/co/paralleluniverse/quasar/0.1.1/quasar-0.1.1.jar")
-                         ;"-ea"
+                         "-ea"
                          ;"-Dco.paralleluniverse.debugMode=true"
-                         "-Dco.paralleluniverse.lwthreads.verifyInstrumentation=true"
-                         "-Dco.paralleluniverse.globalFlightRecorder=true" "-Dco.paralleluniverse.flightRecorderDumpFile=pulsar.log"]
+                         ;"-Dco.paralleluniverse.lwthreads.verifyInstrumentation=true"
+                         "-Dco.paralleluniverse.globalFlightRecorder=true"
+                         "-Dco.paralleluniverse.monitoring.flightRecorderLevel=2"
+                         "-Dco.paralleluniverse.flightRecorderDumpFile=pulsar.log"]
               :global-vars {*warn-on-reflection* true}}})
