@@ -3029,7 +3029,15 @@ net.brehaut.ClojureTools = (function (SH) {
   };
 })(SyntaxHighlighter);
 </script><title>co.paralleluniverse/pulsar -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">co.paralleluniverse/pulsar</h1><h2 class="project-version">0.2-SNAPSHOT</h2><br /><p>A Clojure actor library</p>
-</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.5.1</td></tr><tr><td class="dep-name">co.paralleluniverse/quasar</td><td class="dotted"><hr /></td><td class="dep-version">0.1.1</td></tr><tr><td class="dep-name">com.yammer.metrics/metrics-core</td><td class="dotted"><hr /></td><td class="dep-version">2.0.2</td></tr><tr><td class="dep-name">org.ow2.asm/asm</td><td class="dotted"><hr /></td><td class="dep-version">4.1</td></tr><tr><td class="dep-name">org.ow2.asm/asm-analysis</td><td class="dotted"><hr /></td><td class="dep-version">4.1</td></tr><tr><td class="dep-name">org.ow2.asm/asm-util</td><td class="dotted"><hr /></td><td class="dep-version">4.1</td></tr><tr><td class="dep-name">com.google.guava/guava</td><td class="dotted"><hr /></td><td class="dep-version">11.0.1</td></tr><tr><td class="dep-name">org.clojure/core.match</td><td class="dotted"><hr /></td><td class="dep-version">0.2.0-alpha12</td></tr><tr><td class="dep-name">gloss</td><td class="dotted"><hr /></td><td class="dep-version">0.2.2-beta4</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#co.paralleluniverse.pulsar">co.paralleluniverse.pulsar</a></li><li><a href="#co.paralleluniverse.pulsar-test">co.paralleluniverse.pulsar-test</a></li><li><a href="#co.paralleluniverse.pulsar-test.examples.binary">co.paralleluniverse.pulsar-test.examples.binary</a></li><li><a href="#co.paralleluniverse.pulsar-test.examples.pingpong">co.paralleluniverse.pulsar-test.examples.pingpong</a></li><li><a href="#co.paralleluniverse.pulsar-test.examples.primitive-ring-benchmark">co.paralleluniverse.pulsar-test.examples.primitive-ring-benchmark</a></li><li><a href="#co.paralleluniverse.pulsar-test.examples.priority">co.paralleluniverse.pulsar-test.examples.priority</a></li><li><a href="#co.paralleluniverse.pulsar-test.examples.ring-benchmark">co.paralleluniverse.pulsar-test.examples.ring-benchmark</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar" name="co.paralleluniverse.pulsar"><h1 class="project-name">co.paralleluniverse.pulsar</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.5.1</td></tr><tr><td class="dep-name">co.paralleluniverse/quasar</td><td class="dotted"><hr /></td><td class="dep-version">0.2-SNAPSHOT</td></tr><tr><td class="dep-name">com.yammer.metrics/metrics-core</td><td class="dotted"><hr /></td><td class="dep-version">2.0.2</td></tr><tr><td class="dep-name">org.ow2.asm/asm</td><td class="dotted"><hr /></td><td class="dep-version">4.1</td></tr><tr><td class="dep-name">org.ow2.asm/asm-analysis</td><td class="dotted"><hr /></td><td class="dep-version">4.1</td></tr><tr><td class="dep-name">org.ow2.asm/asm-util</td><td class="dotted"><hr /></td><td class="dep-version">4.1</td></tr><tr><td class="dep-name">com.google.guava/guava</td><td class="dotted"><hr /></td><td class="dep-version">11.0.1</td></tr><tr><td class="dep-name">org.clojure/core.match</td><td class="dotted"><hr /></td><td class="dep-version">0.2.0-alpha12</td></tr><tr><td class="dep-name">gloss</td><td class="dotted"><hr /></td><td class="dep-version">0.2.2-beta4</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#co.paralleluniverse.pulsar">co.paralleluniverse.pulsar</a></li><li><a href="#co.paralleluniverse.pulsar.lazyseq">co.paralleluniverse.pulsar.lazyseq</a></li><li><a href="#co.paralleluniverse.pulsar-test">co.paralleluniverse.pulsar-test</a></li><li><a href="#co.paralleluniverse.pulsar-test.examples.binary">co.paralleluniverse.pulsar-test.examples.binary</a></li><li><a href="#co.paralleluniverse.pulsar-test.examples.pingpong">co.paralleluniverse.pulsar-test.examples.pingpong</a></li><li><a href="#co.paralleluniverse.pulsar-test.examples.primitive-ring-benchmark">co.paralleluniverse.pulsar-test.examples.primitive-ring-benchmark</a></li><li><a href="#co.paralleluniverse.pulsar-test.examples.priority">co.paralleluniverse.pulsar-test.examples.priority</a></li><li><a href="#co.paralleluniverse.pulsar-test.examples.ring-benchmark">co.paralleluniverse.pulsar-test.examples.ring-benchmark</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar" name="co.paralleluniverse.pulsar"><h1 class="project-name">co.paralleluniverse.pulsar</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>This program and the accompanying materials are dual-licensed under
+either the terms of the Eclipse Public License v1.0 as published by
+the Eclipse Foundation</p>
+
+<p>  or (per the licensee's choosing)</p>
+
+<p>under the terms of the GNU Lesser General Public License version 3.0
+as published by the Free Software Foundation.</p>
+</td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"></td></tr><tr><td class="docs"><p>Pulsar is an implementation of lightweight threads (fibers),
   Go-like channles and Erlang-like actors for the JVM</p>
 </td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar
@@ -3042,7 +3050,7 @@ net.brehaut.ClojureTools = (function (SH) {
            [co.paralleluniverse.strands.channels Channel ObjectChannel IntChannel LongChannel FloatChannel DoubleChannel]
            [co.paralleluniverse.actors ActorRegistry Actor PulsarActor]
            [co.paralleluniverse.pulsar ClojureHelper])
-  (:use [clojure.core.match :only [match]]))</pre></td></tr><tr><td class="docs"><h2>Private util functions</h2>
+  (:require [clojure.core.match :refer [match]]))</pre></td></tr><tr><td class="docs"><h2>Private util functions</h2>
 
 <p>These are internal functions aided to assist other functions in handling variadic arguments and the like.</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
@@ -3074,16 +3082,18 @@ net.brehaut.ClojureTools = (function (SH) {
    (nth coll (- (dec (count coll)) index) not-found)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn- split-at-from-last
   [index coll]
-  (split-at (- (dec (count coll)) index) coll))</pre></td></tr><tr><td class="docs"><p>(surround-with nil 4 5 6) -> (4 5 6)
-(surround-with '(1 2 3) 4 5 6) -> ((1 2 3 4 5 6))
-(surround-with '(1 (2)) '(3 4)) -> ((1 (2) (3 4)))</p>
+  (split-at (- (dec (count coll)) index) coll))</pre></td></tr><tr><td class="docs"><pre><code>(surround-with nil 4 5 6) -&gt; (4 5 6)
+(surround-with '(1 2 3) 4 5 6) -&gt; ((1 2 3 4 5 6))
+(surround-with '(1 (2)) '(3 4)) -&gt; ((1 (2) (3 4)))
+</code></pre>
 </td><td class="codes"><pre class="brush: clojure">(defn surround-with
   [expr &amp; exprs]
   (if (nil? expr)
     exprs
-    (list (concat expr exprs))))</pre></td></tr><tr><td class="docs"><p>(deep-surround-with '(1 2 3) 4 5 6) -> (1 2 3 4 5 6)
-(deep-surround-with '(1 2 (3)) 4 5 6) -> (1 2 (3 4 5 6))
-(deep-surround-with '(1 2 (3 (4))) 5 6 7) -> (1 2 (3 (4 5 6 7)))</p>
+    (list (concat expr exprs))))</pre></td></tr><tr><td class="docs"><pre><code>(deep-surround-with '(1 2 3) 4 5 6) -&gt; (1 2 3 4 5 6)
+(deep-surround-with '(1 2 (3)) 4 5 6) -&gt; (1 2 (3 4 5 6))
+(deep-surround-with '(1 2 (3 (4))) 5 6 7) -&gt; (1 2 (3 (4 5 6 7)))
+</code></pre>
 </td><td class="codes"><pre class="brush: clojure">(defn- deep-surround-with
   [expr &amp; exprs]
   (if (not (coll? (last expr)))
@@ -3133,7 +3143,7 @@ net.brehaut.ClojureTools = (function (SH) {
   [x]
   (if (keyword? x)
     (ClojureHelper/keywordToUnit x)
-    x))</pre></td></tr><tr><td class="docs"><h2>fork/join pool</h2>
+    x))</pre></td></tr><tr><td class="docs"><h2>Fork/Join Pool</h2>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>Returns true if we're running inside a fork/join pool; false otherwise.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn- in-fj-pool?
   []
@@ -3223,20 +3233,7 @@ while running in a fiber.</p>
   ([^Channel channel]
    (.receive channel))
   ([^Channel channel timeout unit]
-   (.receive channel (long timeout) unit)))</pre></td></tr><tr><td class="docs"><p>Turns a channel into a lazy-seq</p>
-</td><td class="codes"><pre class="brush: clojure">(defsusfn rcv-seq
-  ([^Channel channel]
-   (when-let [m (.receive channel)]
-     (lazy-seq
-      (cons m (rcv-seq channel)))))
-  ([^Channel channel timeout unit]
-   (when-let [m (.receive channel (long timeout) unit)]
-     (lazy-seq
-      (cons m (rcv-seq channel timeout unit))))))</pre></td></tr><tr><td class="docs"><p>Sends a sequence of messages to a channel</p>
-</td><td class="codes"><pre class="brush: clojure">(defn snd-seq
-  [^Channel channel ms]
-  (doseq [m ms]
-    (.send channel m)))</pre></td></tr><tr><td class="docs"><h3>Primitive channels</h3>
+   (.receive channel (long timeout) unit)))</pre></td></tr><tr><td class="docs"><h3>Primitive channels</h3>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>Creates an int channel</p>
 </td><td class="codes"><pre class="brush: clojure">(defn ^IntChannel int-channel
   ([size] (IntChannel/create size))
@@ -3290,7 +3287,7 @@ while running in a fiber.</p>
    (vector? bs) &quot;a vector for its binding&quot;
    (even? (count bs)) &quot;an even number of forms in binding vector&quot;)
   `(suspendable!
-    ~(if (&gt; (count bs) 0)
+    ~(if (pos? (count bs))
        ; actor with state fields
        (let [type (gensym &quot;actor&quot;)
              fs (vec (take-nth 2 bs)) ; field names
@@ -3313,7 +3310,7 @@ while running in a fiber.</p>
         fs (first decl1)]
     (assert-args
      (vector? fs) &quot;a vector for its binding&quot;)
-    (if (&gt; (count fs) 0)
+    (if (pos? (count fs))
       ; actor with state fields
       (let [fs1 (vec (map #(merge-meta % {:unsynchronized-mutable true}) fs))
             body (next decl1)
@@ -3490,7 +3487,7 @@ while running in a fiber.</p>
          `(let [[~mtc ~m]
                 (let ~(into [] (concat `[^co.paralleluniverse.actors.PulsarActor ~mailbox (co.paralleluniverse.actors.PulsarActor/self)]
                                        (if after-clause `[~timeout ~(second after-clause)
-                                                          ~exp (if (&gt; ~timeout 0) (long (+ (long (System/nanoTime)) (long (* 1000000 ~timeout)))) 0)] [])))
+                                                          ~exp (if (pos? ~timeout) (long (+ (long (System/nanoTime)) (long (* 1000000 ~timeout)))) 0)] [])))
                   (.maybeSetCurrentStrandAsOwner ~mailbox)
                   (loop [prev# nil]
                     (.lock ~mailbox)
@@ -3529,10 +3526,160 @@ while running in a fiber.</p>
             ~@(surround-with (when after-clause `(if (nil? ~mtc) ~(nth after-clause 2)))
                              ; now, mtc# is the number of the matching clause and m# is the message. we could have used a simple (case) to match on mtc#,
                              ; but the patterns might have wildcards so we'll match again (to get the bindings), but we'll help the match by mathing on mtc#
-                             `(match [~mtc ~m] ~@(mapcat #(list [%2 (first %1)] (second %1)) pbody (range))))))))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar-test" name="co.paralleluniverse.pulsar-test"><h1 class="project-name">co.paralleluniverse.pulsar-test</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+                             `(match [~mtc ~m] ~@(mapcat #(list [%2 (first %1)] (second %1)) pbody (range))))))))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.lazyseq" name="co.paralleluniverse.pulsar.lazyseq"><h1 class="project-name">co.paralleluniverse.pulsar.lazyseq</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>This program and the accompanying materials are dual-licensed under
+either the terms of the Eclipse Public License v1.0 as published by
+the Eclipse Foundation</p>
+
+<p>  or (per the licensee's choosing)</p>
+
+<p>under the terms of the GNU Lesser General Public License version 3.0
+as published by the Free Software Foundation.</p>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>Functions to transform a channel into a laze seq</p>
+</td><td class="codes"><pre class="brush: clojure"> (ns co.paralleluniverse.pulsar.lazyseq
+  (:import
+   [co.paralleluniverse.strands.channels Channel ObjectChannel]
+   [co.paralleluniverse.pulsar ClojureHelper])
+  (:require
+   [co.paralleluniverse.pulsar :refer :all]
+   [clojure.core.match :refer [match]]))</pre></td></tr><tr><td class="docs"><p>Takes a body of expressions that returns an ISeq or nil, and yields
+  a Seqable object that will invoke the body only the first time seq
+  is called, and will cache the result and return it on all subsequent
+  seq calls. See also - realized?</p>
+
+<p>We don't need to make most seq functions suspendable because of the way lazy-seqs work
+but we do need to call the lazy-seq body more than once (on each resume), and the default
+implementation adds the ^:once metadata which clears closure during the first call.
+Here, lazy-seq is defined without the :once tag.</p>
+</td><td class="codes"><pre class="brush: clojure">(defmacro lazy-seq
+  [&amp; body]
+  `(new co.paralleluniverse.pulsar.SuspendableLazySeq (fn [] ~@body)))</pre></td></tr><tr><td class="docs"><p>Turns a channel into a lazy-seq</p>
+</td><td class="codes"><pre class="brush: clojure">(defn channel-&gt;lazy-seq
+  ([^Channel channel]
+   (lazy-seq
+    (when-let [m (.receive channel)]
+      (cons m (channel-&gt;lazy-seq channel)))))
+  ([^Channel channel timeout unit]
+   (lazy-seq
+    (when-let [m (.receive channel (long timeout) unit)]
+      (cons m (channel-&gt;lazy-seq channel timeout unit))))))</pre></td></tr><tr><td class="docs"><p>Sends a sequence of messages to a channel</p>
+</td><td class="codes"><pre class="brush: clojure">(defn snd-seq
+  [^Channel channel ms]
+  (doseq [m ms]
+    (.send channel m)))</pre></td></tr><tr><td class="docs"><p>Suspendable versions of core seq functions</p>
+</td><td class="codes"></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn ^clojure.lang.ISeq seq [x]
+  (co.paralleluniverse.pulsar.SuspendableLazySeq/seq x))</pre></td></tr><tr><td class="docs"><p>When lazy sequences are produced via functions that have side
+  effects, any effects other than those needed to produce the first
+  element in the seq do not occur until the seq is consumed. dorun can
+  be used to force any effects. Walks through the successive nexts of
+  the seq, does not retain the head and returns nil.</p>
+</td><td class="codes"><pre class="brush: clojure">(defsusfn dorun
+  {:added &quot;1.0&quot;
+   :static true}
+  ([coll]
+   (when (seq coll)
+     (recur (next coll))))
+     ;(println &quot;zzzz&quot; (first coll))
+     ;(let [n (next coll)]
+     ;  ;(println &quot;yyy&quot; (first n))
+     ;  (recur n))))
+  ([n coll]
+   (when (and (seq coll) (pos? n))
+     (recur (dec n) (next coll)))))</pre></td></tr><tr><td class="docs"><p>When lazy sequences are produced via functions that have side
+  effects, any effects other than those needed to produce the first
+  element in the seq do not occur until the seq is consumed. doall can
+  be used to force any effects. Walks through the successive nexts of
+  the seq, retains the head and returns it, thus causing the entire
+  seq to reside in memory at one time.</p>
+</td><td class="codes"><pre class="brush: clojure">(defsusfn doall
+  {:added &quot;1.0&quot;
+   :static true}
+  ([coll]
+   (dorun coll)
+   coll)
+  ([n coll]
+   (dorun n coll)
+   coll))</pre></td></tr><tr><td class="docs"><p>Returns the nth next of coll, (seq coll) when n is 0.</p>
+</td><td class="codes"><pre class="brush: clojure">(defsusfn nthnext
+  {:added &quot;1.0&quot;
+   :static true}
+  [coll n]
+  (loop [n n xs (seq coll)]
+    (if (and xs (pos? n))
+      (recur (dec n) (next xs))
+      xs)))</pre></td></tr><tr><td class="docs"><p>Returns the nth rest of coll, coll when n is 0.</p>
+</td><td class="codes"><pre class="brush: clojure">(defsusfn nthrest
+  {:added &quot;1.3&quot;
+   :static true}
+  [coll n]
+  (loop [n n xs coll]
+    (if (and (pos? n) (seq xs))
+      (recur (dec n) (rest xs))
+      xs)))</pre></td></tr><tr><td class="docs"><p>Some sequence functions must be redefined to use the modified lazy-seq</p>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>Returns a lazy sequence of the first n items in coll, or all items if
+  there are fewer than n.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn take
+  {:added &quot;1.0&quot;
+   :static true}
+  [n coll]
+  (lazy-seq
+   (when (pos? n)
+     (when-let [s (seq coll)]
+       (cons (first s) (take (dec n) (rest s)))))))</pre></td></tr><tr><td class="docs"><p>Returns a lazy sequence of successive items from coll while
+  (pred item) returns true. pred must be free of side-effects.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn take-while
+  {:added &quot;1.0&quot;
+   :static true}
+  [pred coll]
+  (lazy-seq
+   (when-let [s (seq coll)]
+     (when (pred (first s))
+       (cons (first s) (take-while pred (rest s)))))))</pre></td></tr><tr><td class="docs"><p>Returns a lazy sequence of all but the first n items in coll.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn drop
+  {:added &quot;1.0&quot;
+   :static true}
+  [n coll]
+  (let [step (susfn [n coll]
+                    (let [s (seq coll)]
+                      (if (and (pos? n) s)
+                        (recur (dec n) (rest s))
+                        s)))]
+    (lazy-seq (step n coll))))</pre></td></tr><tr><td class="docs"><p>Returns a lazy sequence consisting of the result of applying f to the
+  set of first items of each coll, followed by applying f to the set
+  of second items in each coll, until any one of the colls is
+  exhausted.  Any remaining items in other colls are ignored. Function
+  f should accept number-of-colls arguments.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn map
+  {:added &quot;1.0&quot;
+   :static true}
+  ([f coll]
+   (lazy-seq
+    (when-let [s (seq coll)]
+      (cons (f (first s)) (map f (rest s)))))))</pre></td></tr><tr><td class="docs"><p>Returns a lazy sequence of the items in coll for which
+  (pred item) returns true. pred must be free of side-effects.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn filter
+  {:added &quot;1.0&quot;
+   :static true}
+  ([pred coll]
+   (lazy-seq
+    (when-let [s (seq coll)]
+      (let [f (first s)
+            r (rest s)]
+        (if (pred f)
+          (cons f (filter pred r))
+          (filter pred r)))))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar-test" name="co.paralleluniverse.pulsar-test"><h1 class="project-name">co.paralleluniverse.pulsar-test</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>This program and the accompanying materials are dual-licensed under
+either the terms of the Eclipse Public License v1.0 as published by
+the Eclipse Foundation</p>
+
+<p>  or (per the licensee's choosing)</p>
+
+<p>under the terms of the GNU Lesser General Public License version 3.0
+as published by the Free Software Foundation.</p>
+</td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar-test
   (:use clojure.test
         co.paralleluniverse.pulsar)
+  (:require [co.paralleluniverse.pulsar.lazyseq :as s :refer [channel-&gt;lazy-seq snd-seq]])
   (:import [java.util.concurrent TimeUnit]
            [co.paralleluniverse.common.util Debug]
            [co.paralleluniverse.strands Strand]
@@ -3565,21 +3712,71 @@ while running in a fiber.</p>
       (.interrupt fib))))</pre></td></tr><tr><td class="docs"><h2>channels</h2>
 </td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(deftest channels-seq
+  (testing &quot;Receive sequence with sleep&quot;
+    (let [ch (channel)
+          fiber (spawn-fiber
+                 (fn []
+                   (let [s (s/take 5 (channel-&gt;lazy-seq ch))]
+                     (s/doall s))))]
+      (dotimes [m 10]
+        (Thread/sleep 20)
+        (snd ch m))
+      (is (= '(0 1 2 3 4)
+             (join fiber)))))
+  (testing &quot;Map received sequence with sleep&quot;
+    (let [ch (channel)
+          fiber (spawn-fiber (fn [] (s/doall (s/map #(* % %) (s/take 5 (channel-&gt;lazy-seq ch))))))]
+      (dotimes [m 10]
+        (Thread/sleep 20)
+        (snd ch m))
+      (is (= '(0 1 4 9 16)
+             (join fiber)))))
+  (testing &quot;Filter received sequence with sleep (odd)&quot;
+    (let [ch (channel)
+          fiber (spawn-fiber
+                 #(s/doall (s/filter odd? (s/take 5 (channel-&gt;lazy-seq ch)))))]
+      (dotimes [m 10]
+        (Thread/sleep 20)
+        (snd ch m))
+      (is (= '(1 3)
+             (join fiber)))))
+  (testing &quot;Filter received sequence with sleep (even)&quot;
+    (let [ch (channel)
+          fiber (spawn-fiber
+                 #(s/doall (s/filter even? (s/take 5 (channel-&gt;lazy-seq ch)))))]
+      (dotimes [m 10]
+        (Thread/sleep 20)
+        (snd ch m))
+      (is (= '(0 2 4)
+             (join fiber)))))
+  (testing &quot;Filter and map received sequence with sleep (even)&quot;
+    (let [ch (channel)
+          fiber (spawn-fiber
+                 (fn [] (s/doall
+                         (s/filter #(&gt; % 10)
+                                   (s/map #(* % %)
+                                          (s/filter even?
+                                                    (s/take 5 (channel-&gt;lazy-seq ch))))))))]
+      (dotimes [m 10]
+        (Thread/sleep 20)
+        (snd ch m))
+      (is (= '(16)
+             (join fiber)))))
   (testing &quot;Send and receive sequence&quot;
     (let [ch (channel)
-          fiber (spawn-fiber #(doall (take 5 (rcv-seq ch))))]
+          fiber (spawn-fiber #(s/doall (s/take 5 (channel-&gt;lazy-seq ch))))]
       (snd-seq ch (take 10 (range)))
       (is (= '(0 1 2 3 4)
              (join fiber)))))
   (testing &quot;Map received sequence&quot;
     (let [ch (channel)
-          fiber (spawn-fiber (fn [] (doall (map #(* % %) (take 5 (rcv-seq ch))))))]
+          fiber (spawn-fiber (fn [] (s/doall (s/map #(* % %) (s/take 5 (channel-&gt;lazy-seq ch))))))]
       (snd-seq ch (take 10 (range)))
       (is (= '(0 1 4 9 16)
              (join fiber)))))
-  (testing &quot;Map received sequence&quot;
+  (testing &quot;Filter received sequence&quot;
     (let [ch (channel)
-          fiber (spawn-fiber #(doall (filter even? (take 5 (rcv-seq ch)))))]
+          fiber (spawn-fiber #(s/doall (s/filter even? (s/take 5 (channel-&gt;lazy-seq ch)))))]
       (snd-seq ch (take 10 (range)))
       (is (= '(0 2 4)
              (join fiber))))))</pre></td></tr><tr><td class="docs"><h2>actors</h2>
@@ -3685,7 +3882,7 @@ while running in a fiber.</p>
       (! actor [:baz 3])
       (join actor)
       (is (= @res [1 3 2])))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(deftest actor-link
+</td><td class="codes"><pre class="brush: clojure">(deftest ^:selected actor-link
   (testing &quot;When an actor dies, its link gets an exception&quot;
     (let [actor1 (spawn #(Fiber/sleep 100))
           actor2 (spawn
@@ -3695,6 +3892,17 @@ while running in a fiber.</p>
       (link! actor1 actor2)
       (join actor1)
       (join actor2)))
+  (testing &quot;When an actor dies and lifecycle-handler is defined, then it gets a message&quot;
+    (let [actor1 (spawn #(Fiber/sleep 100))
+          actor2 (spawn :lifecycle-handler #(! @self [:foo (first %)])
+                        #(try
+                           (loop [] (receive [m]
+                                             [:foo x] x
+                                             :else (recur)))
+                           (catch co.paralleluniverse.actors.LifecycleException e nil)))]
+      (link! actor1 actor2)
+      (join actor1)
+      (is (= :exit (join actor2)))))
   (testing &quot;When an actor dies, and its link traps, then its link gets a message&quot;
     (let [actor1 (spawn #(Fiber/sleep 100))
           actor2 (spawn :trap true
@@ -3712,7 +3920,7 @@ while running in a fiber.</p>
       (let [mon (monitor! actor2 actor1)]
         (join actor1)
         (is (= mon (join actor2)))))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(deftest ^:selected actor-state
+</td><td class="codes"><pre class="brush: clojure">(deftest actor-state
   (testing &quot;Test recur actor-state&quot;
     (is (= 25 (let [actor
                     (spawn #(loop [i (int 2)
@@ -3777,17 +3985,17 @@ while running in a fiber.</p>
                   (join actor))))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(deftest mailbox-seq
   (testing &quot;Send and receive sequence (via @mailbox)&quot;
-    (let [actor (spawn #(doall (take 5 (rcv-seq @mailbox))))]
+    (let [actor (spawn #(s/doall (s/take 5 (channel-&gt;lazy-seq @mailbox))))]
       (snd-seq (mailbox-of actor) (take 10 (range)))
       (is (= '(0 1 2 3 4)
              (join actor)))))
   (testing &quot;Map received sequence (via @mailbox)&quot;
-    (let [actor (spawn (fn [] (doall (map #(* % %) (take 5 (rcv-seq @mailbox))))))]
+    (let [actor (spawn (fn [] (s/doall (s/map #(* % %) (s/take 5 (channel-&gt;lazy-seq @mailbox))))))]
       (snd-seq (mailbox-of actor) (take 10 (range)))
       (is (= '(0 1 4 9 16)
              (join actor)))))
-  (testing &quot;Map received sequence (via @mailbox)&quot;
-    (let [actor (spawn #(doall (filter even? (take 5 (rcv-seq @mailbox)))))]
+  (testing &quot;Filter received sequence (via @mailbox)&quot;
+    (let [actor (spawn #(s/doall (s/filter even? (s/take 5 (channel-&gt;lazy-seq @mailbox)))))]
       (snd-seq (mailbox-of actor) (take 10 (range)))
       (is (= '(0 2 4)
              (join actor))))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar-test.examples.binary" name="co.paralleluniverse.pulsar-test.examples.binary"><h1 class="project-name">co.paralleluniverse.pulsar-test.examples.binary</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>A binary-data buffer message example</p>
