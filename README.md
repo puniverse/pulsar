@@ -49,7 +49,7 @@ or to the `:jvm-opts` section in project.clj:
 
 ## Documentation
 
-* [API docs](http://puniverse.github.io/pulsar/docs/)
+* [API](http://puniverse.github.io/pulsar/docs/)
 * [Marginalia](http://puniverse.github.io/pulsar/docs/uberdoc.html)
 
 ## Getting help
@@ -58,6 +58,7 @@ Questions and suggestions are welcome at this [forum/mailing list](https://group
 
 ## License
 
+```
 Copyright © 2013 Parallel Universe
 
 This program and the accompanying materials are dual-licensed under
@@ -68,3 +69,4 @@ the Eclipse Foundation
 
 under the terms of the GNU Lesser General Public License version 3.0
 as published by the Free Software Foundation.
+```
