@@ -1,16 +1,16 @@
- ; Pulsar: lightweight threads and Erlang-like actors for Clojure.
- ; Copyright (C) 2013, Parallel Universe Software Co. All rights reserved.
- ;
- ; This program and the accompanying materials are dual-licensed under
- ; either the terms of the Eclipse Public License v1.0 as published by
- ; the Eclipse Foundation
- ;
- ;   or (per the licensee's choosing)
- ;
- ; under the terms of the GNU Lesser General Public License version 3.0
- ; as published by the Free Software Foundation.
+; Pulsar: lightweight threads and Erlang-like actors for Clojure.
+; Copyright (C) 2013, Parallel Universe Software Co. All rights reserved.
+;
+; This program and the accompanying materials are dual-licensed under
+; either the terms of the Eclipse Public License v1.0 as published by
+; the Eclipse Foundation
+;
+;   or (per the licensee's choosing)
+;
+; under the terms of the GNU Lesser General Public License version 3.0
+; as published by the Free Software Foundation.
 
- (ns co.paralleluniverse.pulsar-test
+(ns co.paralleluniverse.pulsar-test
   (:use clojure.test
         co.paralleluniverse.pulsar)
   (:require [co.paralleluniverse.pulsar.lazyseq :as s :refer [channel->lazy-seq snd-seq]])
@@ -54,14 +54,14 @@
 
 ;; ## channels
 
-(deftest ^:selected channels-seq
+(deftest channels-seq
   (testing "Receive sequence with sleep"
-      (let [ch (channel)
-            fiber (spawn-fiber
+    (let [ch (channel)
+          fiber (spawn-fiber
                  (fn []
                    (let [s (s/take 5 (channel->lazy-seq ch))]
                      (s/doall s))))]
-        (dotimes [m 10]
+      (dotimes [m 10]
         (Thread/sleep 20)
         (snd ch m))
       (is (= '(0 1 2 3 4)
@@ -106,11 +106,11 @@
       (is (= '(16)
              (join fiber)))))
   (testing "Send and receive sequence"
-      (let [ch (channel)
-            fiber (spawn-fiber #(s/doall (s/take 5 (channel->lazy-seq ch))))]
-        (snd-seq ch (take 10 (range)))
-        (is (= '(0 1 2 3 4)
-               (join fiber)))))
+    (let [ch (channel)
+          fiber (spawn-fiber #(s/doall (s/take 5 (channel->lazy-seq ch))))]
+      (snd-seq ch (take 10 (range)))
+      (is (= '(0 1 2 3 4)
+             (join fiber)))))
   (testing "Map received sequence"
     (let [ch (channel)
           fiber (spawn-fiber (fn [] (s/doall (s/map #(* % %) (s/take 5 (channel->lazy-seq ch))))))]
@@ -235,7 +235,7 @@
       (join actor)
       (is (= @res [1 3 2])))))
 
-(deftest actor-link
+(deftest ^:selected actor-link
   (testing "When an actor dies, its link gets an exception"
     (let [actor1 (spawn #(Fiber/sleep 100))
           actor2 (spawn
@@ -245,6 +245,17 @@
       (link! actor1 actor2)
       (join actor1)
       (join actor2)))
+  (testing "When an actor dies and lifecycle-handler is defined, then it gets a message"
+    (let [actor1 (spawn #(Fiber/sleep 100))
+          actor2 (spawn :lifecycle-handler #(! @self [:foo (first %)])
+                        #(try
+                           (loop [] (receive [m]
+                                             [:foo x] x
+                                             :else (recur)))
+                           (catch co.paralleluniverse.actors.LifecycleException e nil)))]
+      (link! actor1 actor2)
+      (join actor1)
+      (is (= :exit (join actor2)))))
   (testing "When an actor dies, and its link traps, then its link gets a message"
     (let [actor1 (spawn #(Fiber/sleep 100))
           actor2 (spawn :trap true
