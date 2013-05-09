@@ -21,17 +21,17 @@
                  [gloss "0.2.2-beta4" :exclusions [com.yammer.metrics/metrics-core]]]
   :manifest {"Premain-Class" "co.paralleluniverse.fibers.instrument.JavaAgent"
              "Can-Retransform-Classes" "true"}
+                :jvm-opts ["-server"
+                         ~(str "-javaagent:" (System/getProperty "user.home") "/.m2/repository/co/paralleluniverse/quasar/0.2-SNAPSHOT/quasar-0.2-SNAPSHOT.jar")]
   :profiles {:dev
              {:plugins [[codox "0.6.4"]
                         [lein-marginalia "0.7.1"]]
               :codox {:include co.paralleluniverse.pulsar
                       :output-dir "docs"}
-              :jvm-opts ["-server"
-                         ~(str "-javaagent:" (System/getProperty "user.home") "/.m2/repository/co/paralleluniverse/quasar/0.2-SNAPSHOT/quasar-0.2-SNAPSHOT.jar")
-                         "-ea"
+              :jvm-opts ["-ea"
                          ;"-Dco.paralleluniverse.debugMode=true"
                          ;"-Dco.paralleluniverse.lwthreads.verifyInstrumentation=true"
-                         "-Dco.paralleluniverse.globalFlightRecorder=true"
-                         "-Dco.paralleluniverse.monitoring.flightRecorderLevel=2"
+                         ;"-Dco.paralleluniverse.globalFlightRecorder=true"
+                         ;"-Dco.paralleluniverse.monitoring.flightRecorderLevel=2"
                          "-Dco.paralleluniverse.flightRecorderDumpFile=pulsar.log"]
               :global-vars {*warn-on-reflection* true}}})

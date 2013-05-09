@@ -69,18 +69,18 @@
   [index coll]
   (split-at (- (dec (count coll)) index) coll))
 
-;; (surround-with nil 4 5 6) -> (4 5 6)
-;; (surround-with '(1 2 3) 4 5 6) -> ((1 2 3 4 5 6))
-;; (surround-with '(1 (2)) '(3 4)) -> ((1 (2) (3 4)))
+;;     (surround-with nil 4 5 6) -> (4 5 6)
+;;     (surround-with '(1 2 3) 4 5 6) -> ((1 2 3 4 5 6))
+;;     (surround-with '(1 (2)) '(3 4)) -> ((1 (2) (3 4)))
 (defn surround-with
   [expr & exprs]
   (if (nil? expr)
     exprs
     (list (concat expr exprs))))
 
-;; (deep-surround-with '(1 2 3) 4 5 6) -> (1 2 3 4 5 6)
-;; (deep-surround-with '(1 2 (3)) 4 5 6) -> (1 2 (3 4 5 6))
-;; (deep-surround-with '(1 2 (3 (4))) 5 6 7) -> (1 2 (3 (4 5 6 7)))
+;;     (deep-surround-with '(1 2 3) 4 5 6) -> (1 2 3 4 5 6)
+;;     (deep-surround-with '(1 2 (3)) 4 5 6) -> (1 2 (3 4 5 6))
+;;     (deep-surround-with '(1 2 (3 (4))) 5 6 7) -> (1 2 (3 (4 5 6 7)))
 (defn- deep-surround-with
   [expr & exprs]
   (if (not (coll? (last expr)))
@@ -139,7 +139,7 @@
     (ClojureHelper/keywordToUnit x)
     x))
 
-;; ## fork/join pool
+;; ## Fork/Join Pool
 
 (defn- in-fj-pool?
   "Returns true if we're running inside a fork/join pool; false otherwise."
