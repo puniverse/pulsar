@@ -52,9 +52,9 @@ or to the `:jvm-opts` section in project.clj:
 * [API](http://puniverse.github.io/pulsar/docs/)
 * [Marginalia](http://puniverse.github.io/pulsar/docs/uberdoc.html)
 
-## Getting help
+## Community
 
-Questions and suggestions are welcome at this [forum/mailing list](https://groups.google.com/forum/?fromgroups#!forum/quasar-pulsar-user).
+* [Google group](https://groups.google.com/forum/?fromgroups#!forum/quasar-pulsar-user).
 
 ## License
 
