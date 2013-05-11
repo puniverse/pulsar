@@ -235,7 +235,7 @@
       (join actor)
       (is (= @res [1 3 2])))))
 
-(deftest ^:selected actor-link
+(deftest actor-link
   (testing "When an actor dies, its link gets an exception"
     (let [actor1 (spawn #(Fiber/sleep 100))
           actor2 (spawn
@@ -361,3 +361,31 @@
       (snd-seq (mailbox-of actor) (take 10 (range)))
       (is (= '(0 2 4)
              (join actor))))))
+
+(deftest ^:selected strampoline-test
+  (testing "Test trampolining actor"
+    (let [state2 (susfn []
+                        (receive
+                         :bar :foobar))
+          state1 (susfn []
+                        (receive
+                         :foo state2))
+          actor (spawn (fn []
+                         (strampoline state1)))]
+      (! actor :foo)
+      (Thread/sleep 50)
+      (! actor :bar)
+      (is (= :foobar (join actor)))))
+  (testing "Test trampolining actor with selctive receive"
+    (let [state2 (susfn []
+                        (receive
+                         :bar :foobar))
+          state1 (susfn []
+                        (receive
+                         :foo state2))
+          actor (spawn (fn []
+                         (strampoline state1)))]
+      (! actor :bar)
+      (Thread/sleep 50)
+      (! actor :foo)
+      (is (= :foobar (join actor))))))
