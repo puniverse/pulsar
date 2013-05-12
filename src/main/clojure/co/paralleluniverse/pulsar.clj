@@ -125,19 +125,24 @@
 (defn as-timeunit
   "Converts a keyword to a java.util.concurrent.TimeUnit
   <pre>
-  :nanoseconds | :nanos         -> TimeUnit.NANOSECONDS
-  :microseconds | :us           -> TimeUnit.MICROSECONDS
-  :milliseconds | :millis | :ms -> TimeUnit.MILLISECONDS
-  :seconds | :sec               -> TimeUnit.SECONDS
-  :minutes | :mins              -> TimeUnit.MINUTES
-  :hours | :hrs                 -> TimeUnit.HOURS
-  :days                         -> TimeUnit.DAYS
+  :nanoseconds | :nanos         -> TimeUnit/NANOSECONDS
+  :microseconds | :us           -> TimeUnit/MICROSECONDS
+  :milliseconds | :millis | :ms -> TimeUnit/MILLISECONDS
+  :seconds | :sec               -> TimeUnit/SECONDS
+  :minutes | :mins              -> TimeUnit/MINUTES
+  :hours | :hrs                 -> TimeUnit/HOURS
+  :days                         -> TimeUnit/DAYS
   </pre>
   "
   [x]
-  (if (keyword? x)
-    (ClojureHelper/keywordToUnit x)
-    x))
+  (case x
+    (:nanoseconds :nanos)       TimeUnit/NANOSECONDS
+    (:microseconds :us)         TimeUnit/MICROSECONDS
+    (:milliseconds :millis :ms) TimeUnit/MILLISECONDS
+    (:seconds :sec)             TimeUnit/SECONDS
+    (:minutes :mins)            TimeUnit/MINUTES
+    (:hours :hrs)               TimeUnit/HOURS
+    :days                       TimeUnit/DAYS))
 
 ;; ## Fork/Join Pool
 

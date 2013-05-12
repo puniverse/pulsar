@@ -1,13 +1,13 @@
 /*
  * Pulsar: lightweight threads and Erlang-like actors for Clojure.
  * Copyright (C) 2013, Parallel Universe Software Co. All rights reserved.
- * 
+ *
  * This program and the accompanying materials are dual-licensed under
  * either the terms of the Eclipse Public License v1.0 as published by
  * the Eclipse Foundation
- *  
+ *
  *   or (per the licensee's choosing)
- *  
+ *
  * under the terms of the GNU Lesser General Public License version 3.0
  * as published by the Free Software Foundation.
  */
@@ -101,34 +101,6 @@ public class ClojureHelper {
 
     private static Object suspendableInvoke(IFn fn) throws SuspendExecution {
         return fn.invoke();
-    }
-
-    public static TimeUnit keywordToUnit(Keyword unit) {
-        switch (unit.getName()) {
-            case "nanoseconds":
-            case "nanos":
-                return TimeUnit.NANOSECONDS;
-            case "microseconds":
-            case "us":
-                return TimeUnit.MICROSECONDS;
-            case "milliseconds":
-            case "millis":
-            case "ms":
-                return TimeUnit.MILLISECONDS;
-            case "seconds":
-            case "sec":
-                return TimeUnit.SECONDS;
-            case "minutes":
-            case "mins":
-                return TimeUnit.MINUTES;
-            case "hours":
-            case "hrs":
-                return TimeUnit.HOURS;
-            case "days":
-                return TimeUnit.DAYS;
-            default:
-                throw new IllegalArgumentException("Unrecognized time unit " + unit);
-        }
     }
 
     public static boolean isInstrumented(Class clazz) {
