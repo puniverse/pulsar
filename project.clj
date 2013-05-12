@@ -18,13 +18,16 @@
                  [org.ow2.asm/asm-util "4.1"]
                  [com.google.guava/guava "11.0.1"]
                  [org.clojure/core.match "0.2.0-alpha12"]
-                 [gloss "0.2.2-beta4" :exclusions [com.yammer.metrics/metrics-core]]]
+                 [useful "0.8.3-alpha8"]
+                 [gloss "0.2.2-beta4" :exclusions [com.yammer.metrics/metrics-core useful]]]
   :manifest {"Premain-Class" "co.paralleluniverse.fibers.instrument.JavaAgent"
              "Can-Retransform-Classes" "true"}
                 :jvm-opts ["-server"
                          ~(str "-javaagent:" (System/getProperty "user.home") "/.m2/repository/co/paralleluniverse/quasar/0.2-SNAPSHOT/quasar-0.2-SNAPSHOT.jar")]
   :profiles {:dev
-             {:plugins [[codox "0.6.4"]
+             {:dependencies [[midje "1.5.1"]]
+              :plugins [[lein-midje "3.0.0"]
+                        [codox "0.6.4"]
                         [lein-marginalia "0.7.1"]]
               :codox {:include co.paralleluniverse.pulsar
                       :output-dir "docs"}
