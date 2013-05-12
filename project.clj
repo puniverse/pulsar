@@ -25,10 +25,10 @@
                 :jvm-opts ["-server"
                          ~(str "-javaagent:" (System/getProperty "user.home") "/.m2/repository/co/paralleluniverse/quasar/0.2-SNAPSHOT/quasar-0.2-SNAPSHOT.jar")]
   :profiles {:dev
-             {:dependencies [[midje "1.5.1"]]
-              :plugins [[lein-midje "3.0.0"]
+             {:plugins [[lein-midje "3.0.0"]
                         [codox "0.6.4"]
                         [lein-marginalia "0.7.1"]]
+              :dependencies [[midje "1.5.1"]]
               :codox {:include co.paralleluniverse.pulsar
                       :output-dir "docs"}
               :jvm-opts ["-ea"
