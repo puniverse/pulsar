@@ -11,13 +11,16 @@
  ; as published by the Free Software Foundation.
 
  (ns co.paralleluniverse.pulsar.lazyseq
-  "Functions to transform a channel into a laze seq"
-  (:import
-   [co.paralleluniverse.strands.channels Channel ObjectChannel]
-   [co.paralleluniverse.pulsar ClojureHelper])
-  (:require
-   [co.paralleluniverse.pulsar :refer :all]
-   [clojure.core.match :refer [match]]))
+   "Functions to transform a channel into a laze seq"
+   (:import
+    [co.paralleluniverse.strands.channels Channel ObjectChannel]
+    [co.paralleluniverse.pulsar ClojureHelper]
+    ; for types:
+    [clojure.lang Seqable LazySeq ISeq])
+   (:require
+    [co.paralleluniverse.pulsar :refer :all]
+    [clojure.core.match :refer [match]]
+    [clojure.core.typed :refer [ann Option AnyInteger]]))
 
  ;; We don't need to make most seq functions suspendable because of the way lazy-seqs work
  ;; but we do need to call the lazy-seq body more than once (on each resume), and the default
@@ -52,6 +55,11 @@
 
 ;; Suspendable versions of core seq functions
 
+(ann seq (All [x] (Fn
+                   [(I (Seqable x) (CountRange 1)) -> (I (ISeq x) (CountRange 1))]
+                   [(Option (Seqable x)) ->
+                    (Option (I (ISeq x) (CountRange 1)))
+                    {:then (& (is (CountRange 1) 0) (! nil 0)), :else (| (is nil 0) (is (ExactCount 0) 0))}])))
 (defn ^clojure.lang.ISeq seq [x]
   (co.paralleluniverse.pulsar.SuspendableLazySeq/seq x))
 
@@ -90,6 +98,8 @@
    (dorun n coll)
    coll))
 
+(ann nthnext (All [x] (Fn [(Option (Seqable x)) AnyInteger ->
+                           (Option (I (Seqable x) (CountRange 1)))])))
 (defsusfn nthnext
   "Returns the nth next of coll, (seq coll) when n is 0."
   {:added "1.0"
@@ -112,6 +122,7 @@
 
 ;; Some sequence functions must be redefined to use the modified lazy-seq
 
+(ann take (All [x] (Fn [AnyInteger (Seqable x) -> (LazySeq x)])))
 (defn take
   "Returns a lazy sequence of the first n items in coll, or all items if
   there are fewer than n."
@@ -123,6 +134,9 @@
      (when-let [s (seq coll)]
        (cons (first s) (take (dec n) (rest s)))))))
 
+(ann take-while (All [x y] (Fn
+                            [(Fn [x -> Any {:then (is y 0), :else tt}]) (Option (Seqable x)) -> (Seqable y)]
+                            [(Fn [x -> Any]) (Option (Seqable x)) -> (Seqable x)])))
 (defn take-while
   "Returns a lazy sequence of successive items from coll while
   (pred item) returns true. pred must be free of side-effects."
@@ -146,6 +160,9 @@
                         s)))]
     (lazy-seq (step n coll))))
 
+(ann map (All [v0 v1 v2 ...] (Fn
+                              [(Fn [v1 v2 ... v2 -> v0]) (U nil (Seqable v1)) (U nil (Seqable v2)) ... v2
+                               -> (LazySeq v0)])))
 (defn map
   "Returns a lazy sequence consisting of the result of applying f to the
   set of first items of each coll, followed by applying f to the set
@@ -159,6 +176,10 @@
     (when-let [s (seq coll)]
       (cons (f (first s)) (map f (rest s)))))))
 
+(ann filter (All [x y] (Fn
+                        [(Fn [x -> Any {:then (is y 0), :else tt}]) (Option (Seqable x))
+                         -> (Seqable y)]
+                        [(Fn [x -> Any]) (Option (Seqable x)) -> (Seqable x)])))
 (defn filter
   "Returns a lazy sequence of the items in coll for which
   (pred item) returns true. pred must be free of side-effects."

@@ -26,9 +26,20 @@
            [co.paralleluniverse.fibers.instrument]
            [co.paralleluniverse.strands.channels Channel ObjectChannel IntChannel LongChannel FloatChannel DoubleChannel]
            [co.paralleluniverse.actors ActorRegistry Actor PulsarActor]
-           [co.paralleluniverse.pulsar ClojureHelper])
-  (:require [clojure.core.match :refer [match]]))
+           [co.paralleluniverse.pulsar ClojureHelper]
+           ; for types:
+           [clojure.lang Keyword IObj IFn IDeref ISeq IPersistentCollection IPersistentVector IPersistentMap])
+  (:require [clojure.core.match :refer [match]]
+            [clojure.core.typed :refer [ann def-alias Option AnyInteger]]))
 
+;; ## clojure.core type annotations
+
+(ann clojure.core/split-at (All [x] (Fn [Long (IPersistentCollection x) -> (IPersistentVector (IPersistentCollection x))])))
+(ann clojure.core/coll? [Any -> Boolean :filters {:then (is (IPersistentCollection Any) 0) :else (! (IPersistentCollection Any) 0)}])
+(ann clojure.core/partition-all (All [x] (Fn [Long (ISeq x) -> (ISeq (U (ISeq x) x))])))
+(ann clojure.core/into (All [[xs :< (IPersistentCollection Any)]] (Fn [xs (IPersistentCollection Any) -> xs])))
+(ann clojure.core/set-agent-send-executor! [java.util.concurrent.ExecutorService -> nil])
+(ann clojure.core/set-agent-send-off-executor! [java.util.concurrent.ExecutorService -> nil])
 
 ;; ## Private util functions
 ;; These are internal functions aided to assist other functions in handling variadic arguments and the like.
@@ -51,20 +62,29 @@
         (when more
           (list* `assert-args more)))))
 
+(ann sequentialize (All [x y]
+                        (Fn
+                         [(Fn [x -> y]) ->
+                          (Fn [x -> y]
+                              [(ISeq x) -> (ISeq y)]
+                              [x * -> (ISeq y)])])))
 (defn- sequentialize
   "Takes a function of a single argument and returns a function that either takes any number of arguments or a
   a single sequence, and applies the original function to each argument or each element of the sequence"
   [f]
   (fn
-    ([x] (if (sequential? x) (map f x) (f x)))
+    ([x] (if (seq? x) (map f x) (f x)))
     ([x & xs] (map f (cons x xs)))))
 
+(ann nth-from-last (All [x y] (Fn [(IPersistentCollection x) Long -> x]
+                                  [(IPersistentCollection x) Long y -> (U x y)])))
 (defn- nth-from-last
   ([coll index]
    (nth coll (- (dec (count coll)) index)))
   ([coll index not-found]
    (nth coll (- (dec (count coll)) index) not-found)))
 
+(ann split-at-from-last (All [x] (Fn [Long (IPersistentCollection x) -> (Vector* (IPersistentCollection x) (IPersistentCollection x))])))
 (defn- split-at-from-last
   [index coll]
   (split-at (- (dec (count coll)) index) coll))
@@ -72,6 +92,7 @@
 ;;     (surround-with nil 4 5 6) -> (4 5 6)
 ;;     (surround-with '(1 2 3) 4 5 6) -> ((1 2 3 4 5 6))
 ;;     (surround-with '(1 (2)) '(3 4)) -> ((1 (2) (3 4)))
+(ann surround-with [(ISeq Any) Any * -> (ISeq Any)])
 (defn surround-with
   [expr & exprs]
   (if (nil? expr)
@@ -81,12 +102,14 @@
 ;;     (deep-surround-with '(1 2 3) 4 5 6) -> (1 2 3 4 5 6)
 ;;     (deep-surround-with '(1 2 (3)) 4 5 6) -> (1 2 (3 4 5 6))
 ;;     (deep-surround-with '(1 2 (3 (4))) 5 6 7) -> (1 2 (3 (4 5 6 7)))
+(ann ^:nocheck deep-surround-with [(ISeq Any) Any * -> (ISeq Any)])
 (defn- deep-surround-with
   [expr & exprs]
   (if (not (coll? (last expr)))
     (concat expr exprs)
     (concat (butlast expr) (list (apply deep-surround-with (cons (last expr) exprs))))))
 
+(ann ops-args [(ISeq (Vector* (Fn [Any -> Boolean]) Any)) (ISeq Any) -> (ISeq Any)])
 (defn- ops-args
   [pds xs]
   "Used to simplify optional parameters in functions.
@@ -101,6 +124,7 @@
         (cons d (ops-args (rest pds) xs))))
     (seq xs)))
 
+(ann ^:nocheck kps-args [(ISeq Any) -> (Vector* (ISeq Any) (ISeq Any))])
 (defn- kps-args
   [args]
   (let [aps (partition-all 2 args)
@@ -109,6 +133,7 @@
         positionals (reduce into [] ps)]
     [options positionals]))
 
+(ann extract-keys [(ISeq Keyword) (ISeq Any) -> (Vector* (ISeq Any) (ISeq Any))])
 (defn- extract-keys
   [ks pargs]
   (if (not (seq ks))
@@ -117,12 +142,14 @@
           [rks rpargs] (extract-keys (next ks) ps)]
       [(vec (cons (first k) rks)) rpargs])))
 
+(ann merge-meta (All [[x :< clojure.lang.IObj] y] [x (IPersistentMap Keyword Any) -> (I x (clojure.lang.IMeta y))]))
 (defn merge-meta
   {:no-doc true}
   [s m]
   (with-meta s (merge-with #(%1) m (meta s))))
 
-(defn as-timeunit
+(ann as-timeunit [Keyword -> TimeUnit])
+(defn ^TimeUnit as-timeunit
   "Converts a keyword to a java.util.concurrent.TimeUnit
   <pre>
   :nanoseconds | :nanos         -> TimeUnit/NANOSECONDS
@@ -146,21 +173,25 @@
 
 ;; ## Fork/Join Pool
 
+(ann in-fj-pool? [-> Boolean])
 (defn- in-fj-pool?
   "Returns true if we're running inside a fork/join pool; false otherwise."
   []
   (ForkJoinTask/inForkJoinPool))
 
-(defn- current-fj-pool
+(ann current-fj-pool [-> ForkJoinPool])
+(defn- ^ForkJoinPool current-fj-pool
   "Returns the fork/join pool we're running in; nil if we're not in a fork/join pool."
   []
   (ForkJoinTask/getPool))
 
-(defn make-fj-pool
+(ann make-fj-pool [AnyInteger Boolean -> ForkJoinPool])
+(defn ^ForkJoinPool make-fj-pool
   "Creates a new ForkJoinPool with the given parallelism and with the given async mode"
   [^Integer parallelism ^Boolean async]
   (ForkJoinPool. parallelism jsr166e.ForkJoinPool/defaultForkJoinWorkerThreadFactory nil async))
 
+(ann fj-pool ForkJoinPool)
 (def fj-pool
   "A global fork/join pool. The pool uses all available processors and runs in the async mode."
   (make-fj-pool (.availableProcessors (Runtime/getRuntime)) true))
@@ -174,18 +205,21 @@
 ;; Only functions that have been especially instrumented can perform blocking actions
 ;; while running in a fiber.
 
+(ann suspendable? [IFn -> Boolean])
 (defn suspendable?
   "Returns true of a function has been instrumented as suspendable; false otherwise."
   [f]
   (.isAnnotationPresent (.getClass ^Object f) co.paralleluniverse.fibers.Instrumented))
 
+(ann suspendable! (Fn [IFn -> IFn] [IFn * -> (ISeq IFn)] [(ISeq IFn) -> (ISeq IFn)]))
 (def suspendable!
   "Makes a function suspendable"
   (sequentialize
    (fn [f]
      (ClojureHelper/retransform f))))
 
-(defn ^SuspendableCallable asSuspendableCallable
+(ann as-suspendable-callable [[Any -> Any] -> SuspendableCallable])
+(defn ^SuspendableCallable as-suspendable-callable
   "wrap a clojure function as a SuspendableCallable"
   {:no-doc true}
   [f]
@@ -204,6 +238,10 @@
      (defn ~@expr)
      (suspendable! ~(first expr))))
 
+(ann ^:nocheck strampoline (All [v1 v2 ...]
+                                (Fn
+                                 [(Fn [v1 v2 ... v2 -> Any]) v1 v2 ... v2 -> Any]
+                                 [[-> Any] -> Any])))
 (defsusfn strampoline
   "A suspendable version of trampoline. Should be used to implement
   finite-state-machine actors.
@@ -225,23 +263,20 @@
 
 ;; ## Fibers
 
+(ann get-pool [-> ForkJoinPool])
 (defn ^ForkJoinPool get-pool
   {:no-doc true}
   [^ForkJoinPool pool]
   (or pool (current-fj-pool) fj-pool))
 
-(defn ^Fiber fiber1
-  "Creates a new fiber (a lightweight thread) running in a fork/join pool."
-  {:no-doc true}
-  [^String name ^ForkJoinPool pool ^Integer stacksize ^SuspendableCallable target]
-  (Fiber. name (get-pool pool) (int stacksize) target))
-
+(ann fiber [String ForkJoinPool AnyInteger [Any -> Any] -> Fiber])
 (defn ^Fiber fiber
   "Creates a new fiber (a lightweight thread) running in a fork/join pool."
   [& args]
   (let [[^String name ^ForkJoinPool pool ^Integer stacksize f] (ops-args [[string? nil] [#(instance? ForkJoinPool %) fj-pool] [integer? -1]] args)]
-    (Fiber. name (get-pool pool) (int stacksize) (asSuspendableCallable f))))
+    (Fiber. name (get-pool pool) (int stacksize) (as-suspendable-callable f))))
 
+(ann start [Fiber -> Fiber])
 (defn start
   "Starts a fiber"
   [^Fiber fiber]
@@ -250,16 +285,18 @@
 (defmacro spawn-fiber
   "Creates and starts a new fiber"
   [& args]
-  (let [[{:keys [^String name ^Integer stack-size ^ForkJoinPool pool], :or {stack-size -1}} body] (kps-args args)]
+  (let [[{:keys [^String name ^Integer stack-size ^ForkJoinPool pool] :or {stack-size -1}} body] (kps-args args)]
     `(let [f#     (suspendable! ~(if (== (count body) 1) (first body) `(fn [] (apply ~@body))))
-           fiber# (co.paralleluniverse.fibers.Fiber. ~name (get-pool ~pool) (int ~stack-size) (asSuspendableCallable f#))]
+           fiber# (co.paralleluniverse.fibers.Fiber. ~name (get-pool ~pool) (int ~stack-size) (as-suspendable-callable f#))]
        (.start fiber#))))
 
+(ann current-fiber [-> Fiber])
 (defn current-fiber
   "Returns the currently running lightweight-thread or nil if none"
   []
   (Fiber/currentFiber))
 
+(ann join (Fn [Joinable -> Any] [Joinable Long TimeUnit -> Any]))
 (defn join
   ([^Joinable s]
    (.get s))
@@ -269,6 +306,7 @@
 ;; ## Strands
 ;; A strand is either a thread or a fiber.
 
+(ann current-strand [-> Strand])
 (defn ^Strand current-strand
   "Returns the currently running fiber or current thread in case of new active fiber"
   []
@@ -277,22 +315,26 @@
 
 ;; ## Channels
 
+(ann channel (Fn [AnyInteger -> Channel] [-> Channel]))
+(defn channel
+  "Creates a channel"
+  ([size] (ObjectChannel/create size))
+  ([] (ObjectChannel/create -1)))
+
+(ann attach! [Channel (U Strand Fiber Thread) -> Channel])
 (defn attach!
   "Sets a channel's owning strand (fiber or thread).
   This is done automatically the first time a rcv (or one of the primitive-type receive-xxx) is called on the channel."
   [^Channel channel strand]
   (.setStrand channel strand))
 
-(defn channel
-  "Creates a channel"
-  ([size] (ObjectChannel/create size))
-  ([] (ObjectChannel/create -1)))
-
+(ann snd (All [x] [Channel x -> x]))
 (defn snd
   "Sends a message to a channel"
   [^Channel channel message]
   (.send channel message))
 
+(ann rcv (Fn [Channel -> Any] [Channel Long TimeUnit -> (Option Any)]))
 (defsusfn rcv
   "Receives a message from a channel"
   ([^Channel channel]
@@ -302,6 +344,7 @@
 
 ;; ### Primitive channels
 
+(ann int-channel (Fn [AnyInteger -> IntChannel] [-> IntChannel]))
 (defn ^IntChannel int-channel
   "Creates an int channel"
   ([size] (IntChannel/create size))
@@ -317,6 +360,7 @@
   ([channel timeout unit]
    `(int (co.paralleluniverse.pulsar.ChannelsHelper/receiveInt ~channel (long ~timeout) ~unit))))
 
+(ann long-channel (Fn [AnyInteger -> LongChannel] [-> LongChannel]))
 (defn ^LongChannel long-channel
   "Creates a long channel"
   ([size] (LongChannel/create size))
@@ -332,6 +376,7 @@
   ([channel timeout unit]
    `(long (co.paralleluniverse.pulsar.ChannelsHelper/receiveLong ~channel (long ~timeout) ~unit))))
 
+(ann float-channel (Fn [AnyInteger -> FloatChannel] [-> FloatChannel]))
 (defn ^FloatChannel float-channel
   "Creates a float channel"
   ([size] (FloatChannel/create size))
@@ -347,6 +392,7 @@
   ([channel timeout unit]
    `(float (co.paralleluniverse.pulsar.ChannelsHelper/receiveFloat ~channel (long ~timeout) ~unit))))
 
+(ann double-channel (Fn [AnyInteger -> DoubleChannel] [-> DoubleChannel]))
 (defn ^DoubleChannel double-channel
   "Creates a double channel"
   ([size] (DoubleChannel/create size))
@@ -454,34 +500,43 @@
        (.start fiber#)
        actor#)))
 
+;(ann-protocol IUnifyWithLVar
+;              unify-with-lvar [Term LVar ISubstitutions -> (U ISubstitutions Fail)])
+
+(ann self (IDeref PulsarActor))
 (def self
   "@self is the currently running actor"
   (reify
     clojure.lang.IDeref
     (deref [_] (PulsarActor/self))))
 
+(ann state (IDeref Any))
 (def state
   "@state is the state of the currently running actor"
   (reify
     clojure.lang.IDeref
     (deref [_] (PulsarActor/selfGetState))))
 
+(ann mailbox (IDeref Channel))
 (def mailbox
   "@mailbox is the mailbox channel of the currently running actor"
   (reify
     clojure.lang.IDeref
     (deref [_] (PulsarActor/selfMailbox))))
 
+(ann set-state! [Any -> nil])
 (defn set-state!
   "Sets the state of the currently running actor"
   [x]
   (PulsarActor/selfSetState x))
 
+(ann trap! [-> nil])
 (defn trap!
   "Sets the current actor to trap lifecycle events (like a dead linked actor) and turn them into messages"
   []
   (.setTrap ^PulsarActor @self true))
 
+(ann get-actor [Any -> Actor])
 (defn ^Actor get-actor
   "If the argument is an actor -- returns it. If not, looks up a registered actor with the argument as its name"
   [a]
@@ -489,6 +544,7 @@
     a
     (Actor/getActor a)))
 
+(ann link! (Fn [Actor -> Actor] [Actor Actor -> Actor]))
 (defn link!
   "links two actors"
   ([actor2]
@@ -496,6 +552,7 @@
   ([actor1 actor2]
    (.link (get-actor actor1) (get-actor actor2))))
 
+(ann unlink! (Fn [Actor -> Actor] [Actor Actor -> Actor]))
 (defn unlink!
   "Unlinks two actors"
   ([actor2]
@@ -536,15 +593,18 @@
   ([^Actor actor name]
    (.unregister actor name)))
 
+(ann mailbox-of [PulsarActor -> Channel])
 (defn ^Channel mailbox-of
   [^PulsarActor actor]
   (.mailbox actor))
 
+(ann whereis [Any -> Actor])
 (defn ^Actor whereis
   "Returns a registered actor by name"
   [name]
   (Actor/getActor name))
 
+(ann maketag [-> Number])
 (defn maketag
   "Returns a random, probably unique, identifier.
   (this is similar to Erlang's makeref)."
@@ -568,6 +628,7 @@
   ([actor arg & args]
    `(co.paralleluniverse.actors.PulsarActor/sendSync (get-actor ~actor) [~arg ~@args])))
 
+(ann receive-timed [AnyInteger -> (Option Any)])
 (defsusfn receive-timed
   "Waits (and returns) for a message for up to timeout ms. If time elapses -- returns nil."
   [^Integer timeout]
