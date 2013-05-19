@@ -4,16 +4,14 @@ title: User Manual
 weight: 100
 ---
 
-Quasar and Pulsar
-=================
+## Quasar and Pulsar
 
 Pulsar is a Clojure API to [Quasar]. Many of the concepts explained below are actually implemented in Quasar.
 
 [Quasar]: https://github.com/puniverse/quasar
 
 
-Fibers {#fibers}
-======
+## Fibers {#fibers}
 
 Fibers are lightweight threads. They provide functionality similar to threads, and a similar API, but they're not managed by the OS. They are lightweight (an idle fiber occupies ~400 bytes of RAM), and you can have millions of them in an application. Fibers in Pulsar (well, Quasar, actually) are scheduled by one or more [ForkJoinPool](http://docs.oracle.com/javase/7/docs/api/java/util/concurrent/ForkJoinPool.html)s. 
 
@@ -22,8 +20,7 @@ One significant difference between Fibers and Threads is that Fibers are not pre
 Suspendable functions require special bytecode instrumentation (performed by an instrumentation agent), so they must be explicitly designated as such.
 The function `suspendable!` marks a given function as a suspendable function (this operation cannot be undone). The `defsusfn` macro, with the same syntax as `defn` defines a suspendable function.
 
-Spawning Fibers
----------------
+### Spawning Fibers
 
 To create a fiber of a function `f` that takes arguments `arg1` and `arg2`, run
 
@@ -40,8 +37,7 @@ To create a fiber of a function `f` that takes arguments `arg1` and `arg2`, run
 
 The fiber will terminate when `f` completes execution. 
 
-Joining Fibers
---------------
+### Joining Fibers
 
 To wait for the fiber's termination, use
 
@@ -59,6 +55,5 @@ The following will have the same effect:
 (join fiber 500 (as-timeunit :ms))
 ~~~
 
-Channels {#channels}
-========
+## Channels {#channels}
 
