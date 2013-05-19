@@ -25,10 +25,10 @@
            [co.paralleluniverse.fibers Fiber Joinable FiberInterruptedException]
            [co.paralleluniverse.fibers.instrument]
            [co.paralleluniverse.strands.channels Channel ObjectChannel IntChannel LongChannel FloatChannel DoubleChannel]
-           [co.paralleluniverse.actors ActorRegistry Actor PulsarActor]
+           [co.paralleluniverse.actors ActorRegistry Actor PulsarActor LifecycleListener]
            [co.paralleluniverse.pulsar ClojureHelper]
            ; for types:
-           [clojure.lang Keyword IObj IFn IDeref ISeq IPersistentCollection IPersistentVector IPersistentMap])
+           [clojure.lang Keyword IObj IFn IMeta IDeref ISeq IPersistentCollection IPersistentVector IPersistentMap])
   (:require [clojure.core.match :refer [match]]
             [clojure.core.typed :refer [ann def-alias Option AnyInteger]]))
 
@@ -76,15 +76,17 @@
     ([x] (if (seq? x) (map f x) (f x)))
     ([x & xs] (map f (cons x xs)))))
 
-(ann nth-from-last (All [x y] (Fn [(IPersistentCollection x) Long -> x]
-                                  [(IPersistentCollection x) Long y -> (U x y)])))
+(ann nth-from-last (All [x y]
+                        (Fn [(IPersistentCollection x) Long -> x]
+                            [(IPersistentCollection x) Long y -> (U x y)])))
 (defn- nth-from-last
   ([coll index]
    (nth coll (- (dec (count coll)) index)))
   ([coll index not-found]
    (nth coll (- (dec (count coll)) index) not-found)))
 
-(ann split-at-from-last (All [x] (Fn [Long (IPersistentCollection x) -> (Vector* (IPersistentCollection x) (IPersistentCollection x))])))
+(ann split-at-from-last (All [x]
+                             [Long (IPersistentCollection x) -> (Vector* (IPersistentCollection x) (IPersistentCollection x))]))
 (defn- split-at-from-last
   [index coll]
   (split-at (- (dec (count coll)) index) coll))
@@ -142,7 +144,8 @@
           [rks rpargs] (extract-keys (next ks) ps)]
       [(vec (cons (first k) rks)) rpargs])))
 
-(ann merge-meta (All [[x :< clojure.lang.IObj] y] [x (IPersistentMap Keyword Any) -> (I x (clojure.lang.IMeta y))]))
+(ann merge-meta (All [[x :< clojure.lang.IObj] [y :< (IPersistentMap Keyword Any)]]
+                     [x y -> (I x (IMeta y))]))
 (defn merge-meta
   {:no-doc true}
   [s m]
@@ -211,7 +214,9 @@
   [f]
   (.isAnnotationPresent (.getClass ^Object f) co.paralleluniverse.fibers.Instrumented))
 
-(ann suspendable! (Fn [IFn -> IFn] [IFn * -> (ISeq IFn)] [(ISeq IFn) -> (ISeq IFn)]))
+(ann suspendable! (Fn [IFn -> IFn]
+                      [IFn * -> (ISeq IFn)]
+                      [(ISeq IFn) -> (ISeq IFn)]))
 (def suspendable!
   "Makes a function suspendable"
   (sequentialize
@@ -296,7 +301,8 @@
   []
   (Fiber/currentFiber))
 
-(ann join (Fn [Joinable -> Any] [Joinable Long TimeUnit -> Any]))
+(ann join (Fn [Joinable -> Any]
+              [Joinable Long TimeUnit -> Any]))
 (defn join
   ([^Joinable s]
    (.get s))
@@ -315,7 +321,8 @@
 
 ;; ## Channels
 
-(ann channel (Fn [AnyInteger -> Channel] [-> Channel]))
+(ann channel (Fn [AnyInteger -> Channel]
+                 [-> Channel]))
 (defn channel
   "Creates a channel"
   ([size] (ObjectChannel/create size))
@@ -334,7 +341,8 @@
   [^Channel channel message]
   (.send channel message))
 
-(ann rcv (Fn [Channel -> Any] [Channel Long TimeUnit -> (Option Any)]))
+(ann rcv (Fn [Channel -> Any]
+             [Channel Long TimeUnit -> (Option Any)]))
 (defsusfn rcv
   "Receives a message from a channel"
   ([^Channel channel]
@@ -344,7 +352,8 @@
 
 ;; ### Primitive channels
 
-(ann int-channel (Fn [AnyInteger -> IntChannel] [-> IntChannel]))
+(ann int-channel (Fn [AnyInteger -> IntChannel]
+                     [-> IntChannel]))
 (defn ^IntChannel int-channel
   "Creates an int channel"
   ([size] (IntChannel/create size))
@@ -360,7 +369,8 @@
   ([channel timeout unit]
    `(int (co.paralleluniverse.pulsar.ChannelsHelper/receiveInt ~channel (long ~timeout) ~unit))))
 
-(ann long-channel (Fn [AnyInteger -> LongChannel] [-> LongChannel]))
+(ann long-channel (Fn [AnyInteger -> LongChannel]
+                      [-> LongChannel]))
 (defn ^LongChannel long-channel
   "Creates a long channel"
   ([size] (LongChannel/create size))
@@ -376,7 +386,8 @@
   ([channel timeout unit]
    `(long (co.paralleluniverse.pulsar.ChannelsHelper/receiveLong ~channel (long ~timeout) ~unit))))
 
-(ann float-channel (Fn [AnyInteger -> FloatChannel] [-> FloatChannel]))
+(ann float-channel (Fn [AnyInteger -> FloatChannel]
+                       [-> FloatChannel]))
 (defn ^FloatChannel float-channel
   "Creates a float channel"
   ([size] (FloatChannel/create size))
@@ -392,7 +403,8 @@
   ([channel timeout unit]
    `(float (co.paralleluniverse.pulsar.ChannelsHelper/receiveFloat ~channel (long ~timeout) ~unit))))
 
-(ann double-channel (Fn [AnyInteger -> DoubleChannel] [-> DoubleChannel]))
+(ann double-channel (Fn [AnyInteger -> DoubleChannel]
+                        [-> DoubleChannel]))
 (defn ^DoubleChannel double-channel
   "Creates a double channel"
   ([size] (DoubleChannel/create size))
@@ -524,7 +536,7 @@
     clojure.lang.IDeref
     (deref [_] (PulsarActor/selfMailbox))))
 
-(ann set-state! [Any -> nil])
+(ann set-state! (All [x] [x -> x]))
 (defn set-state!
   "Sets the state of the currently running actor"
   [x]
@@ -544,7 +556,8 @@
     a
     (Actor/getActor a)))
 
-(ann link! (Fn [Actor -> Actor] [Actor Actor -> Actor]))
+(ann link! (Fn [Actor -> Actor]
+               [Actor Actor -> Actor]))
 (defn link!
   "links two actors"
   ([actor2]
@@ -552,7 +565,8 @@
   ([actor1 actor2]
    (.link (get-actor actor1) (get-actor actor2))))
 
-(ann unlink! (Fn [Actor -> Actor] [Actor Actor -> Actor]))
+(ann unlink! (Fn [Actor -> Actor]
+                 [Actor Actor -> Actor]))
 (defn unlink!
   "Unlinks two actors"
   ([actor2]
@@ -560,6 +574,8 @@
   ([actor1 actor2]
    (.unlink (get-actor actor1) (get-actor actor2))))
 
+(ann monitor (Fn [Actor Actor -> LifecycleListener]
+                 [Actor -> LifecycleListener]))
 (defn monitor!
   "Makes an actor monitor another actor. Returns a monitor object which should be used when calling demonitor."
   ([actor2]
@@ -567,6 +583,8 @@
   ([actor1 actor2]
    (.monitor (get-actor actor1) (get-actor actor2))))
 
+(ann monitor (Fn [Actor Actor LifecycleListener -> nil]
+                 [Actor LifecycleListener -> nil]))
 (defn demonitor!
   "Makes an actor stop monitoring another actor"
   ([actor2 monitor]
@@ -574,15 +592,17 @@
   ([actor1 actor2 monitor]
    (.demonitor (get-actor actor1) (get-actor actor2) monitor)))
 
+(ann register (Fn [String Actor -> Actor]
+                  [Actor -> Actor]))
 (defn register
   "Registers an actor"
   ([name ^Actor actor]
-   (.register actor name)
-   actor)
+   (.register actor name))
   ([^Actor actor]
-   (.register actor)
-   actor))
+   (.register actor)))
 
+(ann unregister (Fn [Actor String -> Actor]
+                    [Actor -> Actor]))
 (defn unregister
   "Un-registers an actor"
   ([x]
