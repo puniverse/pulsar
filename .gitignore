@@ -1,9 +1,10 @@
 /target
+build/
+/docs/api/
 /lib
 /classes
 /checkouts
-/doc
-/docs
+_site/
 pom.xml
 pom.xml.asc
 *.jar

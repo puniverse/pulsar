@@ -29,9 +29,10 @@
              {:plugins [[lein-midje "3.0.0"]
                         [codox "0.6.4"]
                         [lein-marginalia "0.7.1"]]
-              :dependencies [[midje "1.5.1"]]
+              :dependencies [[midje "1.5.1"]
+                             [codox/codox.core "0.6.4" :exclusions [org.clojure/tools.namespace]]] ; here just for the exclusions
               :codox {:include co.paralleluniverse.pulsar
-                      :output-dir "docs"}
+                      :output-dir "docs/api"}
               :jvm-opts ["-ea"
                          ;"-Dco.paralleluniverse.debugMode=true"
                          ;"-Dco.paralleluniverse.lwthreads.verifyInstrumentation=true"

@@ -1,0 +1,16 @@
+#markdown: redcarpet
+markdown: kramdown
+pygments: false
+lsi: false
+safe: false
+
+# Site globals used throughout docs.
+project: Pulsar
+github: puniverse/pulsar
+google_group: https://groups.google.com/forum/#!forum/quasar-pulsar-user
+copyright: "2013, Parallel Universe Software Co."
+tagline: "Erlang-like actors for Clojure"
+
+table_of_contents:
+  - {dir: "", title: "Getting Started"}
+  - {dir: "manual", title: "User Manual"}
