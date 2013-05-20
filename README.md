@@ -33,7 +33,7 @@ lein test
 
 ## Usage
 
-Documentation (*in progress*) and examples can be found [here](http://puniverse.github.io/pulsar/).
+Documentation ( *in progress* ) and examples can be found [here](http://puniverse.github.io/pulsar/).
 
 You can also read the introductory [blog post](http://blog.paralleluniverse.co/post/49445260575/quasar-pulsar).
 
@@ -47,6 +47,7 @@ or to the `:jvm-opts` section in project.clj:
 
 ## Documentation
 
+* [User Guide](http://puniverse.github.io/pulsar/)
 * [API](http://puniverse.github.io/pulsar/api/)
 * [Marginalia](http://puniverse.github.io/pulsar/uberdoc.html)
 
