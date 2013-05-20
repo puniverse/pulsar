@@ -1,7 +1,7 @@
 ---
 layout: default
 title: User Manual
-weight: 100
+weight: 1
 ---
 
 ## Quasar and Pulsar
@@ -53,6 +53,36 @@ The following will have the same effect:
 
 ~~~ clj
 (join fiber 500 (as-timeunit :ms))
+~~~
+
+### Bindings
+
+Fibers behave well with Clojure `bindings`. A newly spawned fiber inherits the bindings in effect at the time of spawning,
+and bindings decleared in a fiber last throughout the fiber's lifetime. This is demonstrated in the following tests taken
+from the Pulsar test suite:
+
+~~~ clj
+(facts "actor-bindings"
+      (fact "Fiber inherits thread bindings"
+            (let [actor
+                  (binding [*foo* 20]
+                    (spawn
+                     #(let [v1 *foo*]
+                        (Fiber/sleep 200)
+                        (let [v2 *foo*]
+                          (+ v1 v2)))))]
+              (join actor))
+            => 40)
+      (fact "Bindings declared in fiber last throughout fiber lifetime"
+            (let [actor
+                  (spawn
+                   #(binding [*foo* 15]
+                      (let [v1 *foo*]
+                        (Fiber/sleep 200)
+                        (let [v2 *foo*]
+                          (+ v1 v2)))))]
+              (join actor))
+            => 30))
 ~~~
 
 ## Channels {#channels}

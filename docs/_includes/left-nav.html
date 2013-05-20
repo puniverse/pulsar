@@ -13,7 +13,7 @@
           {% capture _url %}{{ p.url | remove_first:'/' }}{% endcapture %}
           {% if p.url ==  _wanted %}
             <li>
-              <a {% if p.url == page.url %}class="active"{% endif %} href="{{ p.url }}">
+              <a {% if p.url == page.url %}class="active"{% endif %} href="{{ site.baseurl | append:p.url }}">
                 {{ p.title }}
               </a>
               {% if p.url == page.url %}

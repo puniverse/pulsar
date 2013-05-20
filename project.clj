@@ -23,14 +23,16 @@
                  [org.clojure/core.typed "0.1.14" :exclusions [org.apache.ant/ant org.clojure/core.unify]]]
   :manifest {"Premain-Class" "co.paralleluniverse.fibers.instrument.JavaAgent"
              "Can-Retransform-Classes" "true"}
-                :jvm-opts ["-server"
-                         ~(str "-javaagent:" (System/getProperty "user.home") "/.m2/repository/co/paralleluniverse/quasar/0.2-SNAPSHOT/quasar-0.2-SNAPSHOT.jar")]
+  :jvm-opts ["-server"
+              ~(str "-javaagent:" (System/getProperty "user.home") "/.m2/repository/co/paralleluniverse/quasar/0.2-SNAPSHOT/quasar-0.2-SNAPSHOT.jar")]
+  :pedantic :warn
   :profiles {:dev
              {:plugins [[lein-midje "3.0.0"]
                         [codox "0.6.4"]
                         [lein-marginalia "0.7.1"]]
-              :dependencies [[midje "1.5.1"]
-                             [codox/codox.core "0.6.4" :exclusions [org.clojure/tools.namespace]]] ; here just for the exclusions
+              :dependencies [[midje "1.5.1" :exclusions [org.clojure/tools.namespace]]
+                             [codox/codox.core "0.6.4" :exclusions [org.clojure/tools.namespace]] ; here just for the exclusions
+                             [marginalia "0.7.1" :exclusions [org.clojure/tools.namespace]]] ; here just for the exclusions
               :codox {:include co.paralleluniverse.pulsar
                       :output-dir "docs/api"}
               :jvm-opts ["-ea"

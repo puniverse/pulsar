@@ -3,6 +3,7 @@ markdown: kramdown
 pygments: false
 lsi: false
 safe: false
+baseurl: /pulsar
 
 # Site globals used throughout docs.
 project: Pulsar

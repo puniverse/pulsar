@@ -33,9 +33,7 @@ lein test
 
 ## Usage
 
-Currently, there isn’t much in the way of documentation (coming soon!).
-In the meantime, you can study the examples [here](https://github.com/puniverse/pulsar/tree/master/src/test/clojure/co/paralleluniverse/pulsar_test/examples)
-and the tests [here](https://github.com/puniverse/pulsar/blob/master/src/test/clojure/co/paralleluniverse/pulsar_test.clj).
+Documentation (*in progress*) and examples can be found [here](http://puniverse.github.io/pulsar/).
 
 You can also read the introductory [blog post](http://blog.paralleluniverse.co/post/49445260575/quasar-pulsar).
 
@@ -49,8 +47,8 @@ or to the `:jvm-opts` section in project.clj:
 
 ## Documentation
 
-* [API](http://puniverse.github.io/pulsar/docs/)
-* [Marginalia](http://puniverse.github.io/pulsar/docs/uberdoc.html)
+* [API](http://puniverse.github.io/pulsar/api/)
+* [Marginalia](http://puniverse.github.io/pulsar/uberdoc.html)
 
 ## Community
 

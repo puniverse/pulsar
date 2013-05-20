@@ -131,8 +131,8 @@
 
 (def ^:dynamic *foo* 40)
 
-(fact "actor-bindings"
-      (fact "Test dynamic binding around spawn"
+(facts "actor-bindings"
+      (fact "Fiber inherits thread bindings"
             (let [actor
                   (binding [*foo* 20]
                     (spawn
@@ -142,7 +142,7 @@
                           (+ v1 v2)))))]
               (join actor))
             => 40)
-      (fact "Test dynamic binding in spawn"
+      (fact "Bindings declared in fiber last throughout fiber lifetime"
             (let [actor
                   (spawn
                    #(binding [*foo* 15]

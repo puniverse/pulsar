@@ -1,15 +1,8 @@
 ---
 layout: default
 title: Getting Started
-weight: 100
+weight: 1
 ---
-
-{% comment %}
-{% include outofdate.html %}
-{% endcomment %}
-
-* foo
-{:toc}
 
 ## System requirements
 
@@ -20,7 +13,14 @@ Java 7 and Clojure 1.5 are required to run Pulsar.
 Add the following dependency to [Leiningen](http://github.com/technomancy/leiningen/)'s project.clj:
 
 ~~~ clj
-    [co.paralleluniverse/pulsar "0.1.1"]
+[co.paralleluniverse/pulsar "0.1.1"]
+~~~
+
+Then, the following must be added to the `java` command line or to project.clj's `:jvm-opts`
+section:
+
+~~~ sh
+-javaagent:path-to-quasar-jar.jar
 ~~~
 
 [Leiningen]: http://github.com/technomancy/leiningen/

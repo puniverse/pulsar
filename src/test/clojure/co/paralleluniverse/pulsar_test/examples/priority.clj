@@ -3,7 +3,7 @@
   (:use co.paralleluniverse.pulsar))
 
 ;; This example is intended to be a line-by-line translation of
-;; [this example](http://stackoverflow.com/questions/10971923/selective-receiving-in-erlang) postend on stackoverflow.com,
+;; [this example](http://learnyousomeerlang.com/more-on-multiprocessing#selective-receives) from the book *Learn You Some Erlang for great good!*,
 ;; so it is not written in idiomatic Clojure
 
 (declare normal)

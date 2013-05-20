@@ -3,7 +3,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta itemprop="name" content="{{site.project}}">
 <meta itemprop="description" content="{{site.tagline}}">
-<meta itemprop="image" content="http://www.polymer-project.org/images/instacod.png">
 <title>
   {% if page.title %}
     {{page.title}} - 
@@ -11,21 +10,12 @@
     Welcome - 
   {% endif %} {{site.project}}
 </title>
-<link rel="shortcut icon" href="/images/icons/loading_icon.png">
-<link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
-<link href="/css/prettify/sunburst.css" rel="stylesheet" type="text/css">
+<!--<link rel="shortcut icon" href="/images/icons/loading_icon.png">-->
+<link href="{{site.baseurl}}/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+<link href="{{site.baseurl}}/css/prettify/sunburst.css" rel="stylesheet" type="text/css">
 <!-- <link href="/css/pygments/default.css" rel="stylesheet" type="text/css"> -->
-<link href="/css/site.css?{{'now' | date: "%Y%m%d"}}" rel="stylesheet" type="text/css">
+<link href="{{site.baseurl}}/css/site.css?{{'now' | date: "%Y%m%d"}}" rel="stylesheet" type="text/css">
 
-{% if site.load_platform %}
-<!--   
-  <script src="/polymer/polymer.min.js?{{'now' | date: "%Y%m%d"}}"></script>
- -->
-  {% for item in page.components %}
-    <link rel="import" src="{{ item }}">
-  {% endfor %}
-
-  {% for item in page.stylesheets %}
-    <link rel="stylesheet" src="{{ item }}">
-  {% endfor %}
-{% endif %}
+{% for item in page.stylesheets %}
+  <link rel="stylesheet" src="{{ item }}">
+{% endfor %}
