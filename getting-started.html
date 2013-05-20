@@ -171,6 +171,12 @@
 <pre><code class="language-clj">[co.paralleluniverse/pulsar "0.1.1"]
 </code></pre>
 
+<p>Then, the following must be added to the <code>java</code> command line or to project.clj’s <code>:jvm-opts</code>
+section:</p>
+
+<pre><code class="language-sh">-javaagent:path-to-quasar-jar.jar
+</code></pre>
+
 <h2 id="build">Building Pulsar</h2>
 
 <p>Clone the repository:</p>
