@@ -437,7 +437,7 @@
              fs (vec (take-nth 2 bs)) ; field names
              ivs (take-nth 2 (next bs))] ; initial values
          (eval ; this runs at compile time!
-          (let [fs (vec (map #(merge-meta % {:unsynchronized-mutable true}) fs))]
+          (let [fs (mapv #(merge-meta % {:unsynchronized-mutable true}) fs)]
             `(deftype ~type ~fs
                clojure.lang.IFn
                (invoke [this#] ~@body)
@@ -458,7 +458,7 @@
      (vector? fs) "a vector for its binding")
     (if (pos? (count fs))
       ; actor with state fields
-      (let [fs1 (vec (map #(merge-meta % {:unsynchronized-mutable true}) fs))
+      (let [fs1 (mapv #(merge-meta % {:unsynchronized-mutable true}) fs)
             body (next decl1)
             type (symbol (str (name n) "_type"))
             arity (count fs)
