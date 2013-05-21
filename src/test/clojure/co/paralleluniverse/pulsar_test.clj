@@ -53,67 +53,103 @@
 
 ;; ## channels
 
-(fact "channels-seq"
-      (fact "Receive sequence with sleep"
-            (let [ch (channel)
-                  fiber (spawn-fiber
-                         (fn []
-                           (let [s (s/take 5 (channel->lazy-seq ch))]
-                             (s/doall s))))]
-              (dotimes [m 10]
-                (Thread/sleep 20)
-                (snd ch m))
-              (join fiber))  => '(0 1 2 3 4))
-      (fact "Map received sequence with sleep"
-            (let [ch (channel)
-                  fiber (spawn-fiber (fn [] (s/doall (s/map #(* % %) (s/take 5 (channel->lazy-seq ch))))))]
-              (dotimes [m 10]
-                (Thread/sleep 20)
-                (snd ch m))
-              (join fiber)) => '(0 1 4 9 16))
-      (fact "Filter received sequence with sleep (odd)"
-            (let [ch (channel)
-                  fiber (spawn-fiber
-                         #(s/doall (s/filter odd? (s/take 5 (channel->lazy-seq ch)))))]
-              (dotimes [m 10]
-                (Thread/sleep 20)
-                (snd ch m))
-              (join fiber)) => '(1 3))
-      (fact "Filter received sequence with sleep (even)"
-            (let [ch (channel)
-                  fiber (spawn-fiber
-                         #(s/doall (s/filter even? (s/take 5 (channel->lazy-seq ch)))))]
-              (dotimes [m 10]
-                (Thread/sleep 20)
-                (snd ch m))
-              (join fiber)) => '(0 2 4))
-      (fact "Filter and map received sequence with sleep (even)"
-            (let [ch (channel)
-                  fiber (spawn-fiber
-                         (fn [] (s/doall
-                                 (s/filter #(> % 10)
-                                           (s/map #(* % %)
-                                                  (s/filter even?
-                                                            (s/take 5 (channel->lazy-seq ch))))))))]
-              (dotimes [m 10]
-                (Thread/sleep 20)
-                (snd ch m))
-              (join fiber)) => '(16))
-      (fact "Send and receive sequence"
-            (let [ch (channel)
-                  fiber (spawn-fiber #(s/doall (s/take 5 (channel->lazy-seq ch))))]
-              (snd-seq ch (take 10 (range)))
-              (join fiber)) => '(0 1 2 3 4))
-      (fact "Map received sequence"
-            (let [ch (channel)
-                  fiber (spawn-fiber (fn [] (s/doall (s/map #(* % %) (s/take 5 (channel->lazy-seq ch))))))]
-              (snd-seq ch (take 10 (range)))
-              (join fiber)) => '(0 1 4 9 16))
-      (fact "Filter received sequence"
-            (let [ch (channel)
-                  fiber (spawn-fiber #(s/doall (s/filter even? (s/take 5 (channel->lazy-seq ch)))))]
-              (snd-seq ch (take 10 (range)))
-              (join fiber)) => '(0 2 4)))
+(facts "channel-group"
+       (fact "Receive from channel group"
+             (let [ch1 (channel)
+                   ch2 (channel)
+                   ch3 (channel)
+                   grp (channel-group ch1 ch2 ch3)
+                   fiber (spawn-fiber
+                          (fn []
+                            (let [m1 (rcv grp)
+                                  m2 (rcv ch2)
+                                  m3 (rcv grp)]
+                              (list m1 m2 m3))))]
+               (Thread/sleep 20)
+               (snd ch1 "hello")
+               (Thread/sleep 20)
+               (snd ch3 "foo")
+               (Thread/sleep 20)
+               (snd ch2 "world!")
+               (join fiber))  => '("hello" "world!" "foo"))
+       (fact "Receive from channel group with timeout"
+             (let [ch1 (channel)
+                   ch2 (channel)
+                   ch3 (channel)
+                   grp (channel-group ch1 ch2 ch3)
+                   fiber (spawn-fiber
+                          (fn []
+                            (let [m1 (rcv grp)
+                                  m2 (rcv grp 10 (as-timeunit :ms))
+                                  m3 (rcv grp 100 (as-timeunit :ms))]
+                              (list m1 m2 m3))))]
+               (Thread/sleep 20)
+               (snd ch1 "hello")
+               (Thread/sleep 100)
+               (snd ch3 "world!")
+               (join fiber))  => '("hello" nil "world!")))
+
+(facts "channels-seq"
+       (fact "Receive sequence with sleep"
+             (let [ch (channel)
+                   fiber (spawn-fiber
+                          (fn []
+                            (let [s (s/take 5 (channel->lazy-seq ch))]
+                              (s/doall s))))]
+               (dotimes [m 10]
+                 (Thread/sleep 20)
+                 (snd ch m))
+               (join fiber))  => '(0 1 2 3 4))
+       (fact "Map received sequence with sleep"
+             (let [ch (channel)
+                   fiber (spawn-fiber (fn [] (s/doall (s/map #(* % %) (s/take 5 (channel->lazy-seq ch))))))]
+               (dotimes [m 10]
+                 (Thread/sleep 20)
+                 (snd ch m))
+               (join fiber)) => '(0 1 4 9 16))
+       (fact "Filter received sequence with sleep (odd)"
+             (let [ch (channel)
+                   fiber (spawn-fiber
+                          #(s/doall (s/filter odd? (s/take 5 (channel->lazy-seq ch)))))]
+               (dotimes [m 10]
+                 (Thread/sleep 20)
+                 (snd ch m))
+               (join fiber)) => '(1 3))
+       (fact "Filter received sequence with sleep (even)"
+             (let [ch (channel)
+                   fiber (spawn-fiber
+                          #(s/doall (s/filter even? (s/take 5 (channel->lazy-seq ch)))))]
+               (dotimes [m 10]
+                 (Thread/sleep 20)
+                 (snd ch m))
+               (join fiber)) => '(0 2 4))
+       (fact "Filter and map received sequence with sleep (even)"
+             (let [ch (channel)
+                   fiber (spawn-fiber
+                          (fn [] (s/doall
+                                  (s/filter #(> % 10)
+                                            (s/map #(* % %)
+                                                   (s/filter even?
+                                                             (s/take 5 (channel->lazy-seq ch))))))))]
+               (dotimes [m 10]
+                 (Thread/sleep 20)
+                 (snd ch m))
+               (join fiber)) => '(16))
+       (fact "Send and receive sequence"
+             (let [ch (channel)
+                   fiber (spawn-fiber #(s/doall (s/take 5 (channel->lazy-seq ch))))]
+               (snd-seq ch (take 10 (range)))
+               (join fiber)) => '(0 1 2 3 4))
+       (fact "Map received sequence"
+             (let [ch (channel)
+                   fiber (spawn-fiber (fn [] (s/doall (s/map #(* % %) (s/take 5 (channel->lazy-seq ch))))))]
+               (snd-seq ch (take 10 (range)))
+               (join fiber)) => '(0 1 4 9 16))
+       (fact "Filter received sequence"
+             (let [ch (channel)
+                   fiber (spawn-fiber #(s/doall (s/filter even? (s/take 5 (channel->lazy-seq ch)))))]
+               (snd-seq ch (take 10 (range)))
+               (join fiber)) => '(0 2 4)))
 
 ;; ## actors
 

@@ -24,7 +24,8 @@
            [co.paralleluniverse.strands SuspendableCallable]
            [co.paralleluniverse.fibers Fiber Joinable FiberInterruptedException]
            [co.paralleluniverse.fibers.instrument]
-           [co.paralleluniverse.strands.channels Channel ObjectChannel IntChannel LongChannel FloatChannel DoubleChannel]
+           [co.paralleluniverse.strands.channels Channel ReceiveChannel SendChannel ChannelGroup
+            ObjectChannel IntChannel LongChannel FloatChannel DoubleChannel]
            [co.paralleluniverse.actors ActorRegistry Actor PulsarActor LifecycleListener]
            [co.paralleluniverse.pulsar ClojureHelper]
            ; for types:
@@ -338,17 +339,22 @@
 (ann snd (All [x] [Channel x -> x]))
 (defn snd
   "Sends a message to a channel"
-  [^Channel channel message]
+  [^SendChannel channel message]
   (.send channel message))
 
 (ann rcv (Fn [Channel -> Any]
              [Channel Long TimeUnit -> (Option Any)]))
 (defsusfn rcv
-  "Receives a message from a channel"
-  ([^Channel channel]
+  "Receives a message from a channel or a channel group"
+  ([^ReceiveChannel channel]
    (.receive channel))
-  ([^Channel channel timeout unit]
+  ([^ReceiveChannel channel timeout unit]
    (.receive channel (long timeout) unit)))
+
+(defn channel-group
+  "Creates a channel group"
+  [& channels]
+  (ChannelGroup. channels))
 
 ;; ### Primitive channels
 
