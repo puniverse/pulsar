@@ -15,6 +15,12 @@ function error_exit
 if [ "$TRAVIS_BRANCH" == "master" ]; then
 	echo -e "Installing Jekyll...\n"
 	gem install jekyll
+
+	echo -e "Generating API docs...\n"
+	if [ -z $GEN_APIDOCS ]; then
+		eval $GEN_APIDOCS
+	fi
+
 	# build site
 	echo -e "Building Jekyll site...\n"
 	cd docs
@@ -29,6 +35,7 @@ if [ "$TRAVIS_BRANCH" == "master" ]; then
     git rm -r .
     cp -R ../$site_dir/* .
     cp ../$site_dir/.* .
+    touch .nojekyll
     git add -f .
     git config user.email $email
     git config user.name $username
