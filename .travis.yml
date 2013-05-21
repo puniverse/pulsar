@@ -3,4 +3,15 @@ lein: lein2
 script: lein2 midje
 jdk:
   - oraclejdk7
-  - openjdk7
+branches:
+  except:
+    - gh-pages
+env:
+  global:
+    - secure: "eRpg/alQ+1OTdhr1lcVSJyVU4eJ66ShffLDpnLV7+YZq9J29jwhgXdUHWALS\nsGQCNnty61Y1BvtRVQ46PCWHdXsk5pwgQidFPzVLQrcmnboEdKoM1fQzvery\ns2wYndL62jMhm3FachXTfHzpoNUcwU3dxr/To+U5E+q7r2Ua/Wk="
+    - GH_OWNER: pubot
+    - GH_REPO: pulsar
+after_success:
+  - gem install jekyll
+  - ./travis/post_build.sh
+
