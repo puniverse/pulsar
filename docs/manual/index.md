@@ -87,3 +87,4 @@ from the Pulsar test suite:
 
 ## Channels {#channels}
 
+Channels are an asynchronous messaging....
