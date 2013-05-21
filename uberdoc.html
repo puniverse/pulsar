@@ -3047,7 +3047,8 @@ as published by the Free Software Foundation.</p>
            [co.paralleluniverse.strands SuspendableCallable]
            [co.paralleluniverse.fibers Fiber Joinable FiberInterruptedException]
            [co.paralleluniverse.fibers.instrument]
-           [co.paralleluniverse.strands.channels Channel ObjectChannel IntChannel LongChannel FloatChannel DoubleChannel]
+           [co.paralleluniverse.strands.channels Channel ReceiveChannel SendChannel ChannelGroup
+            ObjectChannel IntChannel LongChannel FloatChannel DoubleChannel]
            [co.paralleluniverse.actors ActorRegistry Actor PulsarActor LifecycleListener]
            [co.paralleluniverse.pulsar ClojureHelper]
            ; for types:
@@ -3298,15 +3299,18 @@ while running in a fiber.</p>
   (.setStrand channel strand))</pre></td></tr><tr><td class="docs"><p>Sends a message to a channel</p>
 </td><td class="codes"><pre class="brush: clojure">(ann snd (All [x] [Channel x -&gt; x]))
 (defn snd
-  [^Channel channel message]
-  (.send channel message))</pre></td></tr><tr><td class="docs"><p>Receives a message from a channel</p>
+  [^SendChannel channel message]
+  (.send channel message))</pre></td></tr><tr><td class="docs"><p>Receives a message from a channel or a channel group</p>
 </td><td class="codes"><pre class="brush: clojure">(ann rcv (Fn [Channel -&gt; Any]
              [Channel Long TimeUnit -&gt; (Option Any)]))
 (defsusfn rcv
-  ([^Channel channel]
+  ([^ReceiveChannel channel]
    (.receive channel))
-  ([^Channel channel timeout unit]
-   (.receive channel (long timeout) unit)))</pre></td></tr><tr><td class="docs"><h3>Primitive channels</h3>
+  ([^ReceiveChannel channel timeout unit]
+   (.receive channel (long timeout) unit)))</pre></td></tr><tr><td class="docs"><p>Creates a channel group</p>
+</td><td class="codes"><pre class="brush: clojure">(defn channel-group
+  [&amp; channels]
+  (ChannelGroup. channels))</pre></td></tr><tr><td class="docs"><h3>Primitive channels</h3>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>Creates an int channel</p>
 </td><td class="codes"><pre class="brush: clojure">(ann int-channel (Fn [AnyInteger -&gt; IntChannel]
                      [-&gt; IntChannel]))
@@ -3839,67 +3843,102 @@ as published by the Free Software Foundation.</p>
         (.interrupt fib)
         (join fib)) =&gt; true)</pre></td></tr><tr><td class="docs"><h2>channels</h2>
 </td><td class="codes"></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(fact &quot;channels-seq&quot;
-      (fact &quot;Receive sequence with sleep&quot;
-            (let [ch (channel)
-                  fiber (spawn-fiber
-                         (fn []
-                           (let [s (s/take 5 (channel-&gt;lazy-seq ch))]
-                             (s/doall s))))]
-              (dotimes [m 10]
-                (Thread/sleep 20)
-                (snd ch m))
-              (join fiber))  =&gt; '(0 1 2 3 4))
-      (fact &quot;Map received sequence with sleep&quot;
-            (let [ch (channel)
-                  fiber (spawn-fiber (fn [] (s/doall (s/map #(* % %) (s/take 5 (channel-&gt;lazy-seq ch))))))]
-              (dotimes [m 10]
-                (Thread/sleep 20)
-                (snd ch m))
-              (join fiber)) =&gt; '(0 1 4 9 16))
-      (fact &quot;Filter received sequence with sleep (odd)&quot;
-            (let [ch (channel)
-                  fiber (spawn-fiber
-                         #(s/doall (s/filter odd? (s/take 5 (channel-&gt;lazy-seq ch)))))]
-              (dotimes [m 10]
-                (Thread/sleep 20)
-                (snd ch m))
-              (join fiber)) =&gt; '(1 3))
-      (fact &quot;Filter received sequence with sleep (even)&quot;
-            (let [ch (channel)
-                  fiber (spawn-fiber
-                         #(s/doall (s/filter even? (s/take 5 (channel-&gt;lazy-seq ch)))))]
-              (dotimes [m 10]
-                (Thread/sleep 20)
-                (snd ch m))
-              (join fiber)) =&gt; '(0 2 4))
-      (fact &quot;Filter and map received sequence with sleep (even)&quot;
-            (let [ch (channel)
-                  fiber (spawn-fiber
-                         (fn [] (s/doall
-                                 (s/filter #(&gt; % 10)
-                                           (s/map #(* % %)
-                                                  (s/filter even?
-                                                            (s/take 5 (channel-&gt;lazy-seq ch))))))))]
-              (dotimes [m 10]
-                (Thread/sleep 20)
-                (snd ch m))
-              (join fiber)) =&gt; '(16))
-      (fact &quot;Send and receive sequence&quot;
-            (let [ch (channel)
-                  fiber (spawn-fiber #(s/doall (s/take 5 (channel-&gt;lazy-seq ch))))]
-              (snd-seq ch (take 10 (range)))
-              (join fiber)) =&gt; '(0 1 2 3 4))
-      (fact &quot;Map received sequence&quot;
-            (let [ch (channel)
-                  fiber (spawn-fiber (fn [] (s/doall (s/map #(* % %) (s/take 5 (channel-&gt;lazy-seq ch))))))]
-              (snd-seq ch (take 10 (range)))
-              (join fiber)) =&gt; '(0 1 4 9 16))
-      (fact &quot;Filter received sequence&quot;
-            (let [ch (channel)
-                  fiber (spawn-fiber #(s/doall (s/filter even? (s/take 5 (channel-&gt;lazy-seq ch)))))]
-              (snd-seq ch (take 10 (range)))
-              (join fiber)) =&gt; '(0 2 4)))</pre></td></tr><tr><td class="docs"><h2>actors</h2>
+</td><td class="codes"><pre class="brush: clojure">(facts &quot;channel-group&quot;
+       (fact &quot;Receive from channel group&quot;
+             (let [ch1 (channel)
+                   ch2 (channel)
+                   ch3 (channel)
+                   grp (channel-group ch1 ch2 ch3)
+                   fiber (spawn-fiber
+                          (fn []
+                            (let [m1 (rcv grp)
+                                  m2 (rcv ch2)
+                                  m3 (rcv grp)]
+                              (list m1 m2 m3))))]
+               (Thread/sleep 20)
+               (snd ch1 &quot;hello&quot;)
+               (Thread/sleep 20)
+               (snd ch3 &quot;foo&quot;)
+               (Thread/sleep 20)
+               (snd ch2 &quot;world!&quot;)
+               (join fiber))  =&gt; '(&quot;hello&quot; &quot;world!&quot; &quot;foo&quot;))
+       (fact &quot;Receive from channel group with timeout&quot;
+             (let [ch1 (channel)
+                   ch2 (channel)
+                   ch3 (channel)
+                   grp (channel-group ch1 ch2 ch3)
+                   fiber (spawn-fiber
+                          (fn []
+                            (let [m1 (rcv grp)
+                                  m2 (rcv grp 10 (as-timeunit :ms))
+                                  m3 (rcv grp 100 (as-timeunit :ms))]
+                              (list m1 m2 m3))))]
+               (Thread/sleep 20)
+               (snd ch1 &quot;hello&quot;)
+               (Thread/sleep 100)
+               (snd ch3 &quot;world!&quot;)
+               (join fiber))  =&gt; '(&quot;hello&quot; nil &quot;world!&quot;)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(facts &quot;channels-seq&quot;
+       (fact &quot;Receive sequence with sleep&quot;
+             (let [ch (channel)
+                   fiber (spawn-fiber
+                          (fn []
+                            (let [s (s/take 5 (channel-&gt;lazy-seq ch))]
+                              (s/doall s))))]
+               (dotimes [m 10]
+                 (Thread/sleep 20)
+                 (snd ch m))
+               (join fiber))  =&gt; '(0 1 2 3 4))
+       (fact &quot;Map received sequence with sleep&quot;
+             (let [ch (channel)
+                   fiber (spawn-fiber (fn [] (s/doall (s/map #(* % %) (s/take 5 (channel-&gt;lazy-seq ch))))))]
+               (dotimes [m 10]
+                 (Thread/sleep 20)
+                 (snd ch m))
+               (join fiber)) =&gt; '(0 1 4 9 16))
+       (fact &quot;Filter received sequence with sleep (odd)&quot;
+             (let [ch (channel)
+                   fiber (spawn-fiber
+                          #(s/doall (s/filter odd? (s/take 5 (channel-&gt;lazy-seq ch)))))]
+               (dotimes [m 10]
+                 (Thread/sleep 20)
+                 (snd ch m))
+               (join fiber)) =&gt; '(1 3))
+       (fact &quot;Filter received sequence with sleep (even)&quot;
+             (let [ch (channel)
+                   fiber (spawn-fiber
+                          #(s/doall (s/filter even? (s/take 5 (channel-&gt;lazy-seq ch)))))]
+               (dotimes [m 10]
+                 (Thread/sleep 20)
+                 (snd ch m))
+               (join fiber)) =&gt; '(0 2 4))
+       (fact &quot;Filter and map received sequence with sleep (even)&quot;
+             (let [ch (channel)
+                   fiber (spawn-fiber
+                          (fn [] (s/doall
+                                  (s/filter #(&gt; % 10)
+                                            (s/map #(* % %)
+                                                   (s/filter even?
+                                                             (s/take 5 (channel-&gt;lazy-seq ch))))))))]
+               (dotimes [m 10]
+                 (Thread/sleep 20)
+                 (snd ch m))
+               (join fiber)) =&gt; '(16))
+       (fact &quot;Send and receive sequence&quot;
+             (let [ch (channel)
+                   fiber (spawn-fiber #(s/doall (s/take 5 (channel-&gt;lazy-seq ch))))]
+               (snd-seq ch (take 10 (range)))
+               (join fiber)) =&gt; '(0 1 2 3 4))
+       (fact &quot;Map received sequence&quot;
+             (let [ch (channel)
+                   fiber (spawn-fiber (fn [] (s/doall (s/map #(* % %) (s/take 5 (channel-&gt;lazy-seq ch))))))]
+               (snd-seq ch (take 10 (range)))
+               (join fiber)) =&gt; '(0 1 4 9 16))
+       (fact &quot;Filter received sequence&quot;
+             (let [ch (channel)
+                   fiber (spawn-fiber #(s/doall (s/filter even? (s/take 5 (channel-&gt;lazy-seq ch)))))]
+               (snd-seq ch (take 10 (range)))
+               (join fiber)) =&gt; '(0 2 4)))</pre></td></tr><tr><td class="docs"><h2>actors</h2>
 </td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(fact &quot;When fiber throws exception then join throws it&quot;
       (let [actor (spawn #(throw (Exception. &quot;my exception&quot;)))]
