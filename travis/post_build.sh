@@ -25,9 +25,7 @@ if [ "$TRAVIS_BRANCH" == "master" ]; then
     # Any command that using GH_OAUTH_TOKEN must pipe the output to /dev/null to not expose your oauth token
     git submodule add -b gh-pages https://${GH_OAUTH_TOKEN}@github.com/$TRAVIS_REPO_SLUG site > /dev/null 2>&1
     cd site
-    if git checkout gh-pages; then 
-    	git checkout -b gh-pages
-    fi
+	git checkout gh-pages || git checkout -b gh-pages
     git rm -r .
     cp -R ../$site_dir/* .
     cp ../$site_dir/.* .
