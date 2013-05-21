@@ -16,8 +16,9 @@ if [ "$TRAVIS_BRANCH" == "master" ]; then
 	echo -e "Installing Jekyll...\n"
 	gem install jekyll
 
-	echo -e "Generating API docs...\n"
 	if [ -z $GEN_APIDOCS ]; then
+		echo -e "Generating API docs...\n"
+		echo -e "Running: $GEN_APIDOCS\n"
 		eval $GEN_APIDOCS
 	fi
 

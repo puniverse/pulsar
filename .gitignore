@@ -1,6 +1,7 @@
 /target
 build/
 /docs/api/
+/docs/uberdoc.html
 /lib
 /classes
 /checkouts
