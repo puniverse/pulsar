@@ -13,7 +13,7 @@
                            (receive
                             [:start actors] (do
                                               (doseq [actor actors]
-                                                (! actor [:ping @self]))
+                                                (! actor [:ping @self])) ; can also try with !!
                                               (recur npings npongs))
                             [:ping from]    (do
                                               (! from :pong)
