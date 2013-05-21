@@ -13,5 +13,6 @@ env:
     - GH_REPO: pulsar
 after_success:
   - gem install jekyll
+  - chmod a+x travis/post_build.sh
   - ./travis/post_build.sh
 
