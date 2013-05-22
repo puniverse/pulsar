@@ -15,7 +15,7 @@ but it hints the scheduler that the current actor is about to wait for a respons
 :days                         -&gt; TimeUnit/DAYS
 &lt;/pre&gt;
 </pre></div><div class="public" id="var-attach%21"><h3>attach!</h3><div class="usage"><code>(attach! channel strand)</code></div><pre class="doc">Sets a channel's owning strand (fiber or thread).
-This is done automatically the first time a rcv (or one of the primitive-type receive-xxx) is called on the channel.</pre></div><div class="public" id="var-channel"><h3>channel</h3><div class="usage"><code>(channel size)</code><code>(channel)</code></div><pre class="doc">Creates a channel
+This is done automatically the first time a rcv (or one of the primitive-type rcv-xxx) is called on the channel.</pre></div><div class="public" id="var-channel"><h3>channel</h3><div class="usage"><code>(channel size)</code><code>(channel)</code></div><pre class="doc">Creates a channel
 </pre></div><div class="public" id="var-channel-group"><h3>channel-group</h3><div class="usage"><code>(channel-group &amp; channels)</code></div><pre class="doc">Creates a channel group
 </pre></div><div class="public" id="var-current-fiber"><h3>current-fiber</h3><div class="usage"><code>(current-fiber)</code></div><pre class="doc">Returns the currently running lightweight-thread or nil if none
 </pre></div><div class="public" id="var-current-strand"><h3>current-strand</h3><div class="usage"><code>(current-strand)</code></div><pre class="doc">Returns the currently running fiber or current thread in case of new active fiber

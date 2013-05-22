@@ -3178,7 +3178,13 @@ as published by the Free Software Foundation.</p>
     (:seconds :sec)             TimeUnit/SECONDS
     (:minutes :mins)            TimeUnit/MINUTES
     (:hours :hrs)               TimeUnit/HOURS
-    :days                       TimeUnit/DAYS))</pre></td></tr><tr><td class="docs"><h2>Fork/Join Pool</h2>
+    :days                       TimeUnit/DAYS))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(ann -&gt;timeunit [(U TimeUnit Keyword) -&gt; TimeUnit])
+(defn ^TimeUnit -&gt;timeunit
+  [x]
+  (if (instance? TimeUnit x)
+    x
+    (as-timeunit x)))</pre></td></tr><tr><td class="docs"><h2>Fork/Join Pool</h2>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>Returns true if we're running inside a fork/join pool; false otherwise.</p>
 </td><td class="codes"><pre class="brush: clojure">(ann in-fj-pool? [-&gt; Boolean])
 (defn- in-fj-pool?
@@ -3273,12 +3279,12 @@ while running in a fiber.</p>
   []
   (Fiber/currentFiber))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ann join (Fn [Joinable -&gt; Any]
-              [Joinable Long TimeUnit -&gt; Any]))
+              [Joinable Long (U TimeUnit Keyword) -&gt; Any]))
 (defn join
   ([^Joinable s]
    (.get s))
-  ([^Joinable s timeout ^TimeUnit unit]
-   (.get s timeout unit)))</pre></td></tr><tr><td class="docs"><h2>Strands</h2>
+  ([^Joinable s timeout unit]
+   (.get s timeout (-&gt;timeunit unit))))</pre></td></tr><tr><td class="docs"><h2>Strands</h2>
 
 <p>A strand is either a thread or a fiber.</p>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>Returns the currently running fiber or current thread in case of new active fiber</p>
@@ -3292,7 +3298,7 @@ while running in a fiber.</p>
 (defn channel
   ([size] (ObjectChannel/create size))
   ([] (ObjectChannel/create -1)))</pre></td></tr><tr><td class="docs"><p>Sets a channel's owning strand (fiber or thread).
-  This is done automatically the first time a rcv (or one of the primitive-type receive-xxx) is called on the channel.</p>
+  This is done automatically the first time a rcv (or one of the primitive-type rcv-xxx) is called on the channel.</p>
 </td><td class="codes"><pre class="brush: clojure">(ann attach! [Channel (U Strand Fiber Thread) -&gt; Channel])
 (defn attach!
   [^Channel channel strand]
@@ -3302,68 +3308,68 @@ while running in a fiber.</p>
   [^SendChannel channel message]
   (.send channel message))</pre></td></tr><tr><td class="docs"><p>Receives a message from a channel or a channel group</p>
 </td><td class="codes"><pre class="brush: clojure">(ann rcv (Fn [Channel -&gt; Any]
-             [Channel Long TimeUnit -&gt; (Option Any)]))
+             [Channel Long (U TimeUnit Keyword) -&gt; (Option Any)]))
 (defsusfn rcv
   ([^ReceiveChannel channel]
    (.receive channel))
   ([^ReceiveChannel channel timeout unit]
-   (.receive channel (long timeout) unit)))</pre></td></tr><tr><td class="docs"><p>Creates a channel group</p>
+   (.receive channel (long timeout) (-&gt;timeunit unit))))</pre></td></tr><tr><td class="docs"><p>Creates a channel group</p>
 </td><td class="codes"><pre class="brush: clojure">(defn channel-group
   [&amp; channels]
-  (ChannelGroup. channels))</pre></td></tr><tr><td class="docs"><h3>Primitive channels</h3>
+  (ChannelGroup. ^java.util.Collection channels))</pre></td></tr><tr><td class="docs"><h3>Primitive channels</h3>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>Creates an int channel</p>
 </td><td class="codes"><pre class="brush: clojure">(ann int-channel (Fn [AnyInteger -&gt; IntChannel]
                      [-&gt; IntChannel]))
 (defn ^IntChannel int-channel
   ([size] (IntChannel/create size))
   ([] (IntChannel/create -1)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defmacro send-int
+</td><td class="codes"><pre class="brush: clojure">(defmacro snd-int
   [channel message]
   `(co.paralleluniverse.pulsar.ChannelsHelper/sendInt ~channel (int ~message)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defmacro receive-int
+</td><td class="codes"><pre class="brush: clojure">(defmacro rcv-int
   ([channel]
    `(int (co.paralleluniverse.pulsar.ChannelsHelper/receiveInt ~channel)))
   ([channel timeout unit]
-   `(int (co.paralleluniverse.pulsar.ChannelsHelper/receiveInt ~channel (long ~timeout) ~unit))))</pre></td></tr><tr><td class="docs"><p>Creates a long channel</p>
+   `(int (co.paralleluniverse.pulsar.ChannelsHelper/receiveInt ~channel (long ~timeout) (-&gt;timeunit ~unit)))))</pre></td></tr><tr><td class="docs"><p>Creates a long channel</p>
 </td><td class="codes"><pre class="brush: clojure">(ann long-channel (Fn [AnyInteger -&gt; LongChannel]
                       [-&gt; LongChannel]))
 (defn ^LongChannel long-channel
   ([size] (LongChannel/create size))
   ([] (LongChannel/create -1)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defmacro send-long
+</td><td class="codes"><pre class="brush: clojure">(defmacro snd-long
   [channel message]
   `(co.paralleluniverse.pulsar.ChannelsHelper/sendLong ~channel (long ~message)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defmacro receive-long
+</td><td class="codes"><pre class="brush: clojure">(defmacro rcv-long
   ([channel]
    `(long (co.paralleluniverse.pulsar.ChannelsHelper/receiveLong ~channel)))
   ([channel timeout unit]
-   `(long (co.paralleluniverse.pulsar.ChannelsHelper/receiveLong ~channel (long ~timeout) ~unit))))</pre></td></tr><tr><td class="docs"><p>Creates a float channel</p>
+   `(long (co.paralleluniverse.pulsar.ChannelsHelper/receiveLong ~channel (long ~timeout) (-&gt;timeunit ~unit)))))</pre></td></tr><tr><td class="docs"><p>Creates a float channel</p>
 </td><td class="codes"><pre class="brush: clojure">(ann float-channel (Fn [AnyInteger -&gt; FloatChannel]
                        [-&gt; FloatChannel]))
 (defn ^FloatChannel float-channel
   ([size] (FloatChannel/create size))
   ([] (FloatChannel/create -1)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defmacro send-float
+</td><td class="codes"><pre class="brush: clojure">(defmacro snd-float
   [channel message]
   `(co.paralleluniverse.pulsar.ChannelsHelper/sendLong ~channel (float ~message)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defmacro receive-float
+</td><td class="codes"><pre class="brush: clojure">(defmacro rcv-float
   ([channel]
    `(float (co.paralleluniverse.pulsar.ChannelsHelper/receiveFloat ~channel)))
   ([channel timeout unit]
-   `(float (co.paralleluniverse.pulsar.ChannelsHelper/receiveFloat ~channel (long ~timeout) ~unit))))</pre></td></tr><tr><td class="docs"><p>Creates a double channel</p>
+   `(float (co.paralleluniverse.pulsar.ChannelsHelper/receiveFloat ~channel (long ~timeout) (-&gt;timeunit ~unit)))))</pre></td></tr><tr><td class="docs"><p>Creates a double channel</p>
 </td><td class="codes"><pre class="brush: clojure">(ann double-channel (Fn [AnyInteger -&gt; DoubleChannel]
                         [-&gt; DoubleChannel]))
 (defn ^DoubleChannel double-channel
   ([size] (DoubleChannel/create size))
   ([] (DoubleChannel/create -1)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defmacro send-double
+</td><td class="codes"><pre class="brush: clojure">(defmacro snd-double
   [channel message]
   `(co.paralleluniverse.pulsar.ChannelsHelper/sendLong ~channel (double ~message)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defmacro receive-double
+</td><td class="codes"><pre class="brush: clojure">(defmacro rcv-double
   ([channel]
    `(double (co.paralleluniverse.pulsar.ChannelsHelper/receiveDouble ~channel)))
   ([channel timeout unit]
-   `(double (co.paralleluniverse.pulsar.ChannelsHelper/receiveDouble ~channel (long ~timeout) ~unit))))</pre></td></tr><tr><td class="docs"><h2>Actors</h2>
+   `(double (co.paralleluniverse.pulsar.ChannelsHelper/receiveDouble ~channel (long ~timeout) (-&gt;timeunit ~unit)))))</pre></td></tr><tr><td class="docs"><h2>Actors</h2>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>Creates a new actor.</p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro actor
   {:arglists '([bindings &amp; body])}
@@ -3870,8 +3876,8 @@ as published by the Free Software Foundation.</p>
                    fiber (spawn-fiber
                           (fn []
                             (let [m1 (rcv grp)
-                                  m2 (rcv grp 10 (as-timeunit :ms))
-                                  m3 (rcv grp 100 (as-timeunit :ms))]
+                                  m2 (rcv grp 10 :ms)
+                                  m3 (rcv grp 100 :ms)]
                               (list m1 m2 m3))))]
                (Thread/sleep 20)
                (snd ch1 &quot;hello&quot;)
@@ -4265,9 +4271,9 @@ so it is not written in idiomatic Clojure.</p>
     prev
     (let [channel (int-channel 10)
           fiber (spawn-fiber #(loop []
-                                (let [m (receive-int channel)]
+                                (let [m (rcv-int channel)]
                                   ;(println n &quot;: &quot; m)
-                                  (send-int prev (inc m))
+                                  (snd-int prev (inc m))
                                   (recur))))]
       (recur channel (dec n)))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn -main [M1 N1]
@@ -4280,13 +4286,13 @@ so it is not written in idiomatic Clojure.</p>
              (let [manager-channel (int-channel 10)
                    last-channel (spawn-relay manager-channel (dec N))
                    manager (spawn-fiber
-                            #(do (send-int last-channel 1)  ; start things off
+                            #(do (snd-int last-channel 1)  ; start things off
                                (loop [j (int 1)]
-                                 (let [m (receive-int manager-channel)]
+                                 (let [m (rcv-int manager-channel)]
                                    (if (&lt; j M)
                                      (do
                                        ;(println &quot;m: &quot; m)
-                                       (send-int last-channel (inc m))
+                                       (snd-int last-channel (inc m))
                                        (recur (inc j)))
                                      m)))))]
                (join manager)))]
