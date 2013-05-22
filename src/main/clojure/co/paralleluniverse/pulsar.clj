@@ -310,12 +310,12 @@
   (Fiber/currentFiber))
 
 (ann join (Fn [Joinable -> Any]
-              [Joinable Long TimeUnit -> Any]))
+              [Joinable Long (U TimeUnit Keyword) -> Any]))
 (defn join
   ([^Joinable s]
    (.get s))
-  ([^Joinable s timeout ^TimeUnit unit]
-   (.get s timeout unit)))
+  ([^Joinable s timeout unit]
+   (.get s timeout (->timeunit unit))))
 
 ;; ## Strands
 ;; A strand is either a thread or a fiber.
