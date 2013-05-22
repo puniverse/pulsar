@@ -52,7 +52,7 @@ You can also wait for a fiber's termination for a given duration. The following 
 The following will have the same effect:
 
 ~~~ clj
-(join fiber 500 (as-timeunit :ms))
+(join fiber 500 :ms)
 ~~~
 
 ### Bindings
@@ -85,6 +85,77 @@ from the Pulsar test suite:
             => 30))
 ~~~
 
+### Strands
+
+Before we continue, one more bit of nomenclature: a single flow of execution in Quasar/Pulsar is called a *strand*. To put it more simply, a strand is either a normal JVM thread, or a fiber.
+
 ## Channels {#channels}
 
-Channels are an asynchronous messaging....
+Channels are queues used to pass messages between strands (remember, strands are a general name for threads and fibers). The call
+
+    (channel)
+
+creates and returns a new channel. A channel has a capacity, i.e. the number of messages it can hold before they are consumed. By default, the `channel` function creates an unbounded channel. To create a channel with a limited capacity, call
+
+    (channel size)
+
+with `size` being a positive integer. Bounded channels are generally faster than unbounded channels. Attempting to send a message to a bounded channel that has filled up will throw an exception.
+
+Many strands can send messages to the channel, but only one may receive messages from the channel. The strand that receives messages from the channel is the channel's *owner*. The owner can be set either explicitely by calling:
+
+    (attach! channel owner)
+
+where `owner` is either a fiber or a thread, but usually this is not necessary. The first strand that tries to receive a message from a channel becomes its owner. Attempting to receive from a channel on a strand that is not the channel's owner results in an exception.
+
+### Sending and receiving messages
+
+Sending a message to a channel is simple:
+
+    (snd channel message)
+
+`message` can be any object, but not `nil`. Receiving a message from a channel is equaly easy:
+
+    (rcv channel)
+
+The `rcv` function returns the first message in the channel (the one that has waited there the longest), if there is one. If the channel is empty, the function will block until a message is sent to the channel, and will then return it.
+
+It is also possible to limit the amount of time `rcv` will wait for a message:
+
+~~~ clj
+(rcv channel 10 java.util.concurrent.TimeUnit/MILLISECONDS)
+~~~
+
+or, equivalently:
+
+~~~ clj
+(rcv channel 10 :ms)
+~~~
+
+These calls will wait for a message for 10 milliseconds before giving up and returning `nil`.
+
+### Primitive channels
+
+It is also possible to create channels that carry messages of primitive JVM types. The analogous primitive channel functions to `channel`, `snd` and `rcv`, are, respectively: 
+
+* `int` channels: `int-channel`, `snd-int`, `rcv-int`
+* `long` channels: `long-channel`, `snd-long`, `rcv-long`
+* `float` channels: `float-channel`, `snd-float`, `rcv-float`
+* `double` channels: `double-channel`, `snd-double`, `rcv-double`
+
+Because they don't require boxing (for this reason `snd-xxx` and `rcv-xxx` are actually macros), primitive channels can provide better performance than regular channels.
+
+### Channel Groups
+
+A strand may also wait for a message to arrive on several channels at once by creating a `channel-group`:
+
+{:.prettyprint .lang-clj}
+    (rcv (channel-group ch1 ch2 ch3))
+
+You can also use a timeout when receiving from a channel group.
+
+
+### Channel lazy-seqs
+
+**Note**: Channel lazy-seqs are an experimental feature.
+{:.centered .alert .alert-info}
+

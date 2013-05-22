@@ -5,6 +5,9 @@ lsi: false
 safe: false
 baseurl: /pulsar
 
+kramdown:
+  use_coderay: false
+
 # Site globals used throughout docs.
 project: Pulsar
 github: puniverse/pulsar
