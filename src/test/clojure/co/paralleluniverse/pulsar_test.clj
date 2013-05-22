@@ -80,8 +80,8 @@
                    fiber (spawn-fiber
                           (fn []
                             (let [m1 (rcv grp)
-                                  m2 (rcv grp 10 (as-timeunit :ms))
-                                  m3 (rcv grp 100 (as-timeunit :ms))]
+                                  m2 (rcv grp 10 :ms)
+                                  m3 (rcv grp 100 :ms)]
                               (list m1 m2 m3))))]
                (Thread/sleep 20)
                (snd ch1 "hello")

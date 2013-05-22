@@ -10,9 +10,9 @@
     prev
     (let [channel (int-channel 10)
           fiber (spawn-fiber #(loop []
-                                (let [m (receive-int channel)]
+                                (let [m (rcv-int channel)]
                                   ;(println n ": " m)
-                                  (send-int prev (inc m))
+                                  (snd-int prev (inc m))
                                   (recur))))]
       (recur channel (dec n)))))
 
@@ -27,13 +27,13 @@
              (let [manager-channel (int-channel 10)
                    last-channel (spawn-relay manager-channel (dec N))
                    manager (spawn-fiber
-                            #(do (send-int last-channel 1)  ; start things off
+                            #(do (snd-int last-channel 1)  ; start things off
                                (loop [j (int 1)]
-                                 (let [m (receive-int manager-channel)]
+                                 (let [m (rcv-int manager-channel)]
                                    (if (< j M)
                                      (do
                                        ;(println "m: " m)
-                                       (send-int last-channel (inc m))
+                                       (snd-int last-channel (inc m))
                                        (recur (inc j)))
                                      m)))))]
                (join manager)))]

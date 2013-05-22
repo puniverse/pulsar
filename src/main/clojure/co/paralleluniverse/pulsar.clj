@@ -175,6 +175,13 @@
     (:hours :hrs)               TimeUnit/HOURS
     :days                       TimeUnit/DAYS))
 
+(ann ->timeunit [(U TimeUnit Keyword) -> TimeUnit])
+(defn ^TimeUnit ->timeunit
+  [x]
+  (if (instance? TimeUnit x)
+    x
+    (as-timeunit x)))
+
 ;; ## Fork/Join Pool
 
 (ann in-fj-pool? [-> Boolean])
@@ -332,7 +339,7 @@
 (ann attach! [Channel (U Strand Fiber Thread) -> Channel])
 (defn attach!
   "Sets a channel's owning strand (fiber or thread).
-  This is done automatically the first time a rcv (or one of the primitive-type receive-xxx) is called on the channel."
+  This is done automatically the first time a rcv (or one of the primitive-type rcv-xxx) is called on the channel."
   [^Channel channel strand]
   (.setStrand channel strand))
 
@@ -343,18 +350,18 @@
   (.send channel message))
 
 (ann rcv (Fn [Channel -> Any]
-             [Channel Long TimeUnit -> (Option Any)]))
+             [Channel Long (U TimeUnit Keyword) -> (Option Any)]))
 (defsusfn rcv
   "Receives a message from a channel or a channel group"
   ([^ReceiveChannel channel]
    (.receive channel))
   ([^ReceiveChannel channel timeout unit]
-   (.receive channel (long timeout) unit)))
+   (.receive channel (long timeout) (->timeunit unit))))
 
 (defn channel-group
   "Creates a channel group"
   [& channels]
-  (ChannelGroup. channels))
+  (ChannelGroup. ^java.util.Collection channels))
 
 ;; ### Primitive channels
 
@@ -365,15 +372,15 @@
   ([size] (IntChannel/create size))
   ([] (IntChannel/create -1)))
 
-(defmacro send-int
+(defmacro snd-int
   [channel message]
   `(co.paralleluniverse.pulsar.ChannelsHelper/sendInt ~channel (int ~message)))
 
-(defmacro receive-int
+(defmacro rcv-int
   ([channel]
    `(int (co.paralleluniverse.pulsar.ChannelsHelper/receiveInt ~channel)))
   ([channel timeout unit]
-   `(int (co.paralleluniverse.pulsar.ChannelsHelper/receiveInt ~channel (long ~timeout) ~unit))))
+   `(int (co.paralleluniverse.pulsar.ChannelsHelper/receiveInt ~channel (long ~timeout) (->timeunit ~unit)))))
 
 (ann long-channel (Fn [AnyInteger -> LongChannel]
                       [-> LongChannel]))
@@ -382,15 +389,15 @@
   ([size] (LongChannel/create size))
   ([] (LongChannel/create -1)))
 
-(defmacro send-long
+(defmacro snd-long
   [channel message]
   `(co.paralleluniverse.pulsar.ChannelsHelper/sendLong ~channel (long ~message)))
 
-(defmacro receive-long
+(defmacro rcv-long
   ([channel]
    `(long (co.paralleluniverse.pulsar.ChannelsHelper/receiveLong ~channel)))
   ([channel timeout unit]
-   `(long (co.paralleluniverse.pulsar.ChannelsHelper/receiveLong ~channel (long ~timeout) ~unit))))
+   `(long (co.paralleluniverse.pulsar.ChannelsHelper/receiveLong ~channel (long ~timeout) (->timeunit ~unit)))))
 
 (ann float-channel (Fn [AnyInteger -> FloatChannel]
                        [-> FloatChannel]))
@@ -399,15 +406,15 @@
   ([size] (FloatChannel/create size))
   ([] (FloatChannel/create -1)))
 
-(defmacro send-float
+(defmacro snd-float
   [channel message]
   `(co.paralleluniverse.pulsar.ChannelsHelper/sendLong ~channel (float ~message)))
 
-(defmacro receive-float
+(defmacro rcv-float
   ([channel]
    `(float (co.paralleluniverse.pulsar.ChannelsHelper/receiveFloat ~channel)))
   ([channel timeout unit]
-   `(float (co.paralleluniverse.pulsar.ChannelsHelper/receiveFloat ~channel (long ~timeout) ~unit))))
+   `(float (co.paralleluniverse.pulsar.ChannelsHelper/receiveFloat ~channel (long ~timeout) (->timeunit ~unit)))))
 
 (ann double-channel (Fn [AnyInteger -> DoubleChannel]
                         [-> DoubleChannel]))
@@ -416,15 +423,15 @@
   ([size] (DoubleChannel/create size))
   ([] (DoubleChannel/create -1)))
 
-(defmacro send-double
+(defmacro snd-double
   [channel message]
   `(co.paralleluniverse.pulsar.ChannelsHelper/sendLong ~channel (double ~message)))
 
-(defmacro receive-double
+(defmacro rcv-double
   ([channel]
    `(double (co.paralleluniverse.pulsar.ChannelsHelper/receiveDouble ~channel)))
   ([channel timeout unit]
-   `(double (co.paralleluniverse.pulsar.ChannelsHelper/receiveDouble ~channel (long ~timeout) ~unit))))
+   `(double (co.paralleluniverse.pulsar.ChannelsHelper/receiveDouble ~channel (long ~timeout) (->timeunit ~unit)))))
 
 
 ;; ## Actors
