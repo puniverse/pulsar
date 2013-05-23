@@ -77,19 +77,19 @@
           
           
           
-            <li>
-              <a  href="/pulsar/news.html">
-                News
-              </a>
-              
-            </li>
-          
         
           
           
             
           
           
+          
+            <li>
+              <a  href="/pulsar/news.html">
+                News
+              </a>
+              
+            </li>
           
         
       
@@ -124,19 +124,19 @@
           
           
           
-        
-          
-          
-            
-          
-          
-          
             <li>
               <a  href="/pulsar/manual/examples.html">
                 Examples
               </a>
               
             </li>
+          
+        
+          
+          
+            
+          
+          
           
         
       
@@ -321,6 +321,59 @@ from the Pulsar test suite:</p>
 <h3 id="channel-lazy-seqs">Channel lazy-seqs</h3>
 
 <p class="centered alert alert-warning"><strong>Note</strong>: Channel lazy-seqs are an experimental feature.</p>
+
+<p>Messages received through channels can be manipulted with Clojure’s sequence manipulation functions by transforming a channel into a <code>lazy-seq</code>. Unfortunately, Clojure implements <code>lazy-seq</code>s with the <code>clojure.lang.LazySeq</code> class, which <em>almost</em> allows a <code>lazy-seq</code> implementation by a channel - but not quite (a simple reordering of a couple of Java lines in the <code>LazySeq</code> class would have made it compatible with channels). The <code>lazy-seq</code> function in the <code>co.paralleluniverse.pulsar.lazyseq</code> namespace therefore creates a <code>lazy-seq</code> that works just like Clojure’s, but uses a slightly different underlying Java implementation. This is unfortunate, because it required a re-implementation of many sequence manipulation functions.</p>
+
+<p>Nevertheless, it’s still possible to work with channels as you would with lazy-seqs, you only need to mind calling the functions in the right namespace.</p>
+
+<p>To create a lazy-seq from a channel, simply call:</p>
+
+<pre><code>(channel-&gt;lazy-seq ch)
+</code></pre>
+
+<p>Then, manipulating messages with sequence functions is easy. Here are some examples from the tests:</p>
+
+<pre><code class="language-clj">(require [co.paralleluniverse.pulsar.lazyseq :as s :refer [channel-&gt;lazy-seq snd-seq]])
+
+(facts "channels-seq"
+       (fact "Receive sequence with sleep"
+             (let [ch (channel)
+                   fiber (spawn-fiber
+                          (fn []
+                            (let [s (s/take 5 (channel-&gt;lazy-seq ch))]
+                              (s/doall s))))]
+               (dotimes [m 10]
+                 (Thread/sleep 20)
+                 (snd ch m))
+               (join fiber))  =&gt; (list 0 1 2 3 4))
+       (fact "Map received sequence with sleep"
+             (let [ch (channel)
+                   fiber (spawn-fiber (fn [] (s/doall (s/map #(* % %) (s/take 5 (channel-&gt;lazy-seq ch))))))]
+               (dotimes [m 10]
+                 (Thread/sleep 20)
+                 (snd ch m))
+               (join fiber)) =&gt; (list 0 1 4 9 16))
+       (fact "Filter received sequence with sleep (odd)"
+             (let [ch (channel)
+                   fiber (spawn-fiber
+                          #(s/doall (s/filter odd? (s/take 5 (channel-&gt;lazy-seq ch)))))]
+               (dotimes [m 10]
+                 (Thread/sleep 20)
+                 (snd ch m))
+               (join fiber)) =&gt; (list 1 3))
+       (fact "Filter and map received sequence with sleep (even)"
+             (let [ch (channel)
+                   fiber (spawn-fiber
+                          (fn [] (s/doall
+                                  (s/filter #(&gt; % 10)
+                                            (s/map #(* % %)
+                                                   (s/filter even?
+                                                             (s/take 5 (channel-&gt;lazy-seq ch))))))))]
+               (dotimes [m 10]
+                 (Thread/sleep 20)
+                 (snd ch m))
+               (join fiber)) =&gt; (list 16)))
+</code></pre>
 
 <h2 id="actors">Actors</h2>
 
