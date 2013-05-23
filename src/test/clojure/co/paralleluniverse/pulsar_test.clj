@@ -51,6 +51,29 @@
         (.interrupt fib)
         (join fib)) => true)
 
+(def ^:dynamic *foo* 40)
+
+(facts "fiber-bindings"
+      (fact "Fiber inherits thread bindings"
+            (let [fiber
+                  (binding [*foo* 20]
+                    (spawn-fiber
+                     #(let [v1 *foo*]
+                        (Fiber/sleep 200)
+                        (let [v2 *foo*]
+                          (+ v1 v2)))))]
+              (join fiber))
+            => 40)
+      (fact "Bindings declared in fiber last throughout fiber lifetime"
+            (let [fiber
+                  (spawn-fiber
+                   #(binding [*foo* 15]
+                      (let [v1 *foo*]
+                        (Fiber/sleep 200)
+                        (let [v2 *foo*]
+                          (+ v1 v2)))))]
+              (join fiber))
+            => 30))
 ;; ## channels
 
 (facts "channel-group"
@@ -163,31 +186,6 @@
       (let [actor (spawn #(+ 41 1))]
         (join actor))
       => 42)
-
-
-(def ^:dynamic *foo* 40)
-
-(facts "actor-bindings"
-      (fact "Fiber inherits thread bindings"
-            (let [actor
-                  (binding [*foo* 20]
-                    (spawn
-                     #(let [v1 *foo*]
-                        (Fiber/sleep 200)
-                        (let [v2 *foo*]
-                          (+ v1 v2)))))]
-              (join actor))
-            => 40)
-      (fact "Bindings declared in fiber last throughout fiber lifetime"
-            (let [actor
-                  (spawn
-                   #(binding [*foo* 15]
-                      (let [v1 *foo*]
-                        (Fiber/sleep 200)
-                        (let [v2 *foo*]
-                          (+ v1 v2)))))]
-              (join actor))
-            => 30))
 
 (fact "actor-receive"
       (fact "Test simple actor send/receive"

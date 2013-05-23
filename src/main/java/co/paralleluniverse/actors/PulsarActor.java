@@ -17,7 +17,6 @@ import clojure.lang.IFn;
 import clojure.lang.IObj;
 import clojure.lang.Keyword;
 import clojure.lang.PersistentVector;
-import clojure.lang.Var;
 import co.paralleluniverse.fibers.SuspendExecution;
 import co.paralleluniverse.fibers.TimeoutException;
 import co.paralleluniverse.pulsar.ClojureHelper;
@@ -28,24 +27,24 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author pron
  */
-public class PulsarActor extends Actor<Object, Object> {
-    public static <Message> void send(Actor<Message, ?> actor, Message m) {
+public class PulsarActor extends LocalActor<Object, Object> {
+    public static <Message> void send(Actor<Message> actor, Message m) {
         actor.send(m);
     }
 
-    public static <Message> void sendSync(Actor<Message, ?> actor, Message m) {
+    public static <Message> void sendSync(Actor<Message> actor, Message m) {
         actor.sendSync(m);
     }
 
     public static PulsarActor self() {
-        final PulsarActor self = (PulsarActor) Actor.currentActor();
+        final PulsarActor self = (PulsarActor) LocalActor.currentActor();
         if (self == null)
             throw new RuntimeException("Not running within an actor");
         return self;
     }
 
     public static Mailbox selfMailbox() {
-        final PulsarActor self = (PulsarActor) Actor.currentActor();
+        final PulsarActor self = (PulsarActor) LocalActor.currentActor();
         if (self == null)
             throw new RuntimeException("Not running within an actor");
         return self.mailbox();

@@ -13,7 +13,7 @@ Pulsar is a Clojure API to [Quasar]. Many of the concepts explained below are ac
 
 ## Fibers {#fibers}
 
-Fibers are lightweight threads. They provide functionality similar to threads, and a similar API, but they're not managed by the OS. They are lightweight (an idle fiber occupies ~400 bytes of RAM), and you can have millions of them in an application. Fibers in Pulsar (well, Quasar, actually) are scheduled by one or more [ForkJoinPool](http://docs.oracle.com/javase/7/docs/api/java/util/concurrent/ForkJoinPool.html)s. 
+Fibers are lightweight threads. They provide functionality similar to threads, and a similar API, but they're not managed by the OS. They are lightweight (an idle fiber occupies ~400 bytes of RAM), and you can have millions of them in an application. If you are familiar with Go, fibers are like goroutines. Fibers in Pulsar (well, Quasar, actually) are scheduled by one or more [ForkJoinPool](http://docs.oracle.com/javase/7/docs/api/java/util/concurrent/ForkJoinPool.html)s. 
 
 One significant difference between Fibers and Threads is that Fibers are not preempted; i.e. a fiber is (permanently or temporarily) unscheduled by the scheduler only if it terminates, or if it calls one of a few specific Java methods that cause the fiber to become suspended. A function that calls a suspending operation is called a *suspendable* function, and a function that calls another suspendable function is itself suspendable. 
 
@@ -62,26 +62,28 @@ and bindings decleared in a fiber last throughout the fiber's lifetime. This is 
 from the Pulsar test suite:
 
 ~~~ clj
-(facts "actor-bindings"
+(def ^:dynamic *foo* 40)
+
+(facts "fiber-bindings"
       (fact "Fiber inherits thread bindings"
-            (let [actor
+            (let [fiber
                   (binding [*foo* 20]
-                    (spawn
+                    (spawn-fiber
                      #(let [v1 *foo*]
                         (Fiber/sleep 200)
                         (let [v2 *foo*]
                           (+ v1 v2)))))]
-              (join actor))
+              (join fiber))
             => 40)
       (fact "Bindings declared in fiber last throughout fiber lifetime"
-            (let [actor
-                  (spawn
+            (let [fiber
+                  (spawn-fiber
                    #(binding [*foo* 15]
                       (let [v1 *foo*]
                         (Fiber/sleep 200)
                         (let [v2 *foo*]
                           (+ v1 v2)))))]
-              (join actor))
+              (join fiber))
             => 30))
 ~~~
 
@@ -91,7 +93,7 @@ Before we continue, one more bit of nomenclature: a single flow of execution in 
 
 ## Channels {#channels}
 
-Channels are queues used to pass messages between strands (remember, strands are a general name for threads and fibers). The call
+Channels are queues used to pass messages between strands (remember, strands are a general name for threads and fibers). If you are familiar with Go, Pulsar channels are like Go channels. The call
 
     (channel)
 
@@ -118,6 +120,9 @@ Sending a message to a channel is simple:
     (rcv channel)
 
 The `rcv` function returns the first message in the channel (the one that has waited there the longest), if there is one. If the channel is empty, the function will block until a message is sent to the channel, and will then return it.
+
+{:.alert .alert-info}
+**Note**: `rcv` is a suspendable function, so any function calling it must also be decalred suspendable. But remember, the function passed to `spawn-fiber` is automatically made suspendable.
 
 It is also possible to limit the amount of time `rcv` will wait for a message:
 
@@ -156,6 +161,10 @@ You can also use a timeout when receiving from a channel group.
 
 ### Channel lazy-seqs
 
+{:.centered .alert .alert-warning}
 **Note**: Channel lazy-seqs are an experimental feature.
-{:.centered .alert .alert-info}
+
+
+
+## Actors
 
