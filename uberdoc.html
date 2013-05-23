@@ -3847,7 +3847,29 @@ as published by the Free Software Foundation.</p>
                       true)))]
         (Thread/sleep 20)
         (.interrupt fib)
-        (join fib)) =&gt; true)</pre></td></tr><tr><td class="docs"><h2>channels</h2>
+        (join fib)) =&gt; true)</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def ^:dynamic *foo* 40)</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(facts &quot;fiber-bindings&quot;
+      (fact &quot;Fiber inherits thread bindings&quot;
+            (let [fiber
+                  (binding [*foo* 20]
+                    (spawn-fiber
+                     #(let [v1 *foo*]
+                        (Fiber/sleep 200)
+                        (let [v2 *foo*]
+                          (+ v1 v2)))))]
+              (join fiber))
+            =&gt; 40)
+      (fact &quot;Bindings declared in fiber last throughout fiber lifetime&quot;
+            (let [fiber
+                  (spawn-fiber
+                   #(binding [*foo* 15]
+                      (let [v1 *foo*]
+                        (Fiber/sleep 200)
+                        (let [v2 *foo*]
+                          (+ v1 v2)))))]
+              (join fiber))
+            =&gt; 30))</pre></td></tr><tr><td class="docs"><h2>channels</h2>
 </td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(facts &quot;channel-group&quot;
        (fact &quot;Receive from channel group&quot;
@@ -3954,28 +3976,6 @@ as published by the Free Software Foundation.</p>
       (let [actor (spawn #(+ 41 1))]
         (join actor))
       =&gt; 42)</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def ^:dynamic *foo* 40)</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(facts &quot;actor-bindings&quot;
-      (fact &quot;Fiber inherits thread bindings&quot;
-            (let [actor
-                  (binding [*foo* 20]
-                    (spawn
-                     #(let [v1 *foo*]
-                        (Fiber/sleep 200)
-                        (let [v2 *foo*]
-                          (+ v1 v2)))))]
-              (join actor))
-            =&gt; 40)
-      (fact &quot;Bindings declared in fiber last throughout fiber lifetime&quot;
-            (let [actor
-                  (spawn
-                   #(binding [*foo* 15]
-                      (let [v1 *foo*]
-                        (Fiber/sleep 200)
-                        (let [v2 *foo*]
-                          (+ v1 v2)))))]
-              (join actor))
-            =&gt; 30))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(fact &quot;actor-receive&quot;
       (fact &quot;Test simple actor send/receive&quot;
             (let [actor (spawn #(receive))]

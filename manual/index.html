@@ -77,19 +77,19 @@
           
           
           
-        
-          
-          
-            
-          
-          
-          
             <li>
               <a  href="/pulsar/news.html">
                 News
               </a>
               
             </li>
+          
+        
+          
+          
+            
+          
+          
           
         
       
@@ -106,9 +106,16 @@
                 User Manual
               </a>
               
-              <ul class="nav nav-list"><li><a href="#quasar-and-pulsar">Quasar and Pulsar</a></li><li><a href="#fibers">Fibers</a></li><li><a href="#channels">Channels</a></li></ul>
+              <ul class="nav nav-list"><li><a href="#quasar-and-pulsar">Quasar and Pulsar</a></li><li><a href="#fibers">Fibers</a></li><li><a href="#channels">Channels</a></li><li><a href="#actors">Actors</a></li></ul>
               
             </li>
+          
+        
+          
+          
+            
+          
+          
           
         
           
@@ -130,13 +137,6 @@
               </a>
               
             </li>
-          
-        
-          
-          
-            
-          
-          
           
         
       
@@ -166,7 +166,7 @@
 
 <h2 id="fibers">Fibers</h2>
 
-<p>Fibers are lightweight threads. They provide functionality similar to threads, and a similar API, but they’re not managed by the OS. They are lightweight (an idle fiber occupies ~400 bytes of RAM), and you can have millions of them in an application. Fibers in Pulsar (well, Quasar, actually) are scheduled by one or more <a href="http://docs.oracle.com/javase/7/docs/api/java/util/concurrent/ForkJoinPool.html">ForkJoinPool</a>s. </p>
+<p>Fibers are lightweight threads. They provide functionality similar to threads, and a similar API, but they’re not managed by the OS. They are lightweight (an idle fiber occupies ~400 bytes of RAM), and you can have millions of them in an application. If you are familiar with Go, fibers are like goroutines. Fibers in Pulsar (well, Quasar, actually) are scheduled by one or more <a href="http://docs.oracle.com/javase/7/docs/api/java/util/concurrent/ForkJoinPool.html">ForkJoinPool</a>s. </p>
 
 <p>One significant difference between Fibers and Threads is that Fibers are not preempted; i.e. a fiber is (permanently or temporarily) unscheduled by the scheduler only if it terminates, or if it calls one of a few specific Java methods that cause the fiber to become suspended. A function that calls a suspending operation is called a <em>suspendable</em> function, and a function that calls another suspendable function is itself suspendable. </p>
 
@@ -218,26 +218,28 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
 and bindings decleared in a fiber last throughout the fiber’s lifetime. This is demonstrated in the following tests taken
 from the Pulsar test suite:</p>
 
-<pre><code class="language-clj">(facts "actor-bindings"
+<pre><code class="language-clj">(def ^:dynamic *foo* 40)
+
+(facts "fiber-bindings"
       (fact "Fiber inherits thread bindings"
-            (let [actor
+            (let [fiber
                   (binding [*foo* 20]
-                    (spawn
+                    (spawn-fiber
                      #(let [v1 *foo*]
                         (Fiber/sleep 200)
                         (let [v2 *foo*]
                           (+ v1 v2)))))]
-              (join actor))
+              (join fiber))
             =&gt; 40)
       (fact "Bindings declared in fiber last throughout fiber lifetime"
-            (let [actor
-                  (spawn
+            (let [fiber
+                  (spawn-fiber
                    #(binding [*foo* 15]
                       (let [v1 *foo*]
                         (Fiber/sleep 200)
                         (let [v2 *foo*]
                           (+ v1 v2)))))]
-              (join actor))
+              (join fiber))
             =&gt; 30))
 </code></pre>
 
@@ -247,7 +249,7 @@ from the Pulsar test suite:</p>
 
 <h2 id="channels">Channels</h2>
 
-<p>Channels are queues used to pass messages between strands (remember, strands are a general name for threads and fibers). The call</p>
+<p>Channels are queues used to pass messages between strands (remember, strands are a general name for threads and fibers). If you are familiar with Go, Pulsar channels are like Go channels. The call</p>
 
 <pre><code>(channel)
 </code></pre>
@@ -279,6 +281,8 @@ from the Pulsar test suite:</p>
 </code></pre>
 
 <p>The <code>rcv</code> function returns the first message in the channel (the one that has waited there the longest), if there is one. If the channel is empty, the function will block until a message is sent to the channel, and will then return it.</p>
+
+<p class="alert alert-info"><strong>Note</strong>: <code>rcv</code> is a suspendable function, so any function calling it must also be decalred suspendable. But remember, the function passed to <code>spawn-fiber</code> is automatically made suspendable.</p>
 
 <p>It is also possible to limit the amount of time <code>rcv</code> will wait for a message:</p>
 
@@ -316,7 +320,9 @@ from the Pulsar test suite:</p>
 
 <h3 id="channel-lazy-seqs">Channel lazy-seqs</h3>
 
-<p class="centered alert alert-info"><strong>Note</strong>: Channel lazy-seqs are an experimental feature.</p>
+<p class="centered alert alert-warning"><strong>Note</strong>: Channel lazy-seqs are an experimental feature.</p>
+
+<h2 id="actors">Actors</h2>
 
 </div>
 
