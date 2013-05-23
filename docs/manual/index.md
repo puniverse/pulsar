@@ -164,7 +164,58 @@ You can also use a timeout when receiving from a channel group.
 {:.centered .alert .alert-warning}
 **Note**: Channel lazy-seqs are an experimental feature.
 
+Messages received through channels can be manipulted with Clojure's sequence manipulation functions by transforming a channel into a `lazy-seq`. Unfortunately, Clojure implements `lazy-seq`s with the `clojure.lang.LazySeq` class, which *almost* allows a `lazy-seq` implementation by a channel - but not quite (a simple reordering of a couple of Java lines in the `LazySeq` class would have made it compatible with channels). The `lazy-seq` function in the `co.paralleluniverse.pulsar.lazyseq` namespace therefore creates a `lazy-seq` that works just like Clojure's, but uses a slightly different underlying Java implementation. This is unfortunate, because it required a re-implementation of many sequence manipulation functions.
 
+Nevertheless, it's still possible to work with channels as you would with lazy-seqs, you only need to mind calling the functions in the right namespace.
+
+To create a lazy-seq from a channel, simply call:
+
+    (channel->lazy-seq ch)
+
+Then, manipulating messages with sequence functions is easy. Here are some examples from the tests:
+
+~~~ clj
+(require [co.paralleluniverse.pulsar.lazyseq :as s :refer [channel->lazy-seq snd-seq]])
+
+(facts "channels-seq"
+       (fact "Receive sequence with sleep"
+             (let [ch (channel)
+                   fiber (spawn-fiber
+                          (fn []
+                            (let [s (s/take 5 (channel->lazy-seq ch))]
+                              (s/doall s))))]
+               (dotimes [m 10]
+                 (Thread/sleep 20)
+                 (snd ch m))
+               (join fiber))  => (list 0 1 2 3 4))
+       (fact "Map received sequence with sleep"
+             (let [ch (channel)
+                   fiber (spawn-fiber (fn [] (s/doall (s/map #(* % %) (s/take 5 (channel->lazy-seq ch))))))]
+               (dotimes [m 10]
+                 (Thread/sleep 20)
+                 (snd ch m))
+               (join fiber)) => (list 0 1 4 9 16))
+       (fact "Filter received sequence with sleep (odd)"
+             (let [ch (channel)
+                   fiber (spawn-fiber
+                          #(s/doall (s/filter odd? (s/take 5 (channel->lazy-seq ch)))))]
+               (dotimes [m 10]
+                 (Thread/sleep 20)
+                 (snd ch m))
+               (join fiber)) => (list 1 3))
+       (fact "Filter and map received sequence with sleep (even)"
+             (let [ch (channel)
+                   fiber (spawn-fiber
+                          (fn [] (s/doall
+                                  (s/filter #(> % 10)
+                                            (s/map #(* % %)
+                                                   (s/filter even?
+                                                             (s/take 5 (channel->lazy-seq ch))))))))]
+               (dotimes [m 10]
+                 (Thread/sleep 20)
+                 (snd ch m))
+               (join fiber)) => (list 16)))
+~~~
 
 ## Actors
 
