@@ -750,8 +750,9 @@
                                      (.unlock ~mailbox)))
                                   (recur ~n))))))))]
             ~@(surround-with (when after-clause `(if (nil? ~mtc) ~(nth after-clause 2)))
-                             ; now, mtc# is the number of the matching clause and m# is the message. we could have used a simple (case) to match on mtc#,
-                             ; but the patterns might have wildcards so we'll match again (to get the bindings), but we'll help the match by mathing on mtc#
-                             `(match [~mtc ~m] ~@(mapcat #(list [%2 (first %1)] (second %1)) pbody (range))))))))))
+                             ; now, mtc# is the number of the matching clause and m# is the message.
+                             ; but the patterns might have wildcards so we need to match again (for the bindings)
+                             `(case (int ~mtc) ~@(mapcat #(list %2 `(match [~m] [~(first %1)] ~(second %1))) pbody (range))))))))))
+                             ;`(match [~mtc ~m] ~@(mapcat #(list [%2 (first %1)] (second %1)) pbody (range))))))))))
 
 
