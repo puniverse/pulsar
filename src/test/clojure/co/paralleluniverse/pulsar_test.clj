@@ -290,15 +290,15 @@
       (join actor1)
       (fact (join actor2) => actor1))))
 
-(fact "actor-monitor"
-  (fact "When an actor dies, its monitor gets a message"
+(fact "actor-watch"
+  (fact "When an actor dies, its watch gets a message"
     (let [actor1 (spawn #(Fiber/sleep 200))
           actor2 (spawn
                   #(receive
-                    [:exit monitor actor reason] monitor))
-          mon (monitor! actor2 actor1)]
+                    [:exit watch actor reason] watch))
+          wtc (watch! actor2 actor1)]
       (join actor1)
-      (fact (join actor2) => mon))))
+      (fact (join actor2) => wtc))))
 
 (facts "actor-state"
        (fact "Test recur actor-state"

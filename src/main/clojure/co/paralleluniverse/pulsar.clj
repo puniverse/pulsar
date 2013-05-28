@@ -26,7 +26,7 @@
            [co.paralleluniverse.fibers.instrument]
            [co.paralleluniverse.strands.channels Channel ReceiveChannel SendChannel ChannelGroup
             ObjectChannel IntChannel LongChannel FloatChannel DoubleChannel]
-           [co.paralleluniverse.actors ActorRegistry Actor PulsarActor LifecycleListener]
+           [co.paralleluniverse.actors ActorRegistry Actor LocalActor ActorImpl PulsarActor LifecycleListener]
            [co.paralleluniverse.pulsar ClojureHelper]
            ; for types:
            [clojure.lang Keyword IObj IFn IMeta IDeref ISeq IPersistentCollection IPersistentVector IPersistentMap])
@@ -567,7 +567,7 @@
   [a]
   (if (instance? Actor a)
     a
-    (Actor/getActor a)))
+    (LocalActor/getActor a)))
 
 (ann link! (Fn [Actor -> Actor]
                [Actor Actor -> Actor]))
@@ -589,42 +589,38 @@
 
 (ann monitor (Fn [Actor Actor -> LifecycleListener]
                  [Actor -> LifecycleListener]))
-(defn monitor!
-  "Makes an actor monitor another actor. Returns a monitor object which should be used when calling demonitor."
+(defn watch!
+  "Makes an actor watch another actor. Returns a watch object which should be used when calling demonitor."
   ([actor2]
-   (.monitor ^Actor @self actor2))
+   (.watch ^Actor @self actor2))
   ([actor1 actor2]
-   (.monitor (get-actor actor1) (get-actor actor2))))
+   (.watch (get-actor actor1) (get-actor actor2))))
 
 (ann monitor (Fn [Actor Actor LifecycleListener -> nil]
                  [Actor LifecycleListener -> nil]))
-(defn demonitor!
-  "Makes an actor stop monitoring another actor"
+(defn unwatch!
+  "Makes an actor stop watch another actor"
   ([actor2 monitor]
-   (.demonitor ^Actor @self actor2 monitor))
+   (.unwatch ^Actor @self actor2 monitor))
   ([actor1 actor2 monitor]
-   (.demonitor (get-actor actor1) (get-actor actor2) monitor)))
 
-(ann register (Fn [String Actor -> Actor]
-                  [Actor -> Actor]))
+(ann register (Fn [String LocalActor -> LocalActor]
+                  [LocalActor -> LocalActor]))
 (defn register
   "Registers an actor"
-  ([name ^Actor actor]
+  ([name ^LocalActor actor]
    (.register actor name))
-  ([^Actor actor]
+  ([^LocalActor actor]
    (.register actor)))
 
-(ann unregister (Fn [Actor String -> Actor]
-                    [Actor -> Actor]))
+(ann unregister [LocalActor -> LocalActor])
 (defn unregister
   "Un-registers an actor"
-  ([x]
-   (if (instance? Actor x)
-     (let [^Actor actor x]
+  [x]
+   (if (instance? LocalActor x)
+     (let [^LocalActor actor x]
        (.unregister actor))
      (ActorRegistry/unregister x)))
-  ([^Actor actor name]
-   (.unregister actor name)))
 
 (ann mailbox-of [PulsarActor -> Channel])
 (defn ^Channel mailbox-of
@@ -635,14 +631,14 @@
 (defn ^Actor whereis
   "Returns a registered actor by name"
   [name]
-  (Actor/getActor name))
+  (ActorImpl/getActor name))
 
 (ann maketag [-> Number])
 (defn maketag
   "Returns a random, probably unique, identifier.
   (this is similar to Erlang's makeref)."
   []
-  (Actor/randtag))
+  (ActorImpl/randtag))
 
 (defmacro !
   "Sends a message to an actor.

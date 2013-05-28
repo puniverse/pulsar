@@ -171,7 +171,7 @@ public class PulsarActor extends LocalActor<Object, Object> {
     public static IObj lifecycleMessageToClojure(LifecycleMessage msg) {
         if (msg instanceof ExitMessage) {
             final ExitMessage m = (ExitMessage) msg;
-            final IObj v = PersistentVector.create(keyword("exit"), m.monitor, m.actor, m.reason);
+            final IObj v = PersistentVector.create(keyword("exit"), m.watch, m.actor, m.cause);
             return v;
         }
         throw new RuntimeException("Unknown lifecycle message: " + msg);
