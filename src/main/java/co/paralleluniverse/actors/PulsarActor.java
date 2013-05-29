@@ -18,21 +18,21 @@ import clojure.lang.IObj;
 import clojure.lang.Keyword;
 import clojure.lang.PersistentVector;
 import co.paralleluniverse.fibers.SuspendExecution;
-import co.paralleluniverse.fibers.TimeoutException;
 import co.paralleluniverse.pulsar.ClojureHelper;
 import co.paralleluniverse.strands.SuspendableCallable;
 import co.paralleluniverse.strands.channels.Mailbox;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * @author pron
  */
 public class PulsarActor extends LocalActor<Object, Object> {
-    public static <Message> void send(Actor<Message> actor, Message m) {
+    public static void send(Actor actor, Object m) {
         actor.send(m);
     }
 
-    public static <Message> void sendSync(Actor<Message> actor, Message m) {
+    public static void sendSync(Actor actor, Object m) {
         actor.sendSync(m);
     }
 
@@ -102,32 +102,10 @@ public class PulsarActor extends LocalActor<Object, Object> {
     }
 
     @Override
-    public Object receive() throws InterruptedException, SuspendExecution {
-        if (!trap)
-            return super.receive();
-        record(1, "PulsarActor", "receiveAll", "%s waiting for a message", this);
-        final Object m = convert(mailbox().receive());
-        record(1, "PulsarActor", "receive", "Received %s <- %s", this, m);
-        monitorAddMessage();
-        return m;
-    }
-
-    @Override
-    public Object receive(long timeout, TimeUnit unit) throws SuspendExecution, InterruptedException {
-        if (!trap) {
-            return timeout == 0 ? super.tryReceive() : super.receive(timeout, TimeUnit.MILLISECONDS);
-        }
-
-        if (flightRecorder != null)
-            record(1, "PulsarActor", "receiveAll", "%s waiting for a message. Millis left: %s", this, timeout);
-        final Object m = convert(timeout == 0 ? mailbox().tryReceive() : mailbox().receive(timeout, TimeUnit.MILLISECONDS));
-        if (m == null)
-            record(1, "PulsarActor", "receiveAll", "%s timed out", this);
-        else {
-            record(1, "PulsarActor", "receiveAll", "Received %s <- %s", this, m);
-            monitorAddMessage();
-        }
-        return m;
+    protected Object filterMessage(Object m) {
+        if(!trap && !(m instanceof ShutdownMessage))
+            m = super.filterMessage(m);
+        return convert(m);
     }
 
     public Object receive(long timeout) throws SuspendExecution, InterruptedException {
@@ -172,6 +150,10 @@ public class PulsarActor extends LocalActor<Object, Object> {
         if (msg instanceof ExitMessage) {
             final ExitMessage m = (ExitMessage) msg;
             final IObj v = PersistentVector.create(keyword("exit"), m.watch, m.actor, m.cause);
+            return v;
+        } else if(msg instanceof ShutdownMessage) {
+            final ShutdownMessage m = (ShutdownMessage) msg;
+            final IObj v = PersistentVector.create(keyword("shutdown"), m.requester);
             return v;
         }
         throw new RuntimeException("Unknown lifecycle message: " + msg);
@@ -218,7 +200,7 @@ public class PulsarActor extends LocalActor<Object, Object> {
         mailbox().await(timeout, unit);
     }
 
-    public void timeout() {
+    public void timeout() throws TimeoutException {
         record(1, "PulsarActor", "receive", "%s timed out", this);
         throw new TimeoutException();
     }

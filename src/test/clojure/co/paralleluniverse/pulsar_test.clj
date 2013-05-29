@@ -14,10 +14,10 @@
   (:use midje.sweet
         co.paralleluniverse.pulsar)
   (:require [co.paralleluniverse.pulsar.lazyseq :as s :refer [channel->lazy-seq snd-seq]])
-  (:import [java.util.concurrent TimeUnit]
+  (:import [java.util.concurrent TimeUnit TimeoutException ExecutionException]
            [co.paralleluniverse.common.util Debug]
            [co.paralleluniverse.strands Strand]
-           [co.paralleluniverse.fibers Fiber FiberInterruptedException TimeoutException]))
+           [co.paralleluniverse.fibers Fiber]))
 
 
 ;; ## fibers
@@ -26,7 +26,7 @@
       (fact "When join and timeout then throw exception"
             (let [fib (spawn-fiber #(Fiber/park 100 TimeUnit/MILLISECONDS))]
               (join fib 2 TimeUnit/MILLISECONDS))
-            => (throws java.util.concurrent.TimeoutException))
+            => (throws TimeoutException))
       (fact "When join and no timeout then join"
             (let [fib (spawn-fiber
                        #(do
@@ -38,14 +38,14 @@
 (fact "When fiber throws exception then join throws that exception"
       (let [fib (spawn-fiber #(throw (Exception. "my exception")))]
         (join fib))
-      => (throws java.util.concurrent.ExecutionException #(= "my exception" (-> % .getCause .getCause .getMessage))))
+      => (throws Exception "my exception"))
 
 (fact "When fiber interrupted while sleeping then InterruptedException thrown"
       (let [fib (spawn-fiber
                  #(try
                     (Fiber/sleep 100)
                     false
-                    (catch FiberInterruptedException e
+                    (catch InterruptedException e
                       true)))]
         (Thread/sleep 20)
         (.interrupt fib)
@@ -177,10 +177,10 @@
 ;; ## actors
 
 
-(fact "When fiber throws exception then join throws it"
+(fact "When actor throws exception then join throws it"
       (let [actor (spawn #(throw (Exception. "my exception")))]
         (join actor))
-      => (throws Exception #(= "my exception" (-> % .getCause .getCause .getMessage))))
+      => (throws Exception "my exception"))
 
 (fact "When actor returns a value then join returns it"
       (let [actor (spawn #(+ 41 1))]

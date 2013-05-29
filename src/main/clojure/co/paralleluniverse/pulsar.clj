@@ -18,15 +18,15 @@
 (ns co.paralleluniverse.pulsar
   "Pulsar is an implementation of lightweight threads (fibers),
   Go-like channles and Erlang-like actors for the JVM"
-  (:import [java.util.concurrent TimeUnit]
+  (:import [java.util.concurrent TimeUnit ExecutionException TimeoutException]
            [jsr166e ForkJoinPool ForkJoinTask]
            [co.paralleluniverse.strands Strand]
            [co.paralleluniverse.strands SuspendableCallable]
-           [co.paralleluniverse.fibers Fiber Joinable FiberInterruptedException]
+           [co.paralleluniverse.fibers Fiber Joinable]
            [co.paralleluniverse.fibers.instrument]
            [co.paralleluniverse.strands.channels Channel ReceiveChannel SendChannel ChannelGroup
             ObjectChannel IntChannel LongChannel FloatChannel DoubleChannel]
-           [co.paralleluniverse.actors ActorRegistry Actor LocalActor ActorImpl PulsarActor LifecycleListener]
+           [co.paralleluniverse.actors ActorRegistry Actor LocalActor ActorImpl PulsarActor LifecycleListener ShutdownMessage]
            [co.paralleluniverse.pulsar ClojureHelper]
            ; for types:
            [clojure.lang Keyword IObj IFn IMeta IDeref ISeq IPersistentCollection IPersistentVector IPersistentMap])
@@ -128,7 +128,8 @@
     (seq xs)))
 
 (ann ^:nocheck kps-args [(ISeq Any) -> (Vector* (ISeq Any) (ISeq Any))])
-(defn- kps-args
+(defn kps-args
+  {:no-doc true}
   [args]
   (let [aps (partition-all 2 args)
         [opts-and-vals ps] (split-with #(keyword? (first %)) aps)
@@ -181,6 +182,20 @@
   (if (instance? TimeUnit x)
     x
     (as-timeunit x)))
+
+(ann tagged-tuple? [Any -> Boolean])
+(defn tagged-tuple?
+  [x]
+  (and (vector? x) (keyword? (first x))))
+
+(ann strip-exception [Throwable -> Throwable])
+(defn- strip-exception
+  [^Throwable e]
+  (if
+    (or (instance? ExecutionException e)
+        (and (= (.getClass e) RuntimeException) (.getCause e)))
+    (strip-exception (.getCause e))
+    e))
 
 ;; ## Fork/Join Pool
 
@@ -309,13 +324,17 @@
   []
   (Fiber/currentFiber))
 
-(ann join (Fn [Joinable -> Any]
-              [Joinable Long (U TimeUnit Keyword) -> Any]))
 (defn join
   ([^Joinable s]
-   (.get s))
+   (try
+     (.get s)
+     (catch Exception e
+       (throw (strip-exception e)))))
   ([^Joinable s timeout unit]
-   (.get s timeout (->timeunit unit))))
+   (try
+     (.get s timeout (->timeunit unit))
+     (catch Exception e
+       (throw (strip-exception e))))))
 
 ;; ## Strands
 ;; A strand is either a thread or a fiber.
@@ -495,8 +514,12 @@
   {:arglists '([:name? :mailbox-size? :lifecycle-handler? :stack-size? :pool? f & args])}
   [& args]
   (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size ^IFn lifecycle-handler ^Integer stack-size ^ForkJoinPool pool], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)]
-    `(let [f#     (suspendable! ~(if (== (count body) 1) (first body) `(fn [] (apply ~(first body) (list ~@(rest body))))))
-           actor# (co.paralleluniverse.actors.PulsarActor. ~name ~trap (int ~mailbox-size) ~lifecycle-handler f#)
+    `(let [b#     (first ~body) ; eval body
+           f#     (when (not (instance? LocalActor b#))
+                    (suspendable! ~(if (== (count body) 1) (first body) `(fn [] (apply ~(first body) (list ~@(rest body)))))))
+           ^LocalActor actor# (if (instance? LocalActor b#)
+                                b#
+                                (co.paralleluniverse.actors.PulsarActor. ~name ~trap (int ~mailbox-size) ~lifecycle-handler f#))
            fiber# (co.paralleluniverse.fibers.Fiber. ~name (get-pool ~pool) (int ~stack-size) actor#)]
        (.start fiber#)
        actor#)))
@@ -506,8 +529,12 @@
   {:arglists '([:name? :mailbox-size? :lifecycle-handler? :stack-size? :pool? f & args])}
   [& args]
   (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size ^IFn lifecycle-handler ^Integer stack-size ^ForkJoinPool pool], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)]
-    `(let [f#     (suspendable! ~(if (== (count body) 1) (first body) `(fn [] (apply ~(first body) (list ~@(rest body))))))
-           actor# (co.paralleluniverse.actors.PulsarActor. ~name ~trap (int ~mailbox-size) ~lifecycle-handler f#)
+    `(let [b#     (first ~body) ; eval body
+           f#     (when (not (instance? LocalActor b#))
+                    (suspendable! ~(if (== (count body) 1) (first body) `(fn [] (apply ~(first body) (list ~@(rest body)))))))
+           ^LocalActor actor# (if (instance? LocalActor b#)
+                                b#
+                                (co.paralleluniverse.actors.PulsarActor. ~name ~trap (int ~mailbox-size) ~lifecycle-handler f#))
            fiber# (co.paralleluniverse.fibers.Fiber. ~name (get-pool ~pool) (int ~stack-size) actor#)]
        (link! @self actor#)
        (.start fiber#)
@@ -518,8 +545,12 @@
   {:arglists '([:name? :mailbox-size? :lifecycle-handler? :stack-size? :pool? f & args])}
   [& args]
   (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size ^IFn lifecycle-handler ^Integer stack-size ^ForkJoinPool pool], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)]
-    `(let [f#     (suspendable! ~(if (== (count body) 1) (first body) `(fn [] (apply ~(first body) (list ~@(rest body))))))
-           actor# (co.paralleluniverse.actors.PulsarActor. ~name ~trap (int ~mailbox-size) ~lifecycle-handler f#)
+    `(let [b#     (first ~body) ; eval body
+           f#     (when (not (instance? LocalActor b#))
+                    (suspendable! ~(if (== (count body) 1) (first body) `(fn [] (apply ~(first body) (list ~@(rest body)))))))
+           ^LocalActor actor# (if (instance? LocalActor b#)
+                                b#
+                                (co.paralleluniverse.actors.PulsarActor. ~name ~trap (int ~mailbox-size) ~lifecycle-handler f#))
            fiber# (co.paralleluniverse.fibers.Fiber. ~name (get-pool ~pool) (int ~stack-size) actor#)]
        (monitor! @self actor#)
        (.start fiber#)
@@ -603,6 +634,7 @@
   ([actor2 monitor]
    (.unwatch ^Actor @self actor2 monitor))
   ([actor1 actor2 monitor]
+   (.unwatch (get-actor actor1) (get-actor actor2) monitor)))
 
 (ann register (Fn [String LocalActor -> LocalActor]
                   [LocalActor -> LocalActor]))
@@ -640,22 +672,30 @@
   []
   (ActorImpl/randtag))
 
+(defn clojure->java-msg
+  [x]
+  (if (not (tagged-tuple? x))
+    x
+    (case (first x)
+      :shutdown (ShutdownMessage. (second x))
+      x)))
+
 (defmacro !
   "Sends a message to an actor.
   This function returns nil."
   ([actor message]
-   `(co.paralleluniverse.actors.PulsarActor/send (get-actor ~actor) ~message))
+   `(co.paralleluniverse.actors.PulsarActor/send (get-actor ~actor) (clojure->java-msg ~message)))
   ([actor arg & args]
-   `(co.paralleluniverse.actors.PulsarActor/send (get-actor ~actor) [~arg ~@args])))
+   `(co.paralleluniverse.actors.PulsarActor/send (get-actor ~actor) (clojure->java-msg [~arg ~@args]))))
 
 (defmacro !!
   "Sends a message to an actor synchronously.
   This has the exact same semantics as ! (in particular, this function always returns nil),
   but it hints the scheduler that the current actor is about to wait for a response from the message's addressee."
   ([actor message]
-   `(co.paralleluniverse.actors.PulsarActor/sendSync (get-actor ~actor) ~message))
+   `(co.paralleluniverse.actors.PulsarActor/sendSync (get-actor ~actor) (clojure->java-msg ~message)))
   ([actor arg & args]
-   `(co.paralleluniverse.actors.PulsarActor/sendSync (get-actor ~actor) [~arg ~@args])))
+   `(co.paralleluniverse.actors.PulsarActor/sendSync (get-actor ~actor) (clojure->java-msg [~arg ~@args]))))
 
 (ann receive-timed [AnyInteger -> (Option Any)])
 (defsusfn receive-timed
