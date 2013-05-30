@@ -64,16 +64,20 @@
 (defn call
   "Makes a synchronous call to a gen-server and returns the response"
   ([^GenServer gs m]
-   (.call gs m))
+   (unwrap-exception
+     (.call gs m)))
   ([^GenServer gs m & args]
-   (.call gs (vec (cons m args)))))
+   (unwrap-exception
+     (.call gs (vec (cons m args))))))
 
 (defn call-timed
   "Makes a synchronous call to a gen-server and returns the response"
   ([^GenServer gs timeout unit m]
-   (.call gs m (long timeout) (->timeunit unit)))
+   (unwrap-exception
+     (.call gs m (long timeout) (->timeunit unit))))
   ([^GenServer gs timeout unit m & args]
-   (.call gs (vec (cons m args)) (long timeout) (->timeunit unit))))
+   (unwrap-exception
+     (.call gs (vec (cons m args)) (long timeout) (->timeunit unit)))))
 
 (defn cast
   "Makes an asynchronous call to a gen-server"

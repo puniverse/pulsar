@@ -87,7 +87,15 @@
                                 (handle-call [_ from id [a b]]
                                              (+ a b)))))
                    actor (spawn #(call gs 3 4))]
-               (join actor) => 7)))
+               (join actor) => 7))
+       (fact "When handle-call throws exception then call throws it"
+             (let [gs (spawn
+                       (gen-server (reify Server
+                                     (init [_])
+                                     (terminate [_ cause])
+                                     (handle-call [_ from id [a b]]
+                                                  (throw (Exception. "oops!"))))))]
+               (call gs 3 4) => (throws Exception "oops!"))))
 
 (fact "when gen-server doesn't respond then timeout"
       (let [gs (spawn

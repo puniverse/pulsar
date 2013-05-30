@@ -188,14 +188,23 @@
   [x]
   (and (vector? x) (keyword? (first x))))
 
-(ann strip-exception [Throwable -> Throwable])
-(defn- strip-exception
+(ann unwrap-exception* [Throwable -> Throwable])
+(defn unwrap-exception*
+  {:no-doc true}
   [^Throwable e]
   (if
     (or (instance? ExecutionException e)
         (and (= (.getClass e) RuntimeException) (.getCause e)))
-    (strip-exception (.getCause e))
+    (unwrap-exception* (.getCause e))
     e))
+
+(defmacro unwrap-exception
+  {:no-doc true}
+  [& body]
+  `(try
+     ~@body
+     (catch Exception e#
+       (throw (unwrap-exception* e#)))))
 
 ;; ## Fork/Join Pool
 
@@ -326,15 +335,11 @@
 
 (defn join
   ([^Joinable s]
-   (try
-     (.get s)
-     (catch Exception e
-       (throw (strip-exception e)))))
+   (unwrap-exception
+     (.get s)))
   ([^Joinable s timeout unit]
-   (try
-     (.get s timeout (->timeunit unit))
-     (catch Exception e
-       (throw (strip-exception e))))))
+   (unwrap-exception
+     (.get s timeout (->timeunit unit)))))
 
 ;; ## Strands
 ;; A strand is either a thread or a fiber.
