@@ -3190,14 +3190,22 @@ as published by the Free Software Foundation.</p>
 (defn tagged-tuple?
   [x]
   (and (vector? x) (keyword? (first x))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(ann strip-exception [Throwable -&gt; Throwable])
-(defn- strip-exception
+</td><td class="codes"><pre class="brush: clojure">(ann unwrap-exception* [Throwable -&gt; Throwable])
+(defn unwrap-exception*
+  {:no-doc true}
   [^Throwable e]
   (if
     (or (instance? ExecutionException e)
         (and (= (.getClass e) RuntimeException) (.getCause e)))
-    (strip-exception (.getCause e))
-    e))</pre></td></tr><tr><td class="docs"><h2>Fork/Join Pool</h2>
+    (unwrap-exception* (.getCause e))
+    e))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defmacro unwrap-exception
+  {:no-doc true}
+  [&amp; body]
+  `(try
+     ~@body
+     (catch Exception e#
+       (throw (unwrap-exception* e#)))))</pre></td></tr><tr><td class="docs"><h2>Fork/Join Pool</h2>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>Returns true if we're running inside a fork/join pool; false otherwise.</p>
 </td><td class="codes"><pre class="brush: clojure">(ann in-fj-pool? [-&gt; Boolean])
 (defn- in-fj-pool?
@@ -3293,15 +3301,11 @@ while running in a fiber.</p>
   (Fiber/currentFiber))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn join
   ([^Joinable s]
-   (try
-     (.get s)
-     (catch Exception e
-       (throw (strip-exception e)))))
+   (unwrap-exception
+     (.get s)))
   ([^Joinable s timeout unit]
-   (try
-     (.get s timeout (-&gt;timeunit unit))
-     (catch Exception e
-       (throw (strip-exception e))))))</pre></td></tr><tr><td class="docs"><h2>Strands</h2>
+   (unwrap-exception
+     (.get s timeout (-&gt;timeunit unit)))))</pre></td></tr><tr><td class="docs"><h2>Strands</h2>
 
 <p>A strand is either a thread or a fiber.</p>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>Returns the currently running fiber or current thread in case of new active fiber</p>
@@ -3728,14 +3732,18 @@ as published by the Free Software Foundation.</p>
                                                           nil (int ~mailbox-size))))</pre></td></tr><tr><td class="docs"><p>Makes a synchronous call to a gen-server and returns the response</p>
 </td><td class="codes"><pre class="brush: clojure">(defn call
   ([^GenServer gs m]
-   (.call gs m))
+   (unwrap-exception
+     (.call gs m)))
   ([^GenServer gs m &amp; args]
-   (.call gs (vec (cons m args)))))</pre></td></tr><tr><td class="docs"><p>Makes a synchronous call to a gen-server and returns the response</p>
+   (unwrap-exception
+     (.call gs (vec (cons m args))))))</pre></td></tr><tr><td class="docs"><p>Makes a synchronous call to a gen-server and returns the response</p>
 </td><td class="codes"><pre class="brush: clojure">(defn call-timed
   ([^GenServer gs timeout unit m]
-   (.call gs m (long timeout) (-&gt;timeunit unit)))
+   (unwrap-exception
+     (.call gs m (long timeout) (-&gt;timeunit unit))))
   ([^GenServer gs timeout unit m &amp; args]
-   (.call gs (vec (cons m args)) (long timeout) (-&gt;timeunit unit))))</pre></td></tr><tr><td class="docs"><p>Makes an asynchronous call to a gen-server</p>
+   (unwrap-exception
+     (.call gs (vec (cons m args)) (long timeout) (-&gt;timeunit unit)))))</pre></td></tr><tr><td class="docs"><p>Makes an asynchronous call to a gen-server</p>
 </td><td class="codes"><pre class="brush: clojure">(defn cast
   ([^GenServer gs m]
    (.cast gs m))
@@ -4096,7 +4104,15 @@ as published by the Free Software Foundation.</p>
                                 (handle-call [_ from id [a b]]
                                              (+ a b)))))
                    actor (spawn #(call gs 3 4))]
-               (join actor) =&gt; 7)))</pre></td></tr><tr><td class="docs">
+               (join actor) =&gt; 7))
+       (fact &quot;When handle-call throws exception then call throws it&quot;
+             (let [gs (spawn
+                       (gen-server (reify Server
+                                     (init [_])
+                                     (terminate [_ cause])
+                                     (handle-call [_ from id [a b]]
+                                                  (throw (Exception. &quot;oops!&quot;))))))]
+               (call gs 3 4) =&gt; (throws Exception &quot;oops!&quot;))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(fact &quot;when gen-server doesn't respond then timeout&quot;
       (let [gs (spawn
                 (gen-server (reify Server
