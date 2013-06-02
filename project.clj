@@ -33,7 +33,7 @@
               :dependencies [[midje "1.5.1" :exclusions [org.clojure/tools.namespace]]
                              [codox/codox.core "0.6.4" :exclusions [org.clojure/tools.namespace]] ; here just for the exclusions
                              [marginalia "0.7.1" :exclusions [org.clojure/tools.namespace]]] ; here just for the exclusions
-              :codox {:include co.paralleluniverse.pulsar
+              :codox {:include [co.paralleluniverse.pulsar co.paralleluniverse.pulsar.behaviors]
                       :output-dir "docs/api"}
               :jvm-opts ["-ea"
                          ;"-Dco.paralleluniverse.debugMode=true"

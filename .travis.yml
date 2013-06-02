@@ -9,7 +9,7 @@ branches:
 env:
   global:
     - secure: "eRpg/alQ+1OTdhr1lcVSJyVU4eJ66ShffLDpnLV7+YZq9J29jwhgXdUHWALS\nsGQCNnty61Y1BvtRVQ46PCWHdXsk5pwgQidFPzVLQrcmnboEdKoM1fQzvery\ns2wYndL62jMhm3FachXTfHzpoNUcwU3dxr/To+U5E+q7r2Ua/Wk="
-    - GEN_APIDOCS="lein2 do doc, marg"
+#    - GEN_APIDOCS="lein2 do doc, marg"
 
 after_success:
   - chmod a+x travis/post_build.sh
