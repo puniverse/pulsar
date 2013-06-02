@@ -219,3 +219,7 @@ Then, manipulating messages with sequence functions is easy. Here are some examp
 
 ## Actors
 
+To use the terms we've learned so far, an *actor* is a strand that owns a single channel with some added lifecyce management and error handling. But this reductionist view of actors does them little justice. Actors are fundamental building blocks that are combined to build a fault-tolerant application. If you are familiar with Erlang, Pulsar actors are just like Erlang processes.
+
+
+
