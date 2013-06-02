@@ -14,7 +14,6 @@
 package co.paralleluniverse.pulsar;
 
 import clojure.lang.IFn;
-import clojure.lang.Keyword;
 import clojure.lang.Var;
 import co.paralleluniverse.fibers.Instrumented;
 import co.paralleluniverse.fibers.SuspendExecution;
@@ -24,7 +23,6 @@ import co.paralleluniverse.strands.SuspendableCallable;
 import java.lang.instrument.UnmodifiableClassException;
 import java.lang.reflect.Method;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import org.objectweb.asm.Type;
 
 /**

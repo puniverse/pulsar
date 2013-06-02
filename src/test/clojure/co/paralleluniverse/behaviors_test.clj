@@ -164,3 +164,33 @@
         (join gs)) => (throws Exception "oops!"))
 
 ;; ## supervisor
+
+(defn- sup-child
+  [sup id timeout]
+  (when (pos? timeout)
+    (let [a (get-child sup id)]
+      (if a
+        a
+        (do
+          (Thread/sleep 10)
+          (recur sup id (- timeout 10)))))))
+
+(defsusfn actor1 []
+  (loop [i (int 0)]
+    (receive
+     [:shutdown a] i
+     :else (recur (inc i)))))
+
+(fact "When permanent actor dies then restart"
+      (let [sup (spawn
+                 (supervisor :one-for-one
+                             #(list ["actor1" :permanent 5 1 :sec 10 actor1])))]
+        (doseq [res [3 5]]
+          (let [a (sup-child sup "actor1" 200)]
+            (dotimes [i res]
+              (! a :hi!))
+            (! a :shutdown nil)
+            (fact
+             (join a) => res)))
+        (shutdown sup)
+        (join sup)))

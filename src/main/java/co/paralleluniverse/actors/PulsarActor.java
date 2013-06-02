@@ -37,14 +37,14 @@ public class PulsarActor extends LocalActor<Object, Object> {
     }
 
     public static PulsarActor self() {
-        final PulsarActor self = (PulsarActor) LocalActor.currentActor();
+        final PulsarActor self = (PulsarActor) LocalActor.self();
         if (self == null)
             throw new RuntimeException("Not running within an actor");
         return self;
     }
 
     public static Mailbox selfMailbox() {
-        final PulsarActor self = (PulsarActor) LocalActor.currentActor();
+        final PulsarActor self = (PulsarActor) LocalActor.self();
         if (self == null)
             throw new RuntimeException("Not running within an actor");
         return self.mailbox();

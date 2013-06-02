@@ -23,7 +23,7 @@
  (ann camel-to-dash [String -> String])
 (defn camel-to-dash ; there are many ways of doing this, but it doesn't have to be fast
   [^String s]
-  (.toLowerCase (str/replace s #"[a-z0-9_-][A-Z]" #(str (first %) \- (second %)))))
+  (.toLowerCase (str/replace s #"[a-z0-9][A-Z]" #(str (first %) \- (second %)))))
 ;  (apply str (cons (Character/toLowerCase (first s))
 ;                   (map #(if (Character/isUpperCase %) (str "-" (Character/toLowerCase %)) %) (next s)))))
 

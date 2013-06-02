@@ -15,13 +15,19 @@
   (:import
    [java.util.concurrent TimeUnit]
    [co.paralleluniverse.actors ActorRegistry Actor LocalActor ActorImpl ActorBuilder PulsarActor LifecycleListener ShutdownMessage]
-   [co.paralleluniverse.actors.behaviors GenServer LocalGenServer Supervisor Supervisor$ActorInfo Supervisor$ActorMode Supervisor$RestartStrategy]
+   [co.paralleluniverse.actors.behaviors GenBehavior GenServer LocalGenServer Supervisor Supervisor$ChildSpec Supervisor$ChildMode Supervisor$RestartStrategy]
    ; for types:
    [clojure.lang Seqable LazySeq ISeq])
   (:require
    [co.paralleluniverse.pulsar :refer :all]
    [co.paralleluniverse.pulsar.interop :refer :all]
    [clojure.core.typed :refer [ann Option AnyInteger]]))
+
+
+(defn shutdown
+  "Asks a gen-server or a supervisor to shut down"
+  [^GenBehavior gs]
+  (.shutdown gs))
 
 ;; ## gen-server
 
@@ -39,17 +45,17 @@
   (reify
     co.paralleluniverse.actors.behaviors.Server
     (^void init       [this]
-                (init server))
+           (init server))
     (handleCall [this ^Actor from id message]
                 (handle-call server from id message))
     (^void handleCast [this ^Actor from id message]
-                (handle-cast server from id message))
+           (handle-cast server from id message))
     (^void handleInfo [this message]
-                (handle-info server message))
+           (handle-info server message))
     (^void handleTimeout [this]
-                   (handle-timeout server))
+           (handle-timeout server))
     (^void terminate  [this ^Throwable cause]
-                (terminate server cause))))
+           (terminate server cause))))
 
 (defmacro gen-server
   "Creates (but doesn't start) a new gen-server"
@@ -57,27 +63,27 @@
   [& args]
   (let [[{:keys [^String name ^Integer timeout ^Integer mailbox-size], :or {timeout -1 mailbox-size -1}} body] (kps-args args)]
     `(co.paralleluniverse.actors.behaviors.LocalGenServer. ~name
-                                                          ^co.paralleluniverse.actors.behaviors.Server (Server->java ~(first body))
-                                                          (long ~timeout) java.util.concurrent.TimeUnit/MILLISECONDS
-                                                          nil (int ~mailbox-size))))
+                                                           ^co.paralleluniverse.actors.behaviors.Server (Server->java ~(first body))
+                                                           (long ~timeout) java.util.concurrent.TimeUnit/MILLISECONDS
+                                                           nil (int ~mailbox-size))))
 
 (defn call
   "Makes a synchronous call to a gen-server and returns the response"
   ([^GenServer gs m]
    (unwrap-exception
-     (.call gs m)))
+    (.call gs m)))
   ([^GenServer gs m & args]
    (unwrap-exception
-     (.call gs (vec (cons m args))))))
+    (.call gs (vec (cons m args))))))
 
 (defn call-timed
   "Makes a synchronous call to a gen-server and returns the response"
   ([^GenServer gs timeout unit m]
    (unwrap-exception
-     (.call gs m (long timeout) (->timeunit unit))))
+    (.call gs m (long timeout) (->timeunit unit))))
   ([^GenServer gs timeout unit m & args]
    (unwrap-exception
-     (.call gs (vec (cons m args)) (long timeout) (->timeunit unit)))))
+    (.call gs (vec (cons m args)) (long timeout) (->timeunit unit)))))
 
 (defn cast
   "Makes an asynchronous call to a gen-server"
@@ -85,11 +91,6 @@
    (.cast gs m))
   ([^GenServer gs m & args]
    (.cast gs (vec (cons m args)))))
-
-(defn shutdown
-  "Asks a gen-server to shut down"
-  [^GenServer gs]
-  (.shutdown gs))
 
 (defn stop
   "Stops the current gen-server"
@@ -127,28 +128,30 @@
     (build [this]
            (f))))
 
-(defn- actor-info
-  [name f mode max-restarts duration unit shutdown-deadline-millis]
-  (Supervisor$ActorInfo. name
-                         (if (instance? ActorBuilder f) f (actor-builder #(create-actor f)))
-                         (keyword->enum Supervisor$ActorMode mode)
+(defn- child-spec
+  [id mode max-restarts duration unit shutdown-deadline-millis f]
+  (Supervisor$ChildSpec. id
+                         (keyword->enum Supervisor$ChildMode mode)
                          (int max-restarts)
                          (long duration) (->timeunit unit)
-                         (long shutdown-deadline-millis)))
+                         (long shutdown-deadline-millis)
+                         (if (instance? ActorBuilder f) f (actor-builder #(create-actor f)))))
 
 (defn supervisor
   "Creates (but doesn't start) a new supervisor"
-  ([^String name restart-strategy children-specs]
+  ([^String name restart-strategy init]
    (Supervisor. nil name (int -1)
                 ^Supervisor$RestartStrategy (keyword->enum Supervisor$RestartStrategy restart-strategy)
-                ^java.util.List (map #(apply actor-info %) children-specs)))
-  ([restart-strategy children-specs]
-   (supervisor nil restart-strategy children-specs)))
+                (->suspendable-callable
+                 (susfn []
+                        (map #(apply child-spec %) ((suspendable! init)))))))
+  ([restart-strategy init]
+   (supervisor nil restart-strategy init)))
 
 (defn add-child
   "Adds an actor to a supervisor"
   [^Supervisor supervisor name f mode max-restarts duration unit shutdown-deadline-millis]
-  (.addChild supervisor (actor-info name f mode max-restarts duration unit shutdown-deadline-millis) nil))
+  (.addChild supervisor (child-spec name f mode max-restarts duration unit shutdown-deadline-millis) nil))
 
 (defn remove-child
   "Removes an actor from a supervisor"
@@ -159,4 +162,9 @@
   "Removes an actor from a supervisor and terminates the actor"
   [^Supervisor supervisor name]
   (.removeChild supervisor name true))
+
+(defn ^LocalActor get-child
+  "Returns a supervisor's child by id"
+  [^Supervisor sup id]
+  (.getChild sup id))
 

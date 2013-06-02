@@ -255,8 +255,8 @@
    (fn [f]
      (ClojureHelper/retransform f))))
 
-(ann as-suspendable-callable [[Any -> Any] -> SuspendableCallable])
-(defn ^SuspendableCallable as-suspendable-callable
+(ann ->suspendable-callable [[Any -> Any] -> SuspendableCallable])
+(defn ^SuspendableCallable ->suspendable-callable
   "wrap a clojure function as a SuspendableCallable"
   {:no-doc true}
   [f]
@@ -311,7 +311,7 @@
   "Creates a new fiber (a lightweight thread) running in a fork/join pool."
   [& args]
   (let [[^String name ^ForkJoinPool pool ^Integer stacksize f] (ops-args [[string? nil] [#(instance? ForkJoinPool %) fj-pool] [integer? -1]] args)]
-    (Fiber. name (get-pool pool) (int stacksize) (as-suspendable-callable f))))
+    (Fiber. name (get-pool pool) (int stacksize) (->suspendable-callable f))))
 
 (ann start [Fiber -> Fiber])
 (defn start
@@ -324,7 +324,7 @@
   [& args]
   (let [[{:keys [^String name ^Integer stack-size ^ForkJoinPool pool] :or {stack-size -1}} body] (kps-args args)]
     `(let [f#     (suspendable! ~(if (== (count body) 1) (first body) `(fn [] (apply ~@body))))
-           fiber# (co.paralleluniverse.fibers.Fiber. ~name (get-pool ~pool) (int ~stack-size) (as-suspendable-callable f#))]
+           fiber# (co.paralleluniverse.fibers.Fiber. ~name (get-pool ~pool) (int ~stack-size) (->suspendable-callable f#))]
        (.start fiber#))))
 
 (ann current-fiber [-> Fiber])
@@ -533,33 +533,17 @@
   "Creates and starts a new actor, and links it to @self"
   {:arglists '([:name? :mailbox-size? :lifecycle-handler? :stack-size? :pool? f & args])}
   [& args]
-  (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size ^IFn lifecycle-handler ^Integer stack-size ^ForkJoinPool pool], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)]
-    `(let [b#     (first ~body) ; eval body
-           f#     (when (not (instance? LocalActor b#))
-                    (suspendable! ~(if (== (count body) 1) (first body) `(fn [] (apply ~(first body) (list ~@(rest body)))))))
-           ^LocalActor actor# (if (instance? LocalActor b#)
-                                b#
-                                (co.paralleluniverse.actors.PulsarActor. ~name ~trap (int ~mailbox-size) ~lifecycle-handler f#))
-           fiber# (co.paralleluniverse.fibers.Fiber. ~name (get-pool ~pool) (int ~stack-size) actor#)]
-       (link! @self actor#)
-       (.start fiber#)
-       actor#)))
+  `(let [actor# ~(list `spawn ~@args)]
+     (link! @self actor#)
+     actor#))
 
-(defmacro spawn-monitor
+(defmacro spawn-watch
   "Creates and starts a new actor, and makes @self monitor it"
   {:arglists '([:name? :mailbox-size? :lifecycle-handler? :stack-size? :pool? f & args])}
   [& args]
-  (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size ^IFn lifecycle-handler ^Integer stack-size ^ForkJoinPool pool], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)]
-    `(let [b#     (first ~body) ; eval body
-           f#     (when (not (instance? LocalActor b#))
-                    (suspendable! ~(if (== (count body) 1) (first body) `(fn [] (apply ~(first body) (list ~@(rest body)))))))
-           ^LocalActor actor# (if (instance? LocalActor b#)
-                                b#
-                                (co.paralleluniverse.actors.PulsarActor. ~name ~trap (int ~mailbox-size) ~lifecycle-handler f#))
-           fiber# (co.paralleluniverse.fibers.Fiber. ~name (get-pool ~pool) (int ~stack-size) actor#)]
-       (monitor! @self actor#)
-       (.start fiber#)
-       actor#)))
+  `(let [actor# ~(list `spawn ~@args)]
+     (watch! @self actor#)
+     actor#))
 
 ;(ann-protocol IUnifyWithLVar
 ;              unify-with-lvar [Term LVar ISubstitutions -> (U ISubstitutions Fail)])

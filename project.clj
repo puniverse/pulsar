@@ -40,5 +40,7 @@
                          ;"-Dco.paralleluniverse.lwthreads.verifyInstrumentation=true"
                          ;"-Dco.paralleluniverse.globalFlightRecorder=true"
                          ;"-Dco.paralleluniverse.monitoring.flightRecorderLevel=2"
-                         "-Dco.paralleluniverse.flightRecorderDumpFile=pulsar.log"]
+                         "-Dco.paralleluniverse.flightRecorderDumpFile=pulsar.log"
+                         "-Dlog4j.configurationFile=log4j.xml"
+                         "-DLog4jContextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector"]
               :global-vars {*warn-on-reflection* true}}})
