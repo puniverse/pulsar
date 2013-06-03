@@ -165,11 +165,14 @@
 
 ;; ## supervisor
 
+;; This is cumbersome, but we don't normally obtain an actor from a supervisor, but rather
+;; manually add a known actor to a supervisor, so this ugly function is only useful for tests anyway.
+
 (defn- sup-child
   [sup id timeout]
   (when (pos? timeout)
     (let [a (get-child sup id)]
-      (if a
+      (if (and a (not (done? a)))
         a
         (do
           (Thread/sleep 10)
@@ -181,16 +184,97 @@
      [:shutdown a] i
      :else (recur (inc i)))))
 
-(fact "When permanent actor dies then restart"
+(defsusfn bad-actor1 []
+  (loop [i (int 0)]
+    (receive
+     :else (throw (RuntimeException. "Ha!")))))
+
+
+(fact "child-modes"
+      (fact "When permanent actor dies of natural causes then restart"
+            (let [sup (spawn
+                       (supervisor :one-for-one
+                                   #(list ["actor1" :permanent 5 1 :sec 10 actor1])))]
+              (doseq [res [3 5]]
+                (let [a (sup-child sup "actor1" 200)]
+                  (dotimes [i res]
+                    (! a :hi!))
+                  (! a :shutdown nil)
+                  (fact
+                   (join a) => res)))
+              (shutdown sup)
+              (join sup)))
+      (fact "When permanent actor dies of un-natural causes then restart"
+            (let [sup (spawn
+                       (supervisor :one-for-one
+                                   #(list ["actor1" :permanent 5 1 :sec 10 bad-actor1])))]
+              (dotimes [i 2]
+                (let [a (sup-child sup "actor1" 200)]
+                  (! a :hi!)
+                  (fact
+                   (join a) => throws Exception)))
+              (shutdown sup)
+              (join sup)))
+      (fact "When transient actor dies of natural causes then don't restart"
+            (let [sup (spawn
+                       (supervisor :one-for-one
+                                   #(list ["actor1" :transient 5 1 :sec 10 actor1])))]
+              (let [a (sup-child sup "actor1" 200)]
+                (dotimes [i 3]
+                  (! a :hi!))
+                (! a :shutdown nil)
+                (fact
+                 (join a) => 3))
+              (fact (sup-child sup "actor1" 200) => nil)
+              (shutdown sup)
+              (join sup)))
+      (fact "When transient actor dies of un-natural causes then restart"
+            (let [sup (spawn
+                       (supervisor :one-for-one
+                                   #(list ["actor1" :transient 5 1 :sec 10 bad-actor1])))]
+              (dotimes [i 2]
+                (let [a (sup-child sup "actor1" 200)]
+                  (! a :hi!)
+                  (fact
+                   (join a) => throws Exception)))
+              (shutdown sup)
+              (join sup)))
+      (fact "When temporary actor dies of natural causes then don't restart"
+            (let [sup (spawn
+                       (supervisor :one-for-one
+                                   #(list ["actor1" :temporary 5 1 :sec 10 actor1])))]
+              (let [a (sup-child sup "actor1" 200)]
+                (dotimes [i 3]
+                  (! a :hi!))
+                (! a :shutdown nil)
+                (fact
+                 (join a) => 3))
+              (fact (sup-child sup "actor1" 200) => nil)
+              (shutdown sup)
+              (join sup)))
+      (fact "When temporary actor dies of un-natural causes then don't restart"
+            (let [sup (spawn
+                       (supervisor :one-for-one
+                                   #(list ["actor1" :temporary 5 1 :sec 10 bad-actor1])))]
+              (let [a (sup-child sup "actor1" 200)]
+                (! a :hi!)
+                (fact
+                 (join a) => throws Exception))
+              (fact (sup-child sup "actor1" 200) => nil)
+              (shutdown sup)
+              (join sup))))
+
+(fact "When a child dies too many times then give up and die"
       (let [sup (spawn
                  (supervisor :one-for-one
-                             #(list ["actor1" :permanent 5 1 :sec 10 actor1])))]
-        (doseq [res [3 5]]
+                             #(list ["actor1" :permanent 3 1 :sec 10 bad-actor1])))]
+        (dotimes [i 4]
+          (println "i1: " i)
           (let [a (sup-child sup "actor1" 200)]
-            (dotimes [i res]
-              (! a :hi!))
-            (! a :shutdown nil)
+            (println "i: " i a)
+            (! a :hi!)
             (fact
-             (join a) => res)))
-        (shutdown sup)
+             (join a) => throws Exception)))
         (join sup)))
+
+

@@ -20,7 +20,7 @@
   Go-like channles and Erlang-like actors for the JVM"
   (:import [java.util.concurrent TimeUnit ExecutionException TimeoutException]
            [jsr166e ForkJoinPool ForkJoinTask]
-           [co.paralleluniverse.strands Strand]
+           [co.paralleluniverse.strands Strand Stranded]
            [co.paralleluniverse.strands SuspendableCallable]
            [co.paralleluniverse.fibers Fiber Joinable]
            [co.paralleluniverse.fibers.instrument]
@@ -351,6 +351,17 @@
   (Strand/currentStrand))
 
 
+(ann alive? [Strand -> Boolean])
+(defn alive?
+  "Tests whether or not a strand is alive. A strand is alive if it has been started but has not yet died."
+  [^Strand a]
+  (.isAlive a))
+
+(ann get-strand [Stranded -> Strand])
+(defn get-strand
+  [^Stranded x]
+  (.getStrand x))
+
 ;; ## Channels
 
 (ann channel (Fn [AnyInteger -> Channel]
@@ -544,6 +555,12 @@
   `(let [actor# ~(list `spawn ~@args)]
      (watch! @self actor#)
      actor#))
+
+(ann done? [LocalActor -> Boolean])
+(defn done?
+  "Tests whether or not an actor has terminated."
+  [^LocalActor a]
+  (.isDone a))
 
 ;(ann-protocol IUnifyWithLVar
 ;              unify-with-lvar [Term LVar ISubstitutions -> (U ISubstitutions Fail)])
