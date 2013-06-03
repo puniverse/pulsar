@@ -24,17 +24,11 @@
   :manifest {"Premain-Class" "co.paralleluniverse.fibers.instrument.JavaAgent"
              "Can-Retransform-Classes" "true"}
   :jvm-opts ["-server"
-              ~(str "-javaagent:" (System/getProperty "user.home") "/.m2/repository/co/paralleluniverse/quasar/0.2-SNAPSHOT/quasar-0.2-SNAPSHOT.jar")]
+             ~(str "-javaagent:" (System/getProperty "user.home") "/.m2/repository/co/paralleluniverse/quasar/0.2-SNAPSHOT/quasar-0.2-SNAPSHOT.jar")]
   :pedantic :warn
   :profiles {:dev
-             {:plugins [[lein-midje "3.0.0"]
-                        [codox "0.6.4"]
-                        [lein-marginalia "0.7.1"]]
-              :dependencies [[midje "1.5.1" :exclusions [org.clojure/tools.namespace]]
-                             [codox/codox.core "0.6.4" :exclusions [org.clojure/tools.namespace]] ; here just for the exclusions
-                             [marginalia "0.7.1" :exclusions [org.clojure/tools.namespace]]] ; here just for the exclusions
-              :codox {:include [co.paralleluniverse.pulsar co.paralleluniverse.pulsar.behaviors]
-                      :output-dir "docs/api"}
+             {:plugins [[lein-midje "3.0.0"]]
+              :dependencies [[midje "1.5.1" :exclusions [org.clojure/tools.namespace]]]
               :jvm-opts ["-ea"
                          ;"-Dco.paralleluniverse.debugMode=true"
                          ;"-Dco.paralleluniverse.lwthreads.verifyInstrumentation=true"
@@ -43,4 +37,16 @@
                          "-Dco.paralleluniverse.flightRecorderDumpFile=pulsar.log"
                          "-Dlog4j.configurationFile=log4j.xml"
                          "-DLog4jContextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector"]
-              :global-vars {*warn-on-reflection* true}}})
+              :global-vars {*warn-on-reflection* true}}
+             :doc
+             {:plugins [[lein-midje "3.0.0"]
+                        [codox "0.6.4"]
+                        [lein-marginalia "0.7.1"]]
+              :dependencies [[midje "1.5.1" :exclusions [org.clojure/tools.namespace]]
+                             [codox/codox.core "0.6.4" :exclusions [org.clojure/tools.namespace]] ; here just for the exclusions
+                             [marginalia "0.7.1" :exclusions [org.clojure/tools.namespace]]]      ; here just for the exclusions
+              :injections [(require 'clojure.test)
+                           (alter-var-root #'clojure.test/*load-tests* (constantly false))]
+              :codox {:include [co.paralleluniverse.pulsar co.paralleluniverse.pulsar.behaviors]
+                      :output-dir "docs/api"}
+              :global-vars {*warn-on-reflection* false}}})
