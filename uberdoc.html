@@ -3043,7 +3043,7 @@ as published by the Free Software Foundation.</p>
 </td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar
   (:import [java.util.concurrent TimeUnit ExecutionException TimeoutException]
            [jsr166e ForkJoinPool ForkJoinTask]
-           [co.paralleluniverse.strands Strand]
+           [co.paralleluniverse.strands Strand Stranded]
            [co.paralleluniverse.strands SuspendableCallable]
            [co.paralleluniverse.fibers Fiber Joinable]
            [co.paralleluniverse.fibers.instrument]
@@ -3312,7 +3312,15 @@ while running in a fiber.</p>
 </td><td class="codes"><pre class="brush: clojure">(ann current-strand [-&gt; Strand])
 (defn ^Strand current-strand
   []
-  (Strand/currentStrand))</pre></td></tr><tr><td class="docs"><h2>Channels</h2>
+  (Strand/currentStrand))</pre></td></tr><tr><td class="docs"><p>Tests whether or not a strand is alive. A strand is alive if it has been started but has not yet died.</p>
+</td><td class="codes"><pre class="brush: clojure">(ann alive? [Strand -&gt; Boolean])
+(defn alive?
+  [^Strand a]
+  (.isAlive a))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(ann get-strand [Stranded -&gt; Strand])
+(defn get-strand
+  [^Stranded x]
+  (.getStrand x))</pre></td></tr><tr><td class="docs"><h2>Channels</h2>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>Creates a channel</p>
 </td><td class="codes"><pre class="brush: clojure">(ann channel (Fn [AnyInteger -&gt; Channel]
                  [-&gt; Channel]))
@@ -3466,7 +3474,11 @@ while running in a fiber.</p>
   [&amp; args]
   `(let [actor# ~(list `spawn ~@args)]
      (watch! @self actor#)
-     actor#))</pre></td></tr><tr><td class="docs"><p>(ann-protocol IUnifyWithLVar
+     actor#))</pre></td></tr><tr><td class="docs"><p>Tests whether or not an actor has terminated.</p>
+</td><td class="codes"><pre class="brush: clojure">(ann done? [LocalActor -&gt; Boolean])
+(defn done?
+  [^LocalActor a]
+  (.isDone a))</pre></td></tr><tr><td class="docs"><p>(ann-protocol IUnifyWithLVar
              unify-with-lvar [Term LVar ISubstitutions -> (U ISubstitutions Fail)])</p>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>@self is the currently running actor</p>
 </td><td class="codes"><pre class="brush: clojure">(ann self (IDeref PulsarActor))
@@ -4162,12 +4174,14 @@ as published by the Free Software Foundation.</p>
                                            (throw (Exception. &quot;oops!&quot;))))))]
         (! gs :hi)
         (join gs)) =&gt; (throws Exception &quot;oops!&quot;))</pre></td></tr><tr><td class="docs"><h2>supervisor</h2>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>This is cumbersome, but we don't normally obtain an actor from a supervisor, but rather
+manually add a known actor to a supervisor, so this ugly function is only useful for tests anyway.</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn- sup-child
   [sup id timeout]
   (when (pos? timeout)
     (let [a (get-child sup id)]
-      (if a
+      (if (and a (not (done? a)))
         a
         (do
           (Thread/sleep 10)
@@ -4177,18 +4191,94 @@ as published by the Free Software Foundation.</p>
     (receive
      [:shutdown a] i
      :else (recur (inc i)))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(fact &quot;When permanent actor dies then restart&quot;
+</td><td class="codes"><pre class="brush: clojure">(defsusfn bad-actor1 []
+  (loop [i (int 0)]
+    (receive
+     :else (throw (RuntimeException. &quot;Ha!&quot;)))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(fact &quot;child-modes&quot;
+      (fact &quot;When permanent actor dies of natural causes then restart&quot;
+            (let [sup (spawn
+                       (supervisor :one-for-one
+                                   #(list [&quot;actor1&quot; :permanent 5 1 :sec 10 actor1])))]
+              (doseq [res [3 5]]
+                (let [a (sup-child sup &quot;actor1&quot; 200)]
+                  (dotimes [i res]
+                    (! a :hi!))
+                  (! a :shutdown nil)
+                  (fact
+                   (join a) =&gt; res)))
+              (shutdown sup)
+              (join sup)))
+      (fact &quot;When permanent actor dies of un-natural causes then restart&quot;
+            (let [sup (spawn
+                       (supervisor :one-for-one
+                                   #(list [&quot;actor1&quot; :permanent 5 1 :sec 10 bad-actor1])))]
+              (dotimes [i 2]
+                (let [a (sup-child sup &quot;actor1&quot; 200)]
+                  (! a :hi!)
+                  (fact
+                   (join a) =&gt; throws Exception)))
+              (shutdown sup)
+              (join sup)))
+      (fact &quot;When transient actor dies of natural causes then don't restart&quot;
+            (let [sup (spawn
+                       (supervisor :one-for-one
+                                   #(list [&quot;actor1&quot; :transient 5 1 :sec 10 actor1])))]
+              (let [a (sup-child sup &quot;actor1&quot; 200)]
+                (dotimes [i 3]
+                  (! a :hi!))
+                (! a :shutdown nil)
+                (fact
+                 (join a) =&gt; 3))
+              (fact (sup-child sup &quot;actor1&quot; 200) =&gt; nil)
+              (shutdown sup)
+              (join sup)))
+      (fact &quot;When transient actor dies of un-natural causes then restart&quot;
+            (let [sup (spawn
+                       (supervisor :one-for-one
+                                   #(list [&quot;actor1&quot; :transient 5 1 :sec 10 bad-actor1])))]
+              (dotimes [i 2]
+                (let [a (sup-child sup &quot;actor1&quot; 200)]
+                  (! a :hi!)
+                  (fact
+                   (join a) =&gt; throws Exception)))
+              (shutdown sup)
+              (join sup)))
+      (fact &quot;When temporary actor dies of natural causes then don't restart&quot;
+            (let [sup (spawn
+                       (supervisor :one-for-one
+                                   #(list [&quot;actor1&quot; :temporary 5 1 :sec 10 actor1])))]
+              (let [a (sup-child sup &quot;actor1&quot; 200)]
+                (dotimes [i 3]
+                  (! a :hi!))
+                (! a :shutdown nil)
+                (fact
+                 (join a) =&gt; 3))
+              (fact (sup-child sup &quot;actor1&quot; 200) =&gt; nil)
+              (shutdown sup)
+              (join sup)))
+      (fact &quot;When temporary actor dies of un-natural causes then don't restart&quot;
+            (let [sup (spawn
+                       (supervisor :one-for-one
+                                   #(list [&quot;actor1&quot; :temporary 5 1 :sec 10 bad-actor1])))]
+              (let [a (sup-child sup &quot;actor1&quot; 200)]
+                (! a :hi!)
+                (fact
+                 (join a) =&gt; throws Exception))
+              (fact (sup-child sup &quot;actor1&quot; 200) =&gt; nil)
+              (shutdown sup)
+              (join sup))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(fact &quot;When a child dies too many times then give up and die&quot;
       (let [sup (spawn
                  (supervisor :one-for-one
-                             #(list [&quot;actor1&quot; :permanent 5 1 :sec 10 actor1])))]
-        (doseq [res [3 5]]
+                             #(list [&quot;actor1&quot; :permanent 3 1 :sec 10 bad-actor1])))]
+        (dotimes [i 4]
+          (println &quot;i1: &quot; i)
           (let [a (sup-child sup &quot;actor1&quot; 200)]
-            (dotimes [i res]
-              (! a :hi!))
-            (! a :shutdown nil)
+            (println &quot;i: &quot; i a)
+            (! a :hi!)
             (fact
-             (join a) =&gt; res)))
-        (shutdown sup)
+             (join a) =&gt; throws Exception)))
         (join sup)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar-test" name="co.paralleluniverse.pulsar-test"><h1 class="project-name">co.paralleluniverse.pulsar-test</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>This program and the accompanying materials are dual-licensed under
 either the terms of the Eclipse Public License v1.0 as published by
 the Eclipse Foundation</p>
