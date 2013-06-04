@@ -262,7 +262,6 @@
   [f]
   (ClojureHelper/asSuspendableCallable f))
 
-
 (defmacro susfn
   "Creates a suspendable function that can be used by a fiber or actor"
   [& expr]
@@ -333,13 +332,18 @@
   []
   (Fiber/currentFiber))
 
+(ann join [(U Joinable Thread) -> (Option Any)])
 (defn join
-  ([^Joinable s]
-   (unwrap-exception
-     (.get s)))
-  ([^Joinable s timeout unit]
-   (unwrap-exception
-     (.get s timeout (->timeunit unit)))))
+  ([s]
+   (if (instance? Joinable s)
+     (unwrap-exception
+      (.get ^Joinable s))
+     (Strand/join s)))
+  ([s timeout unit]
+   (if (instance? Joinable s)
+     (unwrap-exception
+      (.get ^Joinable s timeout (->timeunit unit)))
+     (Strand/join s timeout (->timeunit unit)))))
 
 ;; ## Strands
 ;; A strand is either a thread or a fiber.
@@ -361,6 +365,15 @@
 (defn get-strand
   [^Stranded x]
   (.getStrand x))
+
+(defn spawn-thread
+  "Creates and starts a new thread"
+  [& args]
+  (let [[{:keys [^String name]} body] (kps-args args)]
+    (let [f      (if (== (count body) 1) (first body) (fn [] (apply (first body) (rest body))))
+          thread (if name (Thread. ^Runnable f name) (Thread. ^Runnable f))]
+       (.start thread)
+       thread)))
 
 ;; ## Channels
 

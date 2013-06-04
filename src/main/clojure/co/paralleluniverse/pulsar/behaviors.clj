@@ -151,7 +151,7 @@
 (defn add-child
   "Adds an actor to a supervisor"
   [^Supervisor supervisor name f mode max-restarts duration unit shutdown-deadline-millis]
-  (.addChild supervisor (child-spec name f mode max-restarts duration unit shutdown-deadline-millis) nil))
+  (.addChild supervisor (child-spec name f mode max-restarts duration unit shutdown-deadline-millis)))
 
 (defn remove-child
   "Removes an actor from a supervisor"

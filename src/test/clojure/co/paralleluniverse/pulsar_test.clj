@@ -12,7 +12,8 @@
 
 (ns co.paralleluniverse.pulsar-test
   (:use midje.sweet
-        co.paralleluniverse.pulsar.core)
+        co.paralleluniverse.pulsar.core
+        co.paralleluniverse.pulsar.dataflow)
   (:require [co.paralleluniverse.pulsar.lazyseq :as s :refer [channel->lazy-seq snd-seq]])
   (:import [java.util.concurrent TimeUnit TimeoutException ExecutionException]
            [co.paralleluniverse.common.util Debug]
@@ -410,3 +411,25 @@
               (Thread/sleep 50)
               (! actor :foo)
               (join actor)) => :foobar))
+
+(facts :selected "promises-promises"
+       (fact "When try to set promise twice, then throw exception"
+             (let [v (promise)]
+               (deliver v "hi!")
+               (deliver v "bye!")) => throws IllegalStateException)
+       (fact :selected "This complex promises test passes"
+             (let [v1 (promise)
+                   v2 (promise)
+                   v3 (promise)
+                   v4 (promise)
+                   f1 (spawn-fiber  #(deliver v2 (+ @v1 1)))
+                   t1 (spawn-thread #(deliver v3 (+ @v1 @v2)))
+                   f2 (spawn-fiber  #(deliver v4 (+ @v3 @v2)))]
+               (Strand/sleep 100)
+               (deliver v1 1)
+
+               (join f1)
+               (join f2)
+               (join t1)
+
+               @v4) => 5))
