@@ -268,9 +268,7 @@
                  (supervisor :one-for-one
                              #(list ["actor1" :permanent 3 1 :sec 10 bad-actor1])))]
         (dotimes [i 4]
-          (println "i1: " i)
           (let [a (sup-child sup "actor1" 200)]
-            (println "i: " i a)
             (! a :hi!)
             (fact
              (join a) => throws Exception)))
