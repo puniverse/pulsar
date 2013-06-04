@@ -11,8 +11,7 @@
 ; as published by the Free Software Foundation.
 
 (ns co.paralleluniverse.pulsar.dataflow
-  "Pulsar is an implementation of lightweight threads (fibers),
-  Go-like channles and Erlang-like actors for the JVM"
+  "Defines a promise fn that's compatible with pulsar fibers"
   (:import [java.util.concurrent TimeUnit ExecutionException TimeoutException]
            [co.paralleluniverse.strands Strand]
            [co.paralleluniverse.strands.dataflow DelayedVal]

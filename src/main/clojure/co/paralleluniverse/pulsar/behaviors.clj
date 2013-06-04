@@ -11,7 +11,8 @@
 ; as published by the Free Software Foundation.
 
 (ns co.paralleluniverse.pulsar.behaviors
-  "Pulsar "
+  "Pulsar high-level behaviors.
+  Defines gen-servers and suprevisors"
   (:import
    [java.util.concurrent TimeUnit]
    [co.paralleluniverse.actors ActorRegistry Actor LocalActor ActorImpl ActorBuilder PulsarActor LifecycleListener ShutdownMessage]

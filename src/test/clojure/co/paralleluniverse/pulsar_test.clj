@@ -412,12 +412,12 @@
               (! actor :foo)
               (join actor)) => :foobar))
 
-(facts :selected "promises-promises"
+(facts "promises-promises"
        (fact "When try to set promise twice, then throw exception"
              (let [v (promise)]
                (deliver v "hi!")
                (deliver v "bye!")) => throws IllegalStateException)
-       (fact :selected "This complex promises test passes"
+       (fact "This complex promises test passes"
              (let [v1 (promise)
                    v2 (promise)
                    v3 (promise)
@@ -427,9 +427,5 @@
                    f2 (spawn-fiber  #(deliver v4 (+ @v3 @v2)))]
                (Strand/sleep 100)
                (deliver v1 1)
-
-               (join f1)
-               (join f2)
-               (join t1)
-
+               (mapv join [f1 f2 t1])
                @v4) => 5))
