@@ -428,4 +428,6 @@
                (Strand/sleep 100)
                (deliver v1 1)
                (mapv join [f1 f2 t1])
+               (fact
+                (mapv realized? [v1 v2 v3 v4]) => [true true true true])
                @v4) => 5))
