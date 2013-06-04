@@ -12,7 +12,7 @@
 
 (ns co.paralleluniverse.behaviors-test
   (:use midje.sweet
-        co.paralleluniverse.pulsar
+        co.paralleluniverse.pulsar.core
         co.paralleluniverse.pulsar.behaviors)
   (:import [java.util.concurrent TimeUnit TimeoutException ExecutionException]
            [co.paralleluniverse.common.util Debug]
@@ -185,9 +185,8 @@
      :else (recur (inc i)))))
 
 (defsusfn bad-actor1 []
-  (loop [i (int 0)]
-    (receive
-     :else (throw (RuntimeException. "Ha!")))))
+  (receive)
+  (throw (RuntimeException. "Ha!")))
 
 
 (fact "child-modes"

@@ -1,6 +1,6 @@
 (ns co.paralleluniverse.pulsar-test.examples.pingpong
   "The classic ping-pong example from the Erlang tutorial"
-  (:use co.paralleluniverse.pulsar))
+  (:use co.paralleluniverse.pulsar.core))
 
 ;; This example is intended to be a line-by-line translation of the canonical
 ;; Erlang [ping-pong example](http://www.erlang.org/doc/getting_started/conc_prog.html#id67347),

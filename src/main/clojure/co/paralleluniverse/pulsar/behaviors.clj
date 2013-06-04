@@ -19,7 +19,7 @@
    ; for types:
    [clojure.lang Seqable LazySeq ISeq])
   (:require
-   [co.paralleluniverse.pulsar :refer :all]
+   [co.paralleluniverse.pulsar.core :refer :all]
    [co.paralleluniverse.pulsar.interop :refer :all]
    [clojure.core.typed :refer [ann Option AnyInteger]]))
 

@@ -1,6 +1,6 @@
 (ns co.paralleluniverse.pulsar-test.examples.binary
   "A binary-data buffer message example"
-  (:use co.paralleluniverse.pulsar
+  (:use co.paralleluniverse.pulsar.core
         [gloss core io]))
 
 ;; This is an example of sending, receiving and matching binary data buffers

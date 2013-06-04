@@ -12,7 +12,7 @@
 
 (ns co.paralleluniverse.pulsar-test
   (:use midje.sweet
-        co.paralleluniverse.pulsar)
+        co.paralleluniverse.pulsar.core)
   (:require [co.paralleluniverse.pulsar.lazyseq :as s :refer [channel->lazy-seq snd-seq]])
   (:import [java.util.concurrent TimeUnit TimeoutException ExecutionException]
            [co.paralleluniverse.common.util Debug]
