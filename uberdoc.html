@@ -3029,7 +3029,134 @@ net.brehaut.ClojureTools = (function (SH) {
   };
 })(SyntaxHighlighter);
 </script><title>co.paralleluniverse/pulsar -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">co.paralleluniverse/pulsar</h1><h2 class="project-version">0.2-SNAPSHOT</h2><br /><p>A Clojure actor library</p>
-</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.5.1</td></tr><tr><td class="dep-name">co.paralleluniverse/quasar</td><td class="dotted"><hr /></td><td class="dep-version">0.2-SNAPSHOT</td></tr><tr><td class="dep-name">com.yammer.metrics/metrics-core</td><td class="dotted"><hr /></td><td class="dep-version">2.0.2</td></tr><tr><td class="dep-name">org.ow2.asm/asm</td><td class="dotted"><hr /></td><td class="dep-version">4.1</td></tr><tr><td class="dep-name">org.ow2.asm/asm-analysis</td><td class="dotted"><hr /></td><td class="dep-version">4.1</td></tr><tr><td class="dep-name">org.ow2.asm/asm-util</td><td class="dotted"><hr /></td><td class="dep-version">4.1</td></tr><tr><td class="dep-name">com.google.guava/guava</td><td class="dotted"><hr /></td><td class="dep-version">11.0.1</td></tr><tr><td class="dep-name">org.clojure/core.match</td><td class="dotted"><hr /></td><td class="dep-version">0.2.0-alpha12</td></tr><tr><td class="dep-name">useful</td><td class="dotted"><hr /></td><td class="dep-version">0.8.3-alpha8</td></tr><tr><td class="dep-name">gloss</td><td class="dotted"><hr /></td><td class="dep-version">0.2.2-beta4</td></tr><tr><td class="dep-name">org.clojure/core.typed</td><td class="dotted"><hr /></td><td class="dep-version">0.1.14</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#co.paralleluniverse.pulsar">co.paralleluniverse.pulsar</a></li><li><a href="#co.paralleluniverse.pulsar.behaviors">co.paralleluniverse.pulsar.behaviors</a></li><li><a href="#co.paralleluniverse.pulsar.interop">co.paralleluniverse.pulsar.interop</a></li><li><a href="#co.paralleluniverse.pulsar.lazyseq">co.paralleluniverse.pulsar.lazyseq</a></li><li><a href="#co.paralleluniverse.behaviors-test">co.paralleluniverse.behaviors-test</a></li><li><a href="#co.paralleluniverse.pulsar-test">co.paralleluniverse.pulsar-test</a></li><li><a href="#co.paralleluniverse.pulsar-test.examples.binary">co.paralleluniverse.pulsar-test.examples.binary</a></li><li><a href="#co.paralleluniverse.pulsar-test.examples.graph">co.paralleluniverse.pulsar-test.examples.graph</a></li><li><a href="#co.paralleluniverse.pulsar-test.examples.pingpong">co.paralleluniverse.pulsar-test.examples.pingpong</a></li><li><a href="#co.paralleluniverse.pulsar-test.examples.primitive-ring-benchmark">co.paralleluniverse.pulsar-test.examples.primitive-ring-benchmark</a></li><li><a href="#co.paralleluniverse.pulsar-test.examples.priority">co.paralleluniverse.pulsar-test.examples.priority</a></li><li><a href="#co.paralleluniverse.pulsar-test.examples.ring-benchmark">co.paralleluniverse.pulsar-test.examples.ring-benchmark</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar" name="co.paralleluniverse.pulsar"><h1 class="project-name">co.paralleluniverse.pulsar</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>This program and the accompanying materials are dual-licensed under
+</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.5.1</td></tr><tr><td class="dep-name">co.paralleluniverse/quasar</td><td class="dotted"><hr /></td><td class="dep-version">0.2-SNAPSHOT</td></tr><tr><td class="dep-name">com.yammer.metrics/metrics-core</td><td class="dotted"><hr /></td><td class="dep-version">2.0.2</td></tr><tr><td class="dep-name">org.ow2.asm/asm</td><td class="dotted"><hr /></td><td class="dep-version">4.1</td></tr><tr><td class="dep-name">org.ow2.asm/asm-analysis</td><td class="dotted"><hr /></td><td class="dep-version">4.1</td></tr><tr><td class="dep-name">org.ow2.asm/asm-util</td><td class="dotted"><hr /></td><td class="dep-version">4.1</td></tr><tr><td class="dep-name">com.google.guava/guava</td><td class="dotted"><hr /></td><td class="dep-version">11.0.1</td></tr><tr><td class="dep-name">org.clojure/core.match</td><td class="dotted"><hr /></td><td class="dep-version">0.2.0-alpha12</td></tr><tr><td class="dep-name">useful</td><td class="dotted"><hr /></td><td class="dep-version">0.8.3-alpha8</td></tr><tr><td class="dep-name">gloss</td><td class="dotted"><hr /></td><td class="dep-version">0.2.2-beta4</td></tr><tr><td class="dep-name">org.clojure/core.typed</td><td class="dotted"><hr /></td><td class="dep-version">0.1.14</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#co.paralleluniverse.pulsar.behaviors">co.paralleluniverse.pulsar.behaviors</a></li><li><a href="#co.paralleluniverse.pulsar.core">co.paralleluniverse.pulsar.core</a></li><li><a href="#co.paralleluniverse.pulsar.interop">co.paralleluniverse.pulsar.interop</a></li><li><a href="#co.paralleluniverse.pulsar.lazyseq">co.paralleluniverse.pulsar.lazyseq</a></li><li><a href="#co.paralleluniverse.behaviors-test">co.paralleluniverse.behaviors-test</a></li><li><a href="#co.paralleluniverse.pulsar-test">co.paralleluniverse.pulsar-test</a></li><li><a href="#co.paralleluniverse.pulsar-test.examples.binary">co.paralleluniverse.pulsar-test.examples.binary</a></li><li><a href="#co.paralleluniverse.pulsar-test.examples.graph">co.paralleluniverse.pulsar-test.examples.graph</a></li><li><a href="#co.paralleluniverse.pulsar-test.examples.pingpong">co.paralleluniverse.pulsar-test.examples.pingpong</a></li><li><a href="#co.paralleluniverse.pulsar-test.examples.primitive-ring-benchmark">co.paralleluniverse.pulsar-test.examples.primitive-ring-benchmark</a></li><li><a href="#co.paralleluniverse.pulsar-test.examples.priority">co.paralleluniverse.pulsar-test.examples.priority</a></li><li><a href="#co.paralleluniverse.pulsar-test.examples.ring-benchmark">co.paralleluniverse.pulsar-test.examples.ring-benchmark</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.behaviors" name="co.paralleluniverse.pulsar.behaviors"><h1 class="project-name">co.paralleluniverse.pulsar.behaviors</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>This program and the accompanying materials are dual-licensed under
+either the terms of the Eclipse Public License v1.0 as published by
+the Eclipse Foundation</p>
+
+<p>  or (per the licensee's choosing)</p>
+
+<p>under the terms of the GNU Lesser General Public License version 3.0
+as published by the Free Software Foundation.</p>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>Pulsar </p>
+</td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar.behaviors
+  (:import
+   [java.util.concurrent TimeUnit]
+   [co.paralleluniverse.actors ActorRegistry Actor LocalActor ActorImpl ActorBuilder PulsarActor LifecycleListener ShutdownMessage]
+   [co.paralleluniverse.actors.behaviors GenBehavior GenServer LocalGenServer Supervisor Supervisor$ChildSpec Supervisor$ChildMode Supervisor$RestartStrategy]
+   ; for types:
+   [clojure.lang Seqable LazySeq ISeq])
+  (:require
+   [co.paralleluniverse.pulsar.core :refer :all]
+   [co.paralleluniverse.pulsar.interop :refer :all]
+   [clojure.core.typed :refer [ann Option AnyInteger]]))</pre></td></tr><tr><td class="docs"><p>Asks a gen-server or a supervisor to shut down</p>
+</td><td class="codes"><pre class="brush: clojure">(defn shutdown
+  [^GenBehavior gs]
+  (.shutdown gs))</pre></td></tr><tr><td class="docs"><h2>gen-server</h2>
+</td><td class="codes"></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defprotocol Server
+  (init [this])
+  (handle-call [this ^Actor from id message])
+  (handle-cast [this ^Actor from id message])
+  (handle-info [this message])
+  (handle-timeout [this])
+  (terminate [this ^Throwable cause]))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn ^co.paralleluniverse.actors.behaviors.Server Server-&gt;java
+  {:no-doc true}
+  [server]
+  (reify
+    co.paralleluniverse.actors.behaviors.Server
+    (^void init       [this]
+           (init server))
+    (handleCall [this ^Actor from id message]
+                (handle-call server from id message))
+    (^void handleCast [this ^Actor from id message]
+           (handle-cast server from id message))
+    (^void handleInfo [this message]
+           (handle-info server message))
+    (^void handleTimeout [this]
+           (handle-timeout server))
+    (^void terminate  [this ^Throwable cause]
+           (terminate server cause))))</pre></td></tr><tr><td class="docs"><p>Creates (but doesn't start) a new gen-server</p>
+</td><td class="codes"><pre class="brush: clojure">(defmacro gen-server
+  {:arglists '([:name? :timeout? :mailbox-size? server &amp; args])}
+  [&amp; args]
+  (let [[{:keys [^String name ^Integer timeout ^Integer mailbox-size], :or {timeout -1 mailbox-size -1}} body] (kps-args args)]
+    `(co.paralleluniverse.actors.behaviors.LocalGenServer. ~name
+                                                           ^co.paralleluniverse.actors.behaviors.Server (Server-&gt;java ~(first body))
+                                                           (long ~timeout) java.util.concurrent.TimeUnit/MILLISECONDS
+                                                           nil (int ~mailbox-size))))</pre></td></tr><tr><td class="docs"><p>Makes a synchronous call to a gen-server and returns the response</p>
+</td><td class="codes"><pre class="brush: clojure">(defn call
+  ([^GenServer gs m]
+   (unwrap-exception
+    (.call gs m)))
+  ([^GenServer gs m &amp; args]
+   (unwrap-exception
+    (.call gs (vec (cons m args))))))</pre></td></tr><tr><td class="docs"><p>Makes a synchronous call to a gen-server and returns the response</p>
+</td><td class="codes"><pre class="brush: clojure">(defn call-timed
+  ([^GenServer gs timeout unit m]
+   (unwrap-exception
+    (.call gs m (long timeout) (-&gt;timeunit unit))))
+  ([^GenServer gs timeout unit m &amp; args]
+   (unwrap-exception
+    (.call gs (vec (cons m args)) (long timeout) (-&gt;timeunit unit)))))</pre></td></tr><tr><td class="docs"><p>Makes an asynchronous call to a gen-server</p>
+</td><td class="codes"><pre class="brush: clojure">(defn cast
+  ([^GenServer gs m]
+   (.cast gs m))
+  ([^GenServer gs m &amp; args]
+   (.cast gs (vec (cons m args)))))</pre></td></tr><tr><td class="docs"><p>Stops the current gen-server</p>
+</td><td class="codes"><pre class="brush: clojure">(defn stop
+  []
+  (.stop (LocalGenServer/currentGenServer)))</pre></td></tr><tr><td class="docs"><p>Sets the timeout for the current gen-server</p>
+</td><td class="codes"><pre class="brush: clojure">(defn set-timeout
+  [timeout unit]
+  (.setTimeout (LocalGenServer/currentGenServer) timeout (-&gt;timeunit unit)))</pre></td></tr><tr><td class="docs"><p>Replies to a message sent to the current gen-server</p>
+</td><td class="codes"><pre class="brush: clojure">(defn reply
+  [^Actor to id res]
+  (.reply (LocalGenServer/currentGenServer) to id res))</pre></td></tr><tr><td class="docs"><p>Replies with an error to a message sent to the current gen-server</p>
+</td><td class="codes"><pre class="brush: clojure">(defn reply-error
+  [^Actor to id ^Throwable error]
+  (.replyError (LocalGenServer/currentGenServer) to id error))</pre></td></tr><tr><td class="docs"><h2>supervisor</h2>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>Creates (but doesn't start) a new actor</p>
+</td><td class="codes"><pre class="brush: clojure">(defmacro create-actor
+  {:arglists '([:name? :mailbox-size? :lifecycle-handler? f &amp; args])}
+  [&amp; args]
+  (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size ^IFn lifecycle-handler], :or {trap false mailbox-size -1}} body] (kps-args args)]
+    `(let [f# (suspendable! ~(if (== (count body) 1) (first body) `(fn [] (apply ~(first body) (list ~@(rest body))))))]
+       (co.paralleluniverse.actors.PulsarActor. ~name ~trap (int ~mailbox-size) ~lifecycle-handler f#))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn ^ActorBuilder actor-builder
+  [f]
+  (reify ActorBuilder
+    (build [this]
+           (f))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn- child-spec
+  [id mode max-restarts duration unit shutdown-deadline-millis f]
+  (Supervisor$ChildSpec. id
+                         (keyword-&gt;enum Supervisor$ChildMode mode)
+                         (int max-restarts)
+                         (long duration) (-&gt;timeunit unit)
+                         (long shutdown-deadline-millis)
+                         (if (instance? ActorBuilder f) f (actor-builder #(create-actor f)))))</pre></td></tr><tr><td class="docs"><p>Creates (but doesn't start) a new supervisor</p>
+</td><td class="codes"><pre class="brush: clojure">(defn supervisor
+  ([^String name restart-strategy init]
+   (Supervisor. nil name (int -1)
+                ^Supervisor$RestartStrategy (keyword-&gt;enum Supervisor$RestartStrategy restart-strategy)
+                (-&gt;suspendable-callable
+                 (susfn []
+                        (map #(apply child-spec %) ((suspendable! init)))))))
+  ([restart-strategy init]
+   (supervisor nil restart-strategy init)))</pre></td></tr><tr><td class="docs"><p>Adds an actor to a supervisor</p>
+</td><td class="codes"><pre class="brush: clojure">(defn add-child
+  [^Supervisor supervisor name f mode max-restarts duration unit shutdown-deadline-millis]
+  (.addChild supervisor (child-spec name f mode max-restarts duration unit shutdown-deadline-millis) nil))</pre></td></tr><tr><td class="docs"><p>Removes an actor from a supervisor</p>
+</td><td class="codes"><pre class="brush: clojure">(defn remove-child
+  [^Supervisor supervisor name]
+  (.removeChild supervisor name false))</pre></td></tr><tr><td class="docs"><p>Removes an actor from a supervisor and terminates the actor</p>
+</td><td class="codes"><pre class="brush: clojure">(defn remove-and-terminate-child
+  [^Supervisor supervisor name]
+  (.removeChild supervisor name true))</pre></td></tr><tr><td class="docs"><p>Returns a supervisor's child by id</p>
+</td><td class="codes"><pre class="brush: clojure">(defn ^LocalActor get-child
+  [^Supervisor sup id]
+  (.getChild sup id))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.core" name="co.paralleluniverse.pulsar.core"><h1 class="project-name">co.paralleluniverse.pulsar.core</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>This program and the accompanying materials are dual-licensed under
 either the terms of the Eclipse Public License v1.0 as published by
 the Eclipse Foundation</p>
 
@@ -3040,7 +3167,7 @@ as published by the Free Software Foundation.</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"></td></tr><tr><td class="docs"><p>Pulsar is an implementation of lightweight threads (fibers),
   Go-like channles and Erlang-like actors for the JVM</p>
-</td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar
+</td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar.core
   (:import [java.util.concurrent TimeUnit ExecutionException TimeoutException]
            [jsr166e ForkJoinPool ForkJoinTask]
            [co.paralleluniverse.strands Strand Stranded]
@@ -3673,134 +3800,7 @@ while running in a fiber.</p>
                              ; now, mtc# is the number of the matching clause and m# is the message.
                              ; but the patterns might have wildcards so we need to match again (for the bindings)
                              `(case (int ~mtc) ~@(mapcat #(list %2 `(match [~m] [~(first %1)] ~(second %1))) pbody (range))))))))))</pre></td></tr><tr><td class="docs"><p>`(match [~mtc ~m] ~@(mapcat #(list [%2 (first %1)] (second %1)) pbody (range))))))))))</p>
-</td><td class="codes"></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.behaviors" name="co.paralleluniverse.pulsar.behaviors"><h1 class="project-name">co.paralleluniverse.pulsar.behaviors</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>This program and the accompanying materials are dual-licensed under
-either the terms of the Eclipse Public License v1.0 as published by
-the Eclipse Foundation</p>
-
-<p>  or (per the licensee's choosing)</p>
-
-<p>under the terms of the GNU Lesser General Public License version 3.0
-as published by the Free Software Foundation.</p>
-</td><td class="codes"></td></tr><tr><td class="docs"><p>Pulsar </p>
-</td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar.behaviors
-  (:import
-   [java.util.concurrent TimeUnit]
-   [co.paralleluniverse.actors ActorRegistry Actor LocalActor ActorImpl ActorBuilder PulsarActor LifecycleListener ShutdownMessage]
-   [co.paralleluniverse.actors.behaviors GenBehavior GenServer LocalGenServer Supervisor Supervisor$ChildSpec Supervisor$ChildMode Supervisor$RestartStrategy]
-   ; for types:
-   [clojure.lang Seqable LazySeq ISeq])
-  (:require
-   [co.paralleluniverse.pulsar :refer :all]
-   [co.paralleluniverse.pulsar.interop :refer :all]
-   [clojure.core.typed :refer [ann Option AnyInteger]]))</pre></td></tr><tr><td class="docs"><p>Asks a gen-server or a supervisor to shut down</p>
-</td><td class="codes"><pre class="brush: clojure">(defn shutdown
-  [^GenBehavior gs]
-  (.shutdown gs))</pre></td></tr><tr><td class="docs"><h2>gen-server</h2>
-</td><td class="codes"></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defprotocol Server
-  (init [this])
-  (handle-call [this ^Actor from id message])
-  (handle-cast [this ^Actor from id message])
-  (handle-info [this message])
-  (handle-timeout [this])
-  (terminate [this ^Throwable cause]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn ^co.paralleluniverse.actors.behaviors.Server Server-&gt;java
-  {:no-doc true}
-  [server]
-  (reify
-    co.paralleluniverse.actors.behaviors.Server
-    (^void init       [this]
-           (init server))
-    (handleCall [this ^Actor from id message]
-                (handle-call server from id message))
-    (^void handleCast [this ^Actor from id message]
-           (handle-cast server from id message))
-    (^void handleInfo [this message]
-           (handle-info server message))
-    (^void handleTimeout [this]
-           (handle-timeout server))
-    (^void terminate  [this ^Throwable cause]
-           (terminate server cause))))</pre></td></tr><tr><td class="docs"><p>Creates (but doesn't start) a new gen-server</p>
-</td><td class="codes"><pre class="brush: clojure">(defmacro gen-server
-  {:arglists '([:name? :timeout? :mailbox-size? server &amp; args])}
-  [&amp; args]
-  (let [[{:keys [^String name ^Integer timeout ^Integer mailbox-size], :or {timeout -1 mailbox-size -1}} body] (kps-args args)]
-    `(co.paralleluniverse.actors.behaviors.LocalGenServer. ~name
-                                                           ^co.paralleluniverse.actors.behaviors.Server (Server-&gt;java ~(first body))
-                                                           (long ~timeout) java.util.concurrent.TimeUnit/MILLISECONDS
-                                                           nil (int ~mailbox-size))))</pre></td></tr><tr><td class="docs"><p>Makes a synchronous call to a gen-server and returns the response</p>
-</td><td class="codes"><pre class="brush: clojure">(defn call
-  ([^GenServer gs m]
-   (unwrap-exception
-    (.call gs m)))
-  ([^GenServer gs m &amp; args]
-   (unwrap-exception
-    (.call gs (vec (cons m args))))))</pre></td></tr><tr><td class="docs"><p>Makes a synchronous call to a gen-server and returns the response</p>
-</td><td class="codes"><pre class="brush: clojure">(defn call-timed
-  ([^GenServer gs timeout unit m]
-   (unwrap-exception
-    (.call gs m (long timeout) (-&gt;timeunit unit))))
-  ([^GenServer gs timeout unit m &amp; args]
-   (unwrap-exception
-    (.call gs (vec (cons m args)) (long timeout) (-&gt;timeunit unit)))))</pre></td></tr><tr><td class="docs"><p>Makes an asynchronous call to a gen-server</p>
-</td><td class="codes"><pre class="brush: clojure">(defn cast
-  ([^GenServer gs m]
-   (.cast gs m))
-  ([^GenServer gs m &amp; args]
-   (.cast gs (vec (cons m args)))))</pre></td></tr><tr><td class="docs"><p>Stops the current gen-server</p>
-</td><td class="codes"><pre class="brush: clojure">(defn stop
-  []
-  (.stop (LocalGenServer/currentGenServer)))</pre></td></tr><tr><td class="docs"><p>Sets the timeout for the current gen-server</p>
-</td><td class="codes"><pre class="brush: clojure">(defn set-timeout
-  [timeout unit]
-  (.setTimeout (LocalGenServer/currentGenServer) timeout (-&gt;timeunit unit)))</pre></td></tr><tr><td class="docs"><p>Replies to a message sent to the current gen-server</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reply
-  [^Actor to id res]
-  (.reply (LocalGenServer/currentGenServer) to id res))</pre></td></tr><tr><td class="docs"><p>Replies with an error to a message sent to the current gen-server</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reply-error
-  [^Actor to id ^Throwable error]
-  (.replyError (LocalGenServer/currentGenServer) to id error))</pre></td></tr><tr><td class="docs"><h2>supervisor</h2>
-</td><td class="codes"></td></tr><tr><td class="docs"><p>Creates (but doesn't start) a new actor</p>
-</td><td class="codes"><pre class="brush: clojure">(defmacro create-actor
-  {:arglists '([:name? :mailbox-size? :lifecycle-handler? f &amp; args])}
-  [&amp; args]
-  (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size ^IFn lifecycle-handler], :or {trap false mailbox-size -1}} body] (kps-args args)]
-    `(let [f# (suspendable! ~(if (== (count body) 1) (first body) `(fn [] (apply ~(first body) (list ~@(rest body))))))]
-       (co.paralleluniverse.actors.PulsarActor. ~name ~trap (int ~mailbox-size) ~lifecycle-handler f#))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn ^ActorBuilder actor-builder
-  [f]
-  (reify ActorBuilder
-    (build [this]
-           (f))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn- child-spec
-  [id mode max-restarts duration unit shutdown-deadline-millis f]
-  (Supervisor$ChildSpec. id
-                         (keyword-&gt;enum Supervisor$ChildMode mode)
-                         (int max-restarts)
-                         (long duration) (-&gt;timeunit unit)
-                         (long shutdown-deadline-millis)
-                         (if (instance? ActorBuilder f) f (actor-builder #(create-actor f)))))</pre></td></tr><tr><td class="docs"><p>Creates (but doesn't start) a new supervisor</p>
-</td><td class="codes"><pre class="brush: clojure">(defn supervisor
-  ([^String name restart-strategy init]
-   (Supervisor. nil name (int -1)
-                ^Supervisor$RestartStrategy (keyword-&gt;enum Supervisor$RestartStrategy restart-strategy)
-                (-&gt;suspendable-callable
-                 (susfn []
-                        (map #(apply child-spec %) ((suspendable! init)))))))
-  ([restart-strategy init]
-   (supervisor nil restart-strategy init)))</pre></td></tr><tr><td class="docs"><p>Adds an actor to a supervisor</p>
-</td><td class="codes"><pre class="brush: clojure">(defn add-child
-  [^Supervisor supervisor name f mode max-restarts duration unit shutdown-deadline-millis]
-  (.addChild supervisor (child-spec name f mode max-restarts duration unit shutdown-deadline-millis) nil))</pre></td></tr><tr><td class="docs"><p>Removes an actor from a supervisor</p>
-</td><td class="codes"><pre class="brush: clojure">(defn remove-child
-  [^Supervisor supervisor name]
-  (.removeChild supervisor name false))</pre></td></tr><tr><td class="docs"><p>Removes an actor from a supervisor and terminates the actor</p>
-</td><td class="codes"><pre class="brush: clojure">(defn remove-and-terminate-child
-  [^Supervisor supervisor name]
-  (.removeChild supervisor name true))</pre></td></tr><tr><td class="docs"><p>Returns a supervisor's child by id</p>
-</td><td class="codes"><pre class="brush: clojure">(defn ^LocalActor get-child
-  [^Supervisor sup id]
-  (.getChild sup id))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.interop" name="co.paralleluniverse.pulsar.interop"><h1 class="project-name">co.paralleluniverse.pulsar.interop</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>This program and the accompanying materials are dual-licensed under
+</td><td class="codes"></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.interop" name="co.paralleluniverse.pulsar.interop"><h1 class="project-name">co.paralleluniverse.pulsar.interop</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>This program and the accompanying materials are dual-licensed under
 either the terms of the Eclipse Public License v1.0 as published by
 the Eclipse Foundation</p>
 
@@ -3876,7 +3876,7 @@ as published by the Free Software Foundation.</p>
     ; for types:
     [clojure.lang Seqable LazySeq ISeq])
    (:require
-    [co.paralleluniverse.pulsar :refer :all]
+    [co.paralleluniverse.pulsar.core :refer :all]
     [clojure.core.match :refer [match]]
     [clojure.core.typed :refer [ann Option AnyInteger]]))</pre></td></tr><tr><td class="docs"><p>Takes a body of expressions that returns an ISeq or nil, and yields
   a Seqable object that will invoke the body only the first time seq
@@ -4036,7 +4036,7 @@ as published by the Free Software Foundation.</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.behaviors-test
   (:use midje.sweet
-        co.paralleluniverse.pulsar
+        co.paralleluniverse.pulsar.core
         co.paralleluniverse.pulsar.behaviors)
   (:import [java.util.concurrent TimeUnit TimeoutException ExecutionException]
            [co.paralleluniverse.common.util Debug]
@@ -4192,9 +4192,8 @@ manually add a known actor to a supervisor, so this ugly function is only useful
      [:shutdown a] i
      :else (recur (inc i)))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defsusfn bad-actor1 []
-  (loop [i (int 0)]
-    (receive
-     :else (throw (RuntimeException. &quot;Ha!&quot;)))))</pre></td></tr><tr><td class="docs">
+  (receive)
+  (throw (RuntimeException. &quot;Ha!&quot;)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(fact &quot;child-modes&quot;
       (fact &quot;When permanent actor dies of natural causes then restart&quot;
             (let [sup (spawn
@@ -4290,7 +4289,7 @@ as published by the Free Software Foundation.</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar-test
   (:use midje.sweet
-        co.paralleluniverse.pulsar)
+        co.paralleluniverse.pulsar.core)
   (:require [co.paralleluniverse.pulsar.lazyseq :as s :refer [channel-&gt;lazy-seq snd-seq]])
   (:import [java.util.concurrent TimeUnit TimeoutException ExecutionException]
            [co.paralleluniverse.common.util Debug]
@@ -4663,7 +4662,7 @@ as published by the Free Software Foundation.</p>
               (! actor :foo)
               (join actor)) =&gt; :foobar))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar-test.examples.binary" name="co.paralleluniverse.pulsar-test.examples.binary"><h1 class="project-name">co.paralleluniverse.pulsar-test.examples.binary</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>A binary-data buffer message example</p>
 </td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar-test.examples.binary
-  (:use co.paralleluniverse.pulsar
+  (:use co.paralleluniverse.pulsar.core
         [gloss core io]))</pre></td></tr><tr><td class="docs"><p>This is an example of sending, receiving and matching binary data buffers</p>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>This is the layout of our binary buffer:</p>
 </td><td class="codes"><pre class="brush: clojure">(def fr (compile-frame {:a :int16, :b :float32}))</pre></td></tr><tr><td class="docs">
@@ -4678,7 +4677,7 @@ as published by the Free Software Foundation.</p>
     (! r buffer)
     (join r)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar-test.examples.graph" name="co.paralleluniverse.pulsar-test.examples.graph"><h1 class="project-name">co.paralleluniverse.pulsar-test.examples.graph</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar-test.examples.graph
-  (:use co.paralleluniverse.pulsar))</pre></td></tr><tr><td class="docs">
+  (:use co.paralleluniverse.pulsar.core))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn- actors-in-a-ring
   [n]
   (let [actor (fn [] (spawn
@@ -4712,7 +4711,7 @@ as published by the Free Software Foundation.</p>
         (time (run n)))))
    (System/exit 0)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar-test.examples.pingpong" name="co.paralleluniverse.pulsar-test.examples.pingpong"><h1 class="project-name">co.paralleluniverse.pulsar-test.examples.pingpong</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>The classic ping-pong example from the Erlang tutorial</p>
 </td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar-test.examples.pingpong
-  (:use co.paralleluniverse.pulsar))</pre></td></tr><tr><td class="docs"><p>This example is intended to be a line-by-line translation of the canonical
+  (:use co.paralleluniverse.pulsar.core))</pre></td></tr><tr><td class="docs"><p>This example is intended to be a line-by-line translation of the canonical
 Erlang <a href="http://www.erlang.org/doc/getting_started/conc_prog.html#id67347">ping-pong example</a>,
 so it is not written in idiomatic Clojure.</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
@@ -4738,7 +4737,7 @@ so it is not written in idiomatic Clojure.</p>
   (spawn ping 3)
   :ok)</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar-test.examples.primitive-ring-benchmark" name="co.paralleluniverse.pulsar-test.examples.primitive-ring-benchmark"><h1 class="project-name">co.paralleluniverse.pulsar-test.examples.primitive-ring-benchmark</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>An implementation of the ring benchmark using fibers and primitive (int) channels</p>
 </td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar-test.examples.primitive-ring-benchmark
-  (:use co.paralleluniverse.pulsar)
+  (:use co.paralleluniverse.pulsar.core)
   (:import [co.paralleluniverse.fibers Fiber]
            [co.paralleluniverse.strands.channels Channel IntChannel]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn spawn-relay [^IntChannel prev n]
@@ -4773,7 +4772,7 @@ so it is not written in idiomatic Clojure.</p>
                (join manager)))]
         (println i &quot;: Messages &quot; num-messages)))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar-test.examples.priority" name="co.paralleluniverse.pulsar-test.examples.priority"><h1 class="project-name">co.paralleluniverse.pulsar-test.examples.priority</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>A selective receive example</p>
 </td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar-test.examples.priority
-  (:use co.paralleluniverse.pulsar))</pre></td></tr><tr><td class="docs"><p>This example is intended to be a line-by-line translation of
+  (:use co.paralleluniverse.pulsar.core))</pre></td></tr><tr><td class="docs"><p>This example is intended to be a line-by-line translation of
 <a href="http://learnyousomeerlang.com/more-on-multiprocessing#selective-receives">this example</a> from the book <em>Learn You Some Erlang for great good!</em>,
 so it is not written in idiomatic Clojure</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
@@ -4795,7 +4794,7 @@ so it is not written in idiomatic Clojure</p>
            (! @self [17 :high])
            (important)))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar-test.examples.ring-benchmark" name="co.paralleluniverse.pulsar-test.examples.ring-benchmark"><h1 class="project-name">co.paralleluniverse.pulsar-test.examples.ring-benchmark</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>An implementation of the ring benchmark using actors</p>
 </td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar-test.examples.ring-benchmark
-  (:use co.paralleluniverse.pulsar)
+  (:use co.paralleluniverse.pulsar.core)
   (:import [co.paralleluniverse.actors Actor]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn spawn-relay-actor [^Actor prev n]
   (if (== n 0)
