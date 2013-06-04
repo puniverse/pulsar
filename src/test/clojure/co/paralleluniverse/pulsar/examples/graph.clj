@@ -1,7 +1,7 @@
 ; Copyright (C) 2013, Jan Stępień. All rights reserved.
 ; Copyright (C) 2013, Parallel Universe Software Co. All rights reserved.
 
-(ns co.paralleluniverse.pulsar-test.examples.graph
+(ns co.paralleluniverse.pulsar.examples.graph
   (:use co.paralleluniverse.pulsar.core))
 
 (defn- actors-in-a-ring

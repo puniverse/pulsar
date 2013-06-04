@@ -1,4 +1,4 @@
-(ns co.paralleluniverse.pulsar-test.examples.binary
+(ns co.paralleluniverse.pulsar.examples.binary
   "A binary-data buffer message example"
   (:use co.paralleluniverse.pulsar.core
         [gloss core io]))

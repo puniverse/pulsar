@@ -1,4 +1,4 @@
-(ns co.paralleluniverse.pulsar-test.examples.pingpong
+(ns co.paralleluniverse.pulsar.examples.pingpong
   "The classic ping-pong example from the Erlang tutorial"
   (:use co.paralleluniverse.pulsar.core))
 

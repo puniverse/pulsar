@@ -1,4 +1,4 @@
-(ns co.paralleluniverse.pulsar-test.examples.priority
+(ns co.paralleluniverse.pulsar.examples.priority
   "A selective receive example"
   (:use co.paralleluniverse.pulsar.core))
 

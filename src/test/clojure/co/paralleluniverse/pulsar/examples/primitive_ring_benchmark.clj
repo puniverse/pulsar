@@ -1,4 +1,4 @@
-(ns co.paralleluniverse.pulsar-test.examples.primitive-ring-benchmark
+(ns co.paralleluniverse.pulsar.examples.primitive-ring-benchmark
   "An implementation of the ring benchmark using fibers and primitive (int) channels"
   (:use co.paralleluniverse.pulsar.core)
   (:import [co.paralleluniverse.fibers Fiber]
