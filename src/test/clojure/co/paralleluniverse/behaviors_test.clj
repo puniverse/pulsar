@@ -298,7 +298,7 @@
             sup (spawn
                  (supervisor :all-for-one
                              #(list ["actor1" :permanent 5 1 :sec 10
-                                     :name "koko"
+                                     :name "koko" ; ... and any other optional parameter accepted by spawn
                                      actor3 @self started terminated])))]
         (let [a (sup-child sup "actor1" 200)]
           (! a 3)

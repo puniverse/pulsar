@@ -115,17 +115,13 @@
 
 ;; ## supervisor
 
-#_(defn- create-actor
-  [f]
-  (co.paralleluniverse.actors.PulsarActor. nil false (int -1) nil (suspendable! f)))
-
 (defn- ^ActorBuilder actor-builder
   [f]
   (reify ActorBuilder
     (build [this]
            (f))))
 
-(defn ^LocalActor create-actor
+(defn- ^LocalActor create-actor
   [& args]
   (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size ^IFn lifecycle-handler ^Integer stack-size ^ForkJoinPool pool], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)
         f  (when (not (instance? LocalActor body))
