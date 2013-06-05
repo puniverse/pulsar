@@ -3118,15 +3118,12 @@ as published by the Free Software Foundation.</p>
   [^Actor to id ^Throwable error]
   (.replyError (LocalGenServer/currentGenServer) to id error))</pre></td></tr><tr><td class="docs"><h2>supervisor</h2>
 </td><td class="codes"></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">#_(defn- create-actor
-  [f]
-  (co.paralleluniverse.actors.PulsarActor. nil false (int -1) nil (suspendable! f)))
-(defn- ^ActorBuilder actor-builder
+</td><td class="codes"><pre class="brush: clojure">(defn- ^ActorBuilder actor-builder
   [f]
   (reify ActorBuilder
     (build [this]
            (f))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn ^LocalActor create-actor
+</td><td class="codes"><pre class="brush: clojure">(defn- ^LocalActor create-actor
   [&amp; args]
   (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size ^IFn lifecycle-handler ^Integer stack-size ^ForkJoinPool pool], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)
         f  (when (not (instance? LocalActor body))
@@ -4389,7 +4386,7 @@ manually add a known actor to a supervisor, so this ugly function is only useful
             sup (spawn
                  (supervisor :all-for-one
                              #(list [&quot;actor1&quot; :permanent 5 1 :sec 10
-                                     :name &quot;koko&quot;
+                                     :name &quot;koko&quot; ; ... and any other optional parameter accepted by spawn
                                      actor3 @self started terminated])))]
         (let [a (sup-child sup &quot;actor1&quot; 200)]
           (! a 3)
