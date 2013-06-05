@@ -56,19 +56,19 @@
           
           
           
-        
-          
-          
-            
-          
-          
-          
             <li>
               <a  href="/pulsar/getting-started.html">
                 Getting Started
               </a>
               
             </li>
+          
+        
+          
+          
+            
+          
+          
           
         
           
@@ -101,21 +101,21 @@
           
           
           
-            <li>
-              <a class="active" href="/pulsar/manual/index.html">
-                User Manual
-              </a>
-              
-              <ul class="nav nav-list"><li><a href="#quasar-and-pulsar">Quasar and Pulsar</a></li><li><a href="#fibers">Fibers</a></li><li><a href="#channels">Channels</a></li><li><a href="#actors">Actors</a></li><li><a href="#behaviors">Behaviors</a></li></ul>
-              
-            </li>
-          
         
           
           
             
           
           
+          
+            <li>
+              <a class="active" href="/pulsar/manual/index.html">
+                User Manual
+              </a>
+              
+              <ul class="nav nav-list"><li><a href="#quasar-and-pulsar">Quasar and Pulsar</a></li><li><a href="#fibers">Fibers</a></li><li><a href="#channels">Channels</a></li><li><a href="#actors">Actors</a></li><li><a href="#behaviors">Behaviors</a></li><li><a href="#dataflow">Dataflow</a></li></ul>
+              
+            </li>
           
         
           
@@ -173,6 +173,8 @@
 <p>Suspendable functions require special bytecode instrumentation (performed by an instrumentation agent), so they must be explicitly designated as such.
 The function <code>suspendable!</code> marks a given function as a suspendable function (this operation cannot be undone). The <code>defsusfn</code> macro, with the same syntax as <code>defn</code> defines a suspendable function.</p>
 
+<p class="alert alert-info"><strong>Note</strong>: All functions (i.e. <code>fn</code>s) passed to any of the Pulsar API functions and macros are automatically made suspendable, so in most simple cases you will never need to use <code>susfn</code>, <code>defsusfn</code> or <code>suspendable!</code>.</p>
+
 <h3 id="spawning-fibers">Spawning Fibers</h3>
 
 <p>To create a fiber of a function <code>f</code> that takes arguments <code>arg1</code> and <code>arg2</code>, run</p>
@@ -204,12 +206,12 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
 
 <p>You can also wait for a fiber’s termination for a given duration. The following will wait for half a second for the fiber to terminate:</p>
 
-<pre><code>(join fiber 500 java.util.concurrent.TimeUnit/MILLISECONDS)
+<pre><code>(join 500 java.util.concurrent.TimeUnit/MILLISECONDS fiber)
 </code></pre>
 
 <p>The following will have the same effect:</p>
 
-<pre><code class="language-clj">(join fiber 500 :ms)
+<pre><code class="language-clj">(join 500 :ms fiber)
 </code></pre>
 
 <h3 id="bindings">Bindings</h3>
@@ -249,7 +251,7 @@ from the Pulsar test suite:</p>
 
 <p>Spawning or dereferncing a future creted with <code>clojure.core/future</code> is ok, but there’s a better alternative: you can turn a spawned fiber into a future with <code>fiber-&gt;future</code> and can then dereference or call regular future functions on the returned value, like <code>realized?</code> (In fact, you don’t even have to call <code>fiber-&gt;future</code>; fibers already implement the <code>Future</code> interface and can be treated as futures directly, but this may change in the future, so, until the API is fully settled, we recommend using <code>fiber-&gt;future</code>).</p>
 
-<p>Promises are supported and encouraged, but do not make use of <code>clojure.core/promise</code> to create a promise that’s to be dereferenced in a fiber. Instead, use the version of <code>promise</code> that’s in the <code>...pulsar.dataflow</code> namespace. It will provide better performance, and can be dereferenced in fibers and regular threads.</p>
+<p>Promises are supported and encouraged, but do not make use of <code>clojure.core/promise</code> to create a promise that’s to be dereferenced in a fiber. Instead, use the version of <code>promise</code> that’s in the <code>...pulsar.dataflow</code> namespace. It will provide better performance, and can be dereferenced in fibers and regular threads. Plus, Pulsar promises are much cooler than <code>core.promise</code>, as you’ll see later.</p>
 
 <p>Running a <code>dosync</code> block inside a fiber is discouraged as it uses locks internally, but your mileage may vary.</p>
 
@@ -393,9 +395,86 @@ from the Pulsar test suite:</p>
 
 <p class="alert alert-info"><strong>Note</strong>: Actors may write to and read from channels other than their own mailbox. In fact, actors can do whatever regular fibers can.</p>
 
-<h3 id="actor-state">Actor State</h3>
+<h3 id="spawning-actors">Spawning actors</h3>
+
+<p>Actors can run in any strand – fiber or thread - but for now, Pulsar only supports actors running in fibers (Quasar, the Java library that Pulsar wraps, allows running actors in regular threads).</p>
+
+<p>An actor is basically a function that – if the actor is to do anything interesting – receives messages from the mailbox.
+To create and start an actor of a function <code>f</code> that takes arguments <code>arg1</code> and <code>arg2</code>, run</p>
+
+<pre><code>(spawn f arg1 arg2)
+</code></pre>
+
+<p>This will create a new actor, and start running it in a new fiber.</p>
+
+<p><code>spawn</code> automatically marks <code>f</code> as suspendable, so there’s no need to do so explicitly.</p>
+
+<p><code>spawn</code> takes optional keyword arguments:</p>
+
+<ul>
+  <li><code>:name</code> - The actor’s name (that’s also given to the fiber running the actor).</li>
+  <li><code>:mailbox-size</code> - The number of messages that can wait in the mailbox, or -1 (the default) for an unbounded mailbox.</li>
+  <li><code>:lifecycle-handle</code> - A function that will be called to handle special messages sent to the actor. If set to <code>nil</code> (the default), the default handler is used, which is what you want in all circumstances, except for some actors that are meant to do some special tricks.</li>
+  <li><code>:fj-pool</code> - The <code>ForkJoinPool</code> in which the fiber will run.
+If <code>:fj-pool</code> is not specified, then the pool used will be either 1) the pool of the fiber calling <code>spawn-fiber</code>, or, if <code>spawn-fiber</code> is not called from within a fiber, a default pool.</li>
+  <li><code>:stack-size</code> - The initial fiber data stack size.</li>
+</ul>
+
+<p>Of all the optional arguments, you’ll usually only use <code>:name</code> and <code>:mailbox-size</code>. As mentioned, by default the mailbox is unbounded. Bounded mailboxes provide better performance and should be considered for actors that are expected to handle messages at a very high rate. However, a bounded mailbox that overflows, will inject an exception into the <em>receiving</em> actor, which will, in most circumstances, cause it to terminate.</p>
+
+<p>An actor can be <code>join</code>ed, just like a fiber.</p>
+
+<h3 id="sending-and-receiving-messages-1">Sending and Receiving Messages</h3>
+
+<p>An actor’s mailbox is a channel, that can be obtained with the <code>mailbox-of</code> function. You can therefore send a message to an actor like so:</p>
+
+<pre><code>(snd (mailbox-of actor) msg)
+</code></pre>
+
+<p>But there’s an easier way. Actors implement the <code>SendChannel</code> interface, and so, are treated like a channel by the <code>snd</code> function. So we can simple call:</p>
+
+<pre><code>(snd actor msg)
+</code></pre>
+
+<p>While the above is a perfectly valid way of sending a message to an actor, this is not how it’s normally done. Instead of <code>snd</code> we normally use the <code>!</code> (bang) function to send a message to an actor, like so:</p>
+
+<pre><code>(! actor msg)
+</code></pre>
+
+<p>The bang operator has a slightly different semantic than <code>snd</code>. While <code>snd</code> will always place the message in the mailbox, <code>!</code> will only do it if the actor is alive. It will not place a message in the mailbox if there is no one to receive it on the other end (and never will be, as mailboxes, like all channels, cannot change ownership).</p>
+
+<p>In many circumstances, an actor sends a message to another actor, and expects a reply. In those circumstances, using <code>!!</code> instead of <code>!</code> might offer reduced latency (but with the same semantics; both <code>!</code> and <code>!!</code> always return <code>nil</code>)</p>
+
+<p>The value <code>@self</code>, when evaluated in an actor, returns the actor. So, as you may guess, an actor can receive messages with:</p>
+
+<pre><code>(rcv (mailbox-of @self))
+</code></pre>
+
+<p><code>@mailbox</code> returns the actor’s own mailbox channel, so the above may be written as:</p>
+
+<pre><code>(rcv @mailbox)
+</code></pre>
+
+<p>… and because actors also implement the <code>ReceiveChannel</code> interface required by <code>rcv</code>, the following will also work:</p>
+
+<pre><code>(rcv @self)
+</code></pre>
+
+<p>But, again, while an actor can be treated as a fiber with a channel, it has some extra features that give it a super-extra punch. Actors normally receive messages with the <code>receive</code> function, like so:</p>
+
+<pre><code>(receive)
+</code></pre>
+
+<p><code>receive</code> has some features that make it very suitable for handling messages in actors. Its most </p>
+
+<p>But we could have achieved all that with <code>rcv</code> like so:</p>
+
+<p>(rcv-timed )
+<code>receive</code> is much more powerful than <code>rcv</code>, mostly because of a feature we will now introduce.</p>
 
 <h3 id="selective-receive">Selective Receive</h3>
+
+<h3 id="actor-state">Actor State</h3>
 
 <h3 id="error-handling">Error Handling</h3>
 
@@ -406,6 +485,9 @@ from the Pulsar test suite:</p>
 <h3 id="gen-server">gen-server</h3>
 
 <h3 id="supervisors">Supervisors</h3>
+
+<h2 id="dataflow">Dataflow</h2>
+
 </div>
 
       <hr>

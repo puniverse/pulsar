@@ -3884,7 +3884,8 @@ as published by the Free Software Foundation.</p>
            [co.paralleluniverse.strands.dataflow DelayedVal]
            ; for types:
            [clojure.lang Keyword IObj IFn IMeta IDeref ISeq IPersistentCollection IPersistentVector IPersistentMap])
-  (:require [clojure.core.typed :refer [ann def-alias Option AnyInteger]]))</pre></td></tr><tr><td class="docs"><p>Returns a promise object that can be read with deref/@, and set,
+  (:require [co.paralleluniverse.pulsar.core :refer :all]
+            [clojure.core.typed :refer [ann def-alias Option AnyInteger]]))</pre></td></tr><tr><td class="docs"><p>Returns a promise object that can be read with deref/@, and set,
   once only, with deliver. Calls to deref/@ prior to delivery will
   block, unless the variant of deref with timeout is used. All
   subsequent derefs will return the same delivered value without
@@ -3892,27 +3893,32 @@ as published by the Free Software Foundation.</p>
 
 <p>  Unlike clojure.core/promise, this promise object can be used inside Pulsar fibers.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn promise
-  []
-  (let [dv (DelayedVal.)]
-    (reify
-      clojure.lang.IDeref
-      (deref [_]
-             (.get dv))
-      clojure.lang.IBlockingDeref
-      (deref
-       [_ timeout-ms timeout-val]
-       (try
-         (.get dv timeout-ms TimeUnit/MILLISECONDS)
-         (catch TimeoutException e
-           timeout-val)))
-      clojure.lang.IPending
-      (isRealized [this]
-                  (.isDone dv))
-      clojure.lang.IFn
-      (invoke
-       [this x]
-       (.set dv x)
-       this))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.interop" name="co.paralleluniverse.pulsar.interop"><h1 class="project-name">co.paralleluniverse.pulsar.interop</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>This program and the accompanying materials are dual-licensed under
+  ([]
+   (let [dv (DelayedVal.)]
+     (reify
+       clojure.lang.IDeref
+       (deref [_]
+              (.get dv))
+       clojure.lang.IBlockingDeref
+       (deref
+        [_ timeout-ms timeout-val]
+        (try
+          (.get dv timeout-ms TimeUnit/MILLISECONDS)
+          (catch TimeoutException e
+            timeout-val)))
+       clojure.lang.IPending
+       (isRealized [this]
+                   (.isDone dv))
+       clojure.lang.IFn
+       (invoke
+        [this x]
+        (.set dv x)
+        this))))
+  ([f]
+   (let [p (promise)]
+     (suspendable! f)
+     (spawn-fiber #(deliver p (f)))
+     p)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.interop" name="co.paralleluniverse.pulsar.interop"><h1 class="project-name">co.paralleluniverse.pulsar.interop</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>This program and the accompanying materials are dual-licensed under
 either the terms of the Eclipse Public License v1.0 as published by
 the Eclipse Foundation</p>
 
@@ -4641,26 +4647,26 @@ as published by the Free Software Foundation.</p>
         (join fib)) =&gt; true)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def ^:dynamic *foo* 40)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(facts &quot;fiber-bindings&quot;
-      (fact &quot;Fiber inherits thread bindings&quot;
-            (let [fiber
-                  (binding [*foo* 20]
-                    (spawn-fiber
-                     #(let [v1 *foo*]
-                        (Fiber/sleep 200)
-                        (let [v2 *foo*]
-                          (+ v1 v2)))))]
-              (join fiber))
-            =&gt; 40)
-      (fact &quot;Bindings declared in fiber last throughout fiber lifetime&quot;
-            (let [fiber
-                  (spawn-fiber
-                   #(binding [*foo* 15]
-                      (let [v1 *foo*]
-                        (Fiber/sleep 200)
-                        (let [v2 *foo*]
-                          (+ v1 v2)))))]
-              (join fiber))
-            =&gt; 30))</pre></td></tr><tr><td class="docs">
+       (fact &quot;Fiber inherits thread bindings&quot;
+             (let [fiber
+                   (binding [*foo* 20]
+                     (spawn-fiber
+                      #(let [v1 *foo*]
+                         (Fiber/sleep 200)
+                         (let [v2 *foo*]
+                           (+ v1 v2)))))]
+               (join fiber))
+             =&gt; 40)
+       (fact &quot;Bindings declared in fiber last throughout fiber lifetime&quot;
+             (let [fiber
+                   (spawn-fiber
+                    #(binding [*foo* 15]
+                       (let [v1 *foo*]
+                         (Fiber/sleep 200)
+                         (let [v2 *foo*]
+                           (+ v1 v2)))))]
+               (join fiber))
+             =&gt; 30))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(fact &quot;Fiber can be used turned into a future&quot;
       (let [fiber (spawn-fiber
                    (fn []
@@ -4845,44 +4851,44 @@ as published by the Free Software Foundation.</p>
               (join actor)
               @res) =&gt; [1 3 2]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(facts &quot;actor-link&quot;
-  (fact &quot;When an actor dies, its link gets an exception&quot;
-    (let [actor1 (spawn #(Fiber/sleep 100))
-          actor2 (spawn
-                  #(try
-                     (loop [] (receive [m] :foo :bar) (recur))
-                     (catch co.paralleluniverse.actors.LifecycleException e
-                       true)))]
-      (link! actor1 actor2)
-      (join actor1)
-      (join actor2)) =&gt; true)
-  (fact &quot;When an actor dies and lifecycle-handler is defined, then it gets a message&quot;
-    (let [actor1 (spawn #(Fiber/sleep 100))
-          actor2 (spawn :lifecycle-handler #(! @self [:foo (first %)])
-                        #(try
-                           (loop [] (receive [m]
-                                             [:foo x] x
-                                             :else (recur)))
-                           (catch co.paralleluniverse.actors.LifecycleException e nil)))]
-      (link! actor1 actor2)
-      (join actor1)
-      (join actor2)) =&gt; :exit)
-  (fact &quot;When an actor dies, and its link traps, then its link gets a message&quot;
-    (let [actor1 (spawn #(Fiber/sleep 100))
-          actor2 (spawn :trap true
-                        #(receive [m]
-                                  [:exit _ actor reason] actor))]
-      (link! actor1 actor2)
-      (join actor1)
-      (fact (join actor2) =&gt; actor1))))</pre></td></tr><tr><td class="docs">
+       (fact &quot;When an actor dies, its link gets an exception&quot;
+             (let [actor1 (spawn #(Fiber/sleep 100))
+                   actor2 (spawn
+                           #(try
+                              (loop [] (receive [m] :foo :bar) (recur))
+                              (catch co.paralleluniverse.actors.LifecycleException e
+                                true)))]
+               (link! actor1 actor2)
+               (join actor1)
+               (join actor2)) =&gt; true)
+       (fact &quot;When an actor dies and lifecycle-handler is defined, then it gets a message&quot;
+             (let [actor1 (spawn #(Fiber/sleep 100))
+                   actor2 (spawn :lifecycle-handler #(! @self [:foo (first %)])
+                                 #(try
+                                    (loop [] (receive [m]
+                                                      [:foo x] x
+                                                      :else (recur)))
+                                    (catch co.paralleluniverse.actors.LifecycleException e nil)))]
+               (link! actor1 actor2)
+               (join actor1)
+               (join actor2)) =&gt; :exit)
+       (fact &quot;When an actor dies, and its link traps, then its link gets a message&quot;
+             (let [actor1 (spawn #(Fiber/sleep 100))
+                   actor2 (spawn :trap true
+                                 #(receive [m]
+                                           [:exit _ actor reason] actor))]
+               (link! actor1 actor2)
+               (join actor1)
+               (fact (join actor2) =&gt; actor1))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(fact &quot;actor-watch&quot;
-  (fact &quot;When an actor dies, its watch gets a message&quot;
-    (let [actor1 (spawn #(Fiber/sleep 200))
-          actor2 (spawn
-                  #(receive
-                    [:exit watch actor reason] watch))
-          wtc (watch! actor2 actor1)]
-      (join actor1)
-      (fact (join actor2) =&gt; wtc))))</pre></td></tr><tr><td class="docs">
+      (fact &quot;When an actor dies, its watch gets a message&quot;
+            (let [actor1 (spawn #(Fiber/sleep 200))
+                  actor2 (spawn
+                          #(receive
+                            [:exit watch actor reason] watch))
+                  wtc (watch! actor2 actor1)]
+              (join actor1)
+              (fact (join actor2) =&gt; wtc))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(facts &quot;actor-state&quot;
        (fact &quot;Test recur actor-state&quot;
              (let [actor
@@ -4999,10 +5005,22 @@ as published by the Free Software Foundation.</p>
                    f1 (spawn-fiber  #(deliver v2 (+ @v1 1)))
                    t1 (spawn-thread #(deliver v3 (+ @v1 @v2)))
                    f2 (spawn-fiber  #(deliver v4 (+ @v3 @v2)))]
-               (Strand/sleep 100)
+               (Strand/sleep 50)
                (deliver v1 1)
                (join [f1 f2 t1])
                (fact
                 (mapv realized? [v1 v2 v3 v4]) =&gt; [true true true true])
-               @v4) =&gt; 5))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/fogus/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
+               @v4) =&gt; 5)
+       (fact &quot;Test promise functions&quot;
+             (let [v0 (promise)
+                   v1 (promise)
+                   v2 (promise #(+ @v1 1))
+                   v3 (promise #(+ @v1 @v2))
+                   v4 (promise #(* (+ @v3 @v2) @v0))]
+               (Strand/sleep 50)
+               (deliver v1 1)
+               (fact
+                (mapv realized? [v0 v1 v2 v3 v4]) =&gt; [false true true true false])
+               (deliver v0 2)
+               @v4) =&gt; 10))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/fogus/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
        SyntaxHighlighter.all()</script></body></html>
