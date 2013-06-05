@@ -18,11 +18,11 @@
 (ns co.paralleluniverse.pulsar.core
   "Pulsar is an implementation of lightweight threads (fibers),
   Go-like channles and Erlang-like actors for the JVM"
-  (:import [java.util.concurrent TimeUnit ExecutionException TimeoutException]
+  (:import [java.util.concurrent TimeUnit ExecutionException TimeoutException Future]
            [jsr166e ForkJoinPool ForkJoinTask]
            [co.paralleluniverse.strands Strand Stranded]
            [co.paralleluniverse.strands SuspendableCallable]
-           [co.paralleluniverse.fibers Fiber Joinable]
+           [co.paralleluniverse.fibers Fiber Joinable FiberUtil]
            [co.paralleluniverse.fibers.instrument]
            [co.paralleluniverse.strands.channels Channel ReceiveChannel SendChannel ChannelGroup
             ObjectChannel IntChannel LongChannel FloatChannel DoubleChannel]
@@ -336,6 +336,32 @@
   []
   (Fiber/currentFiber))
 
+(ann current-fiber [-> Fiber])
+(defn fiber->future
+  "Takes a spawned fiber yields a future object that will
+  invoke the function in another thread, and will cache the result and
+  return it on all subsequent calls to deref/@. If the computation has
+  not yet finished, calls to deref/@ will block, unless the variant
+  of deref with timeout is used. See also - realized?."
+  [f]
+  (let [^Future fut (FiberUtil/toFuture f)]
+    (reify
+      clojure.lang.IDeref
+      (deref [_] (.get fut))
+      clojure.lang.IBlockingDeref
+      (deref
+       [_ timeout-ms timeout-val]
+       (try (.get fut timeout-ms TimeUnit/MILLISECONDS)
+          (catch TimeoutException e
+            timeout-val)))
+      clojure.lang.IPending
+      (isRealized [_] (.isDone fut))
+      Future
+      (get [_] (.get fut))
+      (get [_ timeout unit] (.get fut timeout unit))
+      (isCancelled [_] (.isCancelled fut))
+      (isDone [_] (.isDone fut))
+      (cancel [_ interrupt?] (.cancel fut interrupt?)))))
 
 ;; ## Strands
 ;; A strand is either a thread or a fiber.

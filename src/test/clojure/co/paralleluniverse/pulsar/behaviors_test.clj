@@ -10,7 +10,7 @@
 ; under the terms of the GNU Lesser General Public License version 3.0
 ; as published by the Free Software Foundation.
 
-(ns co.paralleluniverse.behaviors-test
+(ns co.paralleluniverse.pulsar.behaviors-test
   (:use midje.sweet
         co.paralleluniverse.pulsar.core
         co.paralleluniverse.pulsar.behaviors)

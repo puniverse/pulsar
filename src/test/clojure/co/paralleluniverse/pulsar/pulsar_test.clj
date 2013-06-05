@@ -10,7 +10,7 @@
 ; under the terms of the GNU Lesser General Public License version 3.0
 ; as published by the Free Software Foundation.
 
-(ns co.paralleluniverse.pulsar-test
+(ns co.paralleluniverse.pulsar.pulsar-test
   (:use midje.sweet
         co.paralleluniverse.pulsar.core
         co.paralleluniverse.pulsar.dataflow)
@@ -75,6 +75,16 @@
                           (+ v1 v2)))))]
               (join fiber))
             => 30))
+
+(fact "Fiber can be used turned into a future"
+      (let [fiber (spawn-fiber
+                   (fn []
+                     (Strand/sleep 20)
+                     42))
+            fut (fiber->future fiber)]
+        (fact @fut => 42)
+        (fact (realized? fut) => true)))
+
 ;; ## channels
 
 (facts "channel-group"
