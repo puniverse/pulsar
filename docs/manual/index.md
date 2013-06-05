@@ -87,6 +87,16 @@ from the Pulsar test suite:
             => 30))
 ~~~
 
+### Compatibility with Clojure Concurrency Constructs
+
+Code running in fibers may make free use of Clojure atoms and agents. 
+
+Spawning or dereferncing a future creted with `clojure.core/future` is ok, but there's a better alternative: you can turn a spawned fiber into a future with `fiber->future` and can then dereference or call regular future functions on the returned value, like `realized?` (In fact, you don't even have to call `fiber->future`; fibers already implement the `Future` interface and can be treated as futures directly, but this may change in the future, so, until the API is fully settled, we recommend using `fiber->future`).
+
+Promises are supported and encouraged, but do not make use of `clojure.core/promise` to create a promise that's to be dereferenced in a fiber. Instead, use the version of `promise` that's in the `...pulsar.dataflow` namespace. It will provide better performance, and can be dereferenced in fibers and regular threads.
+
+Running a `dosync` block inside a fiber is discouraged as it uses locks internally, but your mileage may vary.
+
 ### Strands
 
 Before we continue, one more bit of nomenclature: a single flow of execution in Quasar/Pulsar is called a *strand*. To put it more simply, a strand is either a normal JVM thread, or a fiber.
@@ -200,7 +210,7 @@ Then, manipulating messages with sequence functions is easy. Here are some examp
                    fiber (spawn-fiber
                           #(s/doall (s/filter odd? (s/take 5 (channel->lazy-seq ch)))))]
                (dotimes [m 10]
-                 (Thread/sleep 20)
+                 (Thread/sleep 20)null
                  (snd ch m))
                (join fiber)) => (list 1 3))
        (fact "Filter and map received sequence with sleep (even)"
@@ -221,5 +231,30 @@ Then, manipulating messages with sequence functions is easy. Here are some examp
 
 To use the terms we've learned so far, an *actor* is a strand that owns a single channel with some added lifecyce management and error handling. But this reductionist view of actors does them little justice. Actors are fundamental building blocks that are combined to build a fault-tolerant application. If you are familiar with Erlang, Pulsar actors are just like Erlang processes.
 
+An actor is a self-contained execution unit with well-defined inputs and outputs. Actors communicate with other actors (as well as regular program threads and fibers) by passing messages.
+
+{:.alert .alert-info}
+**Note**: Actors may write to and read from channels other than their own mailbox. In fact, actors can do whatever regular fibers can.
 
 
+
+
+### Actor State
+
+
+### Selective Receive
+
+
+### Error Handling
+
+
+### Actor registration
+
+
+
+
+## Behaviors
+
+### gen-server
+
+### Supervisors
