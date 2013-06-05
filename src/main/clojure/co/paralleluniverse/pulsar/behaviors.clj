@@ -115,28 +115,37 @@
 
 ;; ## supervisor
 
-(defmacro create-actor
-  "Creates (but doesn't start) a new actor"
-  {:arglists '([:name? :mailbox-size? :lifecycle-handler? f & args])}
-  [& args]
-  (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size ^IFn lifecycle-handler], :or {trap false mailbox-size -1}} body] (kps-args args)]
-    `(let [f# (suspendable! ~(if (== (count body) 1) (first body) `(fn [] (apply ~(first body) (list ~@(rest body))))))]
-       (co.paralleluniverse.actors.PulsarActor. ~name ~trap (int ~mailbox-size) ~lifecycle-handler f#))))
+#_(defn- create-actor
+  [f]
+  (co.paralleluniverse.actors.PulsarActor. nil false (int -1) nil (suspendable! f)))
 
-(defn ^ActorBuilder actor-builder
+(defn- ^ActorBuilder actor-builder
   [f]
   (reify ActorBuilder
     (build [this]
            (f))))
 
+(defn ^LocalActor create-actor
+  [& args]
+  (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size ^IFn lifecycle-handler ^Integer stack-size ^ForkJoinPool pool], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)
+        f  (when (not (instance? LocalActor body))
+             (suspendable! (if (== (count body) 1)
+                             (first body)
+                             (fn [] (apply (first body) (rest body))))))]
+    (if (instance? LocalActor body)
+      body
+      (co.paralleluniverse.actors.PulsarActor. name trap (int mailbox-size) lifecycle-handler f))))
+
 (defn- child-spec
-  [id mode max-restarts duration unit shutdown-deadline-millis f & args]
+  [id mode max-restarts duration unit shutdown-deadline-millis & args]
   (Supervisor$ChildSpec. id
                          (keyword->enum Supervisor$ChildMode mode)
                          (int max-restarts)
                          (long duration) (->timeunit unit)
                          (long shutdown-deadline-millis)
-                         (if (instance? ActorBuilder f) f (actor-builder #(create-actor f)))))
+                         (if (instance? ActorBuilder (first args))
+                           (first args)
+                           (actor-builder #(apply create-actor args)))))
 
 (defn supervisor
   "Creates (but doesn't start) a new supervisor"

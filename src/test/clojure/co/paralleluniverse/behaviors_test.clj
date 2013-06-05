@@ -275,3 +275,46 @@
         (join sup)))
 
 
+(defsusfn actor3
+  [sup started terminated]
+  (let [adder
+        (add-child sup nil :temporary 5 1 :sec 10
+                   (gen-server ; or (spawn (gen-server...))
+                    (reify Server
+                      (init        [_]       (swap! started inc))
+                      (terminate   [_ cause] (swap! terminated inc))
+                      (handle-call [_ from id [a b]]
+                                   (let [res (+ a b)]
+                                     (if (> res 100)
+                                       (throw (Exception. "oops!"))
+                                       res))))))
+        a (receive)
+        b (receive)]
+    (call adder a b)))
+
+(fact "Complex example test1"
+      (let [started    (atom 0)
+            terminated (atom 0)
+            sup (spawn
+                 (supervisor :all-for-one
+                             #(list ["actor1" :permanent 5 1 :sec 10
+                                     :name "koko"
+                                     actor3 @self started terminated])))]
+        (let [a (sup-child sup "actor1" 200)]
+          (! a 3)
+          (! a 4)
+          (fact
+           (join a) => 7))
+        (let [a (sup-child sup "actor1" 200)]
+          (! a 70)
+          (! a 80)
+          (fact
+           (join a) => throws Exception))
+        (let [a (sup-child sup "actor1" 200)]
+          (! a 7)
+          (! a 8)
+          (fact
+           (join a) => 15))
+        (shutdown sup)
+        (join sup)
+        [@started @terminated]) => [4 4])

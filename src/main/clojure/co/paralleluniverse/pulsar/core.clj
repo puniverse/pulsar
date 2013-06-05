@@ -519,7 +519,7 @@
    (vector? bs) "a vector for its binding"
    (even? (count bs)) "an even number of forms in binding vector")
   `(suspendable!
-    ~(if (pos? (count bs))
+    ~(if (seq bs)
        ; actor with state fields
        (let [type (gensym "actor")
              fs (vec (take-nth 2 bs)) ; field names
@@ -544,7 +544,7 @@
         fs (first decl1)]
     (assert-args
      (vector? fs) "a vector for its binding")
-    (if (pos? (count fs))
+    (if (seq fs)
       ; actor with state fields
       (let [fs1 (mapv #(merge-meta % {:unsynchronized-mutable true}) fs)
             body (next decl1)
