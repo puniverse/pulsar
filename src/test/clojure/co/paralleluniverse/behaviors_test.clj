@@ -44,8 +44,8 @@
                                                 (stop)))
                               (terminate [_ cause]))))]
         (fact
-         (join gs 50 :ms) => (throws TimeoutException))
-        (join gs 200 :ms)
+         (join 50 :ms gs) => (throws TimeoutException))
+        (join 200 :ms gs)
         @times) => 5)
 
 (fact "When no messages then handle-timeout is called"
@@ -56,7 +56,7 @@
                               (terminate [_ cause]
                                          (fact cause => nil)))))]
         (fact
-         (join gs 50 :ms) => (throws TimeoutException))
+         (join 50 :ms gs) => (throws TimeoutException))
         (shutdown gs)
         (join gs)) => nil)
 

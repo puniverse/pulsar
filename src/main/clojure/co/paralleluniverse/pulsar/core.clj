@@ -29,7 +29,7 @@
            [co.paralleluniverse.actors ActorRegistry Actor LocalActor ActorImpl PulsarActor LifecycleListener ShutdownMessage]
            [co.paralleluniverse.pulsar ClojureHelper]
            ; for types:
-           [clojure.lang Keyword IObj IFn IMeta IDeref ISeq IPersistentCollection IPersistentVector IPersistentMap])
+           [clojure.lang Keyword Sequential IObj IFn IMeta IDeref ISeq IPersistentCollection IPersistentVector IPersistentMap])
   (:require [clojure.core.match :refer [match]]
             [clojure.core.typed :refer [ann def-alias Option AnyInteger]]))
 
@@ -157,7 +157,7 @@
 (defn ^TimeUnit as-timeunit
   "Converts a keyword to a java.util.concurrent.TimeUnit
   <pre>
-  :nanoseconds | :nanos         -> TimeUnit/NANOSECONDS
+  :nanoseconds | :nanos | :ns   -> TimeUnit/NANOSECONDS
   :microseconds | :us           -> TimeUnit/MICROSECONDS
   :milliseconds | :millis | :ms -> TimeUnit/MILLISECONDS
   :seconds | :sec               -> TimeUnit/SECONDS
@@ -168,7 +168,7 @@
   "
   [x]
   (case x
-    (:nanoseconds :nanos)       TimeUnit/NANOSECONDS
+    (:nanoseconds :nanos :ns)   TimeUnit/NANOSECONDS
     (:microseconds :us)         TimeUnit/MICROSECONDS
     (:milliseconds :millis :ms) TimeUnit/MILLISECONDS
     (:seconds :sec)             TimeUnit/SECONDS
@@ -182,6 +182,10 @@
   (if (instance? TimeUnit x)
     x
     (as-timeunit x)))
+
+(defn convert-duration
+  [x from-unit to-unit]
+  (.convert (->timeunit to-unit) x (->timeunit from-unit)))
 
 (ann tagged-tuple? [Any -> Boolean])
 (defn tagged-tuple?
@@ -332,18 +336,6 @@
   []
   (Fiber/currentFiber))
 
-(ann join [(U Joinable Thread) -> (Option Any)])
-(defn join
-  ([s]
-   (if (instance? Joinable s)
-     (unwrap-exception
-      (.get ^Joinable s))
-     (Strand/join s)))
-  ([s timeout unit]
-   (if (instance? Joinable s)
-     (unwrap-exception
-      (.get ^Joinable s timeout (->timeunit unit)))
-     (Strand/join s timeout (->timeunit unit)))))
 
 ;; ## Strands
 ;; A strand is either a thread or a fiber.
@@ -353,7 +345,6 @@
   "Returns the currently running fiber or current thread in case of new active fiber"
   []
   (Strand/currentStrand))
-
 
 (ann alive? [Strand -> Boolean])
 (defn alive?
@@ -374,6 +365,42 @@
           thread (if name (Thread. ^Runnable f name) (Thread. ^Runnable f))]
        (.start thread)
        thread)))
+
+(ann join* [(U Joinable Thread) -> (Option Any)])
+(defn- join*
+  ([s]
+   (if (instance? Joinable s)
+     (unwrap-exception
+      (.get ^Joinable s))
+     (Strand/join s)))
+  ([timeout unit s]
+   (if (instance? Joinable s)
+     (unwrap-exception
+      (.get ^Joinable s timeout (->timeunit unit)))
+     (Strand/join s timeout (->timeunit unit)))))
+
+(ann join (Fn [(U Joinable Thread) -> (Option Any)]
+              [(Sequential (U Joinable Thread)) -> (ISeq Any)]))
+(defn join
+  ([s]
+   (if (sequential? s)
+     (doall (map join* s))
+     (join* s)))
+  ([timeout unit s]
+   (if (sequential? s)
+     (loop [nanos (long (convert-duration timeout unit :nanos))
+            res []
+            ss s]
+       (when (not (pos? nanos))
+         (throw (TimeoutException.)))
+       (if (seq? ss)
+         (let [start (long (System/nanoTime))
+               r (join* (first ss) nanos TimeUnit/NANOSECONDS)]
+           (recur (- nanos (- (System/nanoTime) start))
+                  (conj res r)
+                  (rest ss)))
+         (seq res)))
+     (join* timeout unit s))))
 
 ;; ## Channels
 
@@ -578,12 +605,12 @@
 ;(ann-protocol IUnifyWithLVar
 ;              unify-with-lvar [Term LVar ISubstitutions -> (U ISubstitutions Fail)])
 
-(ann self (IDeref PulsarActor))
+(ann self (IDeref LocalActor))
 (def self
   "@self is the currently running actor"
   (reify
     clojure.lang.IDeref
-    (deref [_] (PulsarActor/self))))
+    (deref [_] (LocalActor/self))))
 
 (ann state (IDeref Any))
 (def state

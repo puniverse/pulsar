@@ -130,7 +130,7 @@
            (f))))
 
 (defn- child-spec
-  [id mode max-restarts duration unit shutdown-deadline-millis f]
+  [id mode max-restarts duration unit shutdown-deadline-millis f & args]
   (Supervisor$ChildSpec. id
                          (keyword->enum Supervisor$ChildMode mode)
                          (int max-restarts)
@@ -151,8 +151,8 @@
 
 (defn add-child
   "Adds an actor to a supervisor"
-  [^Supervisor supervisor name f mode max-restarts duration unit shutdown-deadline-millis]
-  (.addChild supervisor (child-spec name f mode max-restarts duration unit shutdown-deadline-millis)))
+  [^Supervisor supervisor id mode max-restarts duration unit shutdown-deadline-millis f]
+  (.addChild supervisor (child-spec id mode max-restarts duration unit shutdown-deadline-millis f)))
 
 (defn remove-child
   "Removes an actor from a supervisor"

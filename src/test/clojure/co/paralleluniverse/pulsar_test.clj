@@ -26,14 +26,14 @@
 (fact "fiber-timeout"
       (fact "When join and timeout then throw exception"
             (let [fib (spawn-fiber #(Fiber/park 100 TimeUnit/MILLISECONDS))]
-              (join fib 2 TimeUnit/MILLISECONDS))
+              (join 2 :ms fib))
             => (throws TimeoutException))
       (fact "When join and no timeout then join"
             (let [fib (spawn-fiber
                        #(do
                           (Fiber/park 100 TimeUnit/MILLISECONDS)
                           15))]
-              (join fib 200 TimeUnit/MILLISECONDS))
+              (join 200 :ms fib))
             => 15))
 
 (fact "When fiber throws exception then join throws that exception"
@@ -427,7 +427,7 @@
                    f2 (spawn-fiber  #(deliver v4 (+ @v3 @v2)))]
                (Strand/sleep 100)
                (deliver v1 1)
-               (mapv join [f1 f2 t1])
+               (join [f1 f2 t1])
                (fact
                 (mapv realized? [v1 v2 v3 v4]) => [true true true true])
                @v4) => 5))
