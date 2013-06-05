@@ -4403,6 +4403,7 @@ manually add a known actor to a supervisor, so this ugly function is only useful
           (! a 8)
           (fact
            (join a) =&gt; 15))
+        (Strand/sleep 100) ; give the actor time to start the gen-server
         (shutdown sup)
         (join sup)
         [@started @terminated]) =&gt; [4 4])</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.examples.binary" name="co.paralleluniverse.pulsar.examples.binary"><h1 class="project-name">co.paralleluniverse.pulsar.examples.binary</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>A binary-data buffer message example</p>
