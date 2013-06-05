@@ -315,6 +315,7 @@
           (! a 8)
           (fact
            (join a) => 15))
+        (Strand/sleep 100) ; give the actor time to start the gen-server
         (shutdown sup)
         (join sup)
         [@started @terminated]) => [4 4])
