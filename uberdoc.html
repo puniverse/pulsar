@@ -3029,7 +3029,7 @@ net.brehaut.ClojureTools = (function (SH) {
   };
 })(SyntaxHighlighter);
 </script><title>co.paralleluniverse/pulsar -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">co.paralleluniverse/pulsar</h1><h2 class="project-version">0.2-SNAPSHOT</h2><br /><p>A Clojure actor library</p>
-</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.5.1</td></tr><tr><td class="dep-name">co.paralleluniverse/quasar</td><td class="dotted"><hr /></td><td class="dep-version">0.2-SNAPSHOT</td></tr><tr><td class="dep-name">com.yammer.metrics/metrics-core</td><td class="dotted"><hr /></td><td class="dep-version">2.0.2</td></tr><tr><td class="dep-name">org.ow2.asm/asm</td><td class="dotted"><hr /></td><td class="dep-version">4.1</td></tr><tr><td class="dep-name">org.ow2.asm/asm-analysis</td><td class="dotted"><hr /></td><td class="dep-version">4.1</td></tr><tr><td class="dep-name">org.ow2.asm/asm-util</td><td class="dotted"><hr /></td><td class="dep-version">4.1</td></tr><tr><td class="dep-name">com.google.guava/guava</td><td class="dotted"><hr /></td><td class="dep-version">11.0.1</td></tr><tr><td class="dep-name">org.clojure/core.match</td><td class="dotted"><hr /></td><td class="dep-version">0.2.0-alpha12</td></tr><tr><td class="dep-name">useful</td><td class="dotted"><hr /></td><td class="dep-version">0.8.3-alpha8</td></tr><tr><td class="dep-name">gloss</td><td class="dotted"><hr /></td><td class="dep-version">0.2.2-beta4</td></tr><tr><td class="dep-name">org.clojure/core.typed</td><td class="dotted"><hr /></td><td class="dep-version">0.1.14</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#co.paralleluniverse.pulsar.behaviors">co.paralleluniverse.pulsar.behaviors</a></li><li><a href="#co.paralleluniverse.pulsar.core">co.paralleluniverse.pulsar.core</a></li><li><a href="#co.paralleluniverse.pulsar.dataflow">co.paralleluniverse.pulsar.dataflow</a></li><li><a href="#co.paralleluniverse.pulsar.interop">co.paralleluniverse.pulsar.interop</a></li><li><a href="#co.paralleluniverse.pulsar.lazyseq">co.paralleluniverse.pulsar.lazyseq</a></li><li><a href="#co.paralleluniverse.behaviors-test">co.paralleluniverse.behaviors-test</a></li><li><a href="#co.paralleluniverse.pulsar.examples.binary">co.paralleluniverse.pulsar.examples.binary</a></li><li><a href="#co.paralleluniverse.pulsar.examples.graph">co.paralleluniverse.pulsar.examples.graph</a></li><li><a href="#co.paralleluniverse.pulsar.examples.pingpong">co.paralleluniverse.pulsar.examples.pingpong</a></li><li><a href="#co.paralleluniverse.pulsar.examples.primitive-ring-benchmark">co.paralleluniverse.pulsar.examples.primitive-ring-benchmark</a></li><li><a href="#co.paralleluniverse.pulsar.examples.priority">co.paralleluniverse.pulsar.examples.priority</a></li><li><a href="#co.paralleluniverse.pulsar.examples.ring-benchmark">co.paralleluniverse.pulsar.examples.ring-benchmark</a></li><li><a href="#co.paralleluniverse.pulsar-test">co.paralleluniverse.pulsar-test</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.behaviors" name="co.paralleluniverse.pulsar.behaviors"><h1 class="project-name">co.paralleluniverse.pulsar.behaviors</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>This program and the accompanying materials are dual-licensed under
+</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.5.1</td></tr><tr><td class="dep-name">co.paralleluniverse/quasar</td><td class="dotted"><hr /></td><td class="dep-version">0.2-SNAPSHOT</td></tr><tr><td class="dep-name">com.yammer.metrics/metrics-core</td><td class="dotted"><hr /></td><td class="dep-version">2.0.2</td></tr><tr><td class="dep-name">org.ow2.asm/asm</td><td class="dotted"><hr /></td><td class="dep-version">4.1</td></tr><tr><td class="dep-name">org.ow2.asm/asm-analysis</td><td class="dotted"><hr /></td><td class="dep-version">4.1</td></tr><tr><td class="dep-name">org.ow2.asm/asm-util</td><td class="dotted"><hr /></td><td class="dep-version">4.1</td></tr><tr><td class="dep-name">com.google.guava/guava</td><td class="dotted"><hr /></td><td class="dep-version">11.0.1</td></tr><tr><td class="dep-name">org.clojure/core.match</td><td class="dotted"><hr /></td><td class="dep-version">0.2.0-alpha12</td></tr><tr><td class="dep-name">useful</td><td class="dotted"><hr /></td><td class="dep-version">0.8.3-alpha8</td></tr><tr><td class="dep-name">gloss</td><td class="dotted"><hr /></td><td class="dep-version">0.2.2-beta4</td></tr><tr><td class="dep-name">org.clojure/core.typed</td><td class="dotted"><hr /></td><td class="dep-version">0.1.14</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#co.paralleluniverse.pulsar.behaviors">co.paralleluniverse.pulsar.behaviors</a></li><li><a href="#co.paralleluniverse.pulsar.core">co.paralleluniverse.pulsar.core</a></li><li><a href="#co.paralleluniverse.pulsar.dataflow">co.paralleluniverse.pulsar.dataflow</a></li><li><a href="#co.paralleluniverse.pulsar.interop">co.paralleluniverse.pulsar.interop</a></li><li><a href="#co.paralleluniverse.pulsar.lazyseq">co.paralleluniverse.pulsar.lazyseq</a></li><li><a href="#co.paralleluniverse.pulsar.behaviors-test">co.paralleluniverse.pulsar.behaviors-test</a></li><li><a href="#co.paralleluniverse.pulsar.examples.binary">co.paralleluniverse.pulsar.examples.binary</a></li><li><a href="#co.paralleluniverse.pulsar.examples.graph">co.paralleluniverse.pulsar.examples.graph</a></li><li><a href="#co.paralleluniverse.pulsar.examples.pingpong">co.paralleluniverse.pulsar.examples.pingpong</a></li><li><a href="#co.paralleluniverse.pulsar.examples.primitive-ring-benchmark">co.paralleluniverse.pulsar.examples.primitive-ring-benchmark</a></li><li><a href="#co.paralleluniverse.pulsar.examples.priority">co.paralleluniverse.pulsar.examples.priority</a></li><li><a href="#co.paralleluniverse.pulsar.examples.ring-benchmark">co.paralleluniverse.pulsar.examples.ring-benchmark</a></li><li><a href="#co.paralleluniverse.pulsar.pulsar-test">co.paralleluniverse.pulsar.pulsar-test</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.behaviors" name="co.paralleluniverse.pulsar.behaviors"><h1 class="project-name">co.paralleluniverse.pulsar.behaviors</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>This program and the accompanying materials are dual-licensed under
 either the terms of the Eclipse Public License v1.0 as published by
 the Eclipse Foundation</p>
 
@@ -3175,11 +3175,11 @@ as published by the Free Software Foundation.</p>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>Pulsar is an implementation of lightweight threads (fibers),
   Go-like channles and Erlang-like actors for the JVM</p>
 </td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar.core
-  (:import [java.util.concurrent TimeUnit ExecutionException TimeoutException]
+  (:import [java.util.concurrent TimeUnit ExecutionException TimeoutException Future]
            [jsr166e ForkJoinPool ForkJoinTask]
            [co.paralleluniverse.strands Strand Stranded]
            [co.paralleluniverse.strands SuspendableCallable]
-           [co.paralleluniverse.fibers Fiber Joinable]
+           [co.paralleluniverse.fibers Fiber Joinable FiberUtil]
            [co.paralleluniverse.fibers.instrument]
            [co.paralleluniverse.strands.channels Channel ReceiveChannel SendChannel ChannelGroup
             ObjectChannel IntChannel LongChannel FloatChannel DoubleChannel]
@@ -3435,7 +3435,32 @@ while running in a fiber.</p>
 </td><td class="codes"><pre class="brush: clojure">(ann current-fiber [-&gt; Fiber])
 (defn current-fiber
   []
-  (Fiber/currentFiber))</pre></td></tr><tr><td class="docs"><h2>Strands</h2>
+  (Fiber/currentFiber))</pre></td></tr><tr><td class="docs"><p>Takes a spawned fiber yields a future object that will
+  invoke the function in another thread, and will cache the result and
+  return it on all subsequent calls to deref/@. If the computation has
+  not yet finished, calls to deref/@ will block, unless the variant
+  of deref with timeout is used. See also - realized?.</p>
+</td><td class="codes"><pre class="brush: clojure">(ann current-fiber [-&gt; Fiber])
+(defn fiber-&gt;future
+  [f]
+  (let [^Future fut (FiberUtil/toFuture f)]
+    (reify
+      clojure.lang.IDeref
+      (deref [_] (.get fut))
+      clojure.lang.IBlockingDeref
+      (deref
+       [_ timeout-ms timeout-val]
+       (try (.get fut timeout-ms TimeUnit/MILLISECONDS)
+          (catch TimeoutException e
+            timeout-val)))
+      clojure.lang.IPending
+      (isRealized [_] (.isDone fut))
+      Future
+      (get [_] (.get fut))
+      (get [_ timeout unit] (.get fut timeout unit))
+      (isCancelled [_] (.isCancelled fut))
+      (isDone [_] (.isDone fut))
+      (cancel [_ interrupt?] (.cancel fut interrupt?)))))</pre></td></tr><tr><td class="docs"><h2>Strands</h2>
 
 <p>A strand is either a thread or a fiber.</p>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>Returns the currently running fiber or current thread in case of new active fiber</p>
@@ -4112,7 +4137,7 @@ Here, lazy-seq is defined without the :once tag.</p>
             r (rest s)]
         (if (pred f)
           (cons f (filter pred r))
-          (filter pred r)))))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.behaviors-test" name="co.paralleluniverse.behaviors-test"><h1 class="project-name">co.paralleluniverse.behaviors-test</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>This program and the accompanying materials are dual-licensed under
+          (filter pred r)))))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.behaviors-test" name="co.paralleluniverse.pulsar.behaviors-test"><h1 class="project-name">co.paralleluniverse.pulsar.behaviors-test</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>This program and the accompanying materials are dual-licensed under
 either the terms of the Eclipse Public License v1.0 as published by
 the Eclipse Foundation</p>
 
@@ -4121,7 +4146,7 @@ the Eclipse Foundation</p>
 <p>under the terms of the GNU Lesser General Public License version 3.0
 as published by the Free Software Foundation.</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.behaviors-test
+</td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar.behaviors-test
   (:use midje.sweet
         co.paralleluniverse.pulsar.core
         co.paralleluniverse.pulsar.behaviors)
@@ -4569,7 +4594,7 @@ so it is not written in idiomatic Clojure</p>
                                      (recur (inc j)))
                                    m)))))]
                (join manager)))]
-        (println i &quot;: Messages &quot; num-messages)))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar-test" name="co.paralleluniverse.pulsar-test"><h1 class="project-name">co.paralleluniverse.pulsar-test</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>This program and the accompanying materials are dual-licensed under
+        (println i &quot;: Messages &quot; num-messages)))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.pulsar-test" name="co.paralleluniverse.pulsar.pulsar-test"><h1 class="project-name">co.paralleluniverse.pulsar.pulsar-test</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>This program and the accompanying materials are dual-licensed under
 either the terms of the Eclipse Public License v1.0 as published by
 the Eclipse Foundation</p>
 
@@ -4578,7 +4603,7 @@ the Eclipse Foundation</p>
 <p>under the terms of the GNU Lesser General Public License version 3.0
 as published by the Free Software Foundation.</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar-test
+</td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar.pulsar-test
   (:use midje.sweet
         co.paralleluniverse.pulsar.core
         co.paralleluniverse.pulsar.dataflow)
@@ -4635,7 +4660,15 @@ as published by the Free Software Foundation.</p>
                         (let [v2 *foo*]
                           (+ v1 v2)))))]
               (join fiber))
-            =&gt; 30))</pre></td></tr><tr><td class="docs"><h2>channels</h2>
+            =&gt; 30))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(fact &quot;Fiber can be used turned into a future&quot;
+      (let [fiber (spawn-fiber
+                   (fn []
+                     (Strand/sleep 20)
+                     42))
+            fut (fiber-&gt;future fiber)]
+        (fact @fut =&gt; 42)
+        (fact (realized? fut) =&gt; true)))</pre></td></tr><tr><td class="docs"><h2>channels</h2>
 </td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(facts &quot;channel-group&quot;
        (fact &quot;Receive from channel group&quot;

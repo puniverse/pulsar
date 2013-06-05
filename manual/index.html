@@ -56,19 +56,19 @@
           
           
           
-            <li>
-              <a  href="/pulsar/getting-started.html">
-                Getting Started
-              </a>
-              
-            </li>
-          
         
           
           
             
           
           
+          
+            <li>
+              <a  href="/pulsar/getting-started.html">
+                Getting Started
+              </a>
+              
+            </li>
           
         
           
@@ -101,21 +101,21 @@
           
           
           
+            <li>
+              <a class="active" href="/pulsar/manual/index.html">
+                User Manual
+              </a>
+              
+              <ul class="nav nav-list"><li><a href="#quasar-and-pulsar">Quasar and Pulsar</a></li><li><a href="#fibers">Fibers</a></li><li><a href="#channels">Channels</a></li><li><a href="#actors">Actors</a></li><li><a href="#behaviors">Behaviors</a></li></ul>
+              
+            </li>
+          
         
           
           
             
           
           
-          
-            <li>
-              <a class="active" href="/pulsar/manual/index.html">
-                User Manual
-              </a>
-              
-              <ul class="nav nav-list"><li><a href="#quasar-and-pulsar">Quasar and Pulsar</a></li><li><a href="#fibers">Fibers</a></li><li><a href="#channels">Channels</a></li><li><a href="#actors">Actors</a></li></ul>
-              
-            </li>
           
         
           
@@ -243,6 +243,16 @@ from the Pulsar test suite:</p>
             =&gt; 30))
 </code></pre>
 
+<h3 id="compatibility-with-clojure-concurrency-constructs">Compatibility with Clojure Concurrency Constructs</h3>
+
+<p>Code running in fibers may make free use of Clojure atoms and agents. </p>
+
+<p>Spawning or dereferncing a future creted with <code>clojure.core/future</code> is ok, but there’s a better alternative: you can turn a spawned fiber into a future with <code>fiber-&gt;future</code> and can then dereference or call regular future functions on the returned value, like <code>realized?</code> (In fact, you don’t even have to call <code>fiber-&gt;future</code>; fibers already implement the <code>Future</code> interface and can be treated as futures directly, but this may change in the future, so, until the API is fully settled, we recommend using <code>fiber-&gt;future</code>).</p>
+
+<p>Promises are supported and encouraged, but do not make use of <code>clojure.core/promise</code> to create a promise that’s to be dereferenced in a fiber. Instead, use the version of <code>promise</code> that’s in the <code>...pulsar.dataflow</code> namespace. It will provide better performance, and can be dereferenced in fibers and regular threads.</p>
+
+<p>Running a <code>dosync</code> block inside a fiber is discouraged as it uses locks internally, but your mileage may vary.</p>
+
 <h3 id="strands">Strands</h3>
 
 <p>Before we continue, one more bit of nomenclature: a single flow of execution in Quasar/Pulsar is called a <em>strand</em>. To put it more simply, a strand is either a normal JVM thread, or a fiber.</p>
@@ -358,7 +368,7 @@ from the Pulsar test suite:</p>
                    fiber (spawn-fiber
                           #(s/doall (s/filter odd? (s/take 5 (channel-&gt;lazy-seq ch)))))]
                (dotimes [m 10]
-                 (Thread/sleep 20)
+                 (Thread/sleep 20)null
                  (snd ch m))
                (join fiber)) =&gt; (list 1 3))
        (fact "Filter and map received sequence with sleep (even)"
@@ -379,6 +389,23 @@ from the Pulsar test suite:</p>
 
 <p>To use the terms we’ve learned so far, an <em>actor</em> is a strand that owns a single channel with some added lifecyce management and error handling. But this reductionist view of actors does them little justice. Actors are fundamental building blocks that are combined to build a fault-tolerant application. If you are familiar with Erlang, Pulsar actors are just like Erlang processes.</p>
 
+<p>An actor is a self-contained execution unit with well-defined inputs and outputs. Actors communicate with other actors (as well as regular program threads and fibers) by passing messages.</p>
+
+<p class="alert alert-info"><strong>Note</strong>: Actors may write to and read from channels other than their own mailbox. In fact, actors can do whatever regular fibers can.</p>
+
+<h3 id="actor-state">Actor State</h3>
+
+<h3 id="selective-receive">Selective Receive</h3>
+
+<h3 id="error-handling">Error Handling</h3>
+
+<h3 id="actor-registration">Actor registration</h3>
+
+<h2 id="behaviors">Behaviors</h2>
+
+<h3 id="gen-server">gen-server</h3>
+
+<h3 id="supervisors">Supervisors</h3>
 </div>
 
       <hr>
