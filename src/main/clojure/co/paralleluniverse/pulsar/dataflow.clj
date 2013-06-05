@@ -17,7 +17,8 @@
            [co.paralleluniverse.strands.dataflow DelayedVal]
            ; for types:
            [clojure.lang Keyword IObj IFn IMeta IDeref ISeq IPersistentCollection IPersistentVector IPersistentMap])
-  (:require [clojure.core.typed :refer [ann def-alias Option AnyInteger]]))
+  (:require [co.paralleluniverse.pulsar.core :refer :all]
+            [clojure.core.typed :refer [ann def-alias Option AnyInteger]]))
 
 (defn promise
   "Returns a promise object that can be read with deref/@, and set,
@@ -27,24 +28,29 @@
   blocking. See also - realized?.
 
   Unlike clojure.core/promise, this promise object can be used inside Pulsar fibers."
-  []
-  (let [dv (DelayedVal.)]
-    (reify
-      clojure.lang.IDeref
-      (deref [_]
-             (.get dv))
-      clojure.lang.IBlockingDeref
-      (deref
-       [_ timeout-ms timeout-val]
-       (try
-         (.get dv timeout-ms TimeUnit/MILLISECONDS)
-         (catch TimeoutException e
-           timeout-val)))
-      clojure.lang.IPending
-      (isRealized [this]
-                  (.isDone dv))
-      clojure.lang.IFn
-      (invoke
-       [this x]
-       (.set dv x)
-       this))))
+  ([]
+   (let [dv (DelayedVal.)]
+     (reify
+       clojure.lang.IDeref
+       (deref [_]
+              (.get dv))
+       clojure.lang.IBlockingDeref
+       (deref
+        [_ timeout-ms timeout-val]
+        (try
+          (.get dv timeout-ms TimeUnit/MILLISECONDS)
+          (catch TimeoutException e
+            timeout-val)))
+       clojure.lang.IPending
+       (isRealized [this]
+                   (.isDone dv))
+       clojure.lang.IFn
+       (invoke
+        [this x]
+        (.set dv x)
+        this))))
+  ([f]
+   (let [p (promise)]
+     (suspendable! f)
+     (spawn-fiber #(deliver p (f)))
+     p)))

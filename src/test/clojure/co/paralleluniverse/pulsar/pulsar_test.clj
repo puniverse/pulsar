@@ -55,26 +55,26 @@
 (def ^:dynamic *foo* 40)
 
 (facts "fiber-bindings"
-      (fact "Fiber inherits thread bindings"
-            (let [fiber
-                  (binding [*foo* 20]
-                    (spawn-fiber
-                     #(let [v1 *foo*]
-                        (Fiber/sleep 200)
-                        (let [v2 *foo*]
-                          (+ v1 v2)))))]
-              (join fiber))
-            => 40)
-      (fact "Bindings declared in fiber last throughout fiber lifetime"
-            (let [fiber
-                  (spawn-fiber
-                   #(binding [*foo* 15]
-                      (let [v1 *foo*]
-                        (Fiber/sleep 200)
-                        (let [v2 *foo*]
-                          (+ v1 v2)))))]
-              (join fiber))
-            => 30))
+       (fact "Fiber inherits thread bindings"
+             (let [fiber
+                   (binding [*foo* 20]
+                     (spawn-fiber
+                      #(let [v1 *foo*]
+                         (Fiber/sleep 200)
+                         (let [v2 *foo*]
+                           (+ v1 v2)))))]
+               (join fiber))
+             => 40)
+       (fact "Bindings declared in fiber last throughout fiber lifetime"
+             (let [fiber
+                   (spawn-fiber
+                    #(binding [*foo* 15]
+                       (let [v1 *foo*]
+                         (Fiber/sleep 200)
+                         (let [v2 *foo*]
+                           (+ v1 v2)))))]
+               (join fiber))
+             => 30))
 
 (fact "Fiber can be used turned into a future"
       (let [fiber (spawn-fiber
@@ -271,45 +271,45 @@
               @res) => [1 3 2]))
 
 (facts "actor-link"
-  (fact "When an actor dies, its link gets an exception"
-    (let [actor1 (spawn #(Fiber/sleep 100))
-          actor2 (spawn
-                  #(try
-                     (loop [] (receive [m] :foo :bar) (recur))
-                     (catch co.paralleluniverse.actors.LifecycleException e
-                       true)))]
-      (link! actor1 actor2)
-      (join actor1)
-      (join actor2)) => true)
-  (fact "When an actor dies and lifecycle-handler is defined, then it gets a message"
-    (let [actor1 (spawn #(Fiber/sleep 100))
-          actor2 (spawn :lifecycle-handler #(! @self [:foo (first %)])
-                        #(try
-                           (loop [] (receive [m]
-                                             [:foo x] x
-                                             :else (recur)))
-                           (catch co.paralleluniverse.actors.LifecycleException e nil)))]
-      (link! actor1 actor2)
-      (join actor1)
-      (join actor2)) => :exit)
-  (fact "When an actor dies, and its link traps, then its link gets a message"
-    (let [actor1 (spawn #(Fiber/sleep 100))
-          actor2 (spawn :trap true
-                        #(receive [m]
-                                  [:exit _ actor reason] actor))]
-      (link! actor1 actor2)
-      (join actor1)
-      (fact (join actor2) => actor1))))
+       (fact "When an actor dies, its link gets an exception"
+             (let [actor1 (spawn #(Fiber/sleep 100))
+                   actor2 (spawn
+                           #(try
+                              (loop [] (receive [m] :foo :bar) (recur))
+                              (catch co.paralleluniverse.actors.LifecycleException e
+                                true)))]
+               (link! actor1 actor2)
+               (join actor1)
+               (join actor2)) => true)
+       (fact "When an actor dies and lifecycle-handler is defined, then it gets a message"
+             (let [actor1 (spawn #(Fiber/sleep 100))
+                   actor2 (spawn :lifecycle-handler #(! @self [:foo (first %)])
+                                 #(try
+                                    (loop [] (receive [m]
+                                                      [:foo x] x
+                                                      :else (recur)))
+                                    (catch co.paralleluniverse.actors.LifecycleException e nil)))]
+               (link! actor1 actor2)
+               (join actor1)
+               (join actor2)) => :exit)
+       (fact "When an actor dies, and its link traps, then its link gets a message"
+             (let [actor1 (spawn #(Fiber/sleep 100))
+                   actor2 (spawn :trap true
+                                 #(receive [m]
+                                           [:exit _ actor reason] actor))]
+               (link! actor1 actor2)
+               (join actor1)
+               (fact (join actor2) => actor1))))
 
 (fact "actor-watch"
-  (fact "When an actor dies, its watch gets a message"
-    (let [actor1 (spawn #(Fiber/sleep 200))
-          actor2 (spawn
-                  #(receive
-                    [:exit watch actor reason] watch))
-          wtc (watch! actor2 actor1)]
-      (join actor1)
-      (fact (join actor2) => wtc))))
+      (fact "When an actor dies, its watch gets a message"
+            (let [actor1 (spawn #(Fiber/sleep 200))
+                  actor2 (spawn
+                          #(receive
+                            [:exit watch actor reason] watch))
+                  wtc (watch! actor2 actor1)]
+              (join actor1)
+              (fact (join actor2) => wtc))))
 
 (facts "actor-state"
        (fact "Test recur actor-state"
@@ -435,9 +435,21 @@
                    f1 (spawn-fiber  #(deliver v2 (+ @v1 1)))
                    t1 (spawn-thread #(deliver v3 (+ @v1 @v2)))
                    f2 (spawn-fiber  #(deliver v4 (+ @v3 @v2)))]
-               (Strand/sleep 100)
+               (Strand/sleep 50)
                (deliver v1 1)
                (join [f1 f2 t1])
                (fact
                 (mapv realized? [v1 v2 v3 v4]) => [true true true true])
-               @v4) => 5))
+               @v4) => 5)
+       (fact "Test promise functions"
+             (let [v0 (promise)
+                   v1 (promise)
+                   v2 (promise #(+ @v1 1))
+                   v3 (promise #(+ @v1 @v2))
+                   v4 (promise #(* (+ @v3 @v2) @v0))]
+               (Strand/sleep 50)
+               (deliver v1 1)
+               (fact
+                (mapv realized? [v0 v1 v2 v3 v4]) => [false true true true false])
+               (deliver v0 2)
+               @v4) => 10))
