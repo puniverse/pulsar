@@ -20,6 +20,9 @@ One significant difference between Fibers and Threads is that Fibers are not pre
 Suspendable functions require special bytecode instrumentation (performed by an instrumentation agent), so they must be explicitly designated as such.
 The function `suspendable!` marks a given function as a suspendable function (this operation cannot be undone). The `defsusfn` macro, with the same syntax as `defn` defines a suspendable function.
 
+{:.alert .alert-info}
+**Note**: All functions (i.e. `fn`s) passed to any of the Pulsar API functions and macros are automatically made suspendable, so in most simple cases you will never need to use `susfn`, `defsusfn` or `suspendable!`.
+
 ### Spawning Fibers
 
 To create a fiber of a function `f` that takes arguments `arg1` and `arg2`, run
@@ -47,12 +50,12 @@ If `f` returns a value, `join` will return that value. If `f` throws an exceptio
 
 You can also wait for a fiber's termination for a given duration. The following will wait for half a second for the fiber to terminate:
 
-    (join fiber 500 java.util.concurrent.TimeUnit/MILLISECONDS)
+    (join 500 java.util.concurrent.TimeUnit/MILLISECONDS fiber)
 
 The following will have the same effect:
 
 ~~~ clj
-(join fiber 500 :ms)
+(join 500 :ms fiber)
 ~~~
 
 ### Bindings
@@ -93,7 +96,7 @@ Code running in fibers may make free use of Clojure atoms and agents.
 
 Spawning or dereferncing a future creted with `clojure.core/future` is ok, but there's a better alternative: you can turn a spawned fiber into a future with `fiber->future` and can then dereference or call regular future functions on the returned value, like `realized?` (In fact, you don't even have to call `fiber->future`; fibers already implement the `Future` interface and can be treated as futures directly, but this may change in the future, so, until the API is fully settled, we recommend using `fiber->future`).
 
-Promises are supported and encouraged, but do not make use of `clojure.core/promise` to create a promise that's to be dereferenced in a fiber. Instead, use the version of `promise` that's in the `...pulsar.dataflow` namespace. It will provide better performance, and can be dereferenced in fibers and regular threads.
+Promises are supported and encouraged, but do not make use of `clojure.core/promise` to create a promise that's to be dereferenced in a fiber. Instead, use the version of `promise` that's in the `...pulsar.dataflow` namespace. It will provide better performance, and can be dereferenced in fibers and regular threads. Plus, Pulsar promises are much cooler than `core.promise`, as you'll see later.
 
 Running a `dosync` block inside a fiber is discouraged as it uses locks internally, but your mileage may vary.
 
@@ -236,13 +239,79 @@ An actor is a self-contained execution unit with well-defined inputs and outputs
 {:.alert .alert-info}
 **Note**: Actors may write to and read from channels other than their own mailbox. In fact, actors can do whatever regular fibers can.
 
+### Spawning actors
+
+Actors can run in any strand – fiber or thread - but for now, Pulsar only supports actors running in fibers (Quasar, the Java library that Pulsar wraps, allows running actors in regular threads).
+
+An actor is basically a function that -- if the actor is to do anything interesting -- receives messages from the mailbox.
+To create and start an actor of a function `f` that takes arguments `arg1` and `arg2`, run
+
+    (spawn f arg1 arg2)
+
+This will create a new actor, and start running it in a new fiber.
+
+`spawn` automatically marks `f` as suspendable, so there's no need to do so explicitly.
+
+`spawn` takes optional keyword arguments:
+
+* `:name` - The actor's name (that's also given to the fiber running the actor).
+* `:mailbox-size` - The number of messages that can wait in the mailbox, or -1 (the default) for an unbounded mailbox.
+* `:lifecycle-handle` - A function that will be called to handle special messages sent to the actor. If set to `nil` (the default), the default handler is used, which is what you want in all circumstances, except for some actors that are meant to do some special tricks.
+* `:fj-pool` - The `ForkJoinPool` in which the fiber will run.
+  If `:fj-pool` is not specified, then the pool used will be either 1) the pool of the fiber calling `spawn-fiber`, or, if `spawn-fiber` is not called from within a fiber, a default pool.
+* `:stack-size` - The initial fiber data stack size.
+
+Of all the optional arguments, you'll usually only use `:name` and `:mailbox-size`. As mentioned, by default the mailbox is unbounded. Bounded mailboxes provide better performance and should be considered for actors that are expected to handle messages at a very high rate. However, a bounded mailbox that overflows, will inject an exception into the *receiving* actor, which will, in most circumstances, cause it to terminate.
+
+An actor can be `join`ed, just like a fiber.
+
+### Sending and Receiving Messages
+
+An actor's mailbox is a channel, that can be obtained with the `mailbox-of` function. You can therefore send a message to an actor like so:
+
+    (snd (mailbox-of actor) msg)
+
+But there's an easier way. Actors implement the `SendChannel` interface, and so, are treated like a channel by the `snd` function. So we can simple call:
+
+    (snd actor msg)
+
+While the above is a perfectly valid way of sending a message to an actor, this is not how it's normally done. Instead of `snd` we normally use the `!` (bang) function to send a message to an actor, like so:
+
+    (! actor msg)
+
+The bang operator has a slightly different semantic than `snd`. While `snd` will always place the message in the mailbox, `!` will only do it if the actor is alive. It will not place a message in the mailbox if there is no one to receive it on the other end (and never will be, as mailboxes, like all channels, cannot change ownership).
+
+In many circumstances, an actor sends a message to another actor, and expects a reply. In those circumstances, using `!!` instead of `!` might offer reduced latency (but with the same semantics; both `!` and `!!` always return `nil`)
+
+The value `@self`, when evaluated in an actor, returns the actor. So, as you may guess, an actor can receive messages with:
+
+    (rcv (mailbox-of @self))
+
+`@mailbox` returns the actor's own mailbox channel, so the above may be written as:
+
+    (rcv @mailbox)
+
+... and because actors also implement the `ReceiveChannel` interface required by `rcv`, the following will also work:
+
+    (rcv @self)
+
+But, again, while an actor can be treated as a fiber with a channel, it has some extra features that give it a super-extra punch. Actors normally receive messages with the `receive` function, like so:
+
+    (receive)
+
+`receive` has some features that make it very suitable for handling messages in actors. Its most 
+
+
+But we could have achieved all that with `rcv` like so:
+
+   (rcv-timed )
+`receive` is much more powerful than `rcv`, mostly because of a feature we will now introduce.
+
+### Selective Receive
 
 
 
 ### Actor State
-
-
-### Selective Receive
 
 
 ### Error Handling
@@ -258,3 +327,8 @@ An actor is a self-contained execution unit with well-defined inputs and outputs
 ### gen-server
 
 ### Supervisors
+
+
+## Dataflow
+
+
