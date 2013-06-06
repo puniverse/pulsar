@@ -96,13 +96,15 @@ Code running in fibers may make free use of Clojure atoms and agents.
 
 Spawning or dereferncing a future creted with `clojure.core/future` is ok, but there's a better alternative: you can turn a spawned fiber into a future with `fiber->future` and can then dereference or call regular future functions on the returned value, like `realized?` (In fact, you don't even have to call `fiber->future`; fibers already implement the `Future` interface and can be treated as futures directly, but this may change in the future, so, until the API is fully settled, we recommend using `fiber->future`).
 
-Promises are supported and encouraged, but do not make use of `clojure.core/promise` to create a promise that's to be dereferenced in a fiber. Instead, use the version of `promise` that's in the `...pulsar.dataflow` namespace. It will provide better performance, and can be dereferenced in fibers and regular threads. Plus, Pulsar promises are much cooler than `core.promise`, as you'll see later.
+Promises are supported and encouraged, but you should not make use of `clojure.core/promise` to create a promise that's to be dereferenced in a fiber. Instead, use the version of `promise` that's in the `...pulsar.dataflow` namespace. It will provide better performance, and can be dereferenced efficiently in fibers as well as regular threads. Plus, Pulsar promises are much cooler than `core.promise`, as you'll see later.
 
 Running a `dosync` block inside a fiber is discouraged as it uses locks internally, but your mileage may vary.
 
 ### Strands
 
 Before we continue, one more bit of nomenclature: a single flow of execution in Quasar/Pulsar is called a *strand*. To put it more simply, a strand is either a normal JVM thread, or a fiber.
+
+The strand abstraction helps you write code that works whether it runs in a fiber or not. For example, `(Strand/currentStrand)` returns the current fiber, if called from a fiber, or the current thread, if not. `(Strand/sleep millis)` suspends the current strand for a given number of milliseconds whether it's a fiber or a normal thread. Also, `join` works for both fibers and threads (although for threads `join` will always return `nil`).
 
 ## Channels {#channels}
 
@@ -299,19 +301,113 @@ But, again, while an actor can be treated as a fiber with a channel, it has some
 
     (receive)
 
-`receive` has some features that make it very suitable for handling messages in actors. Its most 
+`receive` has some features that make it very suitable for handling messages in actors. Its most visible feature is pattern matching. When an actor receives a message, it usually takes different action based on the type and content of the message. Making the decision with pattern matching is easy and elegant:
 
+~~~ clj
+(let [actor (spawn
+               #(receive
+                   :abc "yes!"
+                   [:why? answer] answer
+                   :else "oy"))]
+     (! actor [:why? "because!"])
+     (join actor)) ; => "because!"
+~~~
 
-But we could have achieved all that with `rcv` like so:
+As we can see in the example, `receive` not only picks the action based on the message, but also destructures the message and binds free variable, in our example – the `answer` variable. `receive` uses the [core.match](https://github.com/clojure/core.match) library for pattern matching, and you can consult [its documentation](https://github.com/clojure/core.match/wiki/Overview) to learn exactly how matching works.
 
-   (rcv-timed )
-`receive` is much more powerful than `rcv`, mostly because of a feature we will now introduce.
+Sometimes, we would like to assign the whole message to a variable. We do it by creating a binding clause in `receive`:
+
+~~~ clj
+(receive [m]
+   [:foo val] (println "got foo:" val)
+   :else      (println "got" m))
+~~~
+
+We can also match not on the raw message as its been received, but transform it first, and then match on the transformed value, like so, assuming `transform` is a function that takes a single argument (the message):
+
+~~~ clj
+(receive [m transform]
+   [:foo val] (println "got foo:" val)
+   :else      (println "got" m))
+~~~
+
+Now `m` – and the value we're matching – is the the transformed value.
+
+`receive` also deals with timeouts. Say we want to do something if a message has not been received within 30 milliseconds (all `receive` timeouts are specified in milliseconds):
+
+~~~ clj
+(receive [m transform]
+   [:foo val] (println "got foo:" val)
+   :else      (println "got" m)
+   :after 30  (println "nothing...))
+~~~
+
+{:.alert .alert-warn}
+**Note**: The `:after` clause in `receive` *must* be last.
+
+Before we move on, it's time for a short example. In this example, we will define an actor, `adder`, that receives an `:add` message with two numbers, and reply to the sender with the sum of those two numbers. In order to reply to the sender, we need to know who the sender is. So the sender will add a reference to itself in the message. In this request-reply pattern, it is also good practice to attach a random unique tag to the request, because messages are asynchronous, and it is possible that the adder will not respond to the requests in the order they were received, and the requester might want to send two requests before waiting for a response, so a tag is a good way to match replies with their respective requests. We can generate a random tag with the `maketag` function.
+
+Here's the adder actor:
+
+~~~ clj
+(defsusfn adder []
+  (loop []
+    (receive
+     [from tag [:add a b]] (! from tag [:sum (+ a b)]))
+    (recur)))
+~~~
+
+And this is how we'll use it from within another actor:
+
+~~~ clj
+...
+(let [tag (maketag)
+      a ...
+      b ...]
+   (! adder-actor @self tag [:add a b])
+   (->>
+      (receive 
+         [tag [:sum sum]] sum
+         :after 10        nil)
+      (println "sum:"))
+...
+~~~
+
+### Actors vs. Channels
+
+One of the reasons of providing a different `receive` function for actors is because programming with actors is conceptually different from just using fibers and channels. I think of channels as hoses  pumping data into a function, or as sort of like asynchronous parameters. A fiber may pull many different kinds of data from many different channels, and combine the data in some way. 
+
+Actors are a different abstraction. They are more like objects in object-oriented languages, assigned to a single thread. The mailbox serves as the object's dispatch mechanism; it's not a hose but a switchboard. It's for this reason that actors often need to pattern-match their mailbox messages, while regular channels – each usually serving as a conduit for a single kind of data – don't.
+
+But while the `receive` syntax is nice and all (it mirrors Erlang's syntax), we could have achieved the same with `rcv` almost as easily:
+
+~~~ clj
+(let [m1 (rcv 30 :ms)]
+   (if m1
+      (let [m (transform m1)]
+         (match (transform (rcv 30 :ms))
+             [:foo val]  (println "got foo:" val)
+   		     :else      (println "got" m)))
+   	   (println "nothing...)))
+~~~
+
+Pretty syntax is not the main goal of the `receive` function. The reason `receive` is much more powerful than `rcv`, is mostly because of a feature we will now introduce.
 
 ### Selective Receive
 
+An actor is a state machine. It usually encompasses some *state* and the messages it receives trigger *state transitions*. But because the actor has no control over which messages it receives and when (which can be a result of either other actors' behavior, or even the way the OS schedules threads), an actor would be required to process any message and any state, and build a full *state transition matrix*, namely how to transition whenever *any* messages is received at *any* state.
 
+This can not only lead to code explosion; it can lead to bugs. The key to managing a complex state machine is by not handling messages in the order they arrive, but in the order we wish to process them. 
+
+.....
+
+[The talk *Death by Accidental Complexity*](http://www.infoq.com/presentations/Death-by-Accidental-Complexity), by Ulf Wiger, shows how implementing a full, complicated transition matrix is avoided by using selective receive (in Erlang, but the same applies to Pulsar).
 
 ### Actor State
+
+
+### State Machines with `strampoline`
+
 
 
 ### Error Handling

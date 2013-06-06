@@ -453,7 +453,8 @@
 (ann rcv (Fn [Channel -> Any]
              [Channel Long (U TimeUnit Keyword) -> (Option Any)]))
 (defsusfn rcv
-  "Receives a message from a channel or a channel group"
+  "Receives a message from a channel or a channel group.
+  If a timeout is given, and it expires, rcv returns nil."
   ([^ReceiveChannel channel]
    (.receive channel))
   ([^ReceiveChannel channel timeout unit]
