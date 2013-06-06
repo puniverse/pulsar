@@ -164,6 +164,13 @@
                         s)))]
     (lazy-seq (step n coll))))
 
+(defn repeatedly
+  "Takes a function of no args, presumably with side effects, and
+  returns an infinite (or length n if supplied) lazy sequence of calls
+  to it"
+  ([f] (lazy-seq (cons (f) (repeatedly f))))
+  ([n f] (take n (repeatedly f))))
+
 (ann map (All [v0 v1 v2 ...]
               [[v1 v2 ... v2 -> v0] (U nil (Seqable v1)) (U nil (Seqable v2)) ... v2 -> (LazySeq v0)]))
 (defn map
