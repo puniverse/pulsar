@@ -96,9 +96,57 @@ Code running in fibers may make free use of Clojure atoms and agents.
 
 Spawning or dereferncing a future creted with `clojure.core/future` is ok, but there's a better alternative: you can turn a spawned fiber into a future with `fiber->future` and can then dereference or call regular future functions on the returned value, like `realized?` (In fact, you don't even have to call `fiber->future`; fibers already implement the `Future` interface and can be treated as futures directly, but this may change in the future, so, until the API is fully settled, we recommend using `fiber->future`).
 
-Promises are supported and encouraged, but you should not make use of `clojure.core/promise` to create a promise that's to be dereferenced in a fiber. Instead, use the version of `promise` that's in the `...pulsar.dataflow` namespace. It will provide better performance, and can be dereferenced efficiently in fibers as well as regular threads. Plus, Pulsar promises are much cooler than `core.promise`, as you'll see later.
-
 Running a `dosync` block inside a fiber is discouraged as it uses locks internally, but your mileage may vary.
+
+Promises are supported and encouraged, but you should not make use of `clojure.core/promise` to create a promise that's to be dereferenced in a fiber. Pulsar provides a different -- yet completely compatible -- form of promises, as you'll immediately see.
+
+### Promises, Promises
+
+Promises, also known as dataflow variables, are an especially effective, and simple, concurrency primitive.
+
+A promise is a value that may only be set once, but read multiple times. If the promise is read before the value is set, the reading strand will block until the promise has been set, and then return its value.
+
+Promises are defined in `clojure.core`, but `...pulsar.core` provides its own, fully compatible version.
+
+A promise is created simply like this:
+
+    (promise)
+
+And is set with `deliver`. It can be read by dereferencing it with `@`, and you can test whether it's been set with `realized?` (other than the `promise` function itself, all other functions, like `deliver` and `realized` are those defined in `clojure.core`)
+
+The `promise` function defined in Pulsar creates a promise, that, when dereferenced within a fiber, simply blocks the fiber and not the entire OS thread it's running in.
+
+Here's an example of using promises from the tests:
+
+~~~ clj
+(let [v1 (promise)
+     v2 (promise)
+     v3 (promise)
+     v4 (promise)
+     f1 (spawn-fiber  #(deliver v2 (+ @v1 1)))
+     t1 (spawn-thread #(deliver v3 (+ @v1 @v2)))
+     f2 (spawn-fiber  #(deliver v4 (+ @v3 @v2)))]
+ (Strand/sleep 50)
+ (deliver v1 1)
+ @v4) ; => 5
+~~~
+
+This example shows how promises are set, and read, by both fibers and regular threads.
+
+But Pulsar's promises have one additional, quite nifty, feature. If you pass an optional function to `promise`, a new fiber running that function will be spawned, and the promise will receive the value returned from the function. Here's another example from the tests:
+
+~~~ clj
+(let [v0 (promise)
+     v1 (promise)
+     v2 (promise #(+ @v1 1))
+     v3 (promise #(+ @v1 @v2))
+     v4 (promise #(* (+ @v3 @v2) @v0))]
+ (Strand/sleep 50)
+ (deliver v1 1)
+ (mapv realized? [v0 v1 v2 v3 v4]) ; => [false true true true false]
+ (deliver v0 2)
+ @v4) ; => 10
+~~~
 
 ### Strands
 
@@ -339,7 +387,7 @@ Now `m` – and the value we're matching – is the the transformed value.
 (receive [m transform]
    [:foo val] (println "got foo:" val)
    :else      (println "got" m)
-   :after 30  (println "nothing...))
+   :after 30  (println "nothing..."))
 ~~~
 
 {:.alert .alert-warn}
@@ -388,7 +436,7 @@ But while the `receive` syntax is nice and all (it mirrors Erlang's syntax), we 
          (match (transform (rcv 30 :ms))
              [:foo val]  (println "got foo:" val)
    		     :else      (println "got" m)))
-   	   (println "nothing...)))
+   	   (println "nothing...")))
 ~~~
 
 Pretty syntax is not the main goal of the `receive` function. The reason `receive` is much more powerful than `rcv`, is mostly because of a feature we will now introduce.
