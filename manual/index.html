@@ -251,9 +251,56 @@ from the Pulsar test suite:</p>
 
 <p>Spawning or dereferncing a future creted with <code>clojure.core/future</code> is ok, but there’s a better alternative: you can turn a spawned fiber into a future with <code>fiber-&gt;future</code> and can then dereference or call regular future functions on the returned value, like <code>realized?</code> (In fact, you don’t even have to call <code>fiber-&gt;future</code>; fibers already implement the <code>Future</code> interface and can be treated as futures directly, but this may change in the future, so, until the API is fully settled, we recommend using <code>fiber-&gt;future</code>).</p>
 
-<p>Promises are supported and encouraged, but you should not make use of <code>clojure.core/promise</code> to create a promise that’s to be dereferenced in a fiber. Instead, use the version of <code>promise</code> that’s in the <code>...pulsar.dataflow</code> namespace. It will provide better performance, and can be dereferenced efficiently in fibers as well as regular threads. Plus, Pulsar promises are much cooler than <code>core.promise</code>, as you’ll see later.</p>
-
 <p>Running a <code>dosync</code> block inside a fiber is discouraged as it uses locks internally, but your mileage may vary.</p>
+
+<p>Promises are supported and encouraged, but you should not make use of <code>clojure.core/promise</code> to create a promise that’s to be dereferenced in a fiber. Pulsar provides a different – yet completely compatible – form of promises, as you’ll immediately see.</p>
+
+<h3 id="promises-promises">Promises, Promises</h3>
+
+<p>Promises, also known as dataflow variables, are an especially effective, and simple, concurrency primitive.</p>
+
+<p>A promise is a value that may only be set once, but read multiple times. If the promise is read before the value is set, the reading strand will block until the promise has been set, and then return its value.</p>
+
+<p>Promises are defined in <code>clojure.core</code>, but <code>...pulsar.core</code> provides its own, fully compatible version.</p>
+
+<p>A promise is created simply like this:</p>
+
+<pre><code>(promise)
+</code></pre>
+
+<p>And is set with <code>deliver</code>. It can be read by dereferencing it with <code>@</code>, and you can test whether it’s been set with <code>realized?</code> (other than the <code>promise</code> function itself, all other functions, like <code>deliver</code> and <code>realized</code> are those defined in <code>clojure.core</code>)</p>
+
+<p>The <code>promise</code> function defined in Pulsar creates a promise, that, when dereferenced within a fiber, simply blocks the fiber and not the entire OS thread it’s running in.</p>
+
+<p>Here’s an example of using promises from the tests:</p>
+
+<pre><code class="language-clj">(let [v1 (promise)
+     v2 (promise)
+     v3 (promise)
+     v4 (promise)
+     f1 (spawn-fiber  #(deliver v2 (+ @v1 1)))
+     t1 (spawn-thread #(deliver v3 (+ @v1 @v2)))
+     f2 (spawn-fiber  #(deliver v4 (+ @v3 @v2)))]
+ (Strand/sleep 50)
+ (deliver v1 1)
+ @v4) ; =&gt; 5
+</code></pre>
+
+<p>This example shows how promises are set, and read, by both fibers and regular threads.</p>
+
+<p>But Pulsar’s promises have one additional, quite nifty, feature. If you pass an optional function to <code>promise</code>, a new fiber running that function will be spawned, and the promise will receive the value returned from the function. Here’s another example from the tests:</p>
+
+<pre><code class="language-clj">(let [v0 (promise)
+     v1 (promise)
+     v2 (promise #(+ @v1 1))
+     v3 (promise #(+ @v1 @v2))
+     v4 (promise #(* (+ @v3 @v2) @v0))]
+ (Strand/sleep 50)
+ (deliver v1 1)
+ (mapv realized? [v0 v1 v2 v3 v4]) ; =&gt; [false true true true false]
+ (deliver v0 2)
+ @v4) ; =&gt; 10
+</code></pre>
 
 <h3 id="strands">Strands</h3>
 
@@ -501,7 +548,7 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
 <pre><code class="language-clj">(receive [m transform]
    [:foo val] (println "got foo:" val)
    :else      (println "got" m)
-   :after 30  (println "nothing...))
+   :after 30  (println "nothing..."))
 </code></pre>
 
 <p class="alert alert-warn"><strong>Note</strong>: The <code>:after</code> clause in <code>receive</code> <em>must</em> be last.</p>
@@ -546,7 +593,7 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
          (match (transform (rcv 30 :ms))
              [:foo val]  (println "got foo:" val)
    		     :else      (println "got" m)))
-   	   (println "nothing...)))
+   	   (println "nothing...")))
 </code></pre>
 
 <p>Pretty syntax is not the main goal of the <code>receive</code> function. The reason <code>receive</code> is much more powerful than <code>rcv</code>, is mostly because of a feature we will now introduce.</p>
