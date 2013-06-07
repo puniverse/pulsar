@@ -26,12 +26,11 @@
            [co.paralleluniverse.fibers.instrument]
            [co.paralleluniverse.strands.channels Channel ReceiveChannel SendChannel ChannelGroup
             ObjectChannel IntChannel LongChannel FloatChannel DoubleChannel]
-           [co.paralleluniverse.actors ActorRegistry Actor LocalActor ActorImpl PulsarActor LifecycleListener ShutdownMessage]
+           [co.paralleluniverse.strands.dataflow DelayedVal]
            [co.paralleluniverse.pulsar ClojureHelper]
            ; for types:
            [clojure.lang Keyword Sequential IObj IFn IMeta IDeref ISeq IPersistentCollection IPersistentVector IPersistentMap])
-  (:require [clojure.core.match :refer [match]]
-            [clojure.core.typed :refer [ann def-alias Option AnyInteger]]))
+  (:require [clojure.core.typed :refer [ann def-alias Option AnyInteger]]))
 
 ;; ## clojure.core type annotations
 
@@ -76,21 +75,6 @@
   (fn
     ([x] (if (seq? x) (map f x) (f x)))
     ([x & xs] (map f (cons x xs)))))
-
-(ann nth-from-last (All [x y]
-                        (Fn [(IPersistentCollection x) Long -> x]
-                            [(IPersistentCollection x) Long y -> (U x y)])))
-(defn- nth-from-last
-  ([coll index]
-   (nth coll (- (dec (count coll)) index)))
-  ([coll index not-found]
-   (nth coll (- (dec (count coll)) index) not-found)))
-
-(ann split-at-from-last (All [x]
-                             [Long (IPersistentCollection x) -> (Vector* (IPersistentCollection x) (IPersistentCollection x))]))
-(defn- split-at-from-last
-  [index coll]
-  (split-at (- (dec (count coll)) index) coll))
 
 ;;     (surround-with nil 4 5 6) -> (4 5 6)
 ;;     (surround-with '(1 2 3) 4 5 6) -> ((1 2 3 4 5 6))
@@ -428,6 +412,43 @@
          (seq res)))
      (join* timeout unit s))))
 
+;; ## Promises
+
+(defn promise
+  "Returns a promise object that can be read with deref/@, and set,
+  once only, with deliver. Calls to deref/@ prior to delivery will
+  block, unless the variant of deref with timeout is used. All
+  subsequent derefs will return the same delivered value without
+  blocking. See also - realized?.
+
+  Unlike clojure.core/promise, this promise object can be used inside Pulsar fibers."
+  ([]
+   (let [dv (DelayedVal.)]
+     (reify
+       clojure.lang.IDeref
+       (deref [_]
+              (.get dv))
+       clojure.lang.IBlockingDeref
+       (deref
+        [_ timeout-ms timeout-val]
+        (try
+          (.get dv timeout-ms TimeUnit/MILLISECONDS)
+          (catch TimeoutException e
+            timeout-val)))
+       clojure.lang.IPending
+       (isRealized [this]
+                   (.isDone dv))
+       clojure.lang.IFn
+       (invoke
+        [this x]
+        (.set dv x)
+        this))))
+  ([f]
+   (let [p (promise)]
+     (suspendable! f)
+     (spawn-fiber #(deliver p (f)))
+     p)))
+
 ;; ## Channels
 
 (ann channel (Fn [AnyInteger -> Channel]
@@ -534,334 +555,5 @@
    `(double (co.paralleluniverse.pulsar.ChannelsHelper/receiveDouble ~channel)))
   ([channel timeout unit]
    `(double (co.paralleluniverse.pulsar.ChannelsHelper/receiveDouble ~channel (long ~timeout) (->timeunit ~unit)))))
-
-
-;; ## Actors
-
-(defmacro actor
-  "Creates a new actor."
-  {:arglists '([bindings & body])}
-  [bs & body]
-  (assert-args
-   (vector? bs) "a vector for its binding"
-   (even? (count bs)) "an even number of forms in binding vector")
-  `(suspendable!
-    ~(if (seq bs)
-       ; actor with state fields
-       (let [type (gensym "actor")
-             fs (vec (take-nth 2 bs)) ; field names
-             ivs (take-nth 2 (next bs))] ; initial values
-         (eval ; this runs at compile time!
-          (let [fs (mapv #(merge-meta % {:unsynchronized-mutable true}) fs)]
-            `(deftype ~type ~fs
-               clojure.lang.IFn
-               (invoke [this#] ~@body)
-               (applyTo [this# args#] (clojure.lang.AFn/applyToHelper this# args#)))))
-         `(new ~type ~@ivs))
-       ; regular actor
-       `(fn [] ~@body))))
-
-(defmacro defactor
-  "Defines a new actor template."
-  {:arglists '([name doc-string? attr-map? [params*] body])}
-  [n & decl]
-  (let [decl1 decl
-        decl1 (if (string? (first decl1)) (next decl1) decl1) ; strip docstring
-        decl1 (if (map? (first decl1)) (next decl1) decl1)    ; strip meta
-        fs (first decl1)]
-    (assert-args
-     (vector? fs) "a vector for its binding")
-    (if (seq fs)
-      ; actor with state fields
-      (let [fs1 (mapv #(merge-meta % {:unsynchronized-mutable true}) fs)
-            body (next decl1)
-            type (symbol (str (name n) "_type"))
-            arity (count fs)
-            args  (repeatedly arity gensym)]
-        `(do
-           (deftype ~type ~fs1
-             clojure.lang.IFn
-             (invoke [this#] ~@body)
-             (applyTo [this# args#] (clojure.lang.AFn/applyToHelper this# args#)))
-           (suspendable! ~type)
-           (defn ~n [~@args]
-             ((new ~type ~@args)))
-           (suspendable! ~n)))
-      ; regular actor
-      `(do
-         (defn ~n ~@decl)
-         (suspendable! ~n)))))
-
-(defmacro spawn
-  "Creates and starts a new actor"
-  {:arglists '([:name? :mailbox-size? :lifecycle-handler? :stack-size? :pool? f & args])}
-  [& args]
-  (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size ^IFn lifecycle-handler ^Integer stack-size ^ForkJoinPool pool], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)]
-    `(let [b#     (first ~body) ; eval body
-           f#     (when (not (instance? LocalActor b#))
-                    (suspendable! ~(if (== (count body) 1) (first body) `(fn [] (apply ~(first body) (list ~@(rest body)))))))
-           ^LocalActor actor# (if (instance? LocalActor b#)
-                                b#
-                                (co.paralleluniverse.actors.PulsarActor. ~name ~trap (int ~mailbox-size) ~lifecycle-handler f#))
-           fiber# (co.paralleluniverse.fibers.Fiber. ~name (get-pool ~pool) (int ~stack-size) actor#)]
-       (.start fiber#)
-       actor#)))
-
-(defmacro spawn-link
-  "Creates and starts a new actor, and links it to @self"
-  {:arglists '([:name? :mailbox-size? :lifecycle-handler? :stack-size? :pool? f & args])}
-  [& args]
-  `(let [actor# ~(list `spawn ~@args)]
-     (link! @self actor#)
-     actor#))
-
-(defmacro spawn-watch
-  "Creates and starts a new actor, and makes @self monitor it"
-  {:arglists '([:name? :mailbox-size? :lifecycle-handler? :stack-size? :pool? f & args])}
-  [& args]
-  `(let [actor# ~(list `spawn ~@args)]
-     (watch! @self actor#)
-     actor#))
-
-(ann done? [LocalActor -> Boolean])
-(defn done?
-  "Tests whether or not an actor has terminated."
-  [^LocalActor a]
-  (.isDone a))
-
-;(ann-protocol IUnifyWithLVar
-;              unify-with-lvar [Term LVar ISubstitutions -> (U ISubstitutions Fail)])
-
-(ann self (IDeref LocalActor))
-(def self
-  "@self is the currently running actor"
-  (reify
-    clojure.lang.IDeref
-    (deref [_] (LocalActor/self))))
-
-(ann state (IDeref Any))
-(def state
-  "@state is the state of the currently running actor"
-  (reify
-    clojure.lang.IDeref
-    (deref [_] (PulsarActor/selfGetState))))
-
-(ann mailbox (IDeref Channel))
-(def mailbox
-  "@mailbox is the mailbox channel of the currently running actor"
-  (reify
-    clojure.lang.IDeref
-    (deref [_] (PulsarActor/selfMailbox))))
-
-(ann set-state! (All [x] [x -> x]))
-(defn set-state!
-  "Sets the state of the currently running actor"
-  [x]
-  (PulsarActor/selfSetState x))
-
-(ann trap! [-> nil])
-(defn trap!
-  "Sets the current actor to trap lifecycle events (like a dead linked actor) and turn them into messages"
-  []
-  (.setTrap ^PulsarActor @self true))
-
-(ann get-actor [Any -> Actor])
-(defn ^Actor get-actor
-  "If the argument is an actor -- returns it. If not, looks up a registered actor with the argument as its name"
-  [a]
-  (if (instance? Actor a)
-    a
-    (LocalActor/getActor a)))
-
-(ann link! (Fn [Actor -> Actor]
-               [Actor Actor -> Actor]))
-(defn link!
-  "links two actors"
-  ([actor2]
-   (.link ^Actor @self actor2))
-  ([actor1 actor2]
-   (.link (get-actor actor1) (get-actor actor2))))
-
-(ann unlink! (Fn [Actor -> Actor]
-                 [Actor Actor -> Actor]))
-(defn unlink!
-  "Unlinks two actors"
-  ([actor2]
-   (.unlink ^Actor @self actor2))
-  ([actor1 actor2]
-   (.unlink (get-actor actor1) (get-actor actor2))))
-
-(ann monitor (Fn [Actor Actor -> LifecycleListener]
-                 [Actor -> LifecycleListener]))
-(defn watch!
-  "Makes an actor watch another actor. Returns a watch object which should be used when calling demonitor."
-  ([actor2]
-   (.watch ^Actor @self actor2))
-  ([actor1 actor2]
-   (.watch (get-actor actor1) (get-actor actor2))))
-
-(ann monitor (Fn [Actor Actor LifecycleListener -> nil]
-                 [Actor LifecycleListener -> nil]))
-(defn unwatch!
-  "Makes an actor stop watch another actor"
-  ([actor2 monitor]
-   (.unwatch ^Actor @self actor2 monitor))
-  ([actor1 actor2 monitor]
-   (.unwatch (get-actor actor1) (get-actor actor2) monitor)))
-
-(ann register (Fn [String LocalActor -> LocalActor]
-                  [LocalActor -> LocalActor]))
-(defn register
-  "Registers an actor"
-  ([name ^LocalActor actor]
-   (.register actor name))
-  ([^LocalActor actor]
-   (.register actor)))
-
-(ann unregister [LocalActor -> LocalActor])
-(defn unregister
-  "Un-registers an actor"
-  [x]
-   (if (instance? LocalActor x)
-     (let [^LocalActor actor x]
-       (.unregister actor))
-     (ActorRegistry/unregister x)))
-
-(ann mailbox-of [PulsarActor -> Channel])
-(defn ^Channel mailbox-of
-  [^PulsarActor actor]
-  (.mailbox actor))
-
-(ann whereis [Any -> Actor])
-(defn ^Actor whereis
-  "Returns a registered actor by name"
-  [name]
-  (ActorImpl/getActor name))
-
-(ann maketag [-> Number])
-(defn maketag
-  "Returns a random, probably unique, identifier.
-  (this is similar to Erlang's makeref)."
-  []
-  (ActorImpl/randtag))
-
-(defn clojure->java-msg
-  [x]
-  (if (not (tagged-tuple? x))
-    x
-    (case (first x)
-      :shutdown (ShutdownMessage. (second x))
-      x)))
-
-(defmacro !
-  "Sends a message to an actor.
-  This function returns nil."
-  ([actor message]
-   `(co.paralleluniverse.actors.PulsarActor/send (get-actor ~actor) (clojure->java-msg ~message)))
-  ([actor arg & args]
-   `(co.paralleluniverse.actors.PulsarActor/send (get-actor ~actor) (clojure->java-msg [~arg ~@args]))))
-
-(defmacro !!
-  "Sends a message to an actor synchronously.
-  This has the exact same semantics as ! (in particular, this function always returns nil),
-  but it hints the scheduler that the current actor is about to wait for a response from the message's addressee."
-  ([actor message]
-   `(co.paralleluniverse.actors.PulsarActor/sendSync (get-actor ~actor) (clojure->java-msg ~message)))
-  ([actor arg & args]
-   `(co.paralleluniverse.actors.PulsarActor/sendSync (get-actor ~actor) (clojure->java-msg [~arg ~@args]))))
-
-(ann receive-timed [AnyInteger -> (Option Any)])
-(defsusfn receive-timed
-  "Waits (and returns) for a message for up to timeout ms. If time elapses -- returns nil."
-  [^Integer timeout]
-  (co.paralleluniverse.actors.PulsarActor/selfReceive timeout))
-
-;; For examples of this macro's expansions, try:
-;; (pprint (macroexpand-1 '(receive)))
-;; (pprint (macroexpand-1 '(receive [:a] :hi :else :bye)))
-;; (pprint (macroexpand-1 '(receive [msg] [:a] :hi :else :bye)))
-;; (pprint (macroexpand-1 '(receive [msg #(* % %)] [:a] :hi :else :bye)))
-;;
-;; (pprint (macroexpand-1 '(receive :else m :after 30 :foo)))
-;; (pprint (macroexpand-1 '(receive [m] :else m :after 30 :foo)))
-;; (pprint (macroexpand-1 '(receive [:a] :hi :else :bye :after 30 :foo)))
-;; (pprint (macroexpand-1 '(receive [msg] [:a] :hi :else :bye :after 30 :foo)))
-;; (pprint (macroexpand-1 '(receive [msg #(* % %)] [:a] :hi :else :bye :after 30 :foo)))
-;;
-;; (pprint (macroexpand-1 '(receive [:a x] [:hi x] [:b x] [:bye x])))
-;; (pprint (macroexpand-1 '(receive [:a x] [:hi x] [:b x] [:bye x] :after 30 :foo)))
-
-(defmacro receive
-  "Receives a message in the current actor and processes it"
-  {:arglists '([]
-               [patterns* <:after ms action>?]
-               [[binding transformation?] patterns* <:after ms action>?])}
-  ([]
-   `(co.paralleluniverse.actors.PulsarActor/selfReceive))
-  ([& body]
-   (assert-args
-    (or (even? (count body)) (vector? (first body))) "a vector for its binding")
-   (let [[body after-clause] (if (= :after (nth-from-last body 2 nil)) (split-at-from-last 2 body) [body nil])
-         odd-forms   (odd? (count body))
-         bind-clause (if odd-forms (first body) nil)
-         transform   (second bind-clause)
-         body        (if odd-forms (next body) body)
-         m           (if bind-clause (first bind-clause) (gensym "m"))
-         timeout     (gensym "timeout")]
-     (if (seq (filter #(= % :else) (take-nth 2 body)))
-       ; if we have an :else then every message is processed and our job is easy
-       `(let ~(into [] (concat
-                        (if after-clause `[~timeout ~(second after-clause)] [])
-                        `[~m ~(concat `(co.paralleluniverse.actors.PulsarActor/selfReceive) (if after-clause `(~timeout) ()))]
-                        (if transform `[~m (~transform ~m)] [])))
-          ~@(surround-with (when after-clause `(if (nil? ~m) ~(nth after-clause 2)))
-                           `(match ~m ~@body)))
-       ; if we don't, well, we have our work cut out for us
-       (let [pbody   (partition 2 body)
-             mailbox (gensym "mailbox") n (gensym "n") m2 (gensym "m2") mtc (gensym "mtc") exp (gensym "exp")] ; symbols
-         `(let [[~mtc ~m]
-                (let ~(into [] (concat `[^co.paralleluniverse.actors.PulsarActor ~mailbox (co.paralleluniverse.actors.PulsarActor/self)]
-                                       (if after-clause `[~timeout ~(second after-clause)
-                                                          ~exp (if (pos? ~timeout) (long (+ (long (System/nanoTime)) (long (* 1000000 ~timeout)))) 0)] [])))
-                  (.maybeSetCurrentStrandAsOwner ~mailbox)
-                  (loop [prev# nil]
-                    (.lock ~mailbox)
-                    (let [~n (.succ ~mailbox prev#)]
-                      ~(let [quick-match (concat ; ((pat1 act1) (pat2 act2)...) => (pat1 (do (.processed mailbox# n#) 0) pat2 (do (del mailbox# n#) 1)... :else -1)
-                                          (mapcat #(list (first %1) `(do (.processed ~mailbox ~n) ~%2)) pbody (range)); for each match pattern, call processed and return an ordinal
-                                          `(:else (do (.skipped ~mailbox ~n) -1)))]
-                         `(if ~n
-                            (do
-                              (.unlock ~mailbox)
-                              (let [m1# (.value ~mailbox ~n)]
-                                (when (and (not (.isTrap ~mailbox)) (instance? co.paralleluniverse.actors.LifecycleMessage m1#))
-                                  (.handleLifecycleMessage ~mailbox m1#))
-                                (let [~m2 (co.paralleluniverse.actors.PulsarActor/convert m1#)
-                                      ~m ~(if transform `(~transform ~m2) `~m2)
-                                      act# (int (match ~m ~@quick-match))]
-                                  (if (>= act# 0)
-                                    [act# ~m]     ; we've got a match!
-                                    (recur ~n))))) ; no match. try the next
-                            ; ~n == nil
-                            ~(if after-clause
-                               `(when-not (== ~timeout 0)
-                                  (do ; timeout != 0 and ~n == nil
-                                    (try
-                                      (.await ~mailbox (- ~exp (long (System/nanoTime))) java.util.concurrent.TimeUnit/NANOSECONDS)
-                                      (finally
-                                       (.unlock ~mailbox)))
-                                    (when-not (> (long (System/nanoTime)) ~exp)
-                                      (recur ~n))))
-                               `(do
-                                  (try
-                                    (.await ~mailbox)
-                                    (finally
-                                     (.unlock ~mailbox)))
-                                  (recur ~n))))))))]
-            ~@(surround-with (when after-clause `(if (nil? ~mtc) ~(nth after-clause 2)))
-                             ; now, mtc# is the number of the matching clause and m# is the message.
-                             ; but the patterns might have wildcards so we need to match again (for the bindings)
-                             `(case (int ~mtc) ~@(mapcat #(list %2 `(match [~m] [~(first %1)] ~(second %1))) pbody (range))))))))))
-                             ;`(match [~mtc ~m] ~@(mapcat #(list [%2 (first %1)] (second %1)) pbody (range))))))))))
 
 

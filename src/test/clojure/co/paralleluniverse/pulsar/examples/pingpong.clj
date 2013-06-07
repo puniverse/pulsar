@@ -1,6 +1,6 @@
 (ns co.paralleluniverse.pulsar.examples.pingpong
   "The classic ping-pong example from the Erlang tutorial"
-  (:use co.paralleluniverse.pulsar.core))
+  (:use [co.paralleluniverse.pulsar core actors]))
 
 ;; This example is intended to be a line-by-line translation of the canonical
 ;; Erlang [ping-pong example](http://www.erlang.org/doc/getting_started/conc_prog.html#id67347),

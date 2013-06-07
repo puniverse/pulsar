@@ -1,6 +1,6 @@
 (ns co.paralleluniverse.pulsar.examples.ring-benchmark
   "An implementation of the ring benchmark using actors"
-  (:use co.paralleluniverse.pulsar.core)
+  (:use [co.paralleluniverse.pulsar core actors])
   (:import [co.paralleluniverse.actors Actor]))
 
 

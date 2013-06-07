@@ -2,7 +2,7 @@
 ; Copyright (C) 2013, Parallel Universe Software Co. All rights reserved.
 
 (ns co.paralleluniverse.pulsar.examples.graph
-  (:use co.paralleluniverse.pulsar.core))
+  (:use [co.paralleluniverse.pulsar core actors]))
 
 (defn- actors-in-a-ring
   [n]
