@@ -56,26 +56,19 @@
           
           
           
+        
+          
+          
+            
+          
+          
+          
             <li>
               <a  href="/pulsar/getting-started.html">
                 Getting Started
               </a>
               
             </li>
-          
-        
-          
-          
-            
-          
-          
-          
-        
-          
-          
-            
-          
-          
           
         
           
@@ -92,15 +85,15 @@
             </li>
           
         
-      
-        <li class="nav-header">User Manual</li>
-        
           
           
             
           
           
           
+        
+      
+        <li class="nav-header">User Manual</li>
         
           
           
@@ -124,12 +117,12 @@
           
           
           
-            <li>
-              <a  href="/pulsar/manual/examples.html">
-                Examples
-              </a>
-              
-            </li>
+        
+          
+          
+            
+          
+          
           
         
           
@@ -137,6 +130,13 @@
             
           
           
+          
+            <li>
+              <a  href="/pulsar/manual/examples.html">
+                Examples
+              </a>
+              
+            </li>
           
         
       
@@ -194,6 +194,8 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
 </ul>
 
 <p>The fiber will terminate when <code>f</code> completes execution. </p>
+
+<p class="alert alert-info"><strong>Note</strong>: Spawning a fiber is a very cheap operation in both computation and memory. Do not fear creating many (thousands, tens-of-thousands or even hundereds-of-thousands) fibers.</p>
 
 <h3 id="joining-fibers">Joining Fibers</h3>
 
@@ -473,6 +475,8 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
 
 <p>An actor can be <code>join</code>ed, just like a fiber.</p>
 
+<p class="alert alert-info"><strong>Note</strong>: Just like fibers, spawning an actor is a very cheap operation in both computation and memory. Do not fear creating many (thousands, tens-of-thousands or even hundereds-of-thousands) actors.</p>
+
 <h3 id="sending-and-receiving-messages-1">Sending and Receiving Messages</h3>
 
 <p>An actor’s mailbox is a channel, that can be obtained with the <code>mailbox-of</code> function. You can therefore send a message to an actor like so:</p>
@@ -606,7 +610,9 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
 
 <p>…..</p>
 
-<p><a href="http://www.infoq.com/presentations/Death-by-Accidental-Complexity">The talk <em>Death by Accidental Complexity</em></a>, by Ulf Wiger, shows how implementing a full, complicated transition matrix is avoided by using selective receive (in Erlang, but the same applies to Pulsar).</p>
+<p>There are several actor systems that do not support selective receive, but Erlang does, and so does Pulsar. <a href="http://www.infoq.com/presentations/Death-by-Accidental-Complexity">The talk <em>Death by Accidental Complexity</em></a>, by Ulf Wiger, shows how using selective receive avoids implementing a full, complicated and error-prone transition matrix. <a href="http://www.infoq.com/presentations/1000-Year-old-Design-Patterns">In a different talk</a>, Wiger compared non-selective (FIFO) receive to a tetris game where you must fit each piece into the puzzle as it comes, while selective receive turns the problem into a jigsaw puzzle, where you can look for a piece that you know will fit.</p>
+
+<p class="alert alert-warn"><strong>A word of caution</strong>: Using selective receive in your code may lead to deadlocks (because you’re essentially saying, I’m going to wait here until a specific message arrives). This can be easily avoided by always specifying a timeout (with the <code>:after millis</code> clause) when doing a selective receive. Selective receive is a powerful tool that can greatly help writing readable, maintainable message-handling code, but don’t over-use it.</p>
 
 <h3 id="actor-state">Actor State</h3>
 
