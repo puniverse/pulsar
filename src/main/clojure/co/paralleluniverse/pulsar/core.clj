@@ -137,6 +137,11 @@
   [s m]
   (with-meta s (merge-with #(%1) m (meta s))))
 
+(defn apply-variadic
+  "Calls a variadic function by applying a concat of all arguments with the last argument (which is supposedly a collection)"
+  [f & args]
+  (apply f (concat (butlast args) (last args))))
+
 (ann as-timeunit [Keyword -> TimeUnit])
 (defn ^TimeUnit as-timeunit
   "Converts a keyword to a java.util.concurrent.TimeUnit

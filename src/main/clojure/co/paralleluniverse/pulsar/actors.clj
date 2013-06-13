@@ -18,11 +18,15 @@
            [co.paralleluniverse.actors ActorRegistry Actor LocalActor ActorImpl PulsarActor ActorBuilder 
             LifecycleListener ShutdownMessage]
            [co.paralleluniverse.pulsar ClojureHelper]
-           [co.paralleluniverse.actors.behaviors GenBehavior GenServer LocalGenServer Supervisor Supervisor$ChildSpec Supervisor$ChildMode Supervisor$RestartStrategy]
+           [co.paralleluniverse.actors.behaviors GenBehavior Initializer BasicGenBehavior
+            GenServer LocalGenServer 
+            GenEvent LocalGenEvent EventHandler
+            Supervisor Supervisor$ChildSpec Supervisor$ChildMode Supervisor$RestartStrategy]
            ; for types:
            [clojure.lang Keyword IObj IFn IMeta IDeref ISeq IPersistentCollection IPersistentVector IPersistentMap])
   (:require [co.paralleluniverse.pulsar.core :refer :all]
             [co.paralleluniverse.pulsar.interop :refer :all]
+            [clojure.string :as str]
             [clojure.core.match :refer [match]]
             [clojure.core.typed :refer [ann def-alias Option AnyInteger]]))
 
@@ -179,17 +183,18 @@
 
 (ann trap! [-> nil])
 (defn trap!
-  "Sets the current actor to trap lifecycle events (like a dead linked actor) and turn them into messages"
-  []
-  (.setTrap ^PulsarActor @self true))
+"Sets the current actor to trap lifecycle events (like a dead linked actor) and turn them into messages"
+[]
+(.setTrap ^PulsarActor @self true))
 
 (ann get-actor [Any -> Actor])
 (defn ^Actor get-actor
   "If the argument is an actor -- returns it. If not, looks up a registered actor with the argument as its name"
   [a]
-  (if (instance? Actor a)
-    a
-    (LocalActor/getActor a)))
+  (when a
+    (if (instance? Actor a)
+      a
+      (LocalActor/getActor a))))
 
 (ann link! (Fn [Actor -> Actor]
                [Actor Actor -> Actor]))
@@ -382,12 +387,47 @@
                              `(case (int ~mtc) ~@(mapcat #(list %2 `(match [~m] [~(first %1)] ~(second %1))) pbody (range))))))))))
 ;`(match [~mtc ~m] ~@(mapcat #(list [%2 (first %1)] (second %1)) pbody (range))))))))))
 
-
-
 (defn shutdown
   "Asks a gen-server or a supervisor to shut down"
-  [^GenBehavior gs]
-  (.shutdown gs))
+  ([^GenBehavior gs]
+   (.shutdown gs))
+  ([]
+   (.shutdown ^GenBehavior @self)))
+
+(defn ^Initializer ->Initializer 
+  ([init terminate]
+   (when init (suspendable! init))
+   (when terminate (suspendable! terminate))
+   (reify
+     Initializer
+     (^void init [this]
+            (when init (init)))
+     (^void terminate  [this ^Throwable cause]
+            (when terminate (terminate cause)))))
+  ([init]
+   (->Initializer init nil)))
+
+(defmacro request
+  [actor & message]
+  `(join (spawn (fn [] 
+                  (! actor ~@message)
+                  (receive)))))
+
+(defmacro request-timed
+  [timeout actor & message]
+  `(join (spawn (fn [] 
+                  (! actor ~@message)
+                  (receive-timed timeout)))))
+
+(defn capitalize [s]
+  {:no-doc true}
+  (str/capitalize s))
+
+(defmacro log
+  [level message & args]
+  `(let [^org.slf4j.Logger log# (.log ^BasicGenBehavior @self)]
+     (if (. log# ~(symbol (str "is" (capitalize (name level)) "Enabled")))
+       (. log# ~(symbol (name level)) ~message (to-array (vector ~@args))))))
 
 ;; ## gen-server
 
@@ -452,11 +492,6 @@
   ([^GenServer gs m & args]
    (.cast gs (vec (cons m args)))))
 
-(defn stop
-  "Stops the current gen-server"
-  []
-  (.stop (LocalGenServer/currentGenServer)))
-
 (defn set-timeout
   "Sets the timeout for the current gen-server"
   [timeout unit]
@@ -471,6 +506,38 @@
   "Replies with an error to a message sent to the current gen-server"
   [^Actor to id ^Throwable error]
   (.replyError (LocalGenServer/currentGenServer) to id error))
+
+;; ## gen-event
+
+(defn gen-event
+  "Creates (but doesn't start) a new gen-event"
+  {:arglists '([:name? :timeout? :mailbox-size? server & args])}
+  [& args]
+  (let [[{:keys [^String name ^Integer mailbox-size], :or {mailbox-size -1}} body] (kps-args args)]
+    (LocalGenEvent. name
+                    (->Initializer (first body) (second body))
+                    nil (int mailbox-size))))
+
+(deftype PulsarEventHandler
+  [handler]
+  EventHandler
+  (handleEvent [this event]
+               (handler event))
+  Object
+  (equals [this other]
+          (and (instance? PulsarEventHandler other) (= handler (.handler other)))))
+
+(defn notify
+  [^GenEvent ge event]
+  (.notify ge event))
+
+(defn add-handler
+  [^GenEvent ge handler]
+  (.addHandler ge (->PulsarEventHandler handler)))
+
+(defn remove-handler
+  [^GenEvent ge handler]
+  (.removeHandler ge (->PulsarEventHandler handler)))
 
 ;; ## supervisor
 
@@ -489,7 +556,7 @@
                              (fn [] (apply (first body) (rest body))))))]
     (if (instance? LocalActor body)
       body
-      (co.paralleluniverse.actors.PulsarActor. name trap (int mailbox-size) lifecycle-handler f))))
+      (PulsarActor. name trap (int mailbox-size) lifecycle-handler f))))
 
 (defn- child-spec
   [id mode max-restarts duration unit shutdown-deadline-millis & args]
@@ -502,21 +569,10 @@
                            (first args)
                            (actor-builder #(apply create-actor args)))))
 
-(defn supervisor
-  "Creates (but doesn't start) a new supervisor"
-  ([^String name restart-strategy init]
-   (Supervisor. nil name (int -1)
-                ^Supervisor$RestartStrategy (keyword->enum Supervisor$RestartStrategy restart-strategy)
-                (->suspendable-callable
-                  (susfn []
-                         (map #(apply child-spec %) ((suspendable! init)))))))
-  ([restart-strategy init]
-   (supervisor nil restart-strategy init)))
-
 (defn add-child
   "Adds an actor to a supervisor"
-  [^Supervisor supervisor id mode max-restarts duration unit shutdown-deadline-millis f]
-  (.addChild supervisor (child-spec id mode max-restarts duration unit shutdown-deadline-millis f)))
+  [^Supervisor supervisor id mode max-restarts duration unit shutdown-deadline-millis & args]
+  (.addChild supervisor (apply-variadic child-spec id mode max-restarts duration unit shutdown-deadline-millis args)))
 
 (defn remove-child
   "Removes an actor from a supervisor"
@@ -532,5 +588,16 @@
   "Returns a supervisor's child by id"
   [^Supervisor sup id]
   (.getChild sup id))
+
+(defn supervisor
+  "Creates (but doesn't start) a new supervisor"
+  ([^String name restart-strategy init]
+   (Supervisor. nil name (int -1)
+                ^Supervisor$RestartStrategy (keyword->enum Supervisor$RestartStrategy restart-strategy)
+                (->Initializer
+                  (fn [] (doseq [child ((suspendable! init))]
+                           (apply add-child (cons @self child)))))))
+  ([restart-strategy init]
+   (supervisor nil restart-strategy init)))
 
 

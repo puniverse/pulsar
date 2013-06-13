@@ -211,6 +211,7 @@
                    v4 (promise #(* (+ @v3 @v2) @v0))]
                (Strand/sleep 50)
                (deliver v1 1)
+               (fact @v3 => 3)
                (fact
                 (mapv realized? [v0 v1 v2 v3 v4]) => [false true true true false])
                (deliver v0 2)
