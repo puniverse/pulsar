@@ -40,6 +40,9 @@ To create a fiber of a function `f` that takes arguments `arg1` and `arg2`, run
 
 The fiber will terminate when `f` completes execution. 
 
+{:.alert .alert-info}
+**Note**: Spawning a fiber is a very cheap operation in both computation and memory. Do not fear creating many (thousands, tens-of-thousands or even hundereds-of-thousands) fibers.
+
 ### Joining Fibers
 
 To wait for the fiber's termination, use
@@ -315,6 +318,9 @@ Of all the optional arguments, you'll usually only use `:name` and `:mailbox-siz
 
 An actor can be `join`ed, just like a fiber.
 
+{:.alert .alert-info}
+**Note**: Just like fibers, spawning an actor is a very cheap operation in both computation and memory. Do not fear creating many (thousands, tens-of-thousands or even hundereds-of-thousands) actors.
+
 ### Sending and Receiving Messages
 
 An actor's mailbox is a channel, that can be obtained with the `mailbox-of` function. You can therefore send a message to an actor like so:
@@ -449,7 +455,10 @@ This can not only lead to code explosion; it can lead to bugs. The key to managi
 
 .....
 
-[The talk *Death by Accidental Complexity*](http://www.infoq.com/presentations/Death-by-Accidental-Complexity), by Ulf Wiger, shows how implementing a full, complicated transition matrix is avoided by using selective receive (in Erlang, but the same applies to Pulsar).
+There are several actor systems that do not support selective receive, but Erlang does, and so does Pulsar. [The talk *Death by Accidental Complexity*](http://www.infoq.com/presentations/Death-by-Accidental-Complexity), by Ulf Wiger, shows how using selective receive avoids implementing a full, complicated and error-prone transition matrix. [In a different talk](http://www.infoq.com/presentations/1000-Year-old-Design-Patterns), Wiger compared non-selective (FIFO) receive to a tetris game where you must fit each piece into the puzzle as it comes, while selective receive turns the problem into a jigsaw puzzle, where you can look for a piece that you know will fit.
+
+{:.alert .alert-warn}
+**A word of caution**: Using selective receive in your code may lead to deadlocks (because you're essentially saying, I'm going to wait here until a specific message arrives). This can be easily avoided by always specifying a timeout (with the `:after millis` clause) when doing a selective receive. Selective receive is a powerful tool that can greatly help writing readable, maintainable message-handling code, but don't over-use it.
 
 ### Actor State
 
