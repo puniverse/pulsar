@@ -1,26 +1,26 @@
- ; Pulsar: lightweight threads and Erlang-like actors for Clojure.
- ; Copyright (C) 2013, Parallel Universe Software Co. All rights reserved.
- ;
- ; This program and the accompanying materials are dual-licensed under
- ; either the terms of the Eclipse Public License v1.0 as published by
- ; the Eclipse Foundation
- ;
- ;   or (per the licensee's choosing)
- ;
- ; under the terms of the GNU Lesser General Public License version 3.0
- ; as published by the Free Software Foundation.
+; Pulsar: lightweight threads and Erlang-like actors for Clojure.
+; Copyright (C) 2013, Parallel Universe Software Co. All rights reserved.
+;
+; This program and the accompanying materials are dual-licensed under
+; either the terms of the Eclipse Public License v1.0 as published by
+; the Eclipse Foundation
+;
+;   or (per the licensee's choosing)
+;
+; under the terms of the GNU Lesser General Public License version 3.0
+; as published by the Free Software Foundation.
 
- (ns co.paralleluniverse.pulsar.interop
-   "Quasar-Pulsar interop helpers"
-   (:import
+(ns co.paralleluniverse.pulsar.interop
+  "Quasar-Pulsar interop helpers"
+  (:import
     ; for types:
     [clojure.lang Seqable LazySeq ISeq])
-   (:require
+  (:require
     [clojure.string :as str]
     [clojure.core.typed :refer [ann Option AnyInteger]]))
 
 
- (ann camel-to-dash [String -> String])
+(ann camel-to-dash [String -> String])
 (defn camel-to-dash ; there are many ways of doing this, but it doesn't have to be fast
   [^String s]
   (.toLowerCase (str/replace s #"[a-z0-9][A-Z]" #(str (first %) \- (second %)))))
@@ -58,18 +58,21 @@
 
 (defmacro enum->keyword
   [enum-type x]
-  `(case (.ordinal ^Enum ~x) ; see http://stackoverflow.com/questions/16777814/is-it-possible-to-use-clojures-case-form-with-a-java-enum/16778119
-     ~@(mapcat #(list (.ordinal %) (keyword (java-name->clojure (.name %))))
-               (eval (list '. enum-type 'values)))))
+  `(when ~x
+     (case (.ordinal ^Enum ~x) ; see http://stackoverflow.com/questions/16777814/is-it-possible-to-use-clojures-case-form-with-a-java-enum/16778119
+       ~@(mapcat #(list (.ordinal %) (keyword (java-name->clojure (.name %))))
+                 (eval (list '. enum-type 'values))))))
 
 #_(defmacro enum->keyword
     [enum-type x]
-    `(case+ ~x
-            ~@(mapcat #(list (symbol (str enum-type "/" (.name %))) (keyword (java-name->clojure (.name %))))
-                      (eval (list '. enum-type 'values)))))
+    `(when ~x
+       (case+ ~x
+              ~@(mapcat #(list (symbol (str enum-type "/" (.name %))) (keyword (java-name->clojure (.name %))))
+                        (eval (list '. enum-type 'values))))))
 
 (defmacro keyword->enum
   [enum-type x]
-  `(case ~x
-     ~@(mapcat #(list (keyword (java-name->clojure (.name %))) (symbol (str enum-type "/" (.name %))))
-               (eval (list '. enum-type 'values)))))
+  `(when ~x
+     (case ~x
+       ~@(mapcat #(list (keyword (java-name->clojure (.name %))) (symbol (str enum-type "/" (.name %))))
+                 (eval (list '. enum-type 'values))))))

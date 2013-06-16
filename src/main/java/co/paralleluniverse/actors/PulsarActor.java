@@ -28,11 +28,11 @@ import java.util.concurrent.TimeoutException;
  * @author pron
  */
 public class PulsarActor extends LocalActor<Object, Object> {
-    public static void send(Actor actor, Object m) {
+    public static void send(Actor actor, Object m) throws SuspendExecution {
         actor.send(m);
     }
 
-    public static void sendSync(Actor actor, Object m) {
+    public static void sendSync(Actor actor, Object m) throws SuspendExecution {
         actor.sendSync(m);
     }
 
@@ -73,8 +73,8 @@ public class PulsarActor extends LocalActor<Object, Object> {
     private Object state;
 
     @SuppressWarnings("LeakingThisInConstructor")
-    public PulsarActor(String name, boolean trap, int mailboxSize, IFn lifecycleMessageHandler, IFn target) {
-        super(name, mailboxSize);
+    public PulsarActor(String name, boolean trap, MailboxConfig mailboxConfig, IFn lifecycleMessageHandler, IFn target) {
+        super(name, mailboxConfig);
         this.target = ClojureHelper.asSuspendableCallable(target);
         this.trap = trap;
         this.lifecycleMessageHandler = lifecycleMessageHandler;

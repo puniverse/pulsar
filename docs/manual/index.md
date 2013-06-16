@@ -309,12 +309,13 @@ This will create a new actor, and start running it in a new fiber.
 
 * `:name` - The actor's name (that's also given to the fiber running the actor).
 * `:mailbox-size` - The number of messages that can wait in the mailbox, or -1 (the default) for an unbounded mailbox.
+* `:overflow-policy` - What to do if a bounded mailbox overflows. Can be either `:kill`, in which case an exception will be thrown into the receivnig actor, or `:backpressure`, in which case the sender will block until there's room in the mailbox.
 * `:lifecycle-handle` - A function that will be called to handle special messages sent to the actor. If set to `nil` (the default), the default handler is used, which is what you want in all circumstances, except for some actors that are meant to do some special tricks.
 * `:fj-pool` - The `ForkJoinPool` in which the fiber will run.
   If `:fj-pool` is not specified, then the pool used will be either 1) the pool of the fiber calling `spawn-fiber`, or, if `spawn-fiber` is not called from within a fiber, a default pool.
 * `:stack-size` - The initial fiber data stack size.
 
-Of all the optional arguments, you'll usually only use `:name` and `:mailbox-size`. As mentioned, by default the mailbox is unbounded. Bounded mailboxes provide better performance and should be considered for actors that are expected to handle messages at a very high rate. However, a bounded mailbox that overflows, will inject an exception into the *receiving* actor, which will, in most circumstances, cause it to terminate.
+Of all the optional arguments, you'll usually only use `:name` and `:mailbox-size`+`:overflow-policy`. As mentioned, by default the mailbox is unbounded. Bounded mailboxes provide better performance and should be considered for actors that are expected to handle messages at a very high rate.
 
 An actor can be `join`ed, just like a fiber.
 

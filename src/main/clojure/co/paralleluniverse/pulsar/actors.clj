@@ -15,7 +15,7 @@
   (:import [java.util.concurrent TimeUnit ExecutionException TimeoutException]
            [co.paralleluniverse.strands Strand]
            [co.paralleluniverse.strands.channels Channel]
-           [co.paralleluniverse.actors ActorRegistry Actor LocalActor ActorImpl PulsarActor ActorBuilder 
+           [co.paralleluniverse.actors ActorRegistry Actor LocalActor ActorImpl MailboxConfig PulsarActor ActorBuilder 
             LifecycleListener ShutdownMessage]
            [co.paralleluniverse.pulsar ClojureHelper]
            [co.paralleluniverse.actors.behaviors GenBehavior Initializer BasicGenBehavior
@@ -114,24 +114,28 @@
          (defn ~n ~@decl)
          (suspendable! ~n)))))
 
+(defmacro ->MailboxConfig 
+  [size overflow-policy]
+  `(co.paralleluniverse.actors.MailboxConfig. (int ~size) (keyword->enum co.paralleluniverse.actors.MailboxConfig$OverflowPolicy ~overflow-policy)))
+
 (defmacro spawn
   "Creates and starts a new actor"
-  {:arglists '([:name? :mailbox-size? :lifecycle-handler? :stack-size? :pool? f & args])}
+  {:arglists '([:name? :mailbox-size? :overflow-policy? :lifecycle-handler? :stack-size? :pool? f & args])}
   [& args]
-  (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size ^IFn lifecycle-handler ^Integer stack-size ^ForkJoinPool pool], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)]
+  (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size overflow-policy ^IFn lifecycle-handler ^Integer stack-size ^ForkJoinPool pool], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)]
     `(let [b#     (first ~body) ; eval body
            f#     (when (not (instance? LocalActor b#))
                     (suspendable! ~(if (== (count body) 1) (first body) `(fn [] (apply ~(first body) (list ~@(rest body)))))))
            ^LocalActor actor# (if (instance? LocalActor b#)
                                 b#
-                                (co.paralleluniverse.actors.PulsarActor. ~name ~trap (int ~mailbox-size) ~lifecycle-handler f#))
+                                (co.paralleluniverse.actors.PulsarActor. ~name ~trap (->MailboxConfig ~mailbox-size ~overflow-policy) ~lifecycle-handler f#))
            fiber# (co.paralleluniverse.fibers.Fiber. ~name (get-pool ~pool) (int ~stack-size) actor#)]
        (.start fiber#)
        actor#)))
 
 (defmacro spawn-link
   "Creates and starts a new actor, and links it to @self"
-  {:arglists '([:name? :mailbox-size? :lifecycle-handler? :stack-size? :pool? f & args])}
+  {:arglists '([:name? :mailbox-size? :overflow-policy? :lifecycle-handler? :stack-size? :pool? f & args])}
   [& args]
   `(let [actor# ~(list `spawn ~@args)]
      (link! @self actor#)
@@ -139,7 +143,7 @@
 
 (defmacro spawn-watch
   "Creates and starts a new actor, and makes @self monitor it"
-  {:arglists '([:name? :mailbox-size? :lifecycle-handler? :stack-size? :pool? f & args])}
+  {:arglists '([:name? :mailbox-size? :overflow-policy? :lifecycle-handler? :stack-size? :pool? f & args])}
   [& args]
   `(let [actor# ~(list `spawn ~@args)]
      (watch! @self actor#)
@@ -459,13 +463,13 @@
 
 (defmacro gen-server
   "Creates (but doesn't start) a new gen-server"
-  {:arglists '([:name? :timeout? :mailbox-size? server & args])}
+  {:arglists '([:name? :timeout? :mailbox-size? :overflow-policy? server & args])}
   [& args]
-  (let [[{:keys [^String name ^Integer timeout ^Integer mailbox-size], :or {timeout -1 mailbox-size -1}} body] (kps-args args)]
+  (let [[{:keys [^String name ^Integer timeout ^Integer mailbox-size overflow-policy], :or {timeout -1 mailbox-size -1}} body] (kps-args args)]
     `(co.paralleluniverse.actors.behaviors.LocalGenServer. ~name
                                                            ^co.paralleluniverse.actors.behaviors.Server (Server->java ~(first body))
                                                            (long ~timeout) java.util.concurrent.TimeUnit/MILLISECONDS
-                                                           nil (int ~mailbox-size))))
+                                                           nil (->MailboxConfig ~mailbox-size ~overflow-policy))))
 
 (defn call
   "Makes a synchronous call to a gen-server and returns the response"
@@ -511,12 +515,12 @@
 
 (defn gen-event
   "Creates (but doesn't start) a new gen-event"
-  {:arglists '([:name? :timeout? :mailbox-size? server & args])}
+  {:arglists '([:name? :timeout? :mailbox-size? :overflow-policy? server & args])}
   [& args]
-  (let [[{:keys [^String name ^Integer mailbox-size], :or {mailbox-size -1}} body] (kps-args args)]
+  (let [[{:keys [^String name ^Integer mailbox-size overflow-policy], :or {mailbox-size -1}} body] (kps-args args)]
     (LocalGenEvent. name
                     (->Initializer (first body) (second body))
-                    nil (int mailbox-size))))
+                    nil (->MailboxConfig mailbox-size overflow-policy))))
 
 (deftype PulsarEventHandler
   [handler]
@@ -549,14 +553,14 @@
 
 (defn- ^LocalActor create-actor
   [& args]
-  (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size ^IFn lifecycle-handler ^Integer stack-size ^ForkJoinPool pool], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)
+  (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size overflow-policy ^IFn lifecycle-handler ^Integer stack-size ^ForkJoinPool pool], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)
         f  (when (not (instance? LocalActor body))
              (suspendable! (if (== (count body) 1)
                              (first body)
                              (fn [] (apply (first body) (rest body))))))]
     (if (instance? LocalActor body)
       body
-      (PulsarActor. name trap (int mailbox-size) lifecycle-handler f))))
+      (PulsarActor. name trap (->MailboxConfig mailbox-size overflow-policy) lifecycle-handler f))))
 
 (defn- child-spec
   [id mode max-restarts duration unit shutdown-deadline-millis & args]
@@ -592,7 +596,7 @@
 (defn supervisor
   "Creates (but doesn't start) a new supervisor"
   ([^String name restart-strategy init]
-   (Supervisor. nil name (int -1)
+   (Supervisor. nil name nil
                 ^Supervisor$RestartStrategy (keyword->enum Supervisor$RestartStrategy restart-strategy)
                 (->Initializer
                   (fn [] (doseq [child ((suspendable! init))]

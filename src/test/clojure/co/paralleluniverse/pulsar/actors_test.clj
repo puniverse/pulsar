@@ -467,7 +467,7 @@
                     (join a) => res)))
               (shutdown sup)
               (join sup)))
-      (fact "When permanent actor dies of un-natural causes then restart"
+      #_(fact "When permanent actor dies of un-natural causes then restart"
             (let [sup (spawn
                         (supervisor :one-for-one
                                     #(list ["actor1" :permanent 5 1 :sec 10 bad-actor1])))]
@@ -478,7 +478,7 @@
                     (join a) => throws Exception)))
               (shutdown sup)
               (join sup)))
-      (fact "When transient actor dies of natural causes then don't restart"
+      #_(fact "When transient actor dies of natural causes then don't restart"
             (let [sup (spawn
                         (supervisor :one-for-one
                                     #(list ["actor1" :transient 5 1 :sec 10 actor1])))]
@@ -491,7 +491,7 @@
               (fact (sup-child sup "actor1" 200) => nil)
               (shutdown sup)
               (join sup)))
-      (fact "When transient actor dies of un-natural causes then restart"
+      #_(fact "When transient actor dies of un-natural causes then restart"
             (let [sup (spawn
                         (supervisor :one-for-one
                                     #(list ["actor1" :transient 5 1 :sec 10 bad-actor1])))]
@@ -502,7 +502,7 @@
                     (join a) => throws Exception)))
               (shutdown sup)
               (join sup)))
-      (fact "When temporary actor dies of natural causes then don't restart"
+      #_(fact "When temporary actor dies of natural causes then don't restart"
             (let [sup (spawn
                         (supervisor :one-for-one
                                     #(list ["actor1" :temporary 5 1 :sec 10 actor1])))]
@@ -515,7 +515,7 @@
               (fact (sup-child sup "actor1" 200) => nil)
               (shutdown sup)
               (join sup)))
-      (fact "When temporary actor dies of un-natural causes then don't restart"
+      #_(fact "When temporary actor dies of un-natural causes then don't restart"
             (let [sup (spawn
                         (supervisor :one-for-one
                                     #(list ["actor1" :temporary 5 1 :sec 10 bad-actor1])))]
