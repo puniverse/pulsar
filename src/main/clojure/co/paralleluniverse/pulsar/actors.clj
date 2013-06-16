@@ -529,7 +529,7 @@
                (handler event))
   Object
   (equals [this other]
-          (and (instance? PulsarEventHandler other) (= handler (.handler other)))))
+          (and (instance? PulsarEventHandler other) (= handler (.handler ^PulsarEventHandler other)))))
 
 (defn notify
   [^GenEvent ge event]
