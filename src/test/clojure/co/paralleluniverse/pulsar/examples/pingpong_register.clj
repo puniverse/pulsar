@@ -1,21 +1,21 @@
-(ns co.paralleluniverse.pulsar.examples.pingpong
+(ns co.paralleluniverse.pulsar.examples.pingpong-register
   "The classic ping-pong example from the Erlang tutorial"
   (:use [co.paralleluniverse.pulsar core actors]))
 
 ;; This example is intended to be a line-by-line translation of the canonical
-;; Erlang [ping-pong example](http://www.erlang.org/doc/getting_started/conc_prog.html#id67006),
+;; Erlang [ping-pong example](http://www.erlang.org/doc/getting_started/conc_prog.html#id67347),
 ;; so it is not written in idiomatic Clojure.
 
-(defsusfn ping [n pong]
+(defsusfn ping [n]
   (if (== n 0)
     (do
-      (! pong :finished)
+      (! :pong :finished)
       (println "ping finished"))
     (do
-      (! pong [:ping @self])
+      (! :pong [:ping @self])
       (receive
         :pong (println "Ping received pong"))
-      (recur (dec n) pong))))
+      (recur (dec n)))))
 
 (defsusfn pong []
   (receive
@@ -26,13 +26,13 @@
                    (recur))))
 
 (defn -main []
-  (let [a1 (spawn pong)
-        b1 (spawn ping 3 a1)]
-    :ok))
+  (register :pong (spawn pong))
+  (spawn ping 3)
+  :ok)
 
 #_(defn -main []
-    (let [a1 (spawn pong)
-          b1 (spawn ping 3 a1)]
+    (let [a1 (register :pong (spawn pong))
+          b1 (spawn ping 3)]
       (join a1)
       (join b1)
       (System/exit 0)))
