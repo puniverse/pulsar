@@ -3042,7 +3042,7 @@ as published by the Free Software Foundation.</p>
   (:import [java.util.concurrent TimeUnit ExecutionException TimeoutException]
            [co.paralleluniverse.strands Strand]
            [co.paralleluniverse.strands.channels Channel]
-           [co.paralleluniverse.actors ActorRegistry Actor LocalActor ActorImpl PulsarActor ActorBuilder 
+           [co.paralleluniverse.actors ActorRegistry Actor LocalActor ActorImpl MailboxConfig PulsarActor ActorBuilder 
             LifecycleListener ShutdownMessage]
            [co.paralleluniverse.pulsar ClojureHelper]
            [co.paralleluniverse.actors.behaviors GenBehavior Initializer BasicGenBehavior
@@ -3130,28 +3130,31 @@ as published by the Free Software Foundation.</p>
       ; regular actor
       `(do
          (defn ~n ~@decl)
-         (suspendable! ~n)))))</pre></td></tr><tr><td class="docs"><p>Creates and starts a new actor</p>
+         (suspendable! ~n)))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defmacro -&gt;MailboxConfig 
+  [size overflow-policy]
+  `(co.paralleluniverse.actors.MailboxConfig. (int ~size) (keyword-&gt;enum co.paralleluniverse.actors.MailboxConfig$OverflowPolicy ~overflow-policy)))</pre></td></tr><tr><td class="docs"><p>Creates and starts a new actor</p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro spawn
-  {:arglists '([:name? :mailbox-size? :lifecycle-handler? :stack-size? :pool? f &amp; args])}
+  {:arglists '([:name? :mailbox-size? :overflow-policy? :lifecycle-handler? :stack-size? :pool? f &amp; args])}
   [&amp; args]
-  (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size ^IFn lifecycle-handler ^Integer stack-size ^ForkJoinPool pool], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)]
+  (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size overflow-policy ^IFn lifecycle-handler ^Integer stack-size ^ForkJoinPool pool], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)]
     `(let [b#     (first ~body) ; eval body
            f#     (when (not (instance? LocalActor b#))
                     (suspendable! ~(if (== (count body) 1) (first body) `(fn [] (apply ~(first body) (list ~@(rest body)))))))
            ^LocalActor actor# (if (instance? LocalActor b#)
                                 b#
-                                (co.paralleluniverse.actors.PulsarActor. ~name ~trap (int ~mailbox-size) ~lifecycle-handler f#))
+                                (co.paralleluniverse.actors.PulsarActor. ~name ~trap (-&gt;MailboxConfig ~mailbox-size ~overflow-policy) ~lifecycle-handler f#))
            fiber# (co.paralleluniverse.fibers.Fiber. ~name (get-pool ~pool) (int ~stack-size) actor#)]
        (.start fiber#)
        actor#)))</pre></td></tr><tr><td class="docs"><p>Creates and starts a new actor, and links it to @self</p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro spawn-link
-  {:arglists '([:name? :mailbox-size? :lifecycle-handler? :stack-size? :pool? f &amp; args])}
+  {:arglists '([:name? :mailbox-size? :overflow-policy? :lifecycle-handler? :stack-size? :pool? f &amp; args])}
   [&amp; args]
   `(let [actor# ~(list `spawn ~@args)]
      (link! @self actor#)
      actor#))</pre></td></tr><tr><td class="docs"><p>Creates and starts a new actor, and makes @self monitor it</p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro spawn-watch
-  {:arglists '([:name? :mailbox-size? :lifecycle-handler? :stack-size? :pool? f &amp; args])}
+  {:arglists '([:name? :mailbox-size? :overflow-policy? :lifecycle-handler? :stack-size? :pool? f &amp; args])}
   [&amp; args]
   `(let [actor# ~(list `spawn ~@args)]
      (watch! @self actor#)
@@ -3417,13 +3420,13 @@ as published by the Free Software Foundation.</p>
     (^void terminate  [this ^Throwable cause]
            (terminate server cause))))</pre></td></tr><tr><td class="docs"><p>Creates (but doesn't start) a new gen-server</p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro gen-server
-  {:arglists '([:name? :timeout? :mailbox-size? server &amp; args])}
+  {:arglists '([:name? :timeout? :mailbox-size? :overflow-policy? server &amp; args])}
   [&amp; args]
-  (let [[{:keys [^String name ^Integer timeout ^Integer mailbox-size], :or {timeout -1 mailbox-size -1}} body] (kps-args args)]
+  (let [[{:keys [^String name ^Integer timeout ^Integer mailbox-size overflow-policy], :or {timeout -1 mailbox-size -1}} body] (kps-args args)]
     `(co.paralleluniverse.actors.behaviors.LocalGenServer. ~name
                                                            ^co.paralleluniverse.actors.behaviors.Server (Server-&gt;java ~(first body))
                                                            (long ~timeout) java.util.concurrent.TimeUnit/MILLISECONDS
-                                                           nil (int ~mailbox-size))))</pre></td></tr><tr><td class="docs"><p>Makes a synchronous call to a gen-server and returns the response</p>
+                                                           nil (-&gt;MailboxConfig ~mailbox-size ~overflow-policy))))</pre></td></tr><tr><td class="docs"><p>Makes a synchronous call to a gen-server and returns the response</p>
 </td><td class="codes"><pre class="brush: clojure">(defn call
   ([^GenServer gs m]
    (unwrap-exception
@@ -3454,12 +3457,12 @@ as published by the Free Software Foundation.</p>
   (.replyError (LocalGenServer/currentGenServer) to id error))</pre></td></tr><tr><td class="docs"><h2>gen-event</h2>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>Creates (but doesn't start) a new gen-event</p>
 </td><td class="codes"><pre class="brush: clojure">(defn gen-event
-  {:arglists '([:name? :timeout? :mailbox-size? server &amp; args])}
+  {:arglists '([:name? :timeout? :mailbox-size? :overflow-policy? server &amp; args])}
   [&amp; args]
-  (let [[{:keys [^String name ^Integer mailbox-size], :or {mailbox-size -1}} body] (kps-args args)]
+  (let [[{:keys [^String name ^Integer mailbox-size overflow-policy], :or {mailbox-size -1}} body] (kps-args args)]
     (LocalGenEvent. name
                     (-&gt;Initializer (first body) (second body))
-                    nil (int mailbox-size))))</pre></td></tr><tr><td class="docs">
+                    nil (-&gt;MailboxConfig mailbox-size overflow-policy))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(deftype PulsarEventHandler
   [handler]
   EventHandler
@@ -3485,14 +3488,14 @@ as published by the Free Software Foundation.</p>
            (f))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn- ^LocalActor create-actor
   [&amp; args]
-  (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size ^IFn lifecycle-handler ^Integer stack-size ^ForkJoinPool pool], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)
+  (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size overflow-policy ^IFn lifecycle-handler ^Integer stack-size ^ForkJoinPool pool], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)
         f  (when (not (instance? LocalActor body))
              (suspendable! (if (== (count body) 1)
                              (first body)
                              (fn [] (apply (first body) (rest body))))))]
     (if (instance? LocalActor body)
       body
-      (PulsarActor. name trap (int mailbox-size) lifecycle-handler f))))</pre></td></tr><tr><td class="docs">
+      (PulsarActor. name trap (-&gt;MailboxConfig mailbox-size overflow-policy) lifecycle-handler f))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn- child-spec
   [id mode max-restarts duration unit shutdown-deadline-millis &amp; args]
   (Supervisor$ChildSpec. id
@@ -3517,7 +3520,7 @@ as published by the Free Software Foundation.</p>
   (.getChild sup id))</pre></td></tr><tr><td class="docs"><p>Creates (but doesn't start) a new supervisor</p>
 </td><td class="codes"><pre class="brush: clojure">(defn supervisor
   ([^String name restart-strategy init]
-   (Supervisor. nil name (int -1)
+   (Supervisor. nil name nil
                 ^Supervisor$RestartStrategy (keyword-&gt;enum Supervisor$RestartStrategy restart-strategy)
                 (-&gt;Initializer
                   (fn [] (doseq [child ((suspendable! init))]
@@ -3987,14 +3990,14 @@ the Eclipse Foundation</p>
 <p>under the terms of the GNU Lesser General Public License version 3.0
 as published by the Free Software Foundation.</p>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>Quasar-Pulsar interop helpers</p>
-</td><td class="codes"><pre class="brush: clojure"> (ns co.paralleluniverse.pulsar.interop
-   (:import
+</td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar.interop
+  (:import
     ; for types:
     [clojure.lang Seqable LazySeq ISeq])
-   (:require
+  (:require
     [clojure.string :as str]
     [clojure.core.typed :refer [ann Option AnyInteger]]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure"> (ann camel-to-dash [String -&gt; String])
+</td><td class="codes"><pre class="brush: clojure">(ann camel-to-dash [String -&gt; String])
 (defn camel-to-dash ; there are many ways of doing this, but it doesn't have to be fast
   [^String s]
   (.toLowerCase (str/replace s #&quot;[a-z0-9][A-Z]&quot; #(str (first %) \- (second %)))))</pre></td></tr><tr><td class="docs">
@@ -4026,19 +4029,22 @@ as published by the Free Software Foundation.</p>
                  default))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmacro enum-&gt;keyword
   [enum-type x]
-  `(case (.ordinal ^Enum ~x) ; see http://stackoverflow.com/questions/16777814/is-it-possible-to-use-clojures-case-form-with-a-java-enum/16778119
-     ~@(mapcat #(list (.ordinal %) (keyword (java-name-&gt;clojure (.name %))))
-               (eval (list '. enum-type 'values)))))</pre></td></tr><tr><td class="docs">
+  `(when ~x
+     (case (.ordinal ^Enum ~x) ; see http://stackoverflow.com/questions/16777814/is-it-possible-to-use-clojures-case-form-with-a-java-enum/16778119
+       ~@(mapcat #(list (.ordinal %) (keyword (java-name-&gt;clojure (.name %))))
+                 (eval (list '. enum-type 'values))))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">#_(defmacro enum-&gt;keyword
     [enum-type x]
-    `(case+ ~x
-            ~@(mapcat #(list (symbol (str enum-type &quot;/&quot; (.name %))) (keyword (java-name-&gt;clojure (.name %))))
-                      (eval (list '. enum-type 'values)))))
+    `(when ~x
+       (case+ ~x
+              ~@(mapcat #(list (symbol (str enum-type &quot;/&quot; (.name %))) (keyword (java-name-&gt;clojure (.name %))))
+                        (eval (list '. enum-type 'values))))))
 (defmacro keyword-&gt;enum
   [enum-type x]
-  `(case ~x
-     ~@(mapcat #(list (keyword (java-name-&gt;clojure (.name %))) (symbol (str enum-type &quot;/&quot; (.name %))))
-               (eval (list '. enum-type 'values)))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.lazyseq" name="co.paralleluniverse.pulsar.lazyseq"><h1 class="project-name">co.paralleluniverse.pulsar.lazyseq</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>This program and the accompanying materials are dual-licensed under
+  `(when ~x
+     (case ~x
+       ~@(mapcat #(list (keyword (java-name-&gt;clojure (.name %))) (symbol (str enum-type &quot;/&quot; (.name %))))
+                 (eval (list '. enum-type 'values))))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.lazyseq" name="co.paralleluniverse.pulsar.lazyseq"><h1 class="project-name">co.paralleluniverse.pulsar.lazyseq</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>This program and the accompanying materials are dual-licensed under
 either the terms of the Eclipse Public License v1.0 as published by
 the Eclipse Foundation</p>
 
@@ -4635,7 +4641,7 @@ manually add a known actor to a supervisor, so this ugly function is only useful
                     (join a) =&gt; res)))
               (shutdown sup)
               (join sup)))
-      (fact &quot;When permanent actor dies of un-natural causes then restart&quot;
+      #_(fact &quot;When permanent actor dies of un-natural causes then restart&quot;
             (let [sup (spawn
                         (supervisor :one-for-one
                                     #(list [&quot;actor1&quot; :permanent 5 1 :sec 10 bad-actor1])))]
@@ -4646,7 +4652,7 @@ manually add a known actor to a supervisor, so this ugly function is only useful
                     (join a) =&gt; throws Exception)))
               (shutdown sup)
               (join sup)))
-      (fact &quot;When transient actor dies of natural causes then don't restart&quot;
+      #_(fact &quot;When transient actor dies of natural causes then don't restart&quot;
             (let [sup (spawn
                         (supervisor :one-for-one
                                     #(list [&quot;actor1&quot; :transient 5 1 :sec 10 actor1])))]
@@ -4659,7 +4665,7 @@ manually add a known actor to a supervisor, so this ugly function is only useful
               (fact (sup-child sup &quot;actor1&quot; 200) =&gt; nil)
               (shutdown sup)
               (join sup)))
-      (fact &quot;When transient actor dies of un-natural causes then restart&quot;
+      #_(fact &quot;When transient actor dies of un-natural causes then restart&quot;
             (let [sup (spawn
                         (supervisor :one-for-one
                                     #(list [&quot;actor1&quot; :transient 5 1 :sec 10 bad-actor1])))]
@@ -4670,7 +4676,7 @@ manually add a known actor to a supervisor, so this ugly function is only useful
                     (join a) =&gt; throws Exception)))
               (shutdown sup)
               (join sup)))
-      (fact &quot;When temporary actor dies of natural causes then don't restart&quot;
+      #_(fact &quot;When temporary actor dies of natural causes then don't restart&quot;
             (let [sup (spawn
                         (supervisor :one-for-one
                                     #(list [&quot;actor1&quot; :temporary 5 1 :sec 10 actor1])))]
@@ -4683,7 +4689,7 @@ manually add a known actor to a supervisor, so this ugly function is only useful
               (fact (sup-child sup &quot;actor1&quot; 200) =&gt; nil)
               (shutdown sup)
               (join sup)))
-      (fact &quot;When temporary actor dies of un-natural causes then don't restart&quot;
+      #_(fact &quot;When temporary actor dies of un-natural causes then don't restart&quot;
             (let [sup (spawn
                         (supervisor :one-for-one
                                     #(list [&quot;actor1&quot; :temporary 5 1 :sec 10 bad-actor1])))]

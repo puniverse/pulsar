@@ -56,19 +56,19 @@
           
           
           
-        
-          
-          
-            
-          
-          
-          
             <li>
               <a  href="/pulsar/getting-started.html">
                 Getting Started
               </a>
               
             </li>
+          
+        
+          
+          
+            
+          
+          
           
         
           
@@ -101,6 +101,13 @@
           
           
           
+        
+          
+          
+            
+          
+          
+          
             <li>
               <a class="active" href="/pulsar/manual/index.html">
                 User Manual
@@ -109,13 +116,6 @@
               <ul class="nav nav-list"><li><a href="#quasar-and-pulsar">Quasar and Pulsar</a></li><li><a href="#fibers">Fibers</a></li><li><a href="#channels">Channels</a></li><li><a href="#actors">Actors</a></li><li><a href="#behaviors">Behaviors</a></li><li><a href="#dataflow">Dataflow</a></li></ul>
               
             </li>
-          
-        
-          
-          
-            
-          
-          
           
         
           
@@ -465,13 +465,14 @@ To create and start an actor of a function <code>f</code> that takes arguments <
 <ul>
   <li><code>:name</code> - The actor’s name (that’s also given to the fiber running the actor).</li>
   <li><code>:mailbox-size</code> - The number of messages that can wait in the mailbox, or -1 (the default) for an unbounded mailbox.</li>
+  <li><code>:overflow-policy</code> - What to do if a bounded mailbox overflows. Can be either <code>:kill</code>, in which case an exception will be thrown into the receivnig actor, or <code>:backpressure</code>, in which case the sender will block until there’s room in the mailbox.</li>
   <li><code>:lifecycle-handle</code> - A function that will be called to handle special messages sent to the actor. If set to <code>nil</code> (the default), the default handler is used, which is what you want in all circumstances, except for some actors that are meant to do some special tricks.</li>
   <li><code>:fj-pool</code> - The <code>ForkJoinPool</code> in which the fiber will run.
 If <code>:fj-pool</code> is not specified, then the pool used will be either 1) the pool of the fiber calling <code>spawn-fiber</code>, or, if <code>spawn-fiber</code> is not called from within a fiber, a default pool.</li>
   <li><code>:stack-size</code> - The initial fiber data stack size.</li>
 </ul>
 
-<p>Of all the optional arguments, you’ll usually only use <code>:name</code> and <code>:mailbox-size</code>. As mentioned, by default the mailbox is unbounded. Bounded mailboxes provide better performance and should be considered for actors that are expected to handle messages at a very high rate. However, a bounded mailbox that overflows, will inject an exception into the <em>receiving</em> actor, which will, in most circumstances, cause it to terminate.</p>
+<p>Of all the optional arguments, you’ll usually only use <code>:name</code> and <code>:mailbox-size</code>+<code>:overflow-policy</code>. As mentioned, by default the mailbox is unbounded. Bounded mailboxes provide better performance and should be considered for actors that are expected to handle messages at a very high rate.</p>
 
 <p>An actor can be <code>join</code>ed, just like a fiber.</p>
 
