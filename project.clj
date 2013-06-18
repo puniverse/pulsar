@@ -24,7 +24,7 @@
   :manifest {"Premain-Class" "co.paralleluniverse.fibers.instrument.JavaAgent"
              "Can-Retransform-Classes" "true"}
   :jvm-opts ["-server"
-             ~(str "-javaagent:" (System/getProperty "user.home") "/.m2/repository/co/paralleluniverse/quasar/0.2-SNAPSHOT/quasar-0.2-SNAPSHOT.jar")]
+             ~(str "-javaagent:" (System/getProperty "user.home") "/.m2/repository/co/paralleluniverse/quasar-core/0.2-SNAPSHOT/quasar-core-0.2-SNAPSHOT.jar")]
   :pedantic :warn
   :profiles {:dev
              {:plugins [[lein-midje "3.0.0"]]
