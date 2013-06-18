@@ -368,7 +368,7 @@ But, again, while an actor can be treated as a fiber with a channel, it has some
      (join actor)) ; => "because!"
 ~~~
 
-As we can see in the example, `receive` not only picks the action based on the message, but also destructures the message and binds free variable, in our example – the `answer` variable. `receive` uses the [core.match](https://github.com/clojure/core.match) library for pattern matching, and you can consult [its documentation](https://github.com/clojure/core.match/wiki/Overview) to learn exactly how matching works.
+As we can see in the example, `receive` not only picks the action based on the message, but also destructures the message and binds free variable, in our example – the `answer` variable. `receive` uses the [core.match](https://github.com/clojure/core.match) library for pattern matching, and you can consult [its documentation](https://github.com/clojure/core.match/wiki/Overview) to learn exactly how matching works.
 
 Sometimes, we would like to assign the whole message to a variable. We do it by creating a binding clause in `receive`:
 
