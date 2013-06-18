@@ -11,7 +11,7 @@
   :repositories {"snapshots" "https://oss.sonatype.org/content/repositories/snapshots"}
   :test-selectors {:selected :selected}
   :dependencies [[org.clojure/clojure "1.5.1"]
-                 [co.paralleluniverse/quasar "0.2-SNAPSHOT"]
+                 [co.paralleluniverse/quasar-core "0.2-SNAPSHOT"]
                  [com.yammer.metrics/metrics-core "2.0.2"]
                  [org.ow2.asm/asm "4.1"]
                  [org.ow2.asm/asm-analysis "4.1"]
