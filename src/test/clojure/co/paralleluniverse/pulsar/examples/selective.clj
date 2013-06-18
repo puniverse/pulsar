@@ -21,14 +21,15 @@
     (recur)))
 
 (defsusfn curious [nums computer]
-  (let [[a b c d] (take 4 nums)
-        tag       (maketag)]
-    (! computer @self tag [:compute a b c d])
-    (receive [m]
-             [tag [:result res]]  (println a b c d "->" res)
-             [tag [:error error]] (println "ERROR: " a b c d "->" error)
-             :else (println "Unexpected message" m))
-    (recur (drop 4 nums) computer)))
+  (when (seq nums)
+    (let [[a b c d] (take 4 nums)
+          tag       (maketag)]
+      (! computer @self tag [:compute a b c d])
+      (receive [m]
+               [tag [:result res]]  (println a b c d "->" res)
+               [tag [:error error]] (println "ERROR: " a b c d "->" error)
+               :else (println "Unexpected message" m))
+      (recur (drop 4 nums) computer))))
 
 
 (defn -main []
