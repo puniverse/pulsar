@@ -530,7 +530,7 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
      (join actor)) ; =&gt; "because!"
 </code></pre>
 
-<p>As we can see in the example, <code>receive</code> not only picks the action based on the message, but also destructures the message and binds free variable, in our example – the <code>answer</code> variable. <code>receive</code> uses the <a href="https://github.com/clojure/core.match">core.match</a> library for pattern matching, and you can consult <a href="https://github.com/clojure/core.match/wiki/Overview">its documentation</a> to learn exactly how matching works.</p>
+<p>As we can see in the example, <code>receive</code> not only picks the action based on the message, but also destructures the message and binds free variable, in our example – the <code>answer</code> variable. <code>receive</code> uses the <a href="https://github.com/clojure/core.match">core.match</a> library for pattern matching, and you can consult <a href="https://github.com/clojure/core.match/wiki/Overview">its documentation</a> to learn exactly how matching works.</p>
 
 <p>Sometimes, we would like to assign the whole message to a variable. We do it by creating a binding clause in <code>receive</code>:</p>
 
