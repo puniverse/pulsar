@@ -1,6 +1,4 @@
-# Pulsar: lightweight threads and Erlang-like actors for Clojure
-
-[![Build Status](https://travis-ci.org/puniverse/pulsar.png?branch=master)](https://travis-ci.org/puniverse/pulsar)
+# Pulsar [![Build Status](https://travis-ci.org/puniverse/pulsar.png?branch=master)](https://travis-ci.org/puniverse/pulsar)<br/>Lightweight threads and Erlang-like actors for Clojure
 
 **NOTE: This is alpha software**
 
