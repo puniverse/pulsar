@@ -55,6 +55,9 @@ or to the `:jvm-opts` section in project.clj:
 
 ## License
 
+Pulsar is free software published under the following license:
+
+
 ```
 Copyright © 2013 Parallel Universe
 
