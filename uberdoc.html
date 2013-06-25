@@ -3048,7 +3048,7 @@ as published by the Free Software Foundation.</p>
            [co.paralleluniverse.actors.behaviors GenBehavior Initializer BasicGenBehavior
             GenServer LocalGenServer 
             GenEvent LocalGenEvent EventHandler
-            Supervisor Supervisor$ChildSpec Supervisor$ChildMode Supervisor$RestartStrategy]
+            Supervisor Supervisor$ChildSpec Supervisor$ChildMode LocalSupervisor LocalSupervisor$RestartStrategy]
            ; for types:
            [clojure.lang Keyword IObj IFn IMeta IDeref ISeq IPersistentCollection IPersistentVector IPersistentMap])
   (:require [co.paralleluniverse.pulsar.core :refer :all]
@@ -3518,11 +3518,11 @@ as published by the Free Software Foundation.</p>
   (.getChild sup id))</pre></td></tr><tr><td class="docs"><p>Creates (but doesn't start) a new supervisor</p>
 </td><td class="codes"><pre class="brush: clojure">(defn supervisor
   ([^String name restart-strategy init]
-   (Supervisor. nil name nil
-                ^Supervisor$RestartStrategy (keyword-&gt;enum Supervisor$RestartStrategy restart-strategy)
-                (-&gt;Initializer
-                  (fn [] (doseq [child ((suspendable! init))]
-                           (apply add-child (cons @self child)))))))
+   (LocalSupervisor. nil name nil
+                     ^LocalSupervisor$RestartStrategy (keyword-&gt;enum LocalSupervisor$RestartStrategy restart-strategy)
+                     (-&gt;Initializer
+                       (fn [] (doseq [child ((suspendable! init))]
+                                (apply add-child (cons @self child)))))))
   ([restart-strategy init]
    (supervisor nil restart-strategy init)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.core" name="co.paralleluniverse.pulsar.core"><h1 class="project-name">co.paralleluniverse.pulsar.core</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>This program and the accompanying materials are dual-licensed under
 either the terms of the Eclipse Public License v1.0 as published by
