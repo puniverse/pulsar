@@ -3186,8 +3186,8 @@ as published by the Free Software Foundation.</p>
   (PulsarActor/selfSetState x))</pre></td></tr><tr><td class="docs"><p>Sets the current actor to trap lifecycle events (like a dead linked actor) and turn them into messages</p>
 </td><td class="codes"><pre class="brush: clojure">(ann trap! [-&gt; nil])
 (defn trap!
-[]
-(.setTrap ^PulsarActor @self true))</pre></td></tr><tr><td class="docs"><p>If the argument is an actor -- returns it. If not, looks up a registered actor with the argument as its name</p>
+  []
+  (.setTrap ^PulsarActor @self true))</pre></td></tr><tr><td class="docs"><p>If the argument is an actor -- returns it. If not, looks up a registered actor with the argument as its name</p>
 </td><td class="codes"><pre class="brush: clojure">(ann get-actor [Any -&gt; Actor])
 (defn ^Actor get-actor
   [a]
@@ -3199,30 +3199,30 @@ as published by the Free Software Foundation.</p>
                [Actor Actor -&gt; Actor]))
 (defn link!
   ([actor2]
-   (.link ^Actor @self actor2))
+   (.link ^LocalActor @self actor2))
   ([actor1 actor2]
-   (.link (get-actor actor1) (get-actor actor2))))</pre></td></tr><tr><td class="docs"><p>Unlinks two actors</p>
+   (.link ^LocalActor (cast LocalActor (get-actor actor1)) (get-actor actor2))))</pre></td></tr><tr><td class="docs"><p>Unlinks two actors</p>
 </td><td class="codes"><pre class="brush: clojure">(ann unlink! (Fn [Actor -&gt; Actor]
                  [Actor Actor -&gt; Actor]))
 (defn unlink!
   ([actor2]
-   (.unlink ^Actor @self actor2))
+   (.unlink ^LocalActor @self actor2))
   ([actor1 actor2]
-   (.unlink (get-actor actor1) (get-actor actor2))))</pre></td></tr><tr><td class="docs"><p>Makes an actor watch another actor. Returns a watch object which should be used when calling demonitor.</p>
+   (.unlink ^LocalActor (cast LocalActor (get-actor actor1)) (get-actor actor2))))</pre></td></tr><tr><td class="docs"><p>Makes an actor watch another actor. Returns a watch object which should be used when calling demonitor.</p>
 </td><td class="codes"><pre class="brush: clojure">(ann monitor (Fn [Actor Actor -&gt; LifecycleListener]
                  [Actor -&gt; LifecycleListener]))
 (defn watch!
   ([actor2]
-   (.watch ^Actor @self actor2))
+   (.watch ^LocalActor @self actor2))
   ([actor1 actor2]
-   (.watch (get-actor actor1) (get-actor actor2))))</pre></td></tr><tr><td class="docs"><p>Makes an actor stop watch another actor</p>
+   (.watch ^LocalActor (cast LocalActor (get-actor actor1)) (get-actor actor2))))</pre></td></tr><tr><td class="docs"><p>Makes an actor stop watch another actor</p>
 </td><td class="codes"><pre class="brush: clojure">(ann monitor (Fn [Actor Actor LifecycleListener -&gt; nil]
                  [Actor LifecycleListener -&gt; nil]))
 (defn unwatch!
   ([actor2 monitor]
-   (.unwatch ^Actor @self actor2 monitor))
+   (.unwatch ^LocalActor @self actor2 monitor))
   ([actor1 actor2 monitor]
-   (.unwatch (get-actor actor1) (get-actor actor2) monitor)))</pre></td></tr><tr><td class="docs"><p>Registers an actor</p>
+   (.unwatch ^LocalActor (cast LocalActor (get-actor actor1)) (get-actor actor2) monitor)))</pre></td></tr><tr><td class="docs"><p>Registers an actor</p>
 </td><td class="codes"><pre class="brush: clojure">(ann register (Fn [String LocalActor -&gt; LocalActor]
                   [LocalActor -&gt; LocalActor]))
 (defn register
@@ -3233,10 +3233,8 @@ as published by the Free Software Foundation.</p>
 </td><td class="codes"><pre class="brush: clojure">(ann unregister [LocalActor -&gt; LocalActor])
 (defn unregister
   [x]
-  (if (instance? LocalActor x)
-    (let [^LocalActor actor x]
-      (.unregister actor))
-    (ActorRegistry/unregister x)))</pre></td></tr><tr><td class="docs">
+  (let [^LocalActor actor x]
+    (.unregister actor)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ann mailbox-of [PulsarActor -&gt; Channel])
 (defn ^Channel mailbox-of
   [^PulsarActor actor]
@@ -3407,7 +3405,7 @@ as published by the Free Software Foundation.</p>
   [server]
   (reify
     co.paralleluniverse.actors.behaviors.Server
-    (^void init       [this]
+    (^void init [this]
            (init server))
     (handleCall [this ^Actor from id message]
                 (handle-call server from id message))
@@ -3542,7 +3540,7 @@ as published by the Free Software Foundation.</p>
            [jsr166e ForkJoinPool ForkJoinTask]
            [co.paralleluniverse.strands Strand Stranded]
            [co.paralleluniverse.strands SuspendableCallable]
-           [co.paralleluniverse.fibers Fiber Joinable FiberUtil]
+           [co.paralleluniverse.fibers DefaultFiberPool Fiber Joinable FiberUtil]
            [co.paralleluniverse.fibers.instrument]
            [co.paralleluniverse.strands.channels Channel ReceiveChannel SendChannel ChannelGroup
             ObjectChannel IntChannel LongChannel FloatChannel DoubleChannel]
@@ -3710,7 +3708,7 @@ as published by the Free Software Foundation.</p>
   (ForkJoinPool. parallelism jsr166e.ForkJoinPool/defaultForkJoinWorkerThreadFactory nil async))</pre></td></tr><tr><td class="docs"><p>A global fork/join pool. The pool uses all available processors and runs in the async mode.</p>
 </td><td class="codes"><pre class="brush: clojure">(ann fj-pool ForkJoinPool)
 (def fj-pool
-  (make-fj-pool (.availableProcessors (Runtime/getRuntime)) true))</pre></td></tr><tr><td class="docs"><p><strong><em>Make agents use the global fork-join pool</em></strong></p>
+  (DefaultFiberPool/getInstance))</pre></td></tr><tr><td class="docs"><p><strong><em>Make agents use the global fork-join pool</em></strong></p>
 </td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(set-agent-send-executor! fj-pool)
 (set-agent-send-off-executor! fj-pool)</pre></td></tr><tr><td class="docs"><h2>Suspendable functions</h2>
@@ -4478,7 +4476,7 @@ as published by the Free Software Foundation.</p>
           (join 50 :ms gs) =&gt; (throws TimeoutException))
         (join 200 :ms gs)
         @times) =&gt; 5)</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(fact &quot;When no messages then handle-timeout is called&quot;
+</td><td class="codes"><pre class="brush: clojure">(fact &quot;Server dies on shutdown&quot;
       (let [times (atom 0)
             gs (spawn
                  (gen-server (reify Server
