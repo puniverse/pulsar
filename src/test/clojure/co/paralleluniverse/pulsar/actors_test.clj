@@ -285,7 +285,7 @@
         (join 200 :ms gs)
         @times) => 5)
 
-(fact "When no messages then handle-timeout is called"
+(fact "Server dies on shutdown"
       (let [times (atom 0)
             gs (spawn
                  (gen-server (reify Server
