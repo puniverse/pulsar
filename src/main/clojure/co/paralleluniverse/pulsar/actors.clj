@@ -21,7 +21,7 @@
            [co.paralleluniverse.actors.behaviors GenBehavior Initializer BasicGenBehavior
             GenServer LocalGenServer 
             GenEvent LocalGenEvent EventHandler
-            Supervisor Supervisor$ChildSpec Supervisor$ChildMode Supervisor$RestartStrategy]
+            Supervisor Supervisor$ChildSpec Supervisor$ChildMode LocalSupervisor LocalSupervisor$RestartStrategy]
            ; for types:
            [clojure.lang Keyword IObj IFn IMeta IDeref ISeq IPersistentCollection IPersistentVector IPersistentMap])
   (:require [co.paralleluniverse.pulsar.core :refer :all]
@@ -594,11 +594,11 @@
 (defn supervisor
   "Creates (but doesn't start) a new supervisor"
   ([^String name restart-strategy init]
-   (Supervisor. nil name nil
-                ^Supervisor$RestartStrategy (keyword->enum Supervisor$RestartStrategy restart-strategy)
-                (->Initializer
-                  (fn [] (doseq [child ((suspendable! init))]
-                           (apply add-child (cons @self child)))))))
+   (LocalSupervisor. nil name nil
+                     ^LocalSupervisor$RestartStrategy (keyword->enum LocalSupervisor$RestartStrategy restart-strategy)
+                     (->Initializer
+                       (fn [] (doseq [child ((suspendable! init))]
+                                (apply add-child (cons @self child)))))))
   ([restart-strategy init]
    (supervisor nil restart-strategy init)))
 
