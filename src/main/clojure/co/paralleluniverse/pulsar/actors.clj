@@ -187,9 +187,9 @@
 
 (ann trap! [-> nil])
 (defn trap!
-"Sets the current actor to trap lifecycle events (like a dead linked actor) and turn them into messages"
-[]
-(.setTrap ^PulsarActor @self true))
+  "Sets the current actor to trap lifecycle events (like a dead linked actor) and turn them into messages"
+  []
+  (.setTrap ^PulsarActor @self true))
 
 (ann get-actor [Any -> Actor])
 (defn ^Actor get-actor
@@ -205,36 +205,36 @@
 (defn link!
   "links two actors"
   ([actor2]
-   (.link ^Actor @self actor2))
+   (.link ^LocalActor @self actor2))
   ([actor1 actor2]
-   (.link (get-actor actor1) (get-actor actor2))))
+   (.link ^LocalActor (cast LocalActor (get-actor actor1)) (get-actor actor2))))
 
 (ann unlink! (Fn [Actor -> Actor]
                  [Actor Actor -> Actor]))
 (defn unlink!
   "Unlinks two actors"
   ([actor2]
-   (.unlink ^Actor @self actor2))
+   (.unlink ^LocalActor @self actor2))
   ([actor1 actor2]
-   (.unlink (get-actor actor1) (get-actor actor2))))
+   (.unlink ^LocalActor (cast LocalActor (get-actor actor1)) (get-actor actor2))))
 
 (ann monitor (Fn [Actor Actor -> LifecycleListener]
                  [Actor -> LifecycleListener]))
 (defn watch!
   "Makes an actor watch another actor. Returns a watch object which should be used when calling demonitor."
   ([actor2]
-   (.watch ^Actor @self actor2))
+   (.watch ^LocalActor @self actor2))
   ([actor1 actor2]
-   (.watch (get-actor actor1) (get-actor actor2))))
+   (.watch ^LocalActor (cast LocalActor (get-actor actor1)) (get-actor actor2))))
 
 (ann monitor (Fn [Actor Actor LifecycleListener -> nil]
                  [Actor LifecycleListener -> nil]))
 (defn unwatch!
   "Makes an actor stop watch another actor"
   ([actor2 monitor]
-   (.unwatch ^Actor @self actor2 monitor))
+   (.unwatch ^LocalActor @self actor2 monitor))
   ([actor1 actor2 monitor]
-   (.unwatch (get-actor actor1) (get-actor actor2) monitor)))
+   (.unwatch ^LocalActor (cast LocalActor (get-actor actor1)) (get-actor actor2) monitor)))
 
 (ann register (Fn [String LocalActor -> LocalActor]
                   [LocalActor -> LocalActor]))
@@ -249,10 +249,8 @@
 (defn unregister
   "Un-registers an actor"
   [x]
-  (if (instance? LocalActor x)
-    (let [^LocalActor actor x]
-      (.unregister actor))
-    (ActorRegistry/unregister x)))
+  (let [^LocalActor actor x]
+    (.unregister actor)))
 
 (ann mailbox-of [PulsarActor -> Channel])
 (defn ^Channel mailbox-of
@@ -448,7 +446,7 @@
   [server]
   (reify
     co.paralleluniverse.actors.behaviors.Server
-    (^void init       [this]
+    (^void init [this]
            (init server))
     (handleCall [this ^Actor from id message]
                 (handle-call server from id message))

@@ -22,7 +22,7 @@
            [jsr166e ForkJoinPool ForkJoinTask]
            [co.paralleluniverse.strands Strand Stranded]
            [co.paralleluniverse.strands SuspendableCallable]
-           [co.paralleluniverse.fibers Fiber Joinable FiberUtil]
+           [co.paralleluniverse.fibers DefaultFiberPool Fiber Joinable FiberUtil]
            [co.paralleluniverse.fibers.instrument]
            [co.paralleluniverse.strands.channels Channel ReceiveChannel SendChannel ChannelGroup
             ObjectChannel IntChannel LongChannel FloatChannel DoubleChannel]
@@ -222,7 +222,7 @@
 (ann fj-pool ForkJoinPool)
 (def fj-pool
   "A global fork/join pool. The pool uses all available processors and runs in the async mode."
-  (make-fj-pool (.availableProcessors (Runtime/getRuntime)) true))
+  (DefaultFiberPool/getInstance))
 
 ;; ***Make agents use the global fork-join pool***
 
