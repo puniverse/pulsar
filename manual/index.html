@@ -56,19 +56,19 @@
           
           
           
-            <li>
-              <a  href="/pulsar/getting-started.html">
-                Getting Started
-              </a>
-              
-            </li>
-          
         
           
           
             
           
           
+          
+            <li>
+              <a  href="/pulsar/getting-started.html">
+                Getting Started
+              </a>
+              
+            </li>
           
         
           
@@ -101,21 +101,21 @@
           
           
           
+            <li>
+              <a class="active" href="/pulsar/manual/index.html">
+                User Manual
+              </a>
+              
+              <ul class="nav nav-list"><li><a href="#quasar-and-pulsar">Quasar and Pulsar</a></li><li><a href="#fibers">Fibers</a></li><li><a href="#channels">Channels</a></li><li><a href="#actors">Actors</a></li><li><a href="#behaviors">Behaviors</a></li></ul>
+              
+            </li>
+          
         
           
           
             
           
           
-          
-            <li>
-              <a class="active" href="/pulsar/manual/index.html">
-                User Manual
-              </a>
-              
-              <ul class="nav nav-list"><li><a href="#quasar-and-pulsar">Quasar and Pulsar</a></li><li><a href="#fibers">Fibers</a></li><li><a href="#channels">Channels</a></li><li><a href="#actors">Actors</a></li><li><a href="#behaviors">Behaviors</a></li><li><a href="#dataflow">Dataflow</a></li></ul>
-              
-            </li>
           
         
           
@@ -656,6 +656,48 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
 
 <h3 id="actor-state">Actor State</h3>
 
+<p>In Erlang, actor state is set by recursively calling the actor function with the new state as an argument. In Pulsar, we can do the same. Here’s an example:</p>
+
+<pre><code class="language-clj">(let [actor
+      (spawn #(loop [i (int 2)
+                     state (int 0)]
+                (if (== i 0)
+                  state
+                  (recur (dec i) (+ state (int (receive)))))))]
+  (! actor 13)
+  (! actor 12)
+  (join actor)) ; =&gt; 25
+</code></pre>
+
+<p>Clojure is all about managing state. It ensures that every computation has access to consistent data. Because actors communicate with other computation only by exchanging immutable messages, and because each actor runs in a single strand, it’s absolutely ok for an actor to have mutable state - only the actor has access to it. </p>
+
+<p>Every Pulsar actor has a <code>state</code> field that can be read like this <code>@state</code> and written with <code>set-state!</code>. Here’s an example:</p>
+
+<pre><code class="language-clj">(let [actor
+      (spawn #(do
+                (set-state! 0)
+                (set-state! (+ @state (receive)))
+                (set-state! (+ @state (receive)))
+                @state))]
+  (! actor 13)
+  (! actor 12)
+  (join actor)) ; =&gt; 25
+</code></pre>
+
+<p>Finally, what if we want several state fields? What if we want some or all of them to be of a primitive type? This, too, poses no risk of race conditions because all state fields are written and read only by the actor, and there is no danger of them appearing inconsistent to an observer.
+Pulsar supports this as an experimental feature (implemented internally with <code>deftype</code>), like so:</p>
+
+<pre><code class="language-clj">(let [actor (spawn (actor [^int sum 0]
+                          (set! sum (int (+ sum (receive))))
+                          (set! sum (int (+ sum (receive))))
+                          sum))]
+  (! actor 13)
+  (! actor 12)
+  (join actor)) ; =&gt; 25
+</code></pre>
+
+<p>These are three different ways of managing actor state. Eventually, we’ll settle on just one or two (and are open to discussion about which is preferred).</p>
+
 <h3 id="state-machines-with-strampoline">State Machines with <code>strampoline</code></h3>
 
 <h3 id="error-handling">Error Handling</h3>
@@ -666,9 +708,9 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
 
 <h3 id="gen-server">gen-server</h3>
 
-<h3 id="supervisors">Supervisors</h3>
+<h3 id="gen-event">gen-event</h3>
 
-<h2 id="dataflow">Dataflow</h2>
+<h3 id="supervisors">Supervisors</h3>
 
 </div>
 
