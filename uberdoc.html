@@ -3400,9 +3400,11 @@ as published by the Free Software Foundation.</p>
   (handle-info [this message])
   (handle-timeout [this])
   (terminate [this ^Throwable cause]))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(suspendable! co.paralleluniverse.pulsar.actors.Server)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn ^co.paralleluniverse.actors.behaviors.Server Server-&gt;java
   {:no-doc true}
   [server]
+  (suspendable! server [co.paralleluniverse.pulsar.actors.Server])
   (reify
     co.paralleluniverse.actors.behaviors.Server
     (^void init [this]
@@ -3474,7 +3476,7 @@ as published by the Free Software Foundation.</p>
   (.notify ge event))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn add-handler
   [^GenEvent ge handler]
-  (.addHandler ge (-&gt;PulsarEventHandler handler)))</pre></td></tr><tr><td class="docs">
+  (.addHandler ge (-&gt;PulsarEventHandler (suspendable! handler))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn remove-handler
   [^GenEvent ge handler]
   (.removeHandler ge (-&gt;PulsarEventHandler handler)))</pre></td></tr><tr><td class="docs"><h2>supervisor</h2>
@@ -3504,10 +3506,10 @@ as published by the Free Software Foundation.</p>
                          (if (instance? ActorBuilder (first args))
                            (first args)
                            (actor-builder #(apply create-actor args)))))</pre></td></tr><tr><td class="docs"><p>Adds an actor to a supervisor</p>
-</td><td class="codes"><pre class="brush: clojure">(defn add-child
+</td><td class="codes"><pre class="brush: clojure">(defsusfn add-child
   [^Supervisor supervisor id mode max-restarts duration unit shutdown-deadline-millis &amp; args]
   (.addChild supervisor (apply-variadic child-spec id mode max-restarts duration unit shutdown-deadline-millis args)))</pre></td></tr><tr><td class="docs"><p>Removes an actor from a supervisor</p>
-</td><td class="codes"><pre class="brush: clojure">(defn remove-child
+</td><td class="codes"><pre class="brush: clojure">(defsusfn remove-child
   [^Supervisor supervisor name]
   (.removeChild supervisor name false))</pre></td></tr><tr><td class="docs"><p>Removes an actor from a supervisor and terminates the actor</p>
 </td><td class="codes"><pre class="brush: clojure">(defn remove-and-terminate-child
@@ -3723,10 +3725,11 @@ while running in a fiber.</p>
 </td><td class="codes"><pre class="brush: clojure">(ann suspendable! (Fn [IFn -&gt; IFn]
                       [IFn * -&gt; (ISeq IFn)]
                       [(ISeq IFn) -&gt; (ISeq IFn)]))
-(def suspendable!
-  (sequentialize
-   (fn [f]
-     (ClojureHelper/retransform f))))</pre></td></tr><tr><td class="docs"><p>wrap a clojure function as a SuspendableCallable</p>
+(defn suspendable!
+  ([f]
+   (ClojureHelper/retransform f nil))
+  ([x prot]
+   (ClojureHelper/retransform x prot)))</pre></td></tr><tr><td class="docs"><p>wrap a clojure function as a SuspendableCallable</p>
 </td><td class="codes"><pre class="brush: clojure">(ann -&gt;suspendable-callable [[Any -&gt; Any] -&gt; SuspendableCallable])
 (defn ^SuspendableCallable -&gt;suspendable-callable
   {:no-doc true}
@@ -4410,8 +4413,8 @@ as published by the Free Software Foundation.</p>
                    (spawn a2 3.4)]
                (! actor 38.6)
                (join actor)) =&gt; 42.0))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(facts &quot;mailbox-seq&quot;
-       (fact &quot;Send and receive sequence (via @mailbox)&quot;
+</td><td class="codes"><pre class="brush: clojure">(facts :selected &quot;mailbox-seq&quot;
+       (fact :selected &quot;Send and receive sequence (via @mailbox)&quot;
              (let [actor (spawn #(s/doall (s/take 5 (channel-&gt;lazy-seq @mailbox))))]
                (snd-seq (mailbox-of actor) (take 10 (range)))
                (join actor)) =&gt; '(0 1 2 3 4))
@@ -4496,12 +4499,31 @@ as published by the Free Software Foundation.</p>
                                       (handle-call [_ from id [a b]]
                                                    (+ a b)))))]
                (call gs 3 4) =&gt; 7))
+       (fact &quot;When gen-server call then result is returned (with sleep)&quot;
+             (let [gs (spawn
+                        (gen-server (reify Server
+                                      (init [_])
+                                      (terminate [_ cause])
+                                      (handle-call [_ from id [a b]]
+                                                   (Strand/sleep 50)
+                                                   (+ a b)))))]
+               (call gs 3 4) =&gt; 7))
        (fact &quot;When gen-server call from fiber then result is returned&quot;
              (let [gs (spawn
                         (gen-server (reify Server
                                       (init [_])
                                       (terminate [_ cause])
                                       (handle-call [_ from id [a b]]
+                                                   (+ a b)))))
+                   fib (spawn-fiber #(call gs 3 4))]
+               (join fib) =&gt; 7))
+       (fact &quot;When gen-server call from fiber then result is returned (with sleep)&quot;
+             (let [gs (spawn
+                        (gen-server (reify Server
+                                      (init [_])
+                                      (terminate [_ cause])
+                                      (handle-call [_ from id [a b]]
+                                                   (Strand/sleep 50)
                                                    (+ a b)))))
                    fib (spawn-fiber #(call gs 3 4))]
                (join fib) =&gt; 7))
@@ -4639,7 +4661,7 @@ manually add a known actor to a supervisor, so this ugly function is only useful
                     (join a) =&gt; res)))
               (shutdown sup)
               (join sup)))
-      #_(fact &quot;When permanent actor dies of un-natural causes then restart&quot;
+      (fact &quot;When permanent actor dies of un-natural causes then restart&quot;
             (let [sup (spawn
                         (supervisor :one-for-one
                                     #(list [&quot;actor1&quot; :permanent 5 1 :sec 10 bad-actor1])))]
@@ -4650,7 +4672,7 @@ manually add a known actor to a supervisor, so this ugly function is only useful
                     (join a) =&gt; throws Exception)))
               (shutdown sup)
               (join sup)))
-      #_(fact &quot;When transient actor dies of natural causes then don't restart&quot;
+      (fact &quot;When transient actor dies of natural causes then don't restart&quot;
             (let [sup (spawn
                         (supervisor :one-for-one
                                     #(list [&quot;actor1&quot; :transient 5 1 :sec 10 actor1])))]
@@ -4663,7 +4685,7 @@ manually add a known actor to a supervisor, so this ugly function is only useful
               (fact (sup-child sup &quot;actor1&quot; 200) =&gt; nil)
               (shutdown sup)
               (join sup)))
-      #_(fact &quot;When transient actor dies of un-natural causes then restart&quot;
+      (fact &quot;When transient actor dies of un-natural causes then restart&quot;
             (let [sup (spawn
                         (supervisor :one-for-one
                                     #(list [&quot;actor1&quot; :transient 5 1 :sec 10 bad-actor1])))]
@@ -4674,7 +4696,7 @@ manually add a known actor to a supervisor, so this ugly function is only useful
                     (join a) =&gt; throws Exception)))
               (shutdown sup)
               (join sup)))
-      #_(fact &quot;When temporary actor dies of natural causes then don't restart&quot;
+      (fact &quot;When temporary actor dies of natural causes then don't restart&quot;
             (let [sup (spawn
                         (supervisor :one-for-one
                                     #(list [&quot;actor1&quot; :temporary 5 1 :sec 10 actor1])))]
@@ -4687,7 +4709,7 @@ manually add a known actor to a supervisor, so this ugly function is only useful
               (fact (sup-child sup &quot;actor1&quot; 200) =&gt; nil)
               (shutdown sup)
               (join sup)))
-      #_(fact &quot;When temporary actor dies of un-natural causes then don't restart&quot;
+      (fact &quot;When temporary actor dies of un-natural causes then don't restart&quot;
             (let [sup (spawn
                         (supervisor :one-for-one
                                     #(list [&quot;actor1&quot; :temporary 5 1 :sec 10 bad-actor1])))]
@@ -4737,11 +4759,12 @@ manually add a known actor to a supervisor, so this ugly function is only useful
         (let [a (sup-child sup &quot;actor1&quot; 200)]
           (! a 3)
           (! a 4)
-          (fact
+          (fact 
             (join a) =&gt; 7)
           (reset! prev a))
         (let [a (sup-child sup &quot;actor1&quot; 200)]
-          (fact (identical? a @prev) =&gt; false)
+          (fact
+            (identical? a @prev) =&gt; false)
           (! a 70)
           (! a 80)
           (fact
@@ -4751,7 +4774,7 @@ manually add a known actor to a supervisor, so this ugly function is only useful
           (fact (identical? a @prev) =&gt; false)
           (! a 7)
           (! a 8)
-          (fact 
+          (fact
             (join a) =&gt; 15))
         (Strand/sleep 2000) ; give the actor time to start the gen-server
         (shutdown sup)
