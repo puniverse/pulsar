@@ -56,19 +56,19 @@
           
           
           
-        
-          
-          
-            
-          
-          
-          
             <li>
               <a  href="/pulsar/getting-started.html">
                 Getting Started
               </a>
               
             </li>
+          
+        
+          
+          
+            
+          
+          
           
         
           
@@ -101,6 +101,13 @@
           
           
           
+        
+          
+          
+            
+          
+          
+          
             <li>
               <a class="active" href="/pulsar/manual/index.html">
                 User Manual
@@ -109,13 +116,6 @@
               <ul class="nav nav-list"><li><a href="#quasar-and-pulsar">Quasar and Pulsar</a></li><li><a href="#fibers">Fibers</a></li><li><a href="#channels">Channels</a></li><li><a href="#actors">Actors</a></li><li><a href="#behaviors">Behaviors</a></li></ul>
               
             </li>
-          
-        
-          
-          
-            
-          
-          
           
         
           
@@ -699,6 +699,44 @@ Pulsar supports this as an experimental feature (implemented internally with <co
 <p>These are three different ways of managing actor state. Eventually, we’ll settle on just one or two (and are open to discussion about which is preferred).</p>
 
 <h3 id="state-machines-with-strampoline">State Machines with <code>strampoline</code></h3>
+
+<p>As we’ve seen, the <code>receive</code> form defines which messages the actor is willing to accept and process. You can nest <code>receive</code> statements, or place them in other functions that the actor calls (in which case the must be defined with <code>defsusfn</code>). It is often useful to treat the actor as a state machine, going from one state to another, executing a different <code>receive</code> at each state (to define the acceptable transitions from the state). To change state, all we would have to do is call a different function, each with its own receive, but here we face a technical limitation of Clojure. As Clojure (due to JVM limitations) does not perform true tail-call optimization, every state transition (i.e. every function call), would add a frame to the stack, eventually throwing a stack overflow. Clojure solves it with the <code>clojure.core/trampoline</code> function. It takes a function and calls it. When the function returns, if the returned value is a function, <code>trampoline</code> calls it.</p>
+
+<p>Pulsar comes with a version of <code>trampoline</code> for suspendable functions called <code>strampoline</code> (with the exact same API as <code>trampoline</code>).</p>
+
+<p>Consider this example:</p>
+
+<pre><code class="language-clj">(let [state2 (susfn []
+                    (receive
+                      :bar :foobar))
+      state1 (susfn []
+                    (receive
+                      :foo state2))
+      actor (spawn (fn []
+                     (strampoline state1)))]
+  (! actor :foo)
+  (Thread/sleep 50) ; or (Strand/sleep 50)
+  (! actor :bar)
+  (join actor)) ; =&gt; :foobar
+</code></pre>
+
+<p>The actor starts at <code>state1</code> (represented by the function with the same name), by calling <code>(strampoline state1)</code>. In <code>state1</code> we expect to receive the message <code>:foo</code>. When it arrives, we transition to <code>state2</code> by returning the <code>state2</code> function (which will immediately be called by <code>strampoline</code>). In <code>state1</code> we await the <code>:bar</code> message, and then terminate.</p>
+
+<p>What happens if the messages <code>:foo</code> and <code>:bar</code> arrive in reverse order? Thanks to selective receive the result will be exactly the same! <code>state1</code> will skip the <code>:bar</code> message, and transition to <code>state2</code> when <code>:foo</code> arrives; the <code>receive</code> statement in <code>state2</code> will then find the <code>:bar</code> message waiting in the mailbox:</p>
+
+<pre><code class="language-clj">(let [state2 (susfn []
+                    (receive
+                      :bar :foobar))
+      state1 (susfn []
+                    (receive
+                      :foo state2))
+      actor (spawn (fn []
+                     (strampoline state1)))]
+  (! actor :bar)
+  (Thread/sleep 50) ; or (Strand/sleep 50)
+  (! actor :foo)
+  (join actor)) ; =&gt; :foobar
+</code></pre>
 
 <h3 id="error-handling">Error Handling</h3>
 
