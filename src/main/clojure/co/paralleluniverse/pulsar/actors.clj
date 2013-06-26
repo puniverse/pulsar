@@ -441,9 +441,12 @@
   (handle-timeout [this])
   (terminate [this ^Throwable cause]))
 
+(suspendable! co.paralleluniverse.pulsar.actors.Server)
+
 (defn ^co.paralleluniverse.actors.behaviors.Server Server->java
   {:no-doc true}
   [server]
+  (suspendable! server [co.paralleluniverse.pulsar.actors.Server])
   (reify
     co.paralleluniverse.actors.behaviors.Server
     (^void init [this]
@@ -535,7 +538,7 @@
 
 (defn add-handler
   [^GenEvent ge handler]
-  (.addHandler ge (->PulsarEventHandler handler)))
+  (.addHandler ge (->PulsarEventHandler (suspendable! handler))))
 
 (defn remove-handler
   [^GenEvent ge handler]
@@ -571,12 +574,12 @@
                            (first args)
                            (actor-builder #(apply create-actor args)))))
 
-(defn add-child
+(defsusfn add-child
   "Adds an actor to a supervisor"
   [^Supervisor supervisor id mode max-restarts duration unit shutdown-deadline-millis & args]
   (.addChild supervisor (apply-variadic child-spec id mode max-restarts duration unit shutdown-deadline-millis args)))
 
-(defn remove-child
+(defsusfn remove-child
   "Removes an actor from a supervisor"
   [^Supervisor supervisor name]
   (.removeChild supervisor name false))

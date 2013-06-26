@@ -214,8 +214,8 @@
                (! actor 38.6)
                (join actor)) => 42.0))
 
-(facts "mailbox-seq"
-       (fact "Send and receive sequence (via @mailbox)"
+(facts :selected "mailbox-seq"
+       (fact :selected "Send and receive sequence (via @mailbox)"
              (let [actor (spawn #(s/doall (s/take 5 (channel->lazy-seq @mailbox))))]
                (snd-seq (mailbox-of actor) (take 10 (range)))
                (join actor)) => '(0 1 2 3 4))
@@ -307,12 +307,31 @@
                                       (handle-call [_ from id [a b]]
                                                    (+ a b)))))]
                (call gs 3 4) => 7))
+       (fact "When gen-server call then result is returned (with sleep)"
+             (let [gs (spawn
+                        (gen-server (reify Server
+                                      (init [_])
+                                      (terminate [_ cause])
+                                      (handle-call [_ from id [a b]]
+                                                   (Strand/sleep 50)
+                                                   (+ a b)))))]
+               (call gs 3 4) => 7))
        (fact "When gen-server call from fiber then result is returned"
              (let [gs (spawn
                         (gen-server (reify Server
                                       (init [_])
                                       (terminate [_ cause])
                                       (handle-call [_ from id [a b]]
+                                                   (+ a b)))))
+                   fib (spawn-fiber #(call gs 3 4))]
+               (join fib) => 7))
+       (fact "When gen-server call from fiber then result is returned (with sleep)"
+             (let [gs (spawn
+                        (gen-server (reify Server
+                                      (init [_])
+                                      (terminate [_ cause])
+                                      (handle-call [_ from id [a b]]
+                                                   (Strand/sleep 50)
                                                    (+ a b)))))
                    fib (spawn-fiber #(call gs 3 4))]
                (join fib) => 7))
@@ -467,7 +486,7 @@
                     (join a) => res)))
               (shutdown sup)
               (join sup)))
-      #_(fact "When permanent actor dies of un-natural causes then restart"
+      (fact "When permanent actor dies of un-natural causes then restart"
             (let [sup (spawn
                         (supervisor :one-for-one
                                     #(list ["actor1" :permanent 5 1 :sec 10 bad-actor1])))]
@@ -478,7 +497,7 @@
                     (join a) => throws Exception)))
               (shutdown sup)
               (join sup)))
-      #_(fact "When transient actor dies of natural causes then don't restart"
+      (fact "When transient actor dies of natural causes then don't restart"
             (let [sup (spawn
                         (supervisor :one-for-one
                                     #(list ["actor1" :transient 5 1 :sec 10 actor1])))]
@@ -491,7 +510,7 @@
               (fact (sup-child sup "actor1" 200) => nil)
               (shutdown sup)
               (join sup)))
-      #_(fact "When transient actor dies of un-natural causes then restart"
+      (fact "When transient actor dies of un-natural causes then restart"
             (let [sup (spawn
                         (supervisor :one-for-one
                                     #(list ["actor1" :transient 5 1 :sec 10 bad-actor1])))]
@@ -502,7 +521,7 @@
                     (join a) => throws Exception)))
               (shutdown sup)
               (join sup)))
-      #_(fact "When temporary actor dies of natural causes then don't restart"
+      (fact "When temporary actor dies of natural causes then don't restart"
             (let [sup (spawn
                         (supervisor :one-for-one
                                     #(list ["actor1" :temporary 5 1 :sec 10 actor1])))]
@@ -515,7 +534,7 @@
               (fact (sup-child sup "actor1" 200) => nil)
               (shutdown sup)
               (join sup)))
-      #_(fact "When temporary actor dies of un-natural causes then don't restart"
+      (fact "When temporary actor dies of un-natural causes then don't restart"
             (let [sup (spawn
                         (supervisor :one-for-one
                                     #(list ["actor1" :temporary 5 1 :sec 10 bad-actor1])))]
@@ -569,11 +588,12 @@
         (let [a (sup-child sup "actor1" 200)]
           (! a 3)
           (! a 4)
-          (fact
+          (fact 
             (join a) => 7)
           (reset! prev a))
         (let [a (sup-child sup "actor1" 200)]
-          (fact (identical? a @prev) => false)
+          (fact
+            (identical? a @prev) => false)
           (! a 70)
           (! a 80)
           (fact
@@ -583,7 +603,7 @@
           (fact (identical? a @prev) => false)
           (! a 7)
           (! a 8)
-          (fact 
+          (fact
             (join a) => 15))
         (Strand/sleep 2000) ; give the actor time to start the gen-server
         (shutdown sup)

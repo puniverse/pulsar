@@ -22,7 +22,12 @@ import co.paralleluniverse.fibers.instrument.Retransform;
 import co.paralleluniverse.strands.SuspendableCallable;
 import java.lang.instrument.UnmodifiableClassException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import org.objectweb.asm.Type;
 
 /**
@@ -34,25 +39,47 @@ public class ClojureHelper {
         // These methods need not be instrumented. we mark them so that verifyInstrumentation doesn't fail when they're on the call-stack
         Retransform.addWaiver("clojure.lang.AFn", "applyToHelper");
         Retransform.addWaiver("clojure.lang.AFn", "applyTo");
+        Retransform.addWaiver("clojure.lang.RestFn", "invoke");
         Retransform.addWaiver("clojure.core$apply", "invoke");
+
+        Retransform.addWaiver("co.paralleluniverse.actors.behaviors.EventHandler", "handleEvent");
 
         // mark all IFn methods as suspendable
         Retransform.getMethodDB().getClassEntry(Type.getInternalName(IFn.class)).setAll(true);
     }
 
-    public static Object retransform(Object thing) throws UnmodifiableClassException {
+    public static Object retransform(Object thing, Collection<Class> protocols) throws UnmodifiableClassException {
         final Class clazz;
-        if (thing instanceof IFn)
-            clazz = thing.getClass();
-        else if (thing instanceof Class)
+        if (thing instanceof Class)
             clazz = (Class) thing;
         else
-            throw new IllegalArgumentException("Not a class or an IFn: " + thing + " (type: " + thing.getClass() + ")");
-        if (!(IFn.class.isAssignableFrom(clazz)))
-            throw new IllegalArgumentException("Class " + clazz + " does not implement IFn");
+            clazz = thing.getClass();
 
+        final boolean isIFn = IFn.class.isAssignableFrom(clazz);
+
+        if(!isIFn && clazz.isInterface()) {
+            Retransform.getMethodDB().getClassEntry(Type.getInternalName(clazz)).setAll(true);
+            return thing;
+        }
+        
         if (clazz.isAnnotationPresent(Instrumented.class))
             return thing;
+
+        if (!isIFn && protocols == null)
+            throw new IllegalArgumentException("Cannot retransform " + thing + ". Not an IFn and an protocol not given");
+
+        final Set<String> protocolMethods;
+        if (!isIFn) {
+            protocolMethods = new HashSet<String>();
+            for (Class protocol : protocols)
+                for (Method m : protocol.getMethods())
+                    protocolMethods.add(m.getName());
+        } else
+            protocolMethods = null;
+
+//        if (!isIFn) {
+//            Retransform.addClassLoadListener(new DumpClassListener(clazz));
+//        }
 
         try {
             // Clojure might break up a single function into several classes. We must instrument them all.
@@ -63,9 +90,13 @@ public class ClojureHelper {
                 //System.out.println("---- " + cls + " " + IFn.class.isAssignableFrom(cls));
                 ce.setRequiresInstrumentation(true);
                 Method[] methods = cls.getMethods();
+
+
                 for (Method method : methods) {
-                    if (method.getName().equals("invoke") || method.getName().equals("doInvoke"))
+                    if ((isIFn && (method.getName().equals("invoke") || method.getName().equals("doInvoke")))
+                            || (!isIFn && protocolMethods.contains(method.getName()))) { // method.getDeclaringClass().equals(clazz))) {
                         ce.set(method.getName(), Type.getMethodDescriptor(method), true);
+                    }
                 }
                 Retransform.retransform(cls);
             }
@@ -116,5 +147,48 @@ public class ClojureHelper {
     @SuppressWarnings("unchecked")
     static private <T extends Throwable> T sneakyThrow0(Throwable t) throws T {
         throw (T) t;
+    }
+
+    private static class DumpClassListener implements Retransform.ClassLoadListener {
+        private final Class clazz;
+
+        public DumpClassListener(Class clazz) {
+            this.clazz = clazz;
+        }
+
+        @Override
+        public void beforeTransform(String className, Class clazz, byte[] data) {
+            if (clazz.equals(this.clazz)) {
+                System.out.println("=== BEFORE ================================================");
+                Retransform.dumpClass(className, data);
+            }
+        }
+
+        @Override
+        public void afterTransform(String className, Class clazz, byte[] data) {
+            if (clazz.equals(this.clazz)) {
+                System.out.println("=== AFTER ================================================");
+                Retransform.dumpClass(className, data);
+            }
+        }
+
+        @Override
+        public int hashCode() {
+            int hash = 3;
+            hash = 31 * hash + Objects.hashCode(this.clazz);
+            return hash;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            final DumpClassListener other = (DumpClassListener) obj;
+            if (!Objects.equals(this.clazz, other.clazz))
+                return false;
+            return true;
+        }
     }
 }

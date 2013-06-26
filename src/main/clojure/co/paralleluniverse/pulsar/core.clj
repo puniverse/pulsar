@@ -242,11 +242,12 @@
 (ann suspendable! (Fn [IFn -> IFn]
                       [IFn * -> (ISeq IFn)]
                       [(ISeq IFn) -> (ISeq IFn)]))
-(def suspendable!
+(defn suspendable!
   "Makes a function suspendable"
-  (sequentialize
-   (fn [f]
-     (ClojureHelper/retransform f))))
+  ([f]
+   (ClojureHelper/retransform f nil))
+  ([x prot]
+   (ClojureHelper/retransform x prot)))
 
 (ann ->suspendable-callable [[Any -> Any] -> SuspendableCallable])
 (defn ^SuspendableCallable ->suspendable-callable
