@@ -31,7 +31,6 @@
                :else (println "Unexpected message" m))
       (recur (drop 4 nums) computer))))
 
-
 (defn -main []
   (let [ad (spawn adder)
         cp (spawn computer ad)

@@ -4,6 +4,8 @@ title: User Manual
 weight: 1
 ---
 
+{% capture examples %}https://github.com/{{site.github}}/tree/master/src/test/clojure/co/paralleluniverse/pulsar/examples{% endcapture %}
+
 ## Quasar and Pulsar
 
 Pulsar is a Clojure API to [Quasar]. Many of the concepts explained below are actually implemented in Quasar.
@@ -452,9 +454,48 @@ Pretty syntax is not the main goal of the `receive` function. The reason `receiv
 
 An actor is a state machine. It usually encompasses some *state* and the messages it receives trigger *state transitions*. But because the actor has no control over which messages it receives and when (which can be a result of either other actors' behavior, or even the way the OS schedules threads), an actor would be required to process any message and any state, and build a full *state transition matrix*, namely how to transition whenever *any* messages is received at *any* state.
 
-This can not only lead to code explosion; it can lead to bugs. The key to managing a complex state machine is by not handling messages in the order they arrive, but in the order we wish to process them. 
+This can not only lead to code explosion; it can lead to bugs. The key to managing a complex state machine is by not handling messages in the order they arrive, but in the order we wish to process them. If a message does not match any of the clauses in `receive`, it will remain in the mailbox. `receive` will return only when it finds a message that does. When another `receive` statement is called, it will again search the messages that are in the mailbox, and may match a message that has been skipped by a previous `receive`. [This example]({{examples}}/priority.clj) demonstrates receiving messages in order of priority.
 
-.....
+Selective receive is also very useful when communicating with other actors. Here's an excerpt from [this example]({{examples}}/selective.clj):
+
+~~~ clj
+(defsusfn adder []
+  (loop []
+    (receive
+      [from tag [:add a b]] (! from tag [:sum (+ a b)]))
+    (recur)))
+
+(defsusfn computer [adder]
+  (loop []
+    (receive [m]
+             [from tag [:compute a b c d]] (let [tag1 (maketag)]
+                                             (! adder [@self tag1 [:add (* a b) (* c d)]])
+                                             (receive
+                                               [tag1 [:sum sum]]  (! from tag [:result sum])
+                                               :after 10          (! from tag [:error "timeout!"])))
+             :else (println "Unknown message: " m))
+    (recur)))
+
+(defsusfn curious [nums computer]
+  (when (seq nums)
+    (let [[a b c d] (take 4 nums)
+          tag       (maketag)]
+      (! computer @self tag [:compute a b c d])
+      (receive [m]
+               [tag [:result res]]  (println a b c d "->" res)
+               [tag [:error error]] (println "ERROR: " a b c d "->" error)
+               :else (println "Unexpected message" m))
+      (recur (drop 4 nums) computer))))
+
+(defn -main []
+  (let [ad (spawn adder)
+        cp (spawn computer ad)
+        cr (spawn curious (take 20 (repeatedly #(rand-int 10))) cp)]
+    (join cr)
+    :ok))
+~~~
+
+In the example, we have three actors: `curious`, `computer` and `adder`. `curious` asks `computer` to perform a computation, and `computer` relies on `adder` to perform addition. Note the nested `receive` in `computer`: the actor waits for a reply from `adder` before accepting other requests (from `curious`) in the outer receive (actually, because this pattern of sending a message to an actor and waiting for a reply is so common, it's encapsulated by a construct call `gen-server` - yet another blatant theft from Erlang - which we'll introduce later; if you want to see how this example looks using `gen-server`, take a look [here]({{examples}}/selective_gen_server.clj). 
 
 There are several actor systems that do not support selective receive, but Erlang does, and so does Pulsar. [The talk *Death by Accidental Complexity*](http://www.infoq.com/presentations/Death-by-Accidental-Complexity), by Ulf Wiger, shows how using selective receive avoids implementing a full, complicated and error-prone transition matrix. [In a different talk](http://www.infoq.com/presentations/1000-Year-old-Design-Patterns), Wiger compared non-selective (FIFO) receive to a tetris game where you must fit each piece into the puzzle as it comes, while selective receive turns the problem into a jigsaw puzzle, where you can look for a piece that you know will fit.
 
