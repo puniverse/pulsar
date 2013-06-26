@@ -549,18 +549,52 @@ Pulsar supports this as an experimental feature (implemented internally with `de
 
 These are three different ways of managing actor state. Eventually, we’ll settle on just one or two (and are open to discussion about which is preferred).
 
-
 ### State Machines with `strampoline`
 
+As we've seen, the `receive` form defines which messages the actor is willing to accept and process. You can nest `receive` statements, or place them in other functions that the actor calls (in which case the must be defined with `defsusfn`). It is often useful to treat the actor as a state machine, going from one state to another, executing a different `receive` at each state (to define the acceptable transitions from the state). To change state, all we would have to do is call a different function, each with its own receive, but here we face a technical limitation of Clojure. As Clojure (due to JVM limitations) does not perform true tail-call optimization, every state transition (i.e. every function call), would add a frame to the stack, eventually throwing a stack overflow. Clojure solves it with the `clojure.core/trampoline` function. It takes a function and calls it. When the function returns, if the returned value is a function, `trampoline` calls it.
 
+Pulsar comes with a version of `trampoline` for suspendable functions called `strampoline` (with the exact same API as `trampoline`).
+
+Consider this example:
+
+~~~ clj
+(let [state2 (susfn []
+                    (receive
+                      :bar :foobar))
+      state1 (susfn []
+                    (receive
+                      :foo state2))
+      actor (spawn (fn []
+                     (strampoline state1)))]
+  (! actor :foo)
+  (Thread/sleep 50) ; or (Strand/sleep 50)
+  (! actor :bar)
+  (join actor)) ; => :foobar
+~~~
+
+The actor starts at `state1` (represented by the function with the same name), by calling `(strampoline state1)`. In `state1` we expect to receive the message `:foo`. When it arrives, we transition to `state2` by returning the `state2` function (which will immediately be called by `strampoline`). In `state1` we await the `:bar` message, and then terminate.
+
+What happens if the messages `:foo` and `:bar` arrive in reverse order? Thanks to selective receive the result will be exactly the same! `state1` will skip the `:bar` message, and transition to `state2` when `:foo` arrives; the `receive` statement in `state2` will then find the `:bar` message waiting in the mailbox:
+
+~~~ clj
+(let [state2 (susfn []
+                    (receive
+                      :bar :foobar))
+      state1 (susfn []
+                    (receive
+                      :foo state2))
+      actor (spawn (fn []
+                     (strampoline state1)))]
+  (! actor :bar)
+  (Thread/sleep 50) ; or (Strand/sleep 50)
+  (! actor :foo)
+  (join actor)) ; => :foobar
+~~~
 
 ### Error Handling
 
 
 ### Actor registration
-
-
-
 
 ## Behaviors
 
