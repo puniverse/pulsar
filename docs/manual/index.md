@@ -504,6 +504,51 @@ There are several actor systems that do not support selective receive, but Erlan
 
 ### Actor State
 
+In Erlang, actor state is set by recursively calling the actor function with the new state as an argument. In Pulsar, we can do the same. Here’s an example:
+
+~~~ clj
+(let [actor
+      (spawn #(loop [i (int 2)
+                     state (int 0)]
+                (if (== i 0)
+                  state
+                  (recur (dec i) (+ state (int (receive)))))))]
+  (! actor 13)
+  (! actor 12)
+  (join actor)) ; => 25
+~~~
+
+Clojure is all about managing state. It ensures that every computation has access to consistent data. Because actors communicate with other computation only by exchanging immutable messages, and because each actor runs in a single strand, it's absolutely ok for an actor to have mutable state - only the actor has access to it. 
+
+Every Pulsar actor has a `state` field that can be read like this `@state` and written with `set-state!`. Here’s an example:
+
+~~~ clj
+(let [actor
+      (spawn #(do
+                (set-state! 0)
+                (set-state! (+ @state (receive)))
+                (set-state! (+ @state (receive)))
+                @state))]
+  (! actor 13)
+  (! actor 12)
+  (join actor)) ; => 25
+~~~
+
+Finally, what if we want several state fields? What if we want some or all of them to be of a primitive type? This, too, poses no risk of race conditions because all state fields are written and read only by the actor, and there is no danger of them appearing inconsistent to an observer.
+Pulsar supports this as an experimental feature (implemented internally with `deftype`), like so:
+
+~~~ clj
+(let [actor (spawn (actor [^int sum 0]
+                          (set! sum (int (+ sum (receive))))
+                          (set! sum (int (+ sum (receive))))
+                          sum))]
+  (! actor 13)
+  (! actor 12)
+  (join actor)) ; => 25
+~~~
+
+These are three different ways of managing actor state. Eventually, we’ll settle on just one or two (and are open to discussion about which is preferred).
+
 
 ### State Machines with `strampoline`
 
@@ -521,9 +566,9 @@ There are several actor systems that do not support selective receive, but Erlan
 
 ### gen-server
 
+### gen-event
+
 ### Supervisors
 
-
-## Dataflow
 
 
