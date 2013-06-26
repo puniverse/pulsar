@@ -56,13 +56,6 @@
           
           
           
-        
-          
-          
-            
-          
-          
-          
             <li>
               <a  href="/pulsar/getting-started.html">
                 Getting Started
@@ -92,8 +85,22 @@
             </li>
           
         
+          
+          
+            
+          
+          
+          
+        
       
         <li class="nav-header">User Manual</li>
+        
+          
+          
+            
+          
+          
+          
         
           
           
@@ -132,13 +139,6 @@
             </li>
           
         
-          
-          
-            
-          
-          
-          
-        
       
       <li class="divider"></li>
     </ul>
@@ -160,7 +160,8 @@
       </div>
       
 
-      <div id="content"><h2 id="quasar-and-pulsar">Quasar and Pulsar</h2>
+      <div id="content">
+<h2 id="quasar-and-pulsar">Quasar and Pulsar</h2>
 
 <p>Pulsar is a Clojure API to <a href="https://github.com/puniverse/quasar">Quasar</a>. Many of the concepts explained below are actually implemented in Quasar.</p>
 
@@ -607,9 +608,47 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
 
 <p>An actor is a state machine. It usually encompasses some <em>state</em> and the messages it receives trigger <em>state transitions</em>. But because the actor has no control over which messages it receives and when (which can be a result of either other actors’ behavior, or even the way the OS schedules threads), an actor would be required to process any message and any state, and build a full <em>state transition matrix</em>, namely how to transition whenever <em>any</em> messages is received at <em>any</em> state.</p>
 
-<p>This can not only lead to code explosion; it can lead to bugs. The key to managing a complex state machine is by not handling messages in the order they arrive, but in the order we wish to process them. </p>
+<p>This can not only lead to code explosion; it can lead to bugs. The key to managing a complex state machine is by not handling messages in the order they arrive, but in the order we wish to process them. If a message does not match any of the clauses in <code>receive</code>, it will remain in the mailbox. <code>receive</code> will return only when it finds a message that does. When another <code>receive</code> statement is called, it will again search the messages that are in the mailbox, and may match a message that has been skipped by a previous <code>receive</code>. <a href="https://github.com/puniverse/pulsar/tree/master/src/test/clojure/co/paralleluniverse/pulsar/examples/priority.clj">This example</a> demonstrates receiving messages in order of priority.</p>
 
-<p>…..</p>
+<p>Selective receive is also very useful when communicating with other actors. Here’s an excerpt from <a href="https://github.com/puniverse/pulsar/tree/master/src/test/clojure/co/paralleluniverse/pulsar/examples/selective.clj">this example</a>:</p>
+
+<pre><code class="language-clj">(defsusfn adder []
+  (loop []
+    (receive
+      [from tag [:add a b]] (! from tag [:sum (+ a b)]))
+    (recur)))
+
+(defsusfn computer [adder]
+  (loop []
+    (receive [m]
+             [from tag [:compute a b c d]] (let [tag1 (maketag)]
+                                             (! adder [@self tag1 [:add (* a b) (* c d)]])
+                                             (receive
+                                               [tag1 [:sum sum]]  (! from tag [:result sum])
+                                               :after 10          (! from tag [:error "timeout!"])))
+             :else (println "Unknown message: " m))
+    (recur)))
+
+(defsusfn curious [nums computer]
+  (when (seq nums)
+    (let [[a b c d] (take 4 nums)
+          tag       (maketag)]
+      (! computer @self tag [:compute a b c d])
+      (receive [m]
+               [tag [:result res]]  (println a b c d "-&gt;" res)
+               [tag [:error error]] (println "ERROR: " a b c d "-&gt;" error)
+               :else (println "Unexpected message" m))
+      (recur (drop 4 nums) computer))))
+
+(defn -main []
+  (let [ad (spawn adder)
+        cp (spawn computer ad)
+        cr (spawn curious (take 20 (repeatedly #(rand-int 10))) cp)]
+    (join cr)
+    :ok))
+</code></pre>
+
+<p>In the example, we have three actors: <code>curious</code>, <code>computer</code> and <code>adder</code>. <code>curious</code> asks <code>computer</code> to perform a computation, and <code>computer</code> relies on <code>adder</code> to perform addition. Note the nested <code>receive</code> in <code>computer</code>: the actor waits for a reply from <code>adder</code> before accepting other requests (from <code>curious</code>) in the outer receive (actually, because this pattern of sending a message to an actor and waiting for a reply is so common, it’s encapsulated by a construct call <code>gen-server</code> - yet another blatant theft from Erlang - which we’ll introduce later; if you want to see how this example looks using <code>gen-server</code>, take a look <a href="https://github.com/puniverse/pulsar/tree/master/src/test/clojure/co/paralleluniverse/pulsar/examples/selective_gen_server.clj">here</a>. </p>
 
 <p>There are several actor systems that do not support selective receive, but Erlang does, and so does Pulsar. <a href="http://www.infoq.com/presentations/Death-by-Accidental-Complexity">The talk <em>Death by Accidental Complexity</em></a>, by Ulf Wiger, shows how using selective receive avoids implementing a full, complicated and error-prone transition matrix. <a href="http://www.infoq.com/presentations/1000-Year-old-Design-Patterns">In a different talk</a>, Wiger compared non-selective (FIFO) receive to a tetris game where you must fit each piece into the puzzle as it comes, while selective receive turns the problem into a jigsaw puzzle, where you can look for a piece that you know will fit.</p>
 
