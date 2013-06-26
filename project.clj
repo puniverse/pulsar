@@ -49,6 +49,8 @@
                              [marginalia "0.7.1" :exclusions [org.clojure/tools.namespace]]]      ; here just for the exclusions
               :injections [(require 'clojure.test)
                            (alter-var-root #'clojure.test/*load-tests* (constantly false))]
-              :codox {:include [co.paralleluniverse.pulsar co.paralleluniverse.pulsar.behaviors]
+              :codox {:include [co.paralleluniverse.pulsar.core 
+                                co.paralleluniverse.pulsar.actors
+                                co.paralleluniverse.pulsar.lazyseq]
                       :output-dir "docs/api"}
               :global-vars {*warn-on-reflection* false}}})
