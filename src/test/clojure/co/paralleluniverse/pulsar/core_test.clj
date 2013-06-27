@@ -86,6 +86,27 @@
 
 ;; ## channels
 
+(fact "Test channel close"
+      (let [ch (channel)
+            fiber (spawn-fiber
+                    (fn []
+                      (let [m1 (rcv ch)
+                            m2 (rcv ch)
+                            m3 (rcv ch)
+                            m4 (rcv ch)]
+                        (fact
+                          (closed? ch) => true)
+                        (list m1 m2 m3 m4))))]
+        (Thread/sleep 20)
+        (snd ch "m1")
+        (Thread/sleep 20)
+        (snd ch "m2")
+        (Thread/sleep 20)
+        (snd ch "m3")
+        (close ch)
+        (snd ch "m4")
+        (join fiber))  => '("m1" "m2" "m3" nil))
+
 (facts "channel-group"
        (fact "Receive from channel group"
              (let [ch1 (channel)

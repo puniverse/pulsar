@@ -139,6 +139,7 @@
 
 (defn apply-variadic
   "Calls a variadic function by applying a concat of all arguments with the last argument (which is supposedly a collection)"
+  {:no-doc true}
   [f & args]
   (apply f (concat (butlast args) (last args))))
 
@@ -486,6 +487,20 @@
    (.receive channel))
   ([^ReceiveChannel channel timeout unit]
    (.receive channel (long timeout) (->timeunit unit))))
+
+(defn close 
+  "Closes a channel"
+  [channel]
+  (cond
+    (instance? SendChannel channel)    (.close ^SendChannel channel)
+    (instance? ReceiveChannel channel) (.close ^ReceiveChannel channel)
+    :else (throw (IllegalArgumentException. (str (.toString channel) " is not a channel")))))
+
+(defn closed?
+  "Tests whether a channel has been closed and no more messages will be received.
+  This function can only be called by the channel's owning strand (the receiver)"
+  [^ReceiveChannel channel]
+  (.isClosed channel))
 
 (defn channel-group
   "Creates a channel group"
