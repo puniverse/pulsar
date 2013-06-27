@@ -38,7 +38,8 @@
                          ;"-Dco.paralleluniverse.flightRecorderDumpFile=pulsar.log"
                          ; Logging
                          "-Dlog4j.configurationFile=log4j.xml"
-                         "-DLog4jContextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector"]
+                         ;"-DLog4jContextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector"
+                         ]
               :global-vars {*warn-on-reflection* true}}
              :doc
              {:plugins [[lein-midje "3.0.0"]
