@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html itemscope itemtype="http://schema.org/Organization">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta itemprop="name" content="Pulsar">
+<meta itemprop="description" content="Erlang-like actors for Clojure">
+<title>
+  
+    Pulsar Core - 
+   Pulsar
+</title>
+<!--<link rel="shortcut icon" href="/images/icons/loading_icon.png">-->
+<link href="/pulsar/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+<link href="/pulsar/css/prettify/sunburst.css" rel="stylesheet" type="text/css">
+<!-- <link href="/css/pygments/default.css" rel="stylesheet" type="text/css"> -->
+<link href="/pulsar/css/site.css?now" rel="stylesheet" type="text/css">
+
+
+
+</head>
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="navbar-inner">
+    <div class="container-fluid">
+      <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+      </a>
+      <a class="brand" href="/pulsar/">Pulsar</a>
+      <div class="nav-collapse collapse">
+        <ul class="nav">
+          <li class="icon github"><a href="https://github.com/puniverse/pulsar"><img src="/pulsar/images/icons/github.png">View on Github</a></li>
+          <li><a href="/pulsar/api/index.html">API</a> </li>
+          <li class="icon bug"><a href="https://github.com/puniverse/pulsar/issues/new"><img src="/pulsar/images/icons/bug.png">File a bug</a></li>
+          <!-- <li class="icon source"><a href="https://github.com/puniverse/pulsar/blob/master/CONTRIBUTING.md"><img src="/images/icons/source.png">Contribute</a> </li> -->
+          <li class="icon talk"><a href="https://groups.google.com/forum/#!forum/quasar-pulsar-user"><img src="/pulsar/images/icons/talk.png">Discuss</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="container-fluid">
+  <div class="row-fluid">
+    <div class="span3">
+  <div class="well well-small sidebar-nav">
+    <ul class="nav nav-list">
+      
+        <li class="nav-header">Getting Started</li>
+        
+          
+          
+            
+          
+          
+          
+            <li>
+              <a  href="/pulsar/getting-started.html">
+                Getting Started
+              </a>
+              
+            </li>
+          
+        
+          
+          
+            
+          
+          
+          
+        
+          
+          
+            
+          
+          
+          
+        
+          
+          
+            
+          
+          
+          
+        
+          
+          
+            
+          
+          
+          
+            <li>
+              <a  href="/pulsar/news.html">
+                News
+              </a>
+              
+            </li>
+          
+        
+      
+        <li class="nav-header">User Manual</li>
+        
+          
+          
+            
+          
+          
+          
+        
+          
+          
+            
+          
+          
+          
+            <li>
+              <a class="active" href="/pulsar/manual/core.html">
+                Pulsar Core
+              </a>
+              
+              <ul class="nav nav-list"><li><a href="#quasar-and-pulsar">Quasar and Pulsar</a></li><li><a href="#fibers">Fibers</a></li><li><a href="#channels">Channels</a></li></ul>
+              
+            </li>
+          
+        
+          
+          
+            
+          
+          
+          
+            <li>
+              <a  href="/pulsar/manual/actors.html">
+                Pulsar's Actor System
+              </a>
+              
+            </li>
+          
+        
+          
+          
+            
+          
+          
+          
+            <li>
+              <a  href="/pulsar/manual/examples.html">
+                Examples
+              </a>
+              
+            </li>
+          
+        
+          
+          
+            
+          
+          
+          
+        
+      
+      <li class="divider"></li>
+    </ul>
+  </div>
+</div>
+
+    <div class="span8" id="content-container">
+
+      <span class="edit-on-github">
+  <a href="https://github.com/puniverse/pulsar/edit/master/docs/manual/core.md">Edit on Github</a>
+</span>
+
+
+      
+      <div class="page-header">
+        <h1>Pulsar Core
+          
+        </h1>
+      </div>
+      
+
+      <div id="content">
+<h2 id="quasar-and-pulsar">Quasar and Pulsar</h2>
+
+<p>Pulsar is a Clojure API to <a href="https://github.com/puniverse/quasar">Quasar</a>. Many of the concepts explained below are actually implemented in Quasar.</p>
+
+<h2 id="fibers">Fibers</h2>
+
+<p>Fibers are lightweight threads. They provide functionality similar to threads, and a similar API, but they&#8217;re not managed by the OS. They are lightweight (an idle fiber occupies ~400 bytes of RAM), and you can have millions of them in an application. If you are familiar with Go, fibers are like goroutines. Fibers in Pulsar (well, Quasar, actually) are scheduled by one or more <a href="http://docs.oracle.com/javase/7/docs/api/java/util/concurrent/ForkJoinPool.html">ForkJoinPool</a>s. </p>
+
+<p>One significant difference between Fibers and Threads is that Fibers are not preempted; i.e. a fiber is (permanently or temporarily) unscheduled by the scheduler only if it terminates, or if it calls one of a few specific Java methods that cause the fiber to become suspended. A function that calls a suspending operation is called a <em>suspendable</em> function, and a function that calls another suspendable function is itself suspendable. </p>
+
+<p>Suspendable functions require special bytecode instrumentation (performed by an instrumentation agent), so they must be explicitly designated as such.
+The function <code>suspendable!</code> marks a given function as a suspendable function (this operation cannot be undone). The <code>defsusfn</code> macro, with the same syntax as <code>defn</code> defines a suspendable function.</p>
+
+<p class="alert alert-info"><strong>Note</strong>: All functions (i.e. <code>fn</code>s) passed to any of the Pulsar API functions and macros are automatically made suspendable, so in most simple cases you will never need to use <code>susfn</code>, <code>defsusfn</code> or <code>suspendable!</code>.</p>
+
+<h3 id="spawning-fibers">Spawning Fibers</h3>
+
+<p>To create a fiber of a function <code>f</code> that takes arguments <code>arg1</code> and <code>arg2</code>, run</p>
+
+<pre><code>(spawn-fiber f arg1 arg2)
+</code></pre>
+
+<p><code>spawn-fiber</code> automatically marks <code>f</code> as suspendable, so there&#8217;s no need to do so explicitly.</p>
+
+<p><code>spawn-fiber</code> takes optional keyword arguments:</p>
+
+<ul>
+  <li><code>:name</code> - The fiber&#8217;s name.</li>
+  <li><code>:fj-pool</code> - The <code>ForkJoinPool</code> in which the fiber will run.
+If <code>:fj-pool</code> is not specified, then the pool used will be either 1) the pool of the fiber calling <code>spawn-fiber</code>, or, if <code>spawn-fiber</code> is not called from within a fiber, a default pool.</li>
+  <li><code>:stack-size</code> - The initial fiber data stack size.</li>
+</ul>
+
+<p>The fiber will terminate when <code>f</code> completes execution. </p>
+
+<p class="alert alert-info"><strong>Note</strong>: Spawning a fiber is a very cheap operation in both computation and memory. Do not fear creating many (thousands, tens-of-thousands or even hundereds-of-thousands) fibers.</p>
+
+<h3 id="joining-fibers">Joining Fibers</h3>
+
+<p>To wait for the fiber&#8217;s termination, use</p>
+
+<pre><code>(join fiber)
+</code></pre>
+
+<p>If <code>f</code> returns a value, <code>join</code> will return that value. If <code>f</code> throws an exception, <code>join</code> will throw that exception.</p>
+
+<p>You can also wait for a fiber&#8217;s termination for a given duration. The following will wait for half a second for the fiber to terminate:</p>
+
+<pre><code>(join 500 java.util.concurrent.TimeUnit/MILLISECONDS fiber)
+</code></pre>
+
+<p>The following will have the same effect:</p>
+
+<pre><code class="language-clj">(join 500 :ms fiber)
+</code></pre>
+
+<h3 id="bindings">Bindings</h3>
+
+<p>Fibers behave well with Clojure <code>bindings</code>. A newly spawned fiber inherits the bindings in effect at the time of spawning,
+and bindings decleared in a fiber last throughout the fiber&#8217;s lifetime. This is demonstrated in the following tests taken
+from the Pulsar test suite:</p>
+
+<pre><code class="language-clj">(def ^:dynamic *foo* 40)
+
+(facts "fiber-bindings"
+      (fact "Fiber inherits thread bindings"
+            (let [fiber
+                  (binding [*foo* 20]
+                    (spawn-fiber
+                     #(let [v1 *foo*]
+                        (Fiber/sleep 200)
+                        (let [v2 *foo*]
+                          (+ v1 v2)))))]
+              (join fiber))
+            =&gt; 40)
+      (fact "Bindings declared in fiber last throughout fiber lifetime"
+            (let [fiber
+                  (spawn-fiber
+                   #(binding [*foo* 15]
+                      (let [v1 *foo*]
+                        (Fiber/sleep 200)
+                        (let [v2 *foo*]
+                          (+ v1 v2)))))]
+              (join fiber))
+            =&gt; 30))
+</code></pre>
+
+<h3 id="compatibility-with-clojure-concurrency-constructs">Compatibility with Clojure Concurrency Constructs</h3>
+
+<p>Code running in fibers may make free use of Clojure atoms and agents. </p>
+
+<p>Spawning or dereferencing a future created with <code>clojure.core/future</code> is ok, but there&#8217;s a better alternative: you can turn a spawned fiber into a future with <code>fiber-&gt;future</code> and can then dereference or call regular future functions on the returned value, like <code>realized?</code> (In fact, you don&#8217;t even have to call <code>fiber-&gt;future</code>; fibers already implement the <code>Future</code> interface and can be treated as futures directly, but this may change in the future, so, until the API is fully settled, we recommend using <code>fiber-&gt;future</code>).</p>
+
+<p>Running a <code>dosync</code> block inside a fiber is discouraged as it uses locks internally, but your mileage may vary.</p>
+
+<p>Promises are supported and encouraged, but you should not make use of <code>clojure.core/promise</code> to create a promise that&#8217;s to be dereferenced in a fiber. Pulsar provides a different &#8211; yet completely compatible &#8211; form of promises, as you&#8217;ll immediately see.</p>
+
+<h3 id="promises-promises">Promises, Promises</h3>
+
+<p>Promises, also known as dataflow variables, are an especially effective, and simple, concurrency primitive.</p>
+
+<p>A promise is a value that may only be set once, but read multiple times. If the promise is read before the value is set, the reading strand will block until the promise has been set, and then return its value.</p>
+
+<p>Promises are defined in <code>clojure.core</code>, but <code>...pulsar.core</code> provides its own, fully compatible version.</p>
+
+<p>A promise is created simply like this:</p>
+
+<pre><code>(promise)
+</code></pre>
+
+<p>And is set with <code>deliver</code>. It can be read by dereferencing it with <code>@</code>, and you can test whether it&#8217;s been set with <code>realized?</code> (other than the <code>promise</code> function itself, all other functions, like <code>deliver</code> and <code>realized</code> are those defined in <code>clojure.core</code>)</p>
+
+<p>The <code>promise</code> function defined in Pulsar creates a promise, that, when dereferenced within a fiber, simply blocks the fiber and not the entire OS thread it&#8217;s running in.</p>
+
+<p>Here&#8217;s an example of using promises from the tests:</p>
+
+<pre><code class="language-clj">(let [v1 (promise)
+     v2 (promise)
+     v3 (promise)
+     v4 (promise)
+     f1 (spawn-fiber  #(deliver v2 (+ @v1 1)))
+     t1 (spawn-thread #(deliver v3 (+ @v1 @v2)))
+     f2 (spawn-fiber  #(deliver v4 (+ @v3 @v2)))]
+ (Strand/sleep 50)
+ (deliver v1 1)
+ @v4) ; =&gt; 5
+</code></pre>
+
+<p>This example shows how promises are set, and read, by both fibers and regular threads.</p>
+
+<p>But Pulsar&#8217;s promises have one additional, quite nifty, feature. If you pass an optional function to <code>promise</code>, a new fiber running that function will be spawned, and the promise will receive the value returned from the function. Here&#8217;s another example from the tests:</p>
+
+<pre><code class="language-clj">(let [v0 (promise)
+     v1 (promise)
+     v2 (promise #(+ @v1 1))
+     v3 (promise #(+ @v1 @v2))
+     v4 (promise #(* (+ @v3 @v2) @v0))]
+ (Strand/sleep 50)
+ (deliver v1 1)
+ (mapv realized? [v0 v1 v2 v3 v4]) ; =&gt; [false true true true false]
+ (deliver v0 2)
+ @v4) ; =&gt; 10
+</code></pre>
+
+<h3 id="strands">Strands</h3>
+
+<p>Before we continue, one more bit of nomenclature: a single flow of execution in Quasar/Pulsar is called a <em>strand</em>. To put it more simply, a strand is either a normal JVM thread, or a fiber.</p>
+
+<p>The strand abstraction helps you write code that works whether it runs in a fiber or not. For example, <code>(Strand/currentStrand)</code> returns the current fiber, if called from a fiber, or the current thread, if not. <code>(Strand/sleep millis)</code> suspends the current strand for a given number of milliseconds whether it&#8217;s a fiber or a normal thread. Also, <code>join</code> works for both fibers and threads (although for threads <code>join</code> will always return <code>nil</code>).</p>
+
+<h2 id="channels">Channels</h2>
+
+<p>Channels are queues used to pass messages between strands (remember, strands are a general name for threads and fibers). If you are familiar with Go, Pulsar channels are like Go channels. The call</p>
+
+<pre><code>(channel)
+</code></pre>
+
+<p>creates and returns a new channel. A channel has a capacity, i.e. the number of messages it can hold before they are consumed. By default, the <code>channel</code> function creates an unbounded channel. To create a channel with a limited capacity, call</p>
+
+<pre><code>(channel size)
+</code></pre>
+
+<p>with <code>size</code> being a positive integer. Bounded channels are generally faster than unbounded channels. Attempting to send a message to a bounded channel that has filled up will throw an exception.</p>
+
+<p>Many strands can send messages to the channel, but only one may receive messages from the channel. The strand that receives messages from the channel is the channel&#8217;s <em>owner</em>. The owner can be set either explicitely by calling:</p>
+
+<pre><code>(attach! channel owner)
+</code></pre>
+
+<p>where <code>owner</code> is either a fiber or a thread, but usually this is not necessary. The first strand that tries to receive a message from a channel becomes its owner. Attempting to receive from a channel on a strand that is not the channel&#8217;s owner results in an exception.</p>
+
+<h3 id="sending-and-receiving-messages">Sending and receiving messages</h3>
+
+<p>Sending a message to a channel is simple:</p>
+
+<pre><code>(snd channel message)
+</code></pre>
+
+<p><code>message</code> can be any object, but not <code>nil</code>. Receiving a message from a channel is equaly easy:</p>
+
+<pre><code>(rcv channel)
+</code></pre>
+
+<p>The <code>rcv</code> function returns the first message in the channel (the one that has waited there the longest), if there is one. If the channel is empty, the function will block until a message is sent to the channel, and will then return it.</p>
+
+<p class="alert alert-info"><strong>Note</strong>: <code>rcv</code> is a suspendable function, so any function calling it must also be decalred suspendable. But remember, the function passed to <code>spawn-fiber</code> is automatically made suspendable.</p>
+
+<p>It is also possible to limit the amount of time <code>rcv</code> will wait for a message:</p>
+
+<pre><code class="language-clj">(rcv channel 10 java.util.concurrent.TimeUnit/MILLISECONDS)
+</code></pre>
+
+<p>or, equivalently:</p>
+
+<pre><code class="language-clj">(rcv channel 10 :ms)
+</code></pre>
+
+<p>These calls will wait for a message for 10 milliseconds before giving up and returning <code>nil</code>.</p>
+
+<h3 id="closing-the-channel">Closing the channel</h3>
+
+<p>After calling </p>
+
+<pre><code class="language-clj">(close channel)
+</code></pre>
+
+<p>any future messages sent to the channel will be ignored. Any messages already in the channel will be received. Once the last message has been received, another call to <code>rcv</code> will return <code>nil</code>. </p>
+
+<h3 id="primitive-channels">Primitive channels</h3>
+
+<p>It is also possible to create channels that carry messages of primitive JVM types. The analogous primitive channel functions to <code>channel</code>, <code>snd</code> and <code>rcv</code>, are, respectively: </p>
+
+<ul>
+  <li><code>int</code> channels: <code>int-channel</code>, <code>snd-int</code>, <code>rcv-int</code></li>
+  <li><code>long</code> channels: <code>long-channel</code>, <code>snd-long</code>, <code>rcv-long</code></li>
+  <li><code>float</code> channels: <code>float-channel</code>, <code>snd-float</code>, <code>rcv-float</code></li>
+  <li><code>double</code> channels: <code>double-channel</code>, <code>snd-double</code>, <code>rcv-double</code></li>
+</ul>
+
+<p>Because they don&#8217;t require boxing (for this reason <code>snd-xxx</code> and <code>rcv-xxx</code> are actually macros), primitive channels can provide better performance than regular channels.</p>
+
+<p>Calling <code>rcv-xxx</code> on a closed channel will throw an exception.</p>
+
+<h3 id="channel-groups">Channel Groups</h3>
+
+<p>A strand may also wait for a message to arrive on several channels at once by creating a <code>channel-group</code>:</p>
+
+<pre class="prettyprint lang-clj"><code>(rcv (channel-group ch1 ch2 ch3))
+</code></pre>
+
+<p>You can also use a timeout when receiving from a channel group.</p>
+
+<h3 id="channel-lazy-seqs">Channel lazy-seqs</h3>
+
+<p class="centered alert alert-warning"><strong>Note</strong>: Channel lazy-seqs are an experimental feature.</p>
+
+<p>Messages received through channels can be manipulted with Clojure&#8217;s sequence manipulation functions by transforming a channel into a <code>lazy-seq</code>. Unfortunately, Clojure implements <code>lazy-seq</code>s with the <code>clojure.lang.LazySeq</code> class, which <em>almost</em> allows a <code>lazy-seq</code> implementation by a channel - but not quite (a simple reordering of a couple of Java lines in the <code>LazySeq</code> class would have made it compatible with channels). The <code>lazy-seq</code> function in the <code>co.paralleluniverse.pulsar.lazyseq</code> namespace therefore creates a <code>lazy-seq</code> that works just like Clojure&#8217;s, but uses a slightly different underlying Java implementation. This is unfortunate, because it required a re-implementation of many sequence manipulation functions.</p>
+
+<p>Nevertheless, it&#8217;s still possible to work with channels as you would with lazy-seqs, you only need to mind calling the functions in the right namespace.</p>
+
+<p>To create a lazy-seq from a channel, simply call:</p>
+
+<pre><code>(channel-&gt;lazy-seq ch)
+</code></pre>
+
+<p>Then, manipulating messages with sequence functions is easy. Here are some examples from the tests:</p>
+
+<pre><code class="language-clj">(require [co.paralleluniverse.pulsar.lazyseq :as s :refer [channel-&gt;lazy-seq snd-seq]])
+
+(facts "channels-seq"
+       (fact "Receive sequence with sleep"
+             (let [ch (channel)
+                   fiber (spawn-fiber
+                          (fn []
+                            (let [s (s/take 5 (channel-&gt;lazy-seq ch))]
+                              (s/doall s))))]
+               (dotimes [m 10]
+                 (Thread/sleep 20)
+                 (snd ch m))
+               (join fiber))  =&gt; (list 0 1 2 3 4))
+       (fact "Map received sequence with sleep"
+             (let [ch (channel)
+                   fiber (spawn-fiber (fn [] (s/doall (s/map #(* % %) (s/take 5 (channel-&gt;lazy-seq ch))))))]
+               (dotimes [m 10]
+                 (Thread/sleep 20)
+                 (snd ch m))
+               (join fiber)) =&gt; (list 0 1 4 9 16))
+       (fact "Filter received sequence with sleep (odd)"
+             (let [ch (channel)
+                   fiber (spawn-fiber
+                          #(s/doall (s/filter odd? (s/take 5 (channel-&gt;lazy-seq ch)))))]
+               (dotimes [m 10]
+                 (Thread/sleep 20)null
+                 (snd ch m))
+               (join fiber)) =&gt; (list 1 3))
+       (fact "Filter and map received sequence with sleep (even)"
+             (let [ch (channel)
+                   fiber (spawn-fiber
+                          (fn [] (s/doall
+                                  (s/filter #(&gt; % 10)
+                                            (s/map #(* % %)
+                                                   (s/filter even?
+                                                             (s/take 5 (channel-&gt;lazy-seq ch))))))))]
+               (dotimes [m 10]
+                 (Thread/sleep 20)
+                 (snd ch m))
+               (join fiber)) =&gt; (list 16)))
+</code></pre>
+
+</div>
+
+      <hr>
+
+      <footer>
+        <div>
+          <div>&copy; 2013, Parallel Universe Software Co.</div>
+        </div>
+      </footer>
+
+    </div>
+  </div>
+</div>
+
+<script src="/pulsar/js/prettify/prettify.js"></script>
+<script src="/pulsar/js/jquery.min.js"></script>
+<script src="/pulsar/bootstrap/js/bootstrap.min.js"></script>
+<script src="/pulsar/js/bootstrap-scrollspy.js"></script>
+<script>
+
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-25007319-2']);
+  _gaq.push(['_trackPageview']);
+  
+  (function() {
+    var ga = document.createElement('script'); 
+    ga.type = 'text/javascript'; 
+    ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; 
+    s.parentNode.insertBefore(ga, s);
+  })();
+
+
+// Change "active" style on selected left-hand navigation menu item.
+$(document).ready(function () {
+  var path = location.pathname;
+  $('ul.nav > li > a[href="' + path + '"]').parent().addClass('active');
+
+  // TODO: Use kramdown {:.prettyprint .linenums .lang-ruby} to add the
+  // <pre class="prettyprint"> instead of doing this client-side.
+  $('pre:has(code:not(.language-txt))').addClass('prettyprint');
+  window.prettyPrint && prettyPrint();
+});
+</script>
+
+</body>
+</html>
