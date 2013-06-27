@@ -518,13 +518,13 @@
 
 (defmacro snd-int
   [channel message]
-  `(co.paralleluniverse.pulsar.ChannelsHelper/sendInt ~channel (int ~message)))
+  `(.send ^co.paralleluniverse.strands.channels.IntChannel ~channel (int ~message)))
 
 (defmacro rcv-int
   ([channel]
-   `(int (co.paralleluniverse.pulsar.ChannelsHelper/receiveInt ~channel)))
+   `(int (.receiveInt ^co.paralleluniverse.strands.channels.IntChannel ~channel)))
   ([channel timeout unit]
-   `(int (co.paralleluniverse.pulsar.ChannelsHelper/receiveInt ~channel (long ~timeout) (->timeunit ~unit)))))
+   `(int (.receiveInt ^co.paralleluniverse.strands.channels.IntChannel ~channel (long ~timeout) (->timeunit ~unit)))))
 
 (ann long-channel (Fn [AnyInteger -> LongChannel]
                       [-> LongChannel]))
@@ -535,13 +535,13 @@
 
 (defmacro snd-long
   [channel message]
-  `(co.paralleluniverse.pulsar.ChannelsHelper/sendLong ~channel (long ~message)))
+  `(.send ^co.paralleluniverse.strands.channels.LongChannel ~channel (long ~message)))
 
 (defmacro rcv-long
   ([channel]
-   `(long (co.paralleluniverse.pulsar.ChannelsHelper/receiveLong ~channel)))
+   `(long (.receiveLong ^co.paralleluniverse.strands.channels.LongChannel ~channel)))
   ([channel timeout unit]
-   `(long (co.paralleluniverse.pulsar.ChannelsHelper/receiveLong ~channel (long ~timeout) (->timeunit ~unit)))))
+   `(long (.receiveLong ^co.paralleluniverse.strands.channels.LongChannel ~channel (long ~timeout) (->timeunit ~unit)))))
 
 (ann float-channel (Fn [AnyInteger -> FloatChannel]
                        [-> FloatChannel]))
@@ -552,13 +552,13 @@
 
 (defmacro snd-float
   [channel message]
-  `(co.paralleluniverse.pulsar.ChannelsHelper/sendLong ~channel (float ~message)))
+  `(.send ^co.paralleluniverse.strands.channels.FloatChannel ~channel (float ~message)))
 
 (defmacro rcv-float
   ([channel]
-   `(float (co.paralleluniverse.pulsar.ChannelsHelper/receiveFloat ~channel)))
+   `(float (.receiveFloat ^co.paralleluniverse.strands.channels.FloatChannel ~channel)))
   ([channel timeout unit]
-   `(float (co.paralleluniverse.pulsar.ChannelsHelper/receiveFloat ~channel (long ~timeout) (->timeunit ~unit)))))
+   `(float (.receiveFloat ^co.paralleluniverse.strands.channels.FloatChannel ~channel (long ~timeout) (->timeunit ~unit)))))
 
 (ann double-channel (Fn [AnyInteger -> DoubleChannel]
                         [-> DoubleChannel]))
@@ -569,12 +569,12 @@
 
 (defmacro snd-double
   [channel message]
-  `(co.paralleluniverse.pulsar.ChannelsHelper/sendLong ~channel (double ~message)))
+  `(.send ^co.paralleluniverse.strands.channels.DoubleChannel ~channel (double ~message)))
 
 (defmacro rcv-double
   ([channel]
-   `(double (co.paralleluniverse.pulsar.ChannelsHelper/receiveDouble ~channel)))
+   `(double (.receiveDouble ^co.paralleluniverse.strands.channels.DoubleChannel ~channel)))
   ([channel timeout unit]
-   `(double (co.paralleluniverse.pulsar.ChannelsHelper/receiveDouble ~channel (long ~timeout) (->timeunit ~unit)))))
+   `(double (.receiveDouble ^co.paralleluniverse.strands.channels.DoubleChannel ~channel (long ~timeout) (->timeunit ~unit)))))
 
 
