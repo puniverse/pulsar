@@ -20,7 +20,6 @@ import clojure.lang.PersistentVector;
 import co.paralleluniverse.fibers.SuspendExecution;
 import co.paralleluniverse.pulsar.ClojureHelper;
 import co.paralleluniverse.strands.SuspendableCallable;
-import co.paralleluniverse.strands.channels.Mailbox;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 

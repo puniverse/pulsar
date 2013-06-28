@@ -18,19 +18,25 @@
 (ns co.paralleluniverse.pulsar.core
   "Pulsar is an implementation of lightweight threads (fibers),
   Go-like channles and Erlang-like actors for the JVM"
-  (:import [java.util.concurrent TimeUnit ExecutionException TimeoutException Future]
-           [jsr166e ForkJoinPool ForkJoinTask]
-           [co.paralleluniverse.strands Strand Stranded]
-           [co.paralleluniverse.strands SuspendableCallable]
-           [co.paralleluniverse.fibers DefaultFiberPool Fiber Joinable FiberUtil]
-           [co.paralleluniverse.fibers.instrument]
-           [co.paralleluniverse.strands.channels Channel ReceiveChannel SendChannel ChannelGroup
-            ObjectChannel IntChannel LongChannel FloatChannel DoubleChannel]
-           [co.paralleluniverse.strands.dataflow DelayedVal]
-           [co.paralleluniverse.pulsar ClojureHelper]
-           ; for types:
-           [clojure.lang Keyword Sequential IObj IFn IMeta IDeref ISeq IPersistentCollection IPersistentVector IPersistentMap])
-  (:require [clojure.core.typed :refer [ann def-alias Option AnyInteger]]))
+(:import [java.util.concurrent TimeUnit ExecutionException TimeoutException Future]
+         [jsr166e ForkJoinPool ForkJoinTask]
+         [co.paralleluniverse.strands Strand Stranded]
+         [co.paralleluniverse.strands SuspendableCallable]
+         [co.paralleluniverse.fibers DefaultFiberPool Fiber Joinable FiberUtil]
+         [co.paralleluniverse.fibers.instrument]
+         [co.paralleluniverse.strands.channels Channel ReceiveChannel SendChannel Channel$OverflowPolicy 
+          ChannelGroup Topic
+          ObjectChannel IntChannel LongChannel FloatChannel DoubleChannel
+          TickerChannel TickerChannel$TickerChannelConsumer
+          ObjectTickerChannel IntTickerChannel LongTickerChannel FloatTickerChannel DoubleTickerChannel
+          IntSendChannel LongSendChannel FloatSendChannel DoubleSendChannel
+          IntReceiveChannel LongReceiveChannel FloatReceiveChannel DoubleReceiveChannel]
+         [co.paralleluniverse.strands.dataflow DelayedVal]
+         [co.paralleluniverse.pulsar ClojureHelper]
+         ; for types:
+         [clojure.lang Keyword Sequential IObj IFn IMeta IDeref ISeq IPersistentCollection IPersistentVector IPersistentMap])
+(:require [co.paralleluniverse.pulsar.interop :refer :all]
+          [clojure.core.typed :refer [ann def-alias Option AnyInteger]]))
 
 ;; ## clojure.core type annotations
 
@@ -460,10 +466,11 @@
 
 (ann channel (Fn [AnyInteger -> Channel]
                  [-> Channel]))
-(defn channel
+(defn ^Channel channel
   "Creates a channel"
-  ([size] (ObjectChannel/create size))
-  ([] (ObjectChannel/create -1)))
+  ([size overflow-policy] (ObjectChannel/create (int size) (keyword->enum Channel$OverflowPolicy overflow-policy)))
+  ([size]                 (ObjectChannel/create (int size)))
+  ([]                     (ObjectChannel/create -1)))
 
 (ann attach! [Channel (U Strand Fiber Thread) -> Channel])
 (defn attach!
@@ -471,6 +478,15 @@
   This is done automatically the first time a rcv (or one of the primitive-type rcv-xxx) is called on the channel."
   [^Channel channel strand]
   (.setStrand channel strand))
+
+(defn ^TickerChannel ticker-channel
+  "Cerates a ticker channel"
+  [size]
+  (ObjectTickerChannel/create size))
+
+(defn ^TickerChannel$TickerChannelConsumer ticker-consumer
+  [^TickerChannel ticker]
+  (.newConsumer ticker))
 
 (ann snd (All [x] [Channel x -> x]))
 (defn snd
@@ -494,7 +510,7 @@
   (cond
     (instance? SendChannel channel)    (.close ^SendChannel channel)
     (instance? ReceiveChannel channel) (.close ^ReceiveChannel channel)
-    :else (throw (IllegalArgumentException. (str (.toString channel) " is not a channel")))))
+    :else (throw (IllegalArgumentException. (str (.toString ^Object channel) " is not a channel")))))
 
 (defn closed?
   "Tests whether a channel has been closed and no more messages will be received.
@@ -507,74 +523,113 @@
   [& channels]
   (ChannelGroup. ^java.util.Collection channels))
 
+(defn topic
+  "Creates a new topic."
+  []
+  (Topic.))
+
+(defn subscribe
+  "Subscribes a channel to a topic"
+  [^Topic topic ^SendChannel channel]
+  (.subscribe topic channel))
+
+(defn unsubscribe
+  "Unsubscribes a channel from a topic"
+  [^Topic topic ^SendChannel channel]
+  (.unsubscribe topic channel))
+
 ;; ### Primitive channels
 
 (ann int-channel (Fn [AnyInteger -> IntChannel]
                      [-> IntChannel]))
 (defn ^IntChannel int-channel
   "Creates an int channel"
-  ([size] (IntChannel/create size))
-  ([] (IntChannel/create -1)))
+  ([size overflow-policy] (IntChannel/create (int size) (keyword->enum Channel$OverflowPolicy overflow-policy)))
+  ([size]                 (IntChannel/create (int size)))
+  ([]                     (IntChannel/create -1)))
+
+(defn ^IntTickerChannel int-ticker-channel
+  "Cerates an int ticker channel"
+  [size]
+  (IntTickerChannel/create size))
 
 (defmacro snd-int
   [channel message]
-  `(.send ^co.paralleluniverse.strands.channels.IntChannel ~channel (int ~message)))
+  `(.send ^co.paralleluniverse.strands.channels.IntSendChannel ~channel (int ~message)))
 
 (defmacro rcv-int
   ([channel]
-   `(int (.receiveInt ^co.paralleluniverse.strands.channels.IntChannel ~channel)))
+   `(int (.receiveInt ^co.paralleluniverse.strands.channels.IntReceiveChannel ~channel)))
   ([channel timeout unit]
-   `(int (.receiveInt ^co.paralleluniverse.strands.channels.IntChannel ~channel (long ~timeout) (->timeunit ~unit)))))
+   `(int (.receiveInt ^co.paralleluniverse.strands.channels.IntReceiveChannel ~channel (long ~timeout) (->timeunit ~unit)))))
 
 (ann long-channel (Fn [AnyInteger -> LongChannel]
                       [-> LongChannel]))
 (defn ^LongChannel long-channel
   "Creates a long channel"
-  ([size] (LongChannel/create size))
-  ([] (LongChannel/create -1)))
+  ([size overflow-policy] (LongChannel/create (int size) (keyword->enum Channel$OverflowPolicy overflow-policy)))
+  ([size]                 (LongChannel/create (int size)))
+  ([]                     (LongChannel/create -1)))
+
+(defn ^LongTickerChannel long-ticker-channel
+  "Cerates a long ticker channel"
+  [size]
+  (LongTickerChannel/create size))
 
 (defmacro snd-long
   [channel message]
-  `(.send ^co.paralleluniverse.strands.channels.LongChannel ~channel (long ~message)))
+  `(.send ^co.paralleluniverse.strands.channels.LongSendChannel ~channel (long ~message)))
 
 (defmacro rcv-long
   ([channel]
-   `(long (.receiveLong ^co.paralleluniverse.strands.channels.LongChannel ~channel)))
+   `(long (.receiveLong ^co.paralleluniverse.strands.channels.LongReceiveChannel ~channel)))
   ([channel timeout unit]
-   `(long (.receiveLong ^co.paralleluniverse.strands.channels.LongChannel ~channel (long ~timeout) (->timeunit ~unit)))))
+   `(long (.receiveLong ^co.paralleluniverse.strands.channels.LongReceiveChannel ~channel (long ~timeout) (->timeunit ~unit)))))
 
 (ann float-channel (Fn [AnyInteger -> FloatChannel]
                        [-> FloatChannel]))
 (defn ^FloatChannel float-channel
   "Creates a float channel"
-  ([size] (FloatChannel/create size))
-  ([] (FloatChannel/create -1)))
+  ([size overflow-policy] (FloatChannel/create (int size) (keyword->enum Channel$OverflowPolicy overflow-policy)))
+  ([size]                 (FloatChannel/create (int size)))
+  ([]                     (FloatChannel/create -1)))
+
+(defn ^FloatTickerChannel long-ticker-channel
+  "Cerates a float ticker channel"
+  [size]
+  (FloatTickerChannel/create size))
 
 (defmacro snd-float
   [channel message]
-  `(.send ^co.paralleluniverse.strands.channels.FloatChannel ~channel (float ~message)))
+  `(.send ^co.paralleluniverse.strands.channels.FloatSendChannel ~channel (float ~message)))
 
 (defmacro rcv-float
   ([channel]
-   `(float (.receiveFloat ^co.paralleluniverse.strands.channels.FloatChannel ~channel)))
+   `(float (.receiveFloat ^co.paralleluniverse.strands.channels.FloatReceiveChannel ~channel)))
   ([channel timeout unit]
-   `(float (.receiveFloat ^co.paralleluniverse.strands.channels.FloatChannel ~channel (long ~timeout) (->timeunit ~unit)))))
+   `(float (.receiveFloat ^co.paralleluniverse.strands.channels.FloatReceiveChannel ~channel (long ~timeout) (->timeunit ~unit)))))
 
 (ann double-channel (Fn [AnyInteger -> DoubleChannel]
                         [-> DoubleChannel]))
 (defn ^DoubleChannel double-channel
   "Creates a double channel"
-  ([size] (DoubleChannel/create size))
-  ([] (DoubleChannel/create -1)))
+  ([size overflow-policy] (DoubleChannel/create (int size) (keyword->enum Channel$OverflowPolicy overflow-policy)))
+  ([size]                 (DoubleChannel/create (int size)))
+  ([]                     (DoubleChannel/create -1)))
+
+(defn ^DoubleTickerChannel long-ticker-channel
+  "Cerates a double ticker channel"
+  [size]
+  (DoubleTickerChannel/create size))
 
 (defmacro snd-double
   [channel message]
-  `(.send ^co.paralleluniverse.strands.channels.DoubleChannel ~channel (double ~message)))
+  `(.send ^co.paralleluniverse.strands.channels.DoubleSendChannel ~channel (double ~message)))
 
 (defmacro rcv-double
   ([channel]
-   `(double (.receiveDouble ^co.paralleluniverse.strands.channels.DoubleChannel ~channel)))
+   `(double (.receiveDouble ^co.paralleluniverse.strands.channels.DoubleReceiveChannel ~channel)))
   ([channel timeout unit]
-   `(double (.receiveDouble ^co.paralleluniverse.strands.channels.DoubleChannel ~channel (long ~timeout) (->timeunit ~unit)))))
+   `(double (.receiveDouble ^co.paralleluniverse.strands.channels.DoubleReceiveChannel ~channel (long ~timeout) (->timeunit ~unit)))))
 
 
