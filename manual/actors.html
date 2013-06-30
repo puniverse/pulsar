@@ -84,19 +84,19 @@
           
           
           
-        
-          
-          
-            
-          
-          
-          
             <li>
               <a  href="/pulsar/news.html">
                 News
               </a>
               
             </li>
+          
+        
+          
+          
+            
+          
+          
           
         
       
@@ -145,19 +145,19 @@
           
           
           
-            <li>
-              <a  href="/pulsar/manual/examples.html">
-                Examples
-              </a>
-              
-            </li>
-          
         
           
           
             
           
           
+          
+            <li>
+              <a  href="/pulsar/manual/examples.html">
+                Examples
+              </a>
+              
+            </li>
           
         
       
@@ -228,7 +228,7 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
 <pre><code>(snd (mailbox-of actor) msg)
 </code></pre>
 
-<p>But there’s an easier way. Actors implement the <code>SendChannel</code> interface, and so, are treated like a channel by the <code>snd</code> function. So we can simple call:</p>
+<p>But there’s an easier way. Actors implement the <code>SendPort</code> interface, and so, are treated like a channel by the <code>snd</code> function. So we can simple call:</p>
 
 <pre><code>(snd actor msg)
 </code></pre>
@@ -252,7 +252,7 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
 <pre><code>(rcv @mailbox)
 </code></pre>
 
-<p>… and because actors also implement the <code>ReceiveChannel</code> interface required by <code>rcv</code>, the following will also work:</p>
+<p>… and because actors also implement the <code>ReceivePort</code> interface required by <code>rcv</code>, the following will also work:</p>
 
 <pre><code>(rcv @self)
 </code></pre>

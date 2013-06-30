@@ -84,19 +84,19 @@
           
           
           
-        
-          
-          
-            
-          
-          
-          
             <li>
               <a  href="/pulsar/news.html">
                 News
               </a>
               
             </li>
+          
+        
+          
+          
+            
+          
+          
           
         
       
@@ -145,19 +145,19 @@
           
           
           
-            <li>
-              <a  href="/pulsar/manual/examples.html">
-                Examples
-              </a>
-              
-            </li>
-          
         
           
           
             
           
           
+          
+            <li>
+              <a  href="/pulsar/manual/examples.html">
+                Examples
+              </a>
+              
+            </li>
           
         
       
@@ -346,12 +346,7 @@ from the Pulsar test suite:</p>
 
 <p>with <code>size</code> being a positive integer. Bounded channels are generally faster than unbounded channels. Attempting to send a message to a bounded channel that has filled up will throw an exception.</p>
 
-<p>Many strands can send messages to the channel, but only one may receive messages from the channel. The strand that receives messages from the channel is the channel&#8217;s <em>owner</em>. The owner can be set either explicitely by calling:</p>
-
-<pre><code>(attach! channel owner)
-</code></pre>
-
-<p>where <code>owner</code> is either a fiber or a thread, but usually this is not necessary. The first strand that tries to receive a message from a channel becomes its owner. Attempting to receive from a channel on a strand that is not the channel&#8217;s owner results in an exception.</p>
+<p>Many strands can send messages to the channel, but only one may receive messages from the channel. The strand that receives messages from the channel is the channel&#8217;s <em>owner</em>. The first strand that tries to receive a message from a channel becomes its owner. Attempting to receive from a channel on a strand that is not the channel&#8217;s owner results in an exception.</p>
 
 <h3 id="sending-and-receiving-messages">Sending and receiving messages</h3>
 
@@ -413,6 +408,14 @@ from the Pulsar test suite:</p>
 </code></pre>
 
 <p>You can also use a timeout when receiving from a channel group.</p>
+
+<h3 id="ticker-channels">Ticker Channels</h3>
+
+<p>The channel created by the <code>channel</code> function is a single-consumer multiple-producer channel. A ticker-channel is a single-<em>producer</em> multiple-<em>consumer</em> channel. It&#8217;s called a ticker channel because it provides guarantees similar to that of a digital stock-ticker: you can start watching at any time, the messages you read are always read in order, but because of the limited screen size, if you look away or read to slowly you may miss some messages.</p>
+
+<p>The ticker channel is useful when a program component continually broadcasts some information. The size channel&#8217;s circular buffer, its &#8220;screen&#8221; if you like, gives the subscribers some leeway if they occasionally fall behind reading.</p>
+
+<p>Another way of looking at ticker channels (from the perspective of the consumers), is that when a new message is added to the channel, the oldest message in the channel will be displaced if the buffer is exhausted.</p>
 
 <h3 id="channel-lazy-seqs">Channel lazy-seqs</h3>
 
