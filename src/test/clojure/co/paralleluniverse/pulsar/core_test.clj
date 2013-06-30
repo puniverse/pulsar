@@ -213,7 +213,7 @@
                (subscribe topic ch1)
                (subscribe topic ch2)
                (subscribe topic ch3)
-               (Thread/sleep 5)
+               ;(Thread/sleep 5)
                (snd topic "m1")
                (Thread/sleep 5)
                (snd topic "m2")
