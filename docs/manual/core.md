@@ -171,11 +171,7 @@ creates and returns a new channel. A channel has a capacity, i.e. the number of 
 
 with `size` being a positive integer. Bounded channels are generally faster than unbounded channels. Attempting to send a message to a bounded channel that has filled up will throw an exception.
 
-Many strands can send messages to the channel, but only one may receive messages from the channel. The strand that receives messages from the channel is the channel's *owner*. The owner can be set either explicitely by calling:
-
-    (attach! channel owner)
-
-where `owner` is either a fiber or a thread, but usually this is not necessary. The first strand that tries to receive a message from a channel becomes its owner. Attempting to receive from a channel on a strand that is not the channel's owner results in an exception.
+Many strands can send messages to the channel, but only one may receive messages from the channel. The strand that receives messages from the channel is the channel's *owner*. The first strand that tries to receive a message from a channel becomes its owner. Attempting to receive from a channel on a strand that is not the channel's owner results in an exception.
 
 ### Sending and receiving messages
 
@@ -238,6 +234,13 @@ A strand may also wait for a message to arrive on several channels at once by cr
 
 You can also use a timeout when receiving from a channel group.
 
+### Ticker Channels
+
+The channel created by the `channel` function is a single-consumer multiple-producer channel. A ticker-channel is a single-*producer* multiple-*consumer* channel. It's called a ticker channel because it provides guarantees similar to that of a digital stock-ticker: you can start watching at any time, the messages you read are always read in order, but because of the limited screen size, if you look away or read to slowly you may miss some messages.
+
+The ticker channel is useful when a program component continually broadcasts some information. The size channel's circular buffer, its "screen" if you like, gives the subscribers some leeway if they occasionally fall behind reading.
+
+Another way of looking at ticker channels (from the perspective of the consumers), is that when a new message is added to the channel, the oldest message in the channel will be displaced if the buffer is exhausted.
 
 ### Channel lazy-seqs
 

@@ -49,7 +49,7 @@ An actor's mailbox is a channel, that can be obtained with the `mailbox-of` func
 
     (snd (mailbox-of actor) msg)
 
-But there's an easier way. Actors implement the `SendChannel` interface, and so, are treated like a channel by the `snd` function. So we can simple call:
+But there's an easier way. Actors implement the `SendPort` interface, and so, are treated like a channel by the `snd` function. So we can simple call:
 
     (snd actor msg)
 
@@ -69,7 +69,7 @@ The value `@self`, when evaluated in an actor, returns the actor. So, as you may
 
     (rcv @mailbox)
 
-... and because actors also implement the `ReceiveChannel` interface required by `rcv`, the following will also work:
+... and because actors also implement the `ReceivePort` interface required by `rcv`, the following will also work:
 
     (rcv @self)
 
