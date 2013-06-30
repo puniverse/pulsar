@@ -128,7 +128,7 @@ public class ClojureHelper {
         };
     }
 
-    private static Object suspendableInvoke(IFn fn) throws SuspendExecution {
+    static Object suspendableInvoke(IFn fn) throws SuspendExecution {
         return fn.invoke();
     }
 

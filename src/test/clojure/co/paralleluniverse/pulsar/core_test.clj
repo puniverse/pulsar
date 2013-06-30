@@ -104,7 +104,7 @@
         (snd ch "m2")
         (Thread/sleep 20)
         (snd ch "m3")
-        (close ch)
+        (close! ch)
         (snd ch "m4")
         (join fiber))  => '("m1" "m2" "m3" nil))
 
@@ -251,7 +251,7 @@
         (dotimes [i 1000]
           (Thread/sleep 1)
           (snd ch i))
-        (close ch)
+        (close! ch)
         (join (list f1 t1 f2 t2 f3 t3 f4 t4))
         :ok) => :ok)
 

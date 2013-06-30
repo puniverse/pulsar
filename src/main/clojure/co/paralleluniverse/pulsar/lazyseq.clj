@@ -13,7 +13,7 @@
  (ns co.paralleluniverse.pulsar.lazyseq
    "Functions to transform a channel into a laze seq"
    (:import
-    [co.paralleluniverse.strands.channels Channel ObjectChannel]
+    [co.paralleluniverse.strands.channels Channel]
     [co.paralleluniverse.pulsar ClojureHelper SuspendableLazySeq]
     ; for types:
     [clojure.lang Seqable LazySeq ISeq])

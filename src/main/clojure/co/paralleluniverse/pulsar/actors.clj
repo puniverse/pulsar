@@ -116,7 +116,7 @@
 
 (defmacro ->MailboxConfig 
   [size overflow-policy]
-  `(co.paralleluniverse.actors.MailboxConfig. (int ~size) (keyword->enum co.paralleluniverse.strands.channels.Channel$OverflowPolicy ~overflow-policy)))
+  `(co.paralleluniverse.actors.MailboxConfig. (int ~size) (keyword->enum co.paralleluniverse.strands.channels.Channels$OverflowPolicy ~overflow-policy)))
 
 (defmacro spawn
   "Creates and starts a new actor"
