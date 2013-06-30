@@ -31,12 +31,12 @@
               :dependencies [[midje "1.5.1" :exclusions [org.clojure/tools.namespace]]]
               :jvm-opts ["-ea"
                          ;"-Dco.paralleluniverse.lwthreads.verifyInstrumentation=true"
-                         ; Recording
-                         ;"-Dco.paralleluniverse.debugMode=true"
-                         ;"-Dco.paralleluniverse.globalFlightRecorder=true"
-                         ;"-Dco.paralleluniverse.monitoring.flightRecorderLevel=2"
-                         ;"-Dco.paralleluniverse.flightRecorderDumpFile=pulsar.log"
-                         ; Logging
+                         ;; Recording
+                         ; "-Dco.paralleluniverse.debugMode=true"
+                         ; "-Dco.paralleluniverse.globalFlightRecorder=true"
+                         ; "-Dco.paralleluniverse.monitoring.flightRecorderLevel=2"
+                         ; "-Dco.paralleluniverse.flightRecorderDumpFile=pulsar.log"
+                         ;; Logging
                          "-Dlog4j.configurationFile=log4j.xml"
                          ;"-DLog4jContextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector"
                          ]
