@@ -46,7 +46,7 @@
   ([] (chan nil))
   ([buf-or-n] 
    (cond
-     (nil? buf-or-n)    (TransferChannel.)
+     (nil? buf-or-n)    (TransferChannel.) ; - TransferChannel doesn't support double-sided alts!. Requires an actual transaction (locks)
      (number? buf-or-n) (chan (buffer buf-or-n))
      :else              (QueueObjectChannel. (first buf-or-n) (second buf-or-n) false))))
 
@@ -358,3 +358,7 @@
 (defmacro alts!!
   [& args]
   `(alts! ~@args))
+
+(defmacro alt!!
+  [& args]
+  `(alt! ~@args))
