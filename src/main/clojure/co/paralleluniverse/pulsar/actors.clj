@@ -108,11 +108,15 @@
            (suspendable! ~type)
            (defn ~n [~@args]
              ((new ~type ~@args)))
-           (suspendable! ~n)))
+           (let [sn# (suspendable! ~n)]
+             (def ~n sn#)
+             sn#)))
       ; regular actor
       `(do
          (defn ~n ~@decl)
-         (suspendable! ~n)))))
+         (let [sn# (suspendable! ~n)]
+             (def ~n sn#)
+             sn#)))))
 
 (defmacro ->MailboxConfig 
   [size overflow-policy]
@@ -332,7 +336,8 @@
          transform   (second bind-clause)
          body        (if odd-forms (next body) body)
          m           (if bind-clause (first bind-clause) (gensym "m"))
-         timeout     (gensym "timeout")]
+         timeout     (gensym "timeout")
+         iter        (gensym "iter")]
      (if (seq (filter #(= % :else) (take-nth 2 body)))
        ; if we have an :else then every message is processed and our job is easy
        `(let ~(into [] (concat
@@ -349,7 +354,7 @@
                                        (if after-clause `[~timeout ~(second after-clause)
                                                           ~exp (if (pos? ~timeout) (long (+ (long (System/nanoTime)) (long (* 1000000 ~timeout)))) 0)] [])))
                   (.maybeSetCurrentStrandAsOwner ~mailbox)
-                  (loop [prev# nil]
+                  (loop [prev# nil ~iter 0]
                     (.lock ~mailbox)
                     (let [~n (.succ ~mailbox prev#)]
                       ~(let [quick-match (concat ; ((pat1 act1) (pat2 act2)...) => (pat1 (do (.processed mailbox# n#) 0) pat2 (do (del mailbox# n#) 1)... :else -1)
@@ -366,23 +371,23 @@
                                       act# (int (match ~m ~@quick-match))]
                                   (if (>= act# 0)
                                     [act# ~m]     ; we've got a match!
-                                    (recur ~n))))) ; no match. try the next
+                                    (recur ~n (inc ~iter)))))) ; no match. try the next
                             ; ~n == nil
                             ~(if after-clause
                                `(when-not (== ~timeout 0)
                                   (do ; timeout != 0 and ~n == nil
                                     (try
-                                      (.await ~mailbox (- ~exp (long (System/nanoTime))) java.util.concurrent.TimeUnit/NANOSECONDS)
+                                      (.await ~mailbox ~iter (- ~exp (long (System/nanoTime))) java.util.concurrent.TimeUnit/NANOSECONDS)
                                       (finally
                                         (.unlock ~mailbox)))
                                     (when-not (> (long (System/nanoTime)) ~exp)
-                                      (recur ~n))))
+                                      (recur ~n (inc ~iter)))))
                                `(do
                                   (try
-                                    (.await ~mailbox)
+                                    (.await ~mailbox ~iter)
                                     (finally
                                       (.unlock ~mailbox)))
-                                  (recur ~n))))))))]
+                                  (recur ~n (inc ~iter)))))))))]
             ~@(surround-with (when after-clause `(if (nil? ~mtc) ~(nth after-clause 2)))
                              ; now, mtc# is the number of the matching clause and m# is the message.
                              ; but the patterns might have wildcards so we need to match again (for the bindings)
@@ -398,14 +403,14 @@
 
 (defn ^Initializer ->Initializer 
   ([init terminate]
-   (when init (suspendable! init))
-   (when terminate (suspendable! terminate))
-   (reify
-     Initializer
-     (^void init [this]
-            (when init (init)))
-     (^void terminate  [this ^Throwable cause]
-            (when terminate (terminate cause)))))
+   (let [init      (when init (suspendable! init))
+         terminate (when terminate (suspendable! terminate))]
+     (reify
+       Initializer
+       (^void init [this]
+              (when init (init)))
+       (^void terminate  [this ^Throwable cause]
+              (when terminate (terminate cause))))))
   ([init]
    (->Initializer init nil)))
 
@@ -542,7 +547,7 @@
 
 (defn remove-handler
   [^GenEvent ge handler]
-  (.removeHandler ge (->PulsarEventHandler handler)))
+  (.removeHandler ge (->PulsarEventHandler (suspendable! handler))))
 
 ;; ## supervisor
 

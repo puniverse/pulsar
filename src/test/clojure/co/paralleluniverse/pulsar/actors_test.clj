@@ -436,8 +436,12 @@
 
 (fact "When handler is removed then don't call it"
       (let [ge (spawn (gen-event
-                        #(add-handler @self handler1)))]
+                        #(do
+                           (println "add")
+                           (add-handler @self handler1))))]
         (add-handler ge handler2)
+        (Strand/sleep 50)
+        (println "remoe")
         (remove-handler ge handler1)
         (notify ge "hello")
         (shutdown ge)

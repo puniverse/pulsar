@@ -188,15 +188,15 @@ public class PulsarActor extends LocalActor<Object, Object> {
         mailbox().unlock();
     }
 
-    public void await() throws SuspendExecution, InterruptedException {
+    public void await(int iter) throws SuspendExecution, InterruptedException {
         record(1, "PulsarActor", "receive", "%s waiting for a message", this);
-        mailbox().await();
+        mailbox().await(iter);
     }
 
-    public void await(long timeout, TimeUnit unit) throws SuspendExecution, InterruptedException {
+    public void await(int iter, long timeout, TimeUnit unit) throws SuspendExecution, InterruptedException {
         if (flightRecorder != null)
             record(1, "PulsarActor", "receive", "%s waiting for a message.Millis left: %s ", this, TimeUnit.MILLISECONDS.convert(timeout, unit));
-        mailbox().await(timeout, unit);
+        mailbox().await(iter, timeout, unit);
     }
 
     public void timeout() throws TimeoutException {

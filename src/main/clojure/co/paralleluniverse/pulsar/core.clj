@@ -18,6 +18,7 @@
 (ns co.paralleluniverse.pulsar.core
   "Pulsar is an implementation of lightweight threads (fibers),
   Go-like channles and Erlang-like actors for the JVM"
+(:refer-clojure :exclude [promise])
 (:import [java.util.concurrent TimeUnit ExecutionException TimeoutException Future]
          [jsr166e ForkJoinPool ForkJoinTask]
          [co.paralleluniverse.strands Strand Stranded]
@@ -244,7 +245,8 @@
 (defn suspendable?
   "Returns true of a function has been instrumented as suspendable; false otherwise."
   [f]
-  (.isAnnotationPresent (.getClass ^Object f) co.paralleluniverse.fibers.Instrumented))
+  (or (instance? co.paralleluniverse.pulsar.IInstrumented f)
+      (.isAnnotationPresent (.getClass ^Object f) co.paralleluniverse.fibers.Instrumented)))
 
 (ann suspendable! (Fn [IFn -> IFn]
                       [IFn * -> (ISeq IFn)]
@@ -273,7 +275,7 @@
   [& expr]
   `(do
      (defn ~@expr)
-     (suspendable! ~(first expr))))
+     (def ~(first expr) (suspendable! ~(first expr)))))
 
 (ann ^:nocheck strampoline (All [v1 v2 ...]
                                 (Fn
