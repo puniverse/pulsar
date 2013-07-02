@@ -232,11 +232,6 @@
   "A global fork/join pool. The pool uses all available processors and runs in the async mode."
   (DefaultFiberPool/getInstance))
 
-;; ***Make agents use the global fork-join pool***
-
-(set-agent-send-executor! fj-pool)
-(set-agent-send-off-executor! fj-pool)
-
 ;; ## Suspendable functions
 ;; Only functions that have been especially instrumented can perform blocking actions
 ;; while running in a fiber.
