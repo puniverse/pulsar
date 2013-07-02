@@ -207,9 +207,9 @@
                    ch2 (channel)
                    ch3 (channel)
                    topic (topic)
-                   f1 (spawn-fiber #(list (rcv ch1 200 :ms) (rcv ch1 200 :ms) (rcv ch1 200 :ms)))
-                   f2 (spawn-fiber #(list (rcv ch2 200 :ms) (rcv ch2 200 :ms) (rcv ch2 200 :ms)))
-                   f3 (spawn-fiber #(list (rcv ch3 200 :ms) (rcv ch3 200 :ms) (rcv ch3 200 :ms)))]
+                   f1 (spawn-fiber #(list (rcv ch1 500 :ms) (rcv ch1 500 :ms) (rcv ch1 500 :ms)))
+                   f2 (spawn-fiber #(list (rcv ch2 500 :ms) (rcv ch2 500 :ms) (rcv ch2 500 :ms)))
+                   f3 (spawn-fiber #(list (rcv ch3 500 :ms) (rcv ch3 500 :ms) (rcv ch3 500 :ms)))]
                (subscribe topic ch1)
                (subscribe topic ch2)
                (subscribe topic ch3)
