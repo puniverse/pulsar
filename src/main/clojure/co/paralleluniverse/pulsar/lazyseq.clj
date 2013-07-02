@@ -9,19 +9,21 @@
  ;
  ; under the terms of the GNU Lesser General Public License version 3.0
  ; as published by the Free Software Foundation.
-
+ 
  (ns co.paralleluniverse.pulsar.lazyseq
    "Functions to transform a channel into a laze seq"
+   (:refer-clojure :exclude [lazy-seq seq dorun doall nthnext nthrest take take-while
+                             drop repeatedly map filter])
    (:import
-    [co.paralleluniverse.strands.channels Channel]
-    [co.paralleluniverse.pulsar ClojureHelper SuspendableLazySeq]
-    ; for types:
-    [clojure.lang Seqable LazySeq ISeq])
+     [co.paralleluniverse.strands.channels Channel]
+     [co.paralleluniverse.pulsar ClojureHelper SuspendableLazySeq]
+     ; for types:
+     [clojure.lang Seqable LazySeq ISeq])
    (:require
-    [co.paralleluniverse.pulsar.core :refer :all]
-    [clojure.core.match :refer [match]]
-    [clojure.core.typed :refer [ann Option AnyInteger]]))
-
+     [co.paralleluniverse.pulsar.core :refer :all]
+     [clojure.core.match :refer [match]]
+     [clojure.core.typed :refer [ann Option AnyInteger]]))
+ 
  ;; We don't need to make most seq functions suspendable because of the way lazy-seqs work
  ;; but we do need to call the lazy-seq body more than once (on each resume), and the default
  ;; implementation adds the ^:once metadata which clears closure during the first call.
