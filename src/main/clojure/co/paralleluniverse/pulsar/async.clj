@@ -82,7 +82,7 @@
 ([port val fn0] (put! port val fn0 true))
 ([port val fn0 on-caller?]
  (if (and on-caller? (p/try-snd port val))
-   (fn0)
+   (when fn0 (fn0))
    (p/spawn-fiber #((p/snd port val) 
                     (when fn0 (fn0)))))))
 
