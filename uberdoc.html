@@ -3029,7 +3029,7 @@ net.brehaut.ClojureTools = (function (SH) {
   };
 })(SyntaxHighlighter);
 </script><title>co.paralleluniverse/pulsar -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">co.paralleluniverse/pulsar</h1><h2 class="project-version">0.2-SNAPSHOT</h2><br /><p>A Clojure actor library</p>
-</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.5.1</td></tr><tr><td class="dep-name">co.paralleluniverse/quasar-core</td><td class="dotted"><hr /></td><td class="dep-version">0.2-SNAPSHOT</td></tr><tr><td class="dep-name">com.yammer.metrics/metrics-core</td><td class="dotted"><hr /></td><td class="dep-version">2.0.2</td></tr><tr><td class="dep-name">org.ow2.asm/asm</td><td class="dotted"><hr /></td><td class="dep-version">4.1</td></tr><tr><td class="dep-name">org.ow2.asm/asm-analysis</td><td class="dotted"><hr /></td><td class="dep-version">4.1</td></tr><tr><td class="dep-name">org.ow2.asm/asm-util</td><td class="dotted"><hr /></td><td class="dep-version">4.1</td></tr><tr><td class="dep-name">com.google.guava/guava</td><td class="dotted"><hr /></td><td class="dep-version">11.0.1</td></tr><tr><td class="dep-name">org.clojure/core.match</td><td class="dotted"><hr /></td><td class="dep-version">0.2.0-alpha12</td></tr><tr><td class="dep-name">useful</td><td class="dotted"><hr /></td><td class="dep-version">0.8.3-alpha8</td></tr><tr><td class="dep-name">gloss</td><td class="dotted"><hr /></td><td class="dep-version">0.2.2-beta4</td></tr><tr><td class="dep-name">org.clojure/core.typed</td><td class="dotted"><hr /></td><td class="dep-version">0.1.14</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#co.paralleluniverse.pulsar.actors">co.paralleluniverse.pulsar.actors</a></li><li><a href="#co.paralleluniverse.pulsar.async">co.paralleluniverse.pulsar.async</a></li><li><a href="#co.paralleluniverse.pulsar.core">co.paralleluniverse.pulsar.core</a></li><li><a href="#co.paralleluniverse.pulsar.interop">co.paralleluniverse.pulsar.interop</a></li><li><a href="#co.paralleluniverse.pulsar.lazyseq">co.paralleluniverse.pulsar.lazyseq</a></li><li><a href="#co.paralleluniverse.pulsar.actors-test">co.paralleluniverse.pulsar.actors-test</a></li><li><a href="#co.paralleluniverse.pulsar.core-test">co.paralleluniverse.pulsar.core-test</a></li><li><a href="#co.paralleluniverse.pulsar.examples.binary">co.paralleluniverse.pulsar.examples.binary</a></li><li><a href="#co.paralleluniverse.pulsar.examples.graph">co.paralleluniverse.pulsar.examples.graph</a></li><li><a href="#co.paralleluniverse.pulsar.examples.pingpong">co.paralleluniverse.pulsar.examples.pingpong</a></li><li><a href="#co.paralleluniverse.pulsar.examples.pingpong-register">co.paralleluniverse.pulsar.examples.pingpong-register</a></li><li><a href="#co.paralleluniverse.pulsar.examples.primitive-ring-benchmark">co.paralleluniverse.pulsar.examples.primitive-ring-benchmark</a></li><li><a href="#co.paralleluniverse.pulsar.examples.priority">co.paralleluniverse.pulsar.examples.priority</a></li><li><a href="#co.paralleluniverse.pulsar.examples.ring-benchmark">co.paralleluniverse.pulsar.examples.ring-benchmark</a></li><li><a href="#co.paralleluniverse.pulsar.examples.selective">co.paralleluniverse.pulsar.examples.selective</a></li><li><a href="#co.paralleluniverse.pulsar.examples.selective-gen-server">co.paralleluniverse.pulsar.examples.selective-gen-server</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.actors" name="co.paralleluniverse.pulsar.actors"><h1 class="project-name">co.paralleluniverse.pulsar.actors</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>This program and the accompanying materials are dual-licensed under
+</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.5.1</td></tr><tr><td class="dep-name">co.paralleluniverse/quasar-core</td><td class="dotted"><hr /></td><td class="dep-version">0.2-SNAPSHOT</td></tr><tr><td class="dep-name">com.yammer.metrics/metrics-core</td><td class="dotted"><hr /></td><td class="dep-version">2.0.2</td></tr><tr><td class="dep-name">org.ow2.asm/asm</td><td class="dotted"><hr /></td><td class="dep-version">4.1</td></tr><tr><td class="dep-name">org.ow2.asm/asm-analysis</td><td class="dotted"><hr /></td><td class="dep-version">4.1</td></tr><tr><td class="dep-name">org.ow2.asm/asm-util</td><td class="dotted"><hr /></td><td class="dep-version">4.1</td></tr><tr><td class="dep-name">com.google.guava/guava</td><td class="dotted"><hr /></td><td class="dep-version">11.0.1</td></tr><tr><td class="dep-name">org.clojure/core.match</td><td class="dotted"><hr /></td><td class="dep-version">0.2.0-alpha12</td></tr><tr><td class="dep-name">useful</td><td class="dotted"><hr /></td><td class="dep-version">0.8.3-alpha8</td></tr><tr><td class="dep-name">gloss</td><td class="dotted"><hr /></td><td class="dep-version">0.2.2-beta4</td></tr><tr><td class="dep-name">org.clojure/core.typed</td><td class="dotted"><hr /></td><td class="dep-version">0.1.14</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#co.paralleluniverse.pulsar.actors">co.paralleluniverse.pulsar.actors</a></li><li><a href="#co.paralleluniverse.pulsar.async">co.paralleluniverse.pulsar.async</a></li><li><a href="#co.paralleluniverse.pulsar.core">co.paralleluniverse.pulsar.core</a></li><li><a href="#co.paralleluniverse.pulsar.interop">co.paralleluniverse.pulsar.interop</a></li><li><a href="#co.paralleluniverse.pulsar.lazyseq">co.paralleluniverse.pulsar.lazyseq</a></li><li><a href="#co.paralleluniverse.pulsar.actors-test">co.paralleluniverse.pulsar.actors-test</a></li><li><a href="#co.paralleluniverse.pulsar.core-test">co.paralleluniverse.pulsar.core-test</a></li><li><a href="#co.paralleluniverse.pulsar.examples.binary">co.paralleluniverse.pulsar.examples.binary</a></li><li><a href="#co.paralleluniverse.pulsar.examples.graph">co.paralleluniverse.pulsar.examples.graph</a></li><li><a href="#co.paralleluniverse.pulsar.examples.io">co.paralleluniverse.pulsar.examples.io</a></li><li><a href="#co.paralleluniverse.pulsar.examples.pingpong">co.paralleluniverse.pulsar.examples.pingpong</a></li><li><a href="#co.paralleluniverse.pulsar.examples.pingpong-register">co.paralleluniverse.pulsar.examples.pingpong-register</a></li><li><a href="#co.paralleluniverse.pulsar.examples.primitive-ring-benchmark">co.paralleluniverse.pulsar.examples.primitive-ring-benchmark</a></li><li><a href="#co.paralleluniverse.pulsar.examples.priority">co.paralleluniverse.pulsar.examples.priority</a></li><li><a href="#co.paralleluniverse.pulsar.examples.ring-benchmark">co.paralleluniverse.pulsar.examples.ring-benchmark</a></li><li><a href="#co.paralleluniverse.pulsar.examples.selective">co.paralleluniverse.pulsar.examples.selective</a></li><li><a href="#co.paralleluniverse.pulsar.examples.selective-gen-server">co.paralleluniverse.pulsar.examples.selective-gen-server</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.actors" name="co.paralleluniverse.pulsar.actors"><h1 class="project-name">co.paralleluniverse.pulsar.actors</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>This program and the accompanying materials are dual-licensed under
 either the terms of the Eclipse Public License v1.0 as published by
 the Eclipse Foundation</p>
 
@@ -3568,7 +3568,7 @@ as published by the Free Software Foundation.</p>
   ([] (chan nil))
   ([buf-or-n] 
    (cond
-     (nil? buf-or-n)    (TransferChannel.)
+     (nil? buf-or-n)    (TransferChannel.) ; - TransferChannel doesn't support double-sided alts!. Requires an actual transaction (locks)
      (number? buf-or-n) (chan (buffer buf-or-n))
      :else              (QueueObjectChannel. (first buf-or-n) (second buf-or-n) false))))</pre></td></tr><tr><td class="docs"><p>takes a val from port. Must be called inside a (go ...) block. Will return nil if closed. Will park if nothing is available.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn &lt;!
@@ -3841,7 +3841,10 @@ as published by the Free Software Foundation.</p>
   (&gt;! port val))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmacro alts!!
   [&amp; args]
-  `(alts! ~@args))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.core" name="co.paralleluniverse.pulsar.core"><h1 class="project-name">co.paralleluniverse.pulsar.core</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>This program and the accompanying materials are dual-licensed under
+  `(alts! ~@args))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defmacro alt!!
+  [&amp; args]
+  `(alt! ~@args))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.core" name="co.paralleluniverse.pulsar.core"><h1 class="project-name">co.paralleluniverse.pulsar.core</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>This program and the accompanying materials are dual-licensed under
 either the terms of the Eclipse Public License v1.0 as published by
 the Eclipse Foundation</p>
 
@@ -4033,10 +4036,7 @@ as published by the Free Software Foundation.</p>
   (ForkJoinPool. parallelism jsr166e.ForkJoinPool/defaultForkJoinWorkerThreadFactory nil async))</pre></td></tr><tr><td class="docs"><p>A global fork/join pool. The pool uses all available processors and runs in the async mode.</p>
 </td><td class="codes"><pre class="brush: clojure">(ann fj-pool ForkJoinPool)
 (def fj-pool
-  (DefaultFiberPool/getInstance))</pre></td></tr><tr><td class="docs"><p><strong><em>Make agents use the global fork-join pool</em></strong></p>
-</td><td class="codes"></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(set-agent-send-executor! fj-pool)
-(set-agent-send-off-executor! fj-pool)</pre></td></tr><tr><td class="docs"><h2>Suspendable functions</h2>
+  (DefaultFiberPool/getInstance))</pre></td></tr><tr><td class="docs"><h2>Suspendable functions</h2>
 
 <p>Only functions that have been especially instrumented can perform blocking actions
 while running in a fiber.</p>
@@ -5511,7 +5511,54 @@ as published by the Free Software Foundation.</p>
      (time
       (dotimes [_ n]
         (time (run n)))))
-   (System/exit 0)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.examples.pingpong" name="co.paralleluniverse.pulsar.examples.pingpong"><h1 class="project-name">co.paralleluniverse.pulsar.examples.pingpong</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>The classic ping-pong example from the Erlang tutorial</p>
+   (System/exit 0)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.examples.io" name="co.paralleluniverse.pulsar.examples.io"><h1 class="project-name">co.paralleluniverse.pulsar.examples.io</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>This program and the accompanying materials are dual-licensed under
+either the terms of the Eclipse Public License v1.0 as published by
+the Eclipse Foundation</p>
+
+<p>  or (per the licensee's choosing)</p>
+
+<p>under the terms of the GNU Lesser General Public License version 3.0
+as published by the Free Software Foundation.</p>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>Uses Pulsar's fiber-blocking IO</p>
+</td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar.examples.io
+  (:import [co.paralleluniverse.fibers.io FiberSocketChannel FiberServerSocketChannel]
+           [java.nio ByteBuffer CharBuffer]
+           [java.nio.charset Charset]
+           [java.net InetSocketAddress])
+  (:use [co.paralleluniverse.pulsar core]))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def port 1234)</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn buffer-&gt;string
+  ([byte-buffer]
+   (buffer-&gt;string byte-buffer (Charset/defaultCharset)))
+  ([byte-buffer charset]
+   (.toString (.decode charset byte-buffer))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn string-&gt;buffer
+  ([string]
+   (string-&gt;buffer string (Charset/defaultCharset)))
+  ([string charset]
+   (.encode charset string)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn -main
+  []
+  (let [server (spawn-fiber 
+                 (fn [] 
+                   (with-open [socket (-&gt; (FiberServerSocketChannel/open) (.bind (InetSocketAddress. port)))
+                               ^FiberSocketChannel ch (.accept socket)]
+                     (let [buf (ByteBuffer/allocateDirect 1024)]
+                       (.read ch buf)
+                       (.flip buf)
+                       (println &quot;Server got request:&quot; (buffer-&gt;string buf))
+                       (.write ch (string-&gt;buffer &quot;my response&quot;))))))
+        client (spawn-fiber 
+                  (fn [] 
+                    (with-open [^FiberSocketChannel ch (FiberSocketChannel/open (InetSocketAddress. port))]
+                      (let [buf (ByteBuffer/allocateDirect 1024)]
+                        (println &quot;Client sending request&quot;)
+                        (.write ch (string-&gt;buffer &quot;a request&quot;))
+                        (.read ch buf)
+                        (.flip buf)
+                        (println &quot;Client got response:&quot; (buffer-&gt;string buf))))))]
+    (join server)
+    (join client)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.examples.pingpong" name="co.paralleluniverse.pulsar.examples.pingpong"><h1 class="project-name">co.paralleluniverse.pulsar.examples.pingpong</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>The classic ping-pong example from the Erlang tutorial</p>
 </td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar.examples.pingpong
   (:use [co.paralleluniverse.pulsar core actors]))</pre></td></tr><tr><td class="docs"><p>This example is intended to be a line-by-line translation of the canonical
 Erlang <a href="http://www.erlang.org/doc/getting_started/conc_prog.html#id67006">ping-pong example</a>,
