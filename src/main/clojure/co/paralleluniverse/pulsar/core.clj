@@ -32,7 +32,7 @@
           IntSendPort LongSendPort FloatSendPort DoubleSendPort
           IntReceivePort LongReceivePort FloatReceivePort DoubleReceivePort
           DelayedVal]
-         [co.paralleluniverse.pulsar ClojureHelper]
+         [co.paralleluniverse.pulsar ClojureHelper ChannelsHelper]
          ; for types:
          [clojure.lang Keyword Sequential IObj IFn IMeta IDeref ISeq IPersistentCollection IPersistentVector IPersistentMap])
 (:require [co.paralleluniverse.pulsar.interop :refer :all]
@@ -466,7 +466,7 @@
   "Creates a channel"
   ([size overflow-policy] (Channels/newChannel (int size) (keyword->enum Channels$OverflowPolicy overflow-policy)))
   ([size]                 (Channels/newChannel (int size)))
-  ([]                     (Channels/newChannel -1)))
+  ([]                     (Channels/newChannel 0)))
 
 (defn ^TickerChannelConsumer ticker-consumer
   [^Channel ticker]
@@ -544,11 +544,11 @@
 
 (defmacro snd-int
   [channel message]
-  `(.send ^co.paralleluniverse.strands.channels.IntSendPort ~channel (int ~message)))
+  `(co.paralleluniverse.pulsar.ChannelsHelper/sendInt ^co.paralleluniverse.strands.channels.IntSendPort ~channel (int ~message)))
 
 (defmacro try-snd-int
   [channel message]
-  `(.trySend ^co.paralleluniverse.strands.channels.IntSendPort ~channel (int ~message)))
+  `(co.paralleluniverse.pulsar.ChannelsHelper/trySendInt ^co.paralleluniverse.strands.channels.IntSendPort ~channel (int ~message)))
 
 (defmacro rcv-int
   ([channel]
@@ -566,11 +566,11 @@
 
 (defmacro snd-long
   [channel message]
-  `(.send ^co.paralleluniverse.strands.channels.LongSendPort ~channel (long ~message)))
+  `(co.paralleluniverse.pulsar.ChannelsHelper/sendLong ^co.paralleluniverse.strands.channels.LongSendPort ~channel (long ~message)))
 
 (defmacro stry-nd-long
   [channel message]
-  `(.trySend ^co.paralleluniverse.strands.channels.LongSendPort ~channel (long ~message)))
+  `(co.paralleluniverse.pulsar.ChannelsHelper/trySendLong ^co.paralleluniverse.strands.channels.LongSendPort ~channel (long ~message)))
 
 (defmacro rcv-long
   ([channel]
@@ -588,11 +588,11 @@
 
 (defmacro snd-float
   [channel message]
-  `(.send ^co.paralleluniverse.strands.channels.FloatSendPort ~channel (float ~message)))
+  `(co.paralleluniverse.pulsar.ChannelsHelper/sendFloat ^co.paralleluniverse.strands.channels.FloatSendPort ~channel (float ~message)))
 
 (defmacro try-snd-float
   [channel message]
-  `(.trySend ^co.paralleluniverse.strands.channels.FloatSendPort ~channel (float ~message)))
+  `(co.paralleluniverse.pulsar.ChannelsHelper/trySendFloat ^co.paralleluniverse.strands.channels.FloatSendPort ~channel (float ~message)))
 
 (defmacro rcv-float
   ([channel]
@@ -610,11 +610,11 @@
 
 (defmacro snd-double
   [channel message]
-  `(.send ^co.paralleluniverse.strands.channels.DoubleSendPort ~channel (double ~message)))
+  `(co.paralleluniverse.pulsar.ChannelsHelper/sendDouble ^co.paralleluniverse.strands.channels.DoubleSendPort ~channel (double ~message)))
 
 (defmacro try-snd-double
   [channel message]
-  `(.trySend ^co.paralleluniverse.strands.channels.DoubleSendPort ~channel (double ~message)))
+  `(co.paralleluniverse.pulsar.ChannelsHelper/trySendDouble ^co.paralleluniverse.strands.channels.DoubleSendPort ~channel (double ~message)))
 
 (defmacro rcv-double
   ([channel]

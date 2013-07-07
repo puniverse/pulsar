@@ -1,11 +1,9 @@
 (ns co.paralleluniverse.pulsar.examples.primitive-ring-benchmark
   "An implementation of the ring benchmark using fibers and primitive (int) channels"
-  (:use co.paralleluniverse.pulsar.core)
-  (:import [co.paralleluniverse.fibers Fiber]
-           [co.paralleluniverse.strands.channels IntChannel]))
+  (:use co.paralleluniverse.pulsar.core))
 
 
-(defn spawn-relay [^IntChannel prev n]
+(defn spawn-relay [prev n]
   (if (== n 0)
     prev
     (let [channel (int-channel 10)
@@ -18,7 +16,6 @@
 
 
 (defn -main [M1 N1]
-  (println "== " (co.paralleluniverse.common.util.Debug/isDebug))
   (let [M (int (Integer/parseInt M1))
         N  (int (Integer/parseInt N1))]
     (println "M: " M " N: " N)
