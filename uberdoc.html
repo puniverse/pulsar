@@ -3039,6 +3039,7 @@ the Eclipse Foundation</p>
 as published by the Free Software Foundation.</p>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>Defines actors and behaviors like gen-server and supervisor</p>
 </td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar.actors
+  (:refer-clojure :exclude [cast])
   (:import [java.util.concurrent TimeUnit ExecutionException TimeoutException]
            [co.paralleluniverse.strands Strand]
            [co.paralleluniverse.strands.channels Channel]
@@ -3205,28 +3206,28 @@ as published by the Free Software Foundation.</p>
   ([actor2]
    (.link ^LocalActor @self actor2))
   ([actor1 actor2]
-   (.link ^LocalActor (cast LocalActor (get-actor actor1)) (get-actor actor2))))</pre></td></tr><tr><td class="docs"><p>Unlinks two actors</p>
+   (.link ^LocalActor (clojure.core/cast LocalActor (get-actor actor1)) (get-actor actor2))))</pre></td></tr><tr><td class="docs"><p>Unlinks two actors</p>
 </td><td class="codes"><pre class="brush: clojure">(ann unlink! (Fn [Actor -&gt; Actor]
                  [Actor Actor -&gt; Actor]))
 (defn unlink!
   ([actor2]
    (.unlink ^LocalActor @self actor2))
   ([actor1 actor2]
-   (.unlink ^LocalActor (cast LocalActor (get-actor actor1)) (get-actor actor2))))</pre></td></tr><tr><td class="docs"><p>Makes an actor watch another actor. Returns a watch object which should be used when calling demonitor.</p>
+   (.unlink ^LocalActor (clojure.core/cast LocalActor (get-actor actor1)) (get-actor actor2))))</pre></td></tr><tr><td class="docs"><p>Makes an actor watch another actor. Returns a watch object which should be used when calling demonitor.</p>
 </td><td class="codes"><pre class="brush: clojure">(ann monitor (Fn [Actor Actor -&gt; LifecycleListener]
                  [Actor -&gt; LifecycleListener]))
 (defn watch!
   ([actor2]
    (.watch ^LocalActor @self actor2))
   ([actor1 actor2]
-   (.watch ^LocalActor (cast LocalActor (get-actor actor1)) (get-actor actor2))))</pre></td></tr><tr><td class="docs"><p>Makes an actor stop watch another actor</p>
+   (.watch ^LocalActor (clojure.core/cast LocalActor (get-actor actor1)) (get-actor actor2))))</pre></td></tr><tr><td class="docs"><p>Makes an actor stop watch another actor</p>
 </td><td class="codes"><pre class="brush: clojure">(ann monitor (Fn [Actor Actor LifecycleListener -&gt; nil]
                  [Actor LifecycleListener -&gt; nil]))
 (defn unwatch!
   ([actor2 monitor]
    (.unwatch ^LocalActor @self actor2 monitor))
   ([actor1 actor2 monitor]
-   (.unwatch ^LocalActor (cast LocalActor (get-actor actor1)) (get-actor actor2) monitor)))</pre></td></tr><tr><td class="docs"><p>Registers an actor</p>
+   (.unwatch ^LocalActor (clojure.core/cast LocalActor (get-actor actor1)) (get-actor actor2) monitor)))</pre></td></tr><tr><td class="docs"><p>Registers an actor</p>
 </td><td class="codes"><pre class="brush: clojure">(ann register (Fn [String LocalActor -&gt; LocalActor]
                   [LocalActor -&gt; LocalActor]))
 (defn register
@@ -3528,7 +3529,8 @@ as published by the Free Software Foundation.</p>
    (LocalSupervisor. nil name nil
                      ^LocalSupervisor$RestartStrategy (keyword-&gt;enum LocalSupervisor$RestartStrategy restart-strategy)
                      (-&gt;Initializer
-                       (fn [] (doseq [child ((suspendable! init))]
+                       (fn [] (doseq [child (seq ((suspendable! init)))]
+                                (println &quot;ZZZZZZZZ&quot; child)
                                 (apply add-child (cons @self child)))))))
   ([restart-strategy init]
    (supervisor nil restart-strategy init)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.async" name="co.paralleluniverse.pulsar.async"><h1 class="project-name">co.paralleluniverse.pulsar.async</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Implementation of core.async</p>
@@ -3546,10 +3548,9 @@ as published by the Free Software Foundation.</p>
 </td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar.async
   (:import
     [co.paralleluniverse.strands Strand SimpleConditionSynchronizer ConditionSelector]
-    [co.paralleluniverse.strands.channels Channel QueueObjectChannel TransferChannel Channels$OverflowPolicy
-     SendPort ReceivePort SelectableSend SelectableReceive]
+    [co.paralleluniverse.strands.channels Channel QueueObjectChannel TransferChannel TimeoutChannel Channels$OverflowPolicy
+     SendPort ReceivePort Selectable Selector SelectAction]
     [co.paralleluniverse.strands.queues ArrayQueue BoxQueue CircularObjectBuffer]
-    [co.paralleluniverse.strands.dataflow DelayedVal]
     [co.paralleluniverse.pulsar ClojureHelper]
     [java.util.concurrent TimeUnit ThreadLocalRandom Executors Executor ScheduledExecutorService]
     [com.google.common.util.concurrent ThreadFactoryBuilder])
@@ -3568,7 +3569,7 @@ as published by the Free Software Foundation.</p>
   ([] (chan nil))
   ([buf-or-n] 
    (cond
-     (nil? buf-or-n)    (TransferChannel.) ; - TransferChannel doesn't support double-sided alts!. Requires an actual transaction (locks)
+     (nil? buf-or-n)    (TransferChannel.)
      (number? buf-or-n) (chan (buffer buf-or-n))
      :else              (QueueObjectChannel. (first buf-or-n) (second buf-or-n) false))))</pre></td></tr><tr><td class="docs"><p>takes a val from port. Must be called inside a (go ...) block. Will return nil if closed. Will park if nothing is available.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn &lt;!
@@ -3610,78 +3611,27 @@ as published by the Free Software Foundation.</p>
 (p/close! chan))</pre></td></tr><tr><td class="docs"><p>Returns a channel that will close after msecs</p>
 </td><td class="codes"><pre class="brush: clojure">(defn timeout
   [msecs]
-  (let [deadline  (long (+ (System/nanoTime) (* msecs 1000000)))
-        closed (atom false)
-        syn    (SimpleConditionSynchronizer.)
-        tim
-        (reify 
-          ReceivePort
-          (isClosed [_] (or @closed (&gt; (System/nanoTime) deadline)))
-          (close    [_] 
-                 (reset! closed true)
-                 (.signalAll syn))
-          (receive [this] 
-                   (.register syn)
-                   (try
-                     (loop [i (int 0)]
-                       (if (not (.isClosed this))
-                         (do 
-                           (.await syn i (- deadline (System/nanoTime)) TimeUnit/NANOSECONDS) 
-                           (recur (inc i)))
-                         (do (.close this)
-                           nil)))
-                     (finally
-                       (.unregister syn))))
-          (receive [this ^long t ^TimeUnit unit] 
-                   (let [ddlne (long (+ (System/nanoTime) (.toNanos unit t)))]
-                     (.register syn)
-                     (try
-                       (loop [i (int 0)
-                              left (long (.toNanos unit t))]
-                         (if (and (&gt; left 0) (not (.isClosed this)))
-                           (do 
-                             (.await syn i (min left (- deadline (System/nanoTime))) TimeUnit/NANOSECONDS) 
-                             (recur (inc i) (- ddlne (System/nanoTime))))
-                           (when (.isClosed this)
-                             (.close this)
-                             nil)))
-                       (finally
-                         (.unregister syn)))))
-          (tryReceive [_] nil)
-          SelectableReceive
-          (receiveSelector [_] syn))]
-    (ClojureHelper/schedule #(.close tim) (long msecs) TimeUnit/MILLISECONDS)
-    tim))</pre></td></tr><tr><td class="docs"><p>This function is copied from core.async, copyright Rich Hicky and contributors.</p>
-</td><td class="codes"><pre class="brush: clojure">(defn random-array
-  [n]
-  (let [rand (ThreadLocalRandom/current)
-        a (int-array n)]
-    (loop [i 1]
-      (if (== i n)
-        a
-        (do
-          (let [j (.nextInt rand (inc i))]
-            (aset a i (aget a j))
-            (aset a j i)
-            (recur (inc i))))))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn try-receive0 [^ReceivePort port]
-  (let [m (.tryReceive port)]
-    (if (and (nil? m) (.isClosed port))
-      ::closed
-      m)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn try-ports [ports priority]
-  (let [n (count ports)
-        ^ints ra (when (not priority) (random-array n))]
-    (loop [i (int 0)]
-      (when (&lt; i n)
-        (let [p (nth ports (if ra (aget ra i) i))]
-          (or 
-            (if (vector? p)
-              (when (.trySend ^co.paralleluniverse.strands.channels.SendPort (first p) (second p))
-                [nil p])
-              (when-let [m (try-receive0 p)]
-                [(if (= m ::closed) nil m) p]))
-            (recur (inc i))))))))</pre></td></tr><tr><td class="docs"><p>Completes at most one of several channel operations. Must be called
+  (TimeoutChannel/timeout msecs TimeUnit/MILLISECONDS))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn- port-&gt;SelectAction
+  [port]
+  (if (vector? port)
+    (Selector/send ^SendPort (first port) (second port))
+    (Selector/receive ^ReceivePort port)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn- SelectAction-&gt;port
+  [^SelectAction sa]
+  (when sa
+    [(.message sa) (.port sa)]))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn- SelectAction-&gt;index
+  [^SelectAction sa]
+  (.index sa))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn ^SelectAction do-alts
+  [ports priority dflt]
+  (let [^boolean priority (if priority true false)
+        ^java.util.List ps (map port-&gt;SelectAction ports)
+        ^SelectAction sa (if dflt
+                           (Selector/trySelect priority ps)
+                           (Selector/select    priority ps))]
+    sa))</pre></td></tr><tr><td class="docs"><p>Completes at most one of several channel operations. Must be called
   inside a (go ...) block. ports is a set of channel endpoints, which
   can be either a channel to take from or a vector of
   [channel-to-put-to val-to-put], in any combination. Takes will be
@@ -3701,70 +3651,13 @@ as published by the Free Software Foundation.</p>
 <p>  Note: there is no guarantee that the port exps or val exprs will be
   used, nor in what order should they be, so they should not be
   depended upon for side effects.</p>
-</td><td class="codes"><pre class="brush: clojure">(defmacro alts!
+</td><td class="codes"><pre class="brush: clojure">(defn alts!
 [ports &amp; {:as opts}]
-(let [priority  (:priority opts)]
-  (if (contains? opts :default)
-    `(if-let [res# (try-ports ~ports ~priority)]
-       res#
-       [~(:default opts) :default])
-    `(let [ps# ~ports]
-       (if-let [res# (try-ports ps# ~priority)] 
-         res#
-         (let [^co.paralleluniverse.strands.Condition sel# 
-               (co.paralleluniverse.strands.ConditionSelector. 
-                 ^java.util.Collection
-                 (map #(if (vector? %) 
-                         (.sendSelector    ^co.paralleluniverse.strands.channels.SelectableSend    (first %))
-                         (.receiveSelector ^co.paralleluniverse.strands.channels.SelectableReceive %))
-                      ps#))] ; no default
-           (.register sel#)
-           (try
-             (loop [i# (int 0)] ; retry loop
-               (if-let [res# (try-ports ps# ~priority)] 
-                 res#
-                 (do 
-                   (.await sel# i#)
-                   (recur (inc i#)))))
-             (finally
-               (.unregister sel#)))))))))</pre></td></tr><tr><td class="docs"><p>This function is copied from core.async, copyright Rich Hicky and contributors.</p>
-</td><td class="codes"><pre class="brush: clojure">(defn do-alt [alts clauses]
-  (assert (even? (count clauses)) &quot;unbalanced clauses&quot;)
-  (let [clauses (partition 2 clauses)
-        opt? #(keyword? (first %)) 
-        opts (filter opt? clauses)
-        clauses (remove opt? clauses)
-        [clauses bindings]
-        (reduce
-          (fn [[clauses bindings] [ports expr]]
-            (let [ports (if (vector? ports) ports [ports])
-                  [ports bindings]
-                  (reduce
-                    (fn [[ports bindings] port]
-                      (if (vector? port)
-                        (let [[port val] port
-                              gp (gensym)
-                              gv (gensym)]
-                          [(conj ports [gp gv]) (conj bindings [gp port] [gv val])])
-                        (let [gp (gensym)]
-                          [(conj ports gp) (conj bindings [gp port])])))
-                    [[] bindings] ports)]
-              [(conj clauses [ports expr]) bindings]))
-          [[] []] clauses)
-        gch (gensym &quot;ch&quot;)
-        gret (gensym &quot;ret&quot;)]
-    `(let [~@(mapcat identity bindings)
-           [val# ~gch :as ~gret] (~alts [~@(apply concat (map first clauses))] ~@(apply concat opts))]
-       (cond
-         ~@(mapcat (fn [[ports expr]]
-                     [`(or ~@(map (fn [port]
-                                    `(= ~gch ~(if (vector? port) (first port) port)))
-                                  ports))
-                      (if (and (seq? expr) (vector? (first expr)))
-                        `(let [~(first expr) ~gret] ~@(rest expr)) 
-                        expr)])
-                   clauses)
-         (= ~gch :default) val#))))</pre></td></tr><tr><td class="docs"><p>Makes a single choice between one of several channel operations,
+(let [dflt (contains? opts :default)
+      sa (do-alts ports (:priority opts) dflt)]
+  (if (and dflt (nil? sa))
+    [(:default opts) :default]
+    (SelectAction-&gt;port sa))))</pre></td></tr><tr><td class="docs"><p>Makes a single choice between one of several channel operations,
   as if by alts!, returning the value of the result expr corresponding
   to the operation completed. Must be called inside a (go ...) block.</p>
 
@@ -3791,8 +3684,32 @@ as published by the Free Software Foundation.</p>
 <p>  Each option may appear at most once. The choice and parking
   characteristics are those of alts!.</p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro alt!
-[&amp; clauses]
-(do-alt `alts! clauses))</pre></td></tr><tr><td class="docs">
+  [&amp; clauses]
+  (let [clauses (partition 2 clauses)
+        opt? #(keyword? (first %)) 
+        opts (filter opt? clauses)
+        opts (zipmap (map first opts) (map second opts))
+        clauses (remove opt? clauses)
+        ports (mapcat #(let [x (first %)] (if (vector? x) x (list x))) clauses)
+        exprs (mapcat #(let [x (first %) ; ports
+                             e (second %)]; result-expr
+                         (if (vector? x) (repeat (count x) e) (list e))) clauses)
+        priority (:priority opts)
+        dflt (contains? opts :default)
+        sa (gensym &quot;sa&quot;)]
+    `(let [^co.paralleluniverse.strands.channels.SelectAction ~sa
+           (do-alts (list ~@ports) ~priority ~dflt)]
+       ~@(p/surround-with (when dflt
+                   `(if (nil? ~sa) ~(:default opts)))
+                 `(case (.index ~sa)
+                    ~@(mapcat 
+                        (fn [i e]
+                          (let [b (if (and (list? e) (vector? (first e))) (first e) []) ; binding
+                                a (if (and (list? e) (vector? (first e))) (rest e)  (list e))] ; action
+                            `(~i (let ~(vec (concat (when-let [vr (first b)]  `(~vr (.message ~sa)))
+                                                    (when-let [vr (second b)] `(~vr (.port ~sa)))))
+                                   ~@a))))
+                        (range) exprs))))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn- f-&gt;chan
   [c f]
   (p/susfn []
@@ -3864,14 +3781,13 @@ as published by the Free Software Foundation.</p>
          [co.paralleluniverse.fibers DefaultFiberPool Fiber Joinable FiberUtil]
          [co.paralleluniverse.fibers.instrument]
          [co.paralleluniverse.strands.channels Channel Channels Channels$OverflowPolicy ReceivePort SendPort 
-          ChannelGroup Topic
+          Topic
           IntChannel LongChannel FloatChannel DoubleChannel
-          TickerChannel TickerChannel$TickerChannelConsumer
-          TickerObjectChannel TickerIntChannel TickerLongChannel TickerFloatChannel TickerDoubleChannel
+          TickerChannelConsumer
           IntSendPort LongSendPort FloatSendPort DoubleSendPort
-          IntReceivePort LongReceivePort FloatReceivePort DoubleReceivePort]
-         [co.paralleluniverse.strands.dataflow DelayedVal]
-         [co.paralleluniverse.pulsar ClojureHelper]
+          IntReceivePort LongReceivePort FloatReceivePort DoubleReceivePort
+          DelayedVal]
+         [co.paralleluniverse.pulsar ClojureHelper ChannelsHelper]
          ; for types:
          [clojure.lang Keyword Sequential IObj IFn IMeta IDeref ISeq IPersistentCollection IPersistentVector IPersistentMap])
 (:require [co.paralleluniverse.pulsar.interop :refer :all]
@@ -4234,13 +4150,15 @@ while running in a fiber.</p>
 (defn ^Channel channel
   ([size overflow-policy] (Channels/newChannel (int size) (keyword-&gt;enum Channels$OverflowPolicy overflow-policy)))
   ([size]                 (Channels/newChannel (int size)))
-  ([]                     (Channels/newChannel -1)))</pre></td></tr><tr><td class="docs"><p>Cerates a ticker channel</p>
-</td><td class="codes"><pre class="brush: clojure">(defn ^TickerChannel ticker-channel
-  [size]
-  (Channels/newTickerChannel size))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn ^TickerChannel$TickerChannelConsumer ticker-consumer
-  [^TickerChannel ticker]
-  (.newConsumer ticker))</pre></td></tr><tr><td class="docs"><p>Sends a message to a channel</p>
+  ([]                     (Channels/newChannel 0)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn ^TickerChannelConsumer ticker-consumer
+  [^Channel ticker]
+  (cond 
+    (instance? IntChannel ticker)    (Channels/newTickerConsumerFor ^IntChannel ticker)
+    (instance? LongChannel ticker)   (Channels/newTickerConsumerFor ^LongChannel ticker)
+    (instance? FloatChannel ticker)  (Channels/newTickerConsumerFor ^FloatChannel ticker)
+    (instance? DoubleChannel ticker) (Channels/newTickerConsumerFor ^DoubleChannel ticker)
+    :else                            (Channels/newTickerConsumerFor ticker)))</pre></td></tr><tr><td class="docs"><p>Sends a message to a channel</p>
 </td><td class="codes"><pre class="brush: clojure">(ann snd (All [x] [Channel x -&gt; x]))
 (defn snd
   [^SendPort channel message]
@@ -4269,10 +4187,7 @@ while running in a fiber.</p>
   This function can only be called by the channel's owning strand (the receiver)</p>
 </td><td class="codes"><pre class="brush: clojure">(defn closed?
   [^ReceivePort channel]
-  (.isClosed channel))</pre></td></tr><tr><td class="docs"><p>Creates a channel group</p>
-</td><td class="codes"><pre class="brush: clojure">(defn channel-group
-  [&amp; channels]
-  (ChannelGroup. ^java.util.Collection channels))</pre></td></tr><tr><td class="docs"><p>Creates a new topic.</p>
+  (.isClosed channel))</pre></td></tr><tr><td class="docs"><p>Creates a new topic.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn topic
   []
   (Topic.))</pre></td></tr><tr><td class="docs"><p>Subscribes a channel to a topic</p>
@@ -4288,16 +4203,13 @@ while running in a fiber.</p>
 (defn ^IntChannel int-channel
   ([size overflow-policy] (Channels/newIntChannel (int size) (keyword-&gt;enum Channels$OverflowPolicy overflow-policy)))
   ([size]                 (Channels/newIntChannel (int size)))
-  ([]                     (Channels/newIntChannel -1)))</pre></td></tr><tr><td class="docs"><p>Cerates an int ticker channel</p>
-</td><td class="codes"><pre class="brush: clojure">(defn ^TickerIntChannel int-ticker-channel
-  [size]
-  (Channels/newTickerIntChannel size))</pre></td></tr><tr><td class="docs">
+  ([]                     (Channels/newIntChannel -1)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmacro snd-int
   [channel message]
-  `(.send ^co.paralleluniverse.strands.channels.IntSendPort ~channel (int ~message)))</pre></td></tr><tr><td class="docs">
+  `(co.paralleluniverse.pulsar.ChannelsHelper/sendInt ^co.paralleluniverse.strands.channels.IntSendPort ~channel (int ~message)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmacro try-snd-int
   [channel message]
-  `(.trySend ^co.paralleluniverse.strands.channels.IntSendPort ~channel (int ~message)))</pre></td></tr><tr><td class="docs">
+  `(co.paralleluniverse.pulsar.ChannelsHelper/trySendInt ^co.paralleluniverse.strands.channels.IntSendPort ~channel (int ~message)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmacro rcv-int
   ([channel]
    `(int (.receiveInt ^co.paralleluniverse.strands.channels.IntReceivePort ~channel)))
@@ -4308,16 +4220,13 @@ while running in a fiber.</p>
 (defn ^LongChannel long-channel
   ([size overflow-policy] (Channels/newLongChannel (int size) (keyword-&gt;enum Channels$OverflowPolicy overflow-policy)))
   ([size]                 (Channels/newLongChannel (int size)))
-  ([]                     (Channels/newLongChannel -1)))</pre></td></tr><tr><td class="docs"><p>Cerates a long ticker channel</p>
-</td><td class="codes"><pre class="brush: clojure">(defn ^TickerLongChannel long-ticker-channel
-  [size]
-  (Channels/newTickerLongChannel size))</pre></td></tr><tr><td class="docs">
+  ([]                     (Channels/newLongChannel -1)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmacro snd-long
   [channel message]
-  `(.send ^co.paralleluniverse.strands.channels.LongSendPort ~channel (long ~message)))</pre></td></tr><tr><td class="docs">
+  `(co.paralleluniverse.pulsar.ChannelsHelper/sendLong ^co.paralleluniverse.strands.channels.LongSendPort ~channel (long ~message)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmacro stry-nd-long
   [channel message]
-  `(.trySend ^co.paralleluniverse.strands.channels.LongSendPort ~channel (long ~message)))</pre></td></tr><tr><td class="docs">
+  `(co.paralleluniverse.pulsar.ChannelsHelper/trySendLong ^co.paralleluniverse.strands.channels.LongSendPort ~channel (long ~message)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmacro rcv-long
   ([channel]
    `(long (.receiveLong ^co.paralleluniverse.strands.channels.LongReceivePort ~channel)))
@@ -4328,16 +4237,13 @@ while running in a fiber.</p>
 (defn ^FloatChannel float-channel
   ([size overflow-policy] (Channels/newFloatChannel (int size) (keyword-&gt;enum Channels$OverflowPolicy overflow-policy)))
   ([size]                 (Channels/newFloatChannel (int size)))
-  ([]                     (Channels/newFloatChannel -1)))</pre></td></tr><tr><td class="docs"><p>Cerates a float ticker channel</p>
-</td><td class="codes"><pre class="brush: clojure">(defn ^TickerFloatChannel long-ticker-channel
-  [size]
-  (Channels/newTickerFloatChannel size))</pre></td></tr><tr><td class="docs">
+  ([]                     (Channels/newFloatChannel -1)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmacro snd-float
   [channel message]
-  `(.send ^co.paralleluniverse.strands.channels.FloatSendPort ~channel (float ~message)))</pre></td></tr><tr><td class="docs">
+  `(co.paralleluniverse.pulsar.ChannelsHelper/sendFloat ^co.paralleluniverse.strands.channels.FloatSendPort ~channel (float ~message)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmacro try-snd-float
   [channel message]
-  `(.trySend ^co.paralleluniverse.strands.channels.FloatSendPort ~channel (float ~message)))</pre></td></tr><tr><td class="docs">
+  `(co.paralleluniverse.pulsar.ChannelsHelper/trySendFloat ^co.paralleluniverse.strands.channels.FloatSendPort ~channel (float ~message)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmacro rcv-float
   ([channel]
    `(float (.receiveFloat ^co.paralleluniverse.strands.channels.FloatReceivePort ~channel)))
@@ -4348,16 +4254,13 @@ while running in a fiber.</p>
 (defn ^DoubleChannel double-channel
   ([size overflow-policy] (Channels/newDoubleChannel (int size) (keyword-&gt;enum Channels$OverflowPolicy overflow-policy)))
   ([size]                 (Channels/newDoubleChannel (int size)))
-  ([]                     (Channels/newDoubleChannel -1)))</pre></td></tr><tr><td class="docs"><p>Cerates a double ticker channel</p>
-</td><td class="codes"><pre class="brush: clojure">(defn ^TickerDoubleChannel long-ticker-channel
-  [size]
-  (Channels/newTickerDoubleChannel size))</pre></td></tr><tr><td class="docs">
+  ([]                     (Channels/newDoubleChannel -1)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmacro snd-double
   [channel message]
-  `(.send ^co.paralleluniverse.strands.channels.DoubleSendPort ~channel (double ~message)))</pre></td></tr><tr><td class="docs">
+  `(co.paralleluniverse.pulsar.ChannelsHelper/sendDouble ^co.paralleluniverse.strands.channels.DoubleSendPort ~channel (double ~message)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmacro try-snd-double
   [channel message]
-  `(.trySend ^co.paralleluniverse.strands.channels.DoubleSendPort ~channel (double ~message)))</pre></td></tr><tr><td class="docs">
+  `(co.paralleluniverse.pulsar.ChannelsHelper/trySendDouble ^co.paralleluniverse.strands.channels.DoubleSendPort ~channel (double ~message)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmacro rcv-double
   ([channel]
    `(double (.receiveDouble ^co.paralleluniverse.strands.channels.DoubleReceivePort ~channel)))
@@ -4718,9 +4621,10 @@ as published by the Free Software Foundation.</p>
        (fact &quot;When an actor dies, and its link traps, then its link gets a message&quot;
              (let [actor1 (spawn #(Fiber/sleep 100))
                    actor2 (spawn :trap true
-                                 #(receive [m]
-                                           [:exit _ actor reason] actor))]
-               (link! actor1 actor2)
+                                 (fn []
+                                   (link! actor1)
+                                   (receive [m]
+                                            [:exit _ actor reason] actor)))]
                (join actor1)
                (fact (join actor2) =&gt; actor1))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(fact &quot;actor-watch&quot;
@@ -4731,7 +4635,16 @@ as published by the Free Software Foundation.</p>
                               [:exit watch actor reason] watch))
                   wtc (watch! actor2 actor1)]
               (join actor1)
-              (fact (join actor2) =&gt; wtc))))</pre></td></tr><tr><td class="docs">
+              (fact (join actor2) =&gt; wtc)))
+      (fact &quot;When an actor dies, its watch gets a message2&quot;
+            (let [actor1 (spawn #(Fiber/sleep 200))
+                  actor2 (spawn
+                           (fn []
+                             (let [w (watch! actor1)]
+                               (receive
+                                 [:exit w actor reason] actor))))]
+              (join actor1)
+              (fact (join actor2) =&gt; actor1))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(facts &quot;actor-state&quot;
        (fact &quot;Test recur actor-state&quot;
              (let [actor
@@ -5000,12 +4913,9 @@ as published by the Free Software Foundation.</p>
         (handler2 &quot;hello&quot;) =&gt; nil))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(fact &quot;When handler is removed then don't call it&quot;
       (let [ge (spawn (gen-event
-                        #(do
-                           (println &quot;add&quot;)
-                           (add-handler @self handler1))))]
+                        #(add-handler @self handler1)))]
         (add-handler ge handler2)
         (Strand/sleep 50)
-        (println &quot;remoe&quot;)
         (remove-handler ge handler1)
         (notify ge &quot;hello&quot;)
         (shutdown ge)
@@ -5121,15 +5031,15 @@ manually add a known actor to a supervisor, so this ugly function is only useful
   (let [adder
         (add-child sup nil :temporary 5 1 :sec 10
                    (gen-server ; or (spawn (gen-server...))
-                     (reify Server
-                       (init        [_]       (swap! started inc))
-                       (terminate   [_ cause] (swap! terminated inc))
-                       (handle-call [_ from id [a b]]
-                                    (log :debug &quot;=== a: {} b: {}&quot; a b)
-                                    (let [res (+ a b)]
-                                      (if (&gt; res 100)
-                                        (throw (Exception. &quot;oops!&quot;))
-                                        res))))))
+                               (reify Server
+                                 (init        [_]       (swap! started inc))
+                                 (terminate   [_ cause] (swap! terminated inc))
+                                 (handle-call [_ from id [a b]]
+                                              (log :debug &quot;=== a: {} b: {}&quot; a b)
+                                              (let [res (+ a b)]
+                                                (if (&gt; res 100)
+                                                  (throw (Exception. &quot;oops!&quot;))
+                                                  res))))))
         a (receive)
         b (receive)]
     (call adder a b)))</pre></td></tr><tr><td class="docs">
@@ -5293,7 +5203,7 @@ as published by the Free Software Foundation.</p>
                  (mapv realized? [v0 v1 v2 v3 v4]) =&gt; [false true true true false])
                (deliver v0 2)
                @v4) =&gt; 10))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(facts &quot;channel-group&quot;
+</td><td class="codes"><pre class="brush: clojure">#_(facts &quot;channel-group&quot;
        (fact &quot;Receive from channel group&quot;
              (let [ch1 (channel)
                    ch2 (channel)
@@ -5327,8 +5237,9 @@ as published by the Free Software Foundation.</p>
                (snd ch1 &quot;hello&quot;)
                (Thread/sleep 100)
                (snd ch3 &quot;world!&quot;)
-               (join fiber))  =&gt; '(&quot;hello&quot; nil &quot;world!&quot;)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(facts &quot;topics&quot;
+               (join fiber))  =&gt; '(&quot;hello&quot; nil &quot;world!&quot;)))
+
+(facts &quot;topics&quot;
        (fact &quot;When channel subscribes to topic then it receives its messages&quot;
              (let [ch1 (channel)
                    ch2 (channel)
@@ -5379,7 +5290,7 @@ as published by the Free Software Foundation.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn gt? [y]
   #(or (&gt; % y)  (checking/as-data-laden-falsehood {:notes [(str &quot;actual &quot; % &quot; required &gt; &quot; y)]})))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(fact &quot;When multiple consumers receive from ticker-channel then each consumer's messages are monotonic&quot;
-      (let [ch (ticker-channel 10)
+      (let [ch (channel 10 :displace)
             task (susfn [] 
                         (let [ch (ticker-consumer ch)]
                           (loop [prev -1]
@@ -5404,24 +5315,23 @@ as published by the Free Software Foundation.</p>
         :ok) =&gt; :ok)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(facts &quot;channels-seq&quot;
        (fact &quot;Receive sequence with sleep&quot;
-             (let [ch (channel)
+             (let [ch (channel -1)
                    fiber (spawn-fiber
-                           (fn []
-                             (let [s (s/take 5 (channel-&gt;lazy-seq ch))]
-                               (s/doall s))))]
+                           #(let [s (s/take 5 (channel-&gt;lazy-seq ch))]
+                               (s/doall s)))]
                (dotimes [m 10]
                  (Thread/sleep 20)
                  (snd ch m))
                (join fiber))  =&gt; '(0 1 2 3 4))
        (fact &quot;Map received sequence with sleep&quot;
-             (let [ch (channel)
+             (let [ch (channel -1)
                    fiber (spawn-fiber (fn [] (s/doall (s/map #(* % %) (s/take 5 (channel-&gt;lazy-seq ch))))))]
                (dotimes [m 10]
                  (Thread/sleep 20)
                  (snd ch m))
                (join fiber)) =&gt; '(0 1 4 9 16))
        (fact &quot;Filter received sequence with sleep (odd)&quot;
-             (let [ch (channel)
+             (let [ch (channel -1)
                    fiber (spawn-fiber
                            #(s/doall (s/filter odd? (s/take 5 (channel-&gt;lazy-seq ch)))))]
                (dotimes [m 10]
@@ -5429,7 +5339,7 @@ as published by the Free Software Foundation.</p>
                  (snd ch m))
                (join fiber)) =&gt; '(1 3))
        (fact &quot;Filter received sequence with sleep (even)&quot;
-             (let [ch (channel)
+             (let [ch (channel -1)
                    fiber (spawn-fiber
                            #(s/doall (s/filter even? (s/take 5 (channel-&gt;lazy-seq ch)))))]
                (dotimes [m 10]
@@ -5437,7 +5347,7 @@ as published by the Free Software Foundation.</p>
                  (snd ch m))
                (join fiber)) =&gt; '(0 2 4))
        (fact &quot;Filter and map received sequence with sleep (even)&quot;
-             (let [ch (channel)
+             (let [ch (channel -1)
                    fiber (spawn-fiber
                            (fn [] (s/doall
                                     (s/filter #(&gt; % 10)
@@ -5449,17 +5359,17 @@ as published by the Free Software Foundation.</p>
                  (snd ch m))
                (join fiber)) =&gt; '(16))
        (fact &quot;Send and receive sequence&quot;
-             (let [ch (channel)
+             (let [ch (channel -1)
                    fiber (spawn-fiber #(s/doall (s/take 5 (channel-&gt;lazy-seq ch))))]
                (snd-seq ch (take 10 (range)))
                (join fiber)) =&gt; '(0 1 2 3 4))
        (fact &quot;Map received sequence&quot;
-             (let [ch (channel)
+             (let [ch (channel -1)
                    fiber (spawn-fiber (fn [] (s/doall (s/map #(* % %) (s/take 5 (channel-&gt;lazy-seq ch))))))]
                (snd-seq ch (take 10 (range)))
                (join fiber)) =&gt; '(0 1 4 9 16))
        (fact &quot;Filter received sequence&quot;
-             (let [ch (channel)
+             (let [ch (channel -1)
                    fiber (spawn-fiber #(s/doall (s/filter even? (s/take 5 (channel-&gt;lazy-seq ch)))))]
                (snd-seq ch (take 10 (range)))
                (join fiber)) =&gt; '(0 2 4)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.examples.binary" name="co.paralleluniverse.pulsar.examples.binary"><h1 class="project-name">co.paralleluniverse.pulsar.examples.binary</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>A binary-data buffer message example</p>
@@ -5612,10 +5522,8 @@ so it is not written in idiomatic Clojure.</p>
   (spawn ping 3)
   :ok)</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.examples.primitive-ring-benchmark" name="co.paralleluniverse.pulsar.examples.primitive-ring-benchmark"><h1 class="project-name">co.paralleluniverse.pulsar.examples.primitive-ring-benchmark</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>An implementation of the ring benchmark using fibers and primitive (int) channels</p>
 </td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar.examples.primitive-ring-benchmark
-  (:use co.paralleluniverse.pulsar.core)
-  (:import [co.paralleluniverse.fibers Fiber]
-           [co.paralleluniverse.strands.channels IntChannel]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn spawn-relay [^IntChannel prev n]
+  (:use co.paralleluniverse.pulsar.core))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn spawn-relay [prev n]
   (if (== n 0)
     prev
     (let [channel (int-channel 10)
@@ -5626,7 +5534,6 @@ so it is not written in idiomatic Clojure.</p>
                                   (recur))))]
       (recur channel (dec n)))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn -main [M1 N1]
-  (println &quot;== &quot; (co.paralleluniverse.common.util.Debug/isDebug))
   (let [M (int (Integer/parseInt M1))
         N  (int (Integer/parseInt N1))]
     (println &quot;M: &quot; M &quot; N: &quot; N)
