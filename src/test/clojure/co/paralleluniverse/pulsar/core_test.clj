@@ -142,7 +142,7 @@
                (deliver v0 2)
                @v4) => 10))
 
-(facts "channel-group"
+#_(facts "channel-group"
        (fact "Receive from channel group"
              (let [ch1 (channel)
                    ch2 (channel)
@@ -231,7 +231,7 @@
   #(or (> % y)  (checking/as-data-laden-falsehood {:notes [(str "actual " % " required > " y)]})))
 
 (fact "When multiple consumers receive from ticker-channel then each consumer's messages are monotonic"
-      (let [ch (ticker-channel 10)
+      (let [ch (channel 10 :displace)
             task (susfn [] 
                         (let [ch (ticker-consumer ch)]
                           (loop [prev -1]

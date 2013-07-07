@@ -12,6 +12,7 @@
 
 (ns co.paralleluniverse.pulsar.actors
   "Defines actors and behaviors like gen-server and supervisor"
+  (:refer-clojure :exclude [cast])
   (:import [java.util.concurrent TimeUnit ExecutionException TimeoutException]
            [co.paralleluniverse.strands Strand]
            [co.paralleluniverse.strands.channels Channel]
@@ -211,7 +212,7 @@
   ([actor2]
    (.link ^LocalActor @self actor2))
   ([actor1 actor2]
-   (.link ^LocalActor (cast LocalActor (get-actor actor1)) (get-actor actor2))))
+   (.link ^LocalActor (clojure.core/cast LocalActor (get-actor actor1)) (get-actor actor2))))
 
 (ann unlink! (Fn [Actor -> Actor]
                  [Actor Actor -> Actor]))
@@ -220,7 +221,7 @@
   ([actor2]
    (.unlink ^LocalActor @self actor2))
   ([actor1 actor2]
-   (.unlink ^LocalActor (cast LocalActor (get-actor actor1)) (get-actor actor2))))
+   (.unlink ^LocalActor (clojure.core/cast LocalActor (get-actor actor1)) (get-actor actor2))))
 
 (ann monitor (Fn [Actor Actor -> LifecycleListener]
                  [Actor -> LifecycleListener]))
@@ -229,7 +230,7 @@
   ([actor2]
    (.watch ^LocalActor @self actor2))
   ([actor1 actor2]
-   (.watch ^LocalActor (cast LocalActor (get-actor actor1)) (get-actor actor2))))
+   (.watch ^LocalActor (clojure.core/cast LocalActor (get-actor actor1)) (get-actor actor2))))
 
 (ann monitor (Fn [Actor Actor LifecycleListener -> nil]
                  [Actor LifecycleListener -> nil]))
@@ -238,7 +239,7 @@
   ([actor2 monitor]
    (.unwatch ^LocalActor @self actor2 monitor))
   ([actor1 actor2 monitor]
-   (.unwatch ^LocalActor (cast LocalActor (get-actor actor1)) (get-actor actor2) monitor)))
+   (.unwatch ^LocalActor (clojure.core/cast LocalActor (get-actor actor1)) (get-actor actor2) monitor)))
 
 (ann register (Fn [String LocalActor -> LocalActor]
                   [LocalActor -> LocalActor]))
@@ -605,7 +606,8 @@
    (LocalSupervisor. nil name nil
                      ^LocalSupervisor$RestartStrategy (keyword->enum LocalSupervisor$RestartStrategy restart-strategy)
                      (->Initializer
-                       (fn [] (doseq [child ((suspendable! init))]
+                       (fn [] (doseq [child (seq ((suspendable! init)))]
+                                (println "ZZZZZZZZ" child)
                                 (apply add-child (cons @self child)))))))
   ([restart-strategy init]
    (supervisor nil restart-strategy init)))

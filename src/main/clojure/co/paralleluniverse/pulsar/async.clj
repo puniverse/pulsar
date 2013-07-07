@@ -16,10 +16,9 @@
   "Implementation of core.async"
   (:import
     [co.paralleluniverse.strands Strand SimpleConditionSynchronizer ConditionSelector]
-    [co.paralleluniverse.strands.channels Channel QueueObjectChannel TransferChannel Channels$OverflowPolicy
-     SendPort ReceivePort SelectableSend SelectableReceive]
+    [co.paralleluniverse.strands.channels Channel QueueObjectChannel TransferChannel TimeoutChannel Channels$OverflowPolicy
+     SendPort ReceivePort Selectable Selector SelectAction]
     [co.paralleluniverse.strands.queues ArrayQueue BoxQueue CircularObjectBuffer]
-    [co.paralleluniverse.strands.dataflow DelayedVal]
     [co.paralleluniverse.pulsar ClojureHelper]
     [java.util.concurrent TimeUnit ThreadLocalRandom Executors Executor ScheduledExecutorService]
     [com.google.common.util.concurrent ThreadFactoryBuilder])
@@ -46,7 +45,7 @@
   ([] (chan nil))
   ([buf-or-n] 
    (cond
-     (nil? buf-or-n)    (TransferChannel.) ; - TransferChannel doesn't support double-sided alts!. Requires an actual transaction (locks)
+     (nil? buf-or-n)    (TransferChannel.)
      (number? buf-or-n) (chan (buffer buf-or-n))
      :else              (QueueObjectChannel. (first buf-or-n) (second buf-or-n) false))))
 
@@ -98,84 +97,33 @@
 (defn timeout
   "Returns a channel that will close after msecs"
   [msecs]
-  (let [deadline  (long (+ (System/nanoTime) (* msecs 1000000)))
-        closed (atom false)
-        syn    (SimpleConditionSynchronizer.)
-        tim
-        (reify 
-          ReceivePort
-          (isClosed [_] (or @closed (> (System/nanoTime) deadline)))
-          (close    [_] 
-                 (reset! closed true)
-                 (.signalAll syn))
-          (receive [this] 
-                   (.register syn)
-                   (try
-                     (loop [i (int 0)]
-                       (if (not (.isClosed this))
-                         (do 
-                           (.await syn i (- deadline (System/nanoTime)) TimeUnit/NANOSECONDS) 
-                           (recur (inc i)))
-                         (do (.close this)
-                           nil)))
-                     (finally
-                       (.unregister syn))))
-          (receive [this ^long t ^TimeUnit unit] 
-                   (let [ddlne (long (+ (System/nanoTime) (.toNanos unit t)))]
-                     (.register syn)
-                     (try
-                       (loop [i (int 0)
-                              left (long (.toNanos unit t))]
-                         (if (and (> left 0) (not (.isClosed this)))
-                           (do 
-                             (.await syn i (min left (- deadline (System/nanoTime))) TimeUnit/NANOSECONDS) 
-                             (recur (inc i) (- ddlne (System/nanoTime))))
-                           (when (.isClosed this)
-                             (.close this)
-                             nil)))
-                       (finally
-                         (.unregister syn)))))
-          (tryReceive [_] nil)
-          SelectableReceive
-          (receiveSelector [_] syn))]
-    (ClojureHelper/schedule #(.close tim) (long msecs) TimeUnit/MILLISECONDS)
-    tim))
+  (TimeoutChannel/timeout msecs TimeUnit/MILLISECONDS))
 
-;; This function is copied from core.async, copyright Rich Hicky and contributors.
-(defn random-array
-  [n]
-  (let [rand (ThreadLocalRandom/current)
-        a (int-array n)]
-    (loop [i 1]
-      (if (== i n)
-        a
-        (do
-          (let [j (.nextInt rand (inc i))]
-            (aset a i (aget a j))
-            (aset a j i)
-            (recur (inc i))))))))
+(defn- port->SelectAction
+  [port]
+  (if (vector? port)
+    (Selector/send ^SendPort (first port) (second port))
+    (Selector/receive ^ReceivePort port)))
 
-(defn try-receive0 [^ReceivePort port]
-  (let [m (.tryReceive port)]
-    (if (and (nil? m) (.isClosed port))
-      ::closed
-      m)))
+(defn- SelectAction->port
+  [^SelectAction sa]
+  (when sa
+    [(.message sa) (.port sa)]))
 
-(defn try-ports [ports priority]
-  (let [n (count ports)
-        ^ints ra (when (not priority) (random-array n))]
-    (loop [i (int 0)]
-      (when (< i n)
-        (let [p (nth ports (if ra (aget ra i) i))]
-          (or 
-            (if (vector? p)
-              (when (.trySend ^co.paralleluniverse.strands.channels.SendPort (first p) (second p))
-                [nil p])
-              (when-let [m (try-receive0 p)]
-                [(if (= m ::closed) nil m) p]))
-            (recur (inc i))))))))
+(defn- SelectAction->index
+  [^SelectAction sa]
+  (.index sa))
 
-(defmacro alts!
+(defn ^SelectAction do-alts
+  [ports priority dflt]
+  (let [^boolean priority (if priority true false)
+        ^java.util.List ps (map port->SelectAction ports)
+        ^SelectAction sa (if dflt
+                           (Selector/trySelect priority ps)
+                           (Selector/select    priority ps))]
+    sa))
+
+(defn alts!
   "Completes at most one of several channel operations. Must be called
   inside a (go ...) block. ports is a set of channel endpoints, which
   can be either a channel to take from or a vector of
@@ -198,73 +146,15 @@
   depended upon for side effects."
 
 [ports & {:as opts}]
-(let [priority  (:priority opts)]
-  (if (contains? opts :default)
-    `(if-let [res# (try-ports ~ports ~priority)]
-       res#
-       [~(:default opts) :default])
-    `(let [ps# ~ports]
-       (if-let [res# (try-ports ps# ~priority)] 
-         res#
-         (let [^co.paralleluniverse.strands.Condition sel# 
-               (co.paralleluniverse.strands.ConditionSelector. 
-                 ^java.util.Collection
-                 (map #(if (vector? %) 
-                         (.sendSelector    ^co.paralleluniverse.strands.channels.SelectableSend    (first %))
-                         (.receiveSelector ^co.paralleluniverse.strands.channels.SelectableReceive %))
-                      ps#))] ; no default
-           (.register sel#)
-           (try
-             (loop [i# (int 0)] ; retry loop
-               (if-let [res# (try-ports ps# ~priority)] 
-                 res#
-                 (do 
-                   (.await sel# i#)
-                   (recur (inc i#)))))
-             (finally
-               (.unregister sel#)))))))))
+(let [dflt (contains? opts :default)
+      sa (do-alts ports (:priority opts) dflt)]
+  (if (and dflt (nil? sa))
+    [(:default opts) :default]
+    (SelectAction->port sa))))
 
-;; This function is copied from core.async, copyright Rich Hicky and contributors.
-(defn do-alt [alts clauses]
-  (assert (even? (count clauses)) "unbalanced clauses")
-  (let [clauses (partition 2 clauses)
-        opt? #(keyword? (first %)) 
-        opts (filter opt? clauses)
-        clauses (remove opt? clauses)
-        [clauses bindings]
-        (reduce
-          (fn [[clauses bindings] [ports expr]]
-            (let [ports (if (vector? ports) ports [ports])
-                  [ports bindings]
-                  (reduce
-                    (fn [[ports bindings] port]
-                      (if (vector? port)
-                        (let [[port val] port
-                              gp (gensym)
-                              gv (gensym)]
-                          [(conj ports [gp gv]) (conj bindings [gp port] [gv val])])
-                        (let [gp (gensym)]
-                          [(conj ports gp) (conj bindings [gp port])])))
-                    [[] bindings] ports)]
-              [(conj clauses [ports expr]) bindings]))
-          [[] []] clauses)
-        gch (gensym "ch")
-        gret (gensym "ret")]
-    `(let [~@(mapcat identity bindings)
-           [val# ~gch :as ~gret] (~alts [~@(apply concat (map first clauses))] ~@(apply concat opts))]
-       (cond
-         ~@(mapcat (fn [[ports expr]]
-                     [`(or ~@(map (fn [port]
-                                    `(= ~gch ~(if (vector? port) (first port) port)))
-                                  ports))
-                      (if (and (seq? expr) (vector? (first expr)))
-                        `(let [~(first expr) ~gret] ~@(rest expr)) 
-                        expr)])
-                   clauses)
-         (= ~gch :default) val#))))
 
 (defmacro alt!
-  "Makes a single choice between one of several channel operations,
+ "Makes a single choice between one of several channel operations,
   as if by alts!, returning the value of the result expr corresponding
   to the operation completed. Must be called inside a (go ...) block.
   
@@ -290,8 +180,32 @@
   
   Each option may appear at most once. The choice and parking
   characteristics are those of alts!."
-[& clauses]
-(do-alt `alts! clauses))
+  [& clauses]
+  (let [clauses (partition 2 clauses)
+        opt? #(keyword? (first %)) 
+        opts (filter opt? clauses)
+        opts (zipmap (map first opts) (map second opts))
+        clauses (remove opt? clauses)
+        ports (mapcat #(let [x (first %)] (if (vector? x) x (list x))) clauses)
+        exprs (mapcat #(let [x (first %) ; ports
+                             e (second %)]; result-expr
+                         (if (vector? x) (repeat (count x) e) (list e))) clauses)
+        priority (:priority opts)
+        dflt (contains? opts :default)
+        sa (gensym "sa")]
+    `(let [^co.paralleluniverse.strands.channels.SelectAction ~sa
+           (do-alts (list ~@ports) ~priority ~dflt)]
+       ~@(p/surround-with (when dflt
+                   `(if (nil? ~sa) ~(:default opts)))
+                 `(case (.index ~sa)
+                    ~@(mapcat 
+                        (fn [i e]
+                          (let [b (if (and (list? e) (vector? (first e))) (first e) []) ; binding
+                                a (if (and (list? e) (vector? (first e))) (rest e)  (list e))] ; action
+                            `(~i (let ~(vec (concat (when-let [vr (first b)]  `(~vr (.message ~sa)))
+                                                    (when-let [vr (second b)] `(~vr (.port ~sa)))))
+                                   ~@a))))
+                        (range) exprs))))))
 
 (defn- f->chan
   [c f]

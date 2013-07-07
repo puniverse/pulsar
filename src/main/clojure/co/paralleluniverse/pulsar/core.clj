@@ -26,13 +26,12 @@
          [co.paralleluniverse.fibers DefaultFiberPool Fiber Joinable FiberUtil]
          [co.paralleluniverse.fibers.instrument]
          [co.paralleluniverse.strands.channels Channel Channels Channels$OverflowPolicy ReceivePort SendPort 
-          ChannelGroup Topic
+          Topic
           IntChannel LongChannel FloatChannel DoubleChannel
-          TickerChannel TickerChannel$TickerChannelConsumer
-          TickerObjectChannel TickerIntChannel TickerLongChannel TickerFloatChannel TickerDoubleChannel
+          TickerChannelConsumer
           IntSendPort LongSendPort FloatSendPort DoubleSendPort
-          IntReceivePort LongReceivePort FloatReceivePort DoubleReceivePort]
-         [co.paralleluniverse.strands.dataflow DelayedVal]
+          IntReceivePort LongReceivePort FloatReceivePort DoubleReceivePort
+          DelayedVal]
          [co.paralleluniverse.pulsar ClojureHelper]
          ; for types:
          [clojure.lang Keyword Sequential IObj IFn IMeta IDeref ISeq IPersistentCollection IPersistentVector IPersistentMap])
@@ -469,14 +468,14 @@
   ([size]                 (Channels/newChannel (int size)))
   ([]                     (Channels/newChannel -1)))
 
-(defn ^TickerChannel ticker-channel
-  "Cerates a ticker channel"
-  [size]
-  (Channels/newTickerChannel size))
-
-(defn ^TickerChannel$TickerChannelConsumer ticker-consumer
-  [^TickerChannel ticker]
-  (.newConsumer ticker))
+(defn ^TickerChannelConsumer ticker-consumer
+  [^Channel ticker]
+  (cond 
+    (instance? IntChannel ticker)    (Channels/newTickerConsumerFor ^IntChannel ticker)
+    (instance? LongChannel ticker)   (Channels/newTickerConsumerFor ^LongChannel ticker)
+    (instance? FloatChannel ticker)  (Channels/newTickerConsumerFor ^FloatChannel ticker)
+    (instance? DoubleChannel ticker) (Channels/newTickerConsumerFor ^DoubleChannel ticker)
+    :else                            (Channels/newTickerConsumerFor ticker)))
 
 (ann snd (All [x] [Channel x -> x]))
 (defn snd
@@ -518,11 +517,6 @@
   [^ReceivePort channel]
   (.isClosed channel))
 
-(defn channel-group
-  "Creates a channel group"
-  [& channels]
-  (ChannelGroup. ^java.util.Collection channels))
-
 (defn topic
   "Creates a new topic."
   []
@@ -548,11 +542,6 @@
   ([size]                 (Channels/newIntChannel (int size)))
   ([]                     (Channels/newIntChannel -1)))
 
-(defn ^TickerIntChannel int-ticker-channel
-  "Cerates an int ticker channel"
-  [size]
-  (Channels/newTickerIntChannel size))
-
 (defmacro snd-int
   [channel message]
   `(.send ^co.paralleluniverse.strands.channels.IntSendPort ~channel (int ~message)))
@@ -574,11 +563,6 @@
   ([size overflow-policy] (Channels/newLongChannel (int size) (keyword->enum Channels$OverflowPolicy overflow-policy)))
   ([size]                 (Channels/newLongChannel (int size)))
   ([]                     (Channels/newLongChannel -1)))
-
-(defn ^TickerLongChannel long-ticker-channel
-  "Cerates a long ticker channel"
-  [size]
-  (Channels/newTickerLongChannel size))
 
 (defmacro snd-long
   [channel message]
@@ -602,11 +586,6 @@
   ([size]                 (Channels/newFloatChannel (int size)))
   ([]                     (Channels/newFloatChannel -1)))
 
-(defn ^TickerFloatChannel long-ticker-channel
-  "Cerates a float ticker channel"
-  [size]
-  (Channels/newTickerFloatChannel size))
-
 (defmacro snd-float
   [channel message]
   `(.send ^co.paralleluniverse.strands.channels.FloatSendPort ~channel (float ~message)))
@@ -628,11 +607,6 @@
   ([size overflow-policy] (Channels/newDoubleChannel (int size) (keyword->enum Channels$OverflowPolicy overflow-policy)))
   ([size]                 (Channels/newDoubleChannel (int size)))
   ([]                     (Channels/newDoubleChannel -1)))
-
-(defn ^TickerDoubleChannel long-ticker-channel
-  "Cerates a double ticker channel"
-  [size]
-  (Channels/newTickerDoubleChannel size))
 
 (defmacro snd-double
   [channel message]

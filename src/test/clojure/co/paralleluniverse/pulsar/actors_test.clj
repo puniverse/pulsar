@@ -129,9 +129,10 @@
        (fact "When an actor dies, and its link traps, then its link gets a message"
              (let [actor1 (spawn #(Fiber/sleep 100))
                    actor2 (spawn :trap true
-                                 #(receive [m]
-                                           [:exit _ actor reason] actor))]
-               (link! actor1 actor2)
+                                 (fn []
+                                   (link! actor1)
+                                   (receive [m]
+                                            [:exit _ actor reason] actor)))]
                (join actor1)
                (fact (join actor2) => actor1))))
 
@@ -143,7 +144,16 @@
                               [:exit watch actor reason] watch))
                   wtc (watch! actor2 actor1)]
               (join actor1)
-              (fact (join actor2) => wtc))))
+              (fact (join actor2) => wtc)))
+      (fact "When an actor dies, its watch gets a message2"
+            (let [actor1 (spawn #(Fiber/sleep 200))
+                  actor2 (spawn
+                           (fn []
+                             (let [w (watch! actor1)]
+                               (receive
+                                 [:exit w actor reason] actor))))]
+              (join actor1)
+              (fact (join actor2) => actor1))))
 
 (facts "actor-state"
        (fact "Test recur actor-state"
@@ -436,12 +446,9 @@
 
 (fact "When handler is removed then don't call it"
       (let [ge (spawn (gen-event
-                        #(do
-                           (println "add")
-                           (add-handler @self handler1))))]
+                        #(add-handler @self handler1)))]
         (add-handler ge handler2)
         (Strand/sleep 50)
-        (println "remoe")
         (remove-handler ge handler1)
         (notify ge "hello")
         (shutdown ge)
@@ -567,15 +574,15 @@
   (let [adder
         (add-child sup nil :temporary 5 1 :sec 10
                    (gen-server ; or (spawn (gen-server...))
-                     (reify Server
-                       (init        [_]       (swap! started inc))
-                       (terminate   [_ cause] (swap! terminated inc))
-                       (handle-call [_ from id [a b]]
-                                    (log :debug "=== a: {} b: {}" a b)
-                                    (let [res (+ a b)]
-                                      (if (> res 100)
-                                        (throw (Exception. "oops!"))
-                                        res))))))
+                               (reify Server
+                                 (init        [_]       (swap! started inc))
+                                 (terminate   [_ cause] (swap! terminated inc))
+                                 (handle-call [_ from id [a b]]
+                                              (log :debug "=== a: {} b: {}" a b)
+                                              (let [res (+ a b)]
+                                                (if (> res 100)
+                                                  (throw (Exception. "oops!"))
+                                                  res))))))
         a (receive)
         b (receive)]
     (call adder a b)))
