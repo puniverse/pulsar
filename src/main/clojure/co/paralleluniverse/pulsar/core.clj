@@ -466,7 +466,7 @@
   "Creates a channel"
   ([size overflow-policy] (Channels/newChannel (int size) (keyword->enum Channels$OverflowPolicy overflow-policy)))
   ([size]                 (Channels/newChannel (int size)))
-  ([]                     (Channels/newChannel -1)))
+  ([]                     (Channels/newChannel 0)))
 
 (defn ^TickerChannelConsumer ticker-consumer
   [^Channel ticker]
