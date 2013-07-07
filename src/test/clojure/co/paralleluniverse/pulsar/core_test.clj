@@ -142,30 +142,31 @@
                (deliver v0 2)
                @v4) => 10))
 
-#_(facts "channel-group"
+(facts "rcv-group"
        (fact "Receive from channel group"
              (let [ch1 (channel)
                    ch2 (channel)
                    ch3 (channel)
-                   grp (channel-group ch1 ch2 ch3)
+                   grp (rcv-group ch1 ch2 ch3)
                    fiber (spawn-fiber
                            (fn []
                              (let [m1 (rcv grp)
                                    m2 (rcv ch2)
                                    m3 (rcv grp)]
                                (list m1 m2 m3))))]
+               
                (Thread/sleep 20)
                (snd ch1 "hello")
                (Thread/sleep 20)
-               (snd ch3 "foo")
-               (Thread/sleep 20)
                (snd ch2 "world!")
+               (Thread/sleep 20)
+               (snd ch3 "foo")
                (join fiber))  => '("hello" "world!" "foo"))
        (fact "Receive from channel group with timeout"
              (let [ch1 (channel)
                    ch2 (channel)
                    ch3 (channel)
-                   grp (channel-group ch1 ch2 ch3)
+                   grp (rcv-group ch1 ch2 ch3)
                    fiber (spawn-fiber
                            (fn []
                              (let [m1 (rcv grp)

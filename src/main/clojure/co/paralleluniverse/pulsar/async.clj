@@ -98,25 +98,14 @@
   [msecs]
   (TimeoutChannel/timeout msecs TimeUnit/MILLISECONDS))
 
-(defn- port->SelectAction
-  [port]
-  (if (vector? port)
-    (Selector/send ^SendPort (first port) (second port))
-    (Selector/receive ^ReceivePort port)))
-
-(defn- SelectAction->port
-  [^SelectAction sa]
-  (when sa
-    [(.message sa) (.port sa)]))
-
-(defn- SelectAction->index
-  [^SelectAction sa]
-  (.index sa))
-
 (defn ^SelectAction do-alts
   [ports priority dflt]
   (let [^boolean priority (if priority true false)
-        ^java.util.List ps (map port->SelectAction ports)
+        ^java.util.List ps (map (fn [port]
+                                  (if (vector? port)
+                                    (Selector/send ^SendPort (first port) (second port))
+                                    (Selector/receive ^ReceivePort port)))
+                                ports)
         ^SelectAction sa (if dflt
                            (Selector/trySelect priority ps)
                            (Selector/select    priority ps))]
@@ -146,10 +135,10 @@
 
 [ports & {:as opts}]
 (let [dflt (contains? opts :default)
-      sa (do-alts ports (:priority opts) dflt)]
+      ^SelectAction sa (do-alts ports (:priority opts) dflt)]
   (if (and dflt (nil? sa))
     [(:default opts) :default]
-    (SelectAction->port sa))))
+    [(.message sa) (.port sa)])))
 
 
 (defmacro alt!

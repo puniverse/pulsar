@@ -26,9 +26,9 @@
          [co.paralleluniverse.fibers DefaultFiberPool Fiber Joinable FiberUtil]
          [co.paralleluniverse.fibers.instrument]
          [co.paralleluniverse.strands.channels Channel Channels Channels$OverflowPolicy ReceivePort SendPort 
-          Topic
+          Selectable Selector SelectAction
+          TickerChannelConsumer Topic ReceivePortGroup
           IntChannel LongChannel FloatChannel DoubleChannel
-          TickerChannelConsumer
           IntSendPort LongSendPort FloatSendPort DoubleSendPort
           IntReceivePort LongReceivePort FloatReceivePort DoubleReceivePort
           DelayedVal]
@@ -514,8 +514,14 @@
 (defn closed?
   "Tests whether a channel has been closed and no more messages will be received.
   This function can only be called by the channel's owning strand (the receiver)"
-  [^ReceivePort channel]
-  (.isClosed channel))
+[^ReceivePort channel]
+(.isClosed channel))
+
+(defn ^ReceivePort rcv-group
+  ([ports]
+   (ReceivePortGroup. ports))
+  ([port & ports]
+   (ReceivePortGroup. (cons port ports))))
 
 (defn topic
   "Creates a new topic."
@@ -531,6 +537,56 @@
   "Unsubscribes a channel from a topic"
   [^Topic topic ^SendPort channel]
   (.unsubscribe topic channel))
+
+(defn ^SelectAction do-sel
+  {:no-doc true}
+  [ports priority dflt]
+  (let [^boolean priority (if priority true false)
+        ^java.util.List ps (map (fn [port]
+                                  (if (vector? port)
+                                    (Selector/send ^SendPort (first port) (second port))
+                                    (Selector/receive ^ReceivePort port)))
+                                ports)
+        ^SelectAction sa (if dflt
+                           (Selector/trySelect priority ps)
+                           (Selector/select    priority ps))]
+    sa))
+
+(defn sel
+[ports & {:as opts}]
+(let [dflt (contains? opts :default)
+      ^SelectAction sa (do-sel ports (:priority opts) dflt)]
+  (if (and dflt (nil? sa))
+    [(:default opts) :default]
+    [(.message sa) (.port sa)])))
+
+(defmacro select
+  [& clauses]
+  (let [clauses (partition 2 clauses)
+        opt? #(keyword? (first %)) 
+        opts (filter opt? clauses)
+        opts (zipmap (map first opts) (map second opts))
+        clauses (remove opt? clauses)
+        ports (mapcat #(let [x (first %)] (if (vector? x) x (list x))) clauses)
+        exprs (mapcat #(let [x (first %) ; ports
+                             e (second %)]; result-expr
+                         (if (vector? x) (repeat (count x) e) (list e))) clauses)
+        priority (:priority opts)
+        dflt (contains? opts :default)
+        sa (gensym "sa")]
+    `(let [^co.paralleluniverse.strands.channels.SelectAction ~sa
+           (do-sel (list ~@ports) ~priority ~dflt)]
+       ~@(surround-with (when dflt
+                   `(if (nil? ~sa) ~(:default opts)))
+                 `(case (.index ~sa)
+                    ~@(mapcat 
+                        (fn [i e]
+                          (let [b (if (and (list? e) (vector? (first e))) (first e) []) ; binding
+                                a (if (and (list? e) (vector? (first e))) (rest e)  (list e))] ; action
+                            `(~i (let ~(vec (concat (when-let [vr (first b)]  `(~vr (.message ~sa)))
+                                                    (when-let [vr (second b)] `(~vr (.port ~sa)))))
+                                   ~@a))))
+                        (range) exprs))))))
 
 ;; ### Primitive channels
 
