@@ -3547,7 +3547,6 @@ as published by the Free Software Foundation.</p>
 <p>Docstrings are Copyright (c) Rich Hickey and contributors, Parallel Universe</p>
 </td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar.async
   (:import
-    [co.paralleluniverse.strands Strand SimpleConditionSynchronizer ConditionSelector]
     [co.paralleluniverse.strands.channels Channel QueueObjectChannel TransferChannel TimeoutChannel Channels$OverflowPolicy
      SendPort ReceivePort Selectable Selector SelectAction]
     [co.paralleluniverse.strands.queues ArrayQueue BoxQueue CircularObjectBuffer]
@@ -3612,22 +3611,14 @@ as published by the Free Software Foundation.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn timeout
   [msecs]
   (TimeoutChannel/timeout msecs TimeUnit/MILLISECONDS))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn- port-&gt;SelectAction
-  [port]
-  (if (vector? port)
-    (Selector/send ^SendPort (first port) (second port))
-    (Selector/receive ^ReceivePort port)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn- SelectAction-&gt;port
-  [^SelectAction sa]
-  (when sa
-    [(.message sa) (.port sa)]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn- SelectAction-&gt;index
-  [^SelectAction sa]
-  (.index sa))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn ^SelectAction do-alts
   [ports priority dflt]
   (let [^boolean priority (if priority true false)
-        ^java.util.List ps (map port-&gt;SelectAction ports)
+        ^java.util.List ps (map (fn [port]
+                                  (if (vector? port)
+                                    (Selector/send ^SendPort (first port) (second port))
+                                    (Selector/receive ^ReceivePort port)))
+                                ports)
         ^SelectAction sa (if dflt
                            (Selector/trySelect priority ps)
                            (Selector/select    priority ps))]
@@ -3654,10 +3645,10 @@ as published by the Free Software Foundation.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn alts!
 [ports &amp; {:as opts}]
 (let [dflt (contains? opts :default)
-      sa (do-alts ports (:priority opts) dflt)]
+      ^SelectAction sa (do-alts ports (:priority opts) dflt)]
   (if (and dflt (nil? sa))
     [(:default opts) :default]
-    (SelectAction-&gt;port sa))))</pre></td></tr><tr><td class="docs"><p>Makes a single choice between one of several channel operations,
+    [(.message sa) (.port sa)])))</pre></td></tr><tr><td class="docs"><p>Makes a single choice between one of several channel operations,
   as if by alts!, returning the value of the result expr corresponding
   to the operation completed. Must be called inside a (go ...) block.</p>
 
@@ -3781,9 +3772,9 @@ as published by the Free Software Foundation.</p>
          [co.paralleluniverse.fibers DefaultFiberPool Fiber Joinable FiberUtil]
          [co.paralleluniverse.fibers.instrument]
          [co.paralleluniverse.strands.channels Channel Channels Channels$OverflowPolicy ReceivePort SendPort 
-          Topic
+          Selectable Selector SelectAction
+          TickerChannelConsumer Topic ReceivePortGroup
           IntChannel LongChannel FloatChannel DoubleChannel
-          TickerChannelConsumer
           IntSendPort LongSendPort FloatSendPort DoubleSendPort
           IntReceivePort LongReceivePort FloatReceivePort DoubleReceivePort
           DelayedVal]
@@ -4186,8 +4177,13 @@ while running in a fiber.</p>
     :else (throw (IllegalArgumentException. (str (.toString ^Object channel) &quot; is not a channel&quot;)))))</pre></td></tr><tr><td class="docs"><p>Tests whether a channel has been closed and no more messages will be received.
   This function can only be called by the channel's owning strand (the receiver)</p>
 </td><td class="codes"><pre class="brush: clojure">(defn closed?
-  [^ReceivePort channel]
-  (.isClosed channel))</pre></td></tr><tr><td class="docs"><p>Creates a new topic.</p>
+[^ReceivePort channel]
+(.isClosed channel))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn ^ReceivePort rcv-group
+  ([ports]
+   (ReceivePortGroup. ports))
+  ([port &amp; ports]
+   (ReceivePortGroup. (cons port ports))))</pre></td></tr><tr><td class="docs"><p>Creates a new topic.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn topic
   []
   (Topic.))</pre></td></tr><tr><td class="docs"><p>Subscribes a channel to a topic</p>
@@ -4196,7 +4192,52 @@ while running in a fiber.</p>
   (.subscribe topic channel))</pre></td></tr><tr><td class="docs"><p>Unsubscribes a channel from a topic</p>
 </td><td class="codes"><pre class="brush: clojure">(defn unsubscribe
   [^Topic topic ^SendPort channel]
-  (.unsubscribe topic channel))</pre></td></tr><tr><td class="docs"><h3>Primitive channels</h3>
+  (.unsubscribe topic channel))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn ^SelectAction do-sel
+  {:no-doc true}
+  [ports priority millis]
+  (let [^TimeUnit unit (when millis TimeUnit/MILLISECONDS)
+        millis (long (or millis 0))]
+    (Selector/select (if priority true false)
+                     millis unit
+                     (map #(if (vector? %)
+                             (Selector/send ^SendPort (first %) (second %))
+                             (Selector/receive ^ReceivePort %))
+                          ports))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn sel
+  [ports &amp; {:as opts}]
+  (let [^SelectAction sa (do-sel ports (:priority opts) (:timeout opts))]
+    (when sa
+      [(.message sa) (.port sa)])))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defmacro select
+  [&amp; clauses]
+  (let [clauses (partition 2 clauses)
+        opt? #(keyword? (first %)) 
+        opts (filter opt? clauses)
+        opts (zipmap (map first opts) (map second opts))
+        clauses (remove opt? clauses)
+        ports (mapcat #(let [x (first %)] (if (vector? x) x (list x))) clauses)
+        exprs (mapcat #(let [x (first %) ; ports
+                             e (second %)]; result-expr
+                         (if (vector? x) (repeat (count x) e) (list e))) clauses)
+        priority (:priority opts)
+        timeout (:timeout opts)
+        dflt (contains? opts :else)
+        sa (gensym &quot;sa&quot;)]
+    `(let [^co.paralleluniverse.strands.channels.SelectAction ~sa
+           (do-sel (list ~@ports) ~priority ~timeout)]
+       ~@(surround-with 
+           (when dflt
+             `(if (nil? ~sa) ~(:else opts)))
+           `(case (.index ~sa)
+              ~@(mapcat 
+                  (fn [i e]
+                    (let [b (if (and (list? e) (vector? (first e))) (first e) []) ; binding
+                          a (if (and (list? e) (vector? (first e))) (rest e)  (list e))] ; action
+                      `(~i (let ~(vec (concat (when-let [vr (first b)]  `(~vr (.message ~sa)))
+                                              (when-let [vr (second b)] `(~vr (.port ~sa)))))
+                             ~@a))))
+                  (range) exprs))))))</pre></td></tr><tr><td class="docs"><h3>Primitive channels</h3>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>Creates an int channel</p>
 </td><td class="codes"><pre class="brush: clojure">(ann int-channel (Fn [AnyInteger -&gt; IntChannel]
                      [-&gt; IntChannel]))
@@ -5203,30 +5244,31 @@ as published by the Free Software Foundation.</p>
                  (mapv realized? [v0 v1 v2 v3 v4]) =&gt; [false true true true false])
                (deliver v0 2)
                @v4) =&gt; 10))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">#_(facts &quot;channel-group&quot;
+</td><td class="codes"><pre class="brush: clojure">(facts &quot;rcv-group&quot;
        (fact &quot;Receive from channel group&quot;
              (let [ch1 (channel)
                    ch2 (channel)
                    ch3 (channel)
-                   grp (channel-group ch1 ch2 ch3)
+                   grp (rcv-group ch1 ch2 ch3)
                    fiber (spawn-fiber
                            (fn []
                              (let [m1 (rcv grp)
                                    m2 (rcv ch2)
                                    m3 (rcv grp)]
                                (list m1 m2 m3))))]
+               
                (Thread/sleep 20)
                (snd ch1 &quot;hello&quot;)
                (Thread/sleep 20)
-               (snd ch3 &quot;foo&quot;)
-               (Thread/sleep 20)
                (snd ch2 &quot;world!&quot;)
+               (Thread/sleep 20)
+               (snd ch3 &quot;foo&quot;)
                (join fiber))  =&gt; '(&quot;hello&quot; &quot;world!&quot; &quot;foo&quot;))
        (fact &quot;Receive from channel group with timeout&quot;
              (let [ch1 (channel)
                    ch2 (channel)
                    ch3 (channel)
-                   grp (channel-group ch1 ch2 ch3)
+                   grp (rcv-group ch1 ch2 ch3)
                    fiber (spawn-fiber
                            (fn []
                              (let [m1 (rcv grp)
@@ -5237,9 +5279,8 @@ as published by the Free Software Foundation.</p>
                (snd ch1 &quot;hello&quot;)
                (Thread/sleep 100)
                (snd ch3 &quot;world!&quot;)
-               (join fiber))  =&gt; '(&quot;hello&quot; nil &quot;world!&quot;)))
-
-(facts &quot;topics&quot;
+               (join fiber))  =&gt; '(&quot;hello&quot; nil &quot;world!&quot;)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(facts &quot;topics&quot;
        (fact &quot;When channel subscribes to topic then it receives its messages&quot;
              (let [ch1 (channel)
                    ch2 (channel)
@@ -5313,6 +5354,57 @@ as published by the Free Software Foundation.</p>
         (close! ch)
         (join (list f1 t1 f2 t2 f3 t3 f4 t4))
         :ok) =&gt; :ok)</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn fan-in [ins size]
+  (let [c (channel size)]
+    (spawn-fiber #(while true
+                    (let [[x] (sel ins)]
+                      (snd c x))))
+    c))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn fan-out [in cs-or-n]
+  (let [cs (if (number? cs-or-n)
+             (repeatedly cs-or-n channel)
+             cs-or-n)]
+    (spawn-fiber (fn []
+                   (while true
+                     (let [x (rcv in)
+                           outs (map #(vector % x) cs)]
+                       (sel outs)))))
+    cs))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(facts &quot;select&quot;
+       (fact &quot;basic sel test&quot;
+             (let [cout (channel 0) ;;
+                   cin (fan-in (fan-out cout (repeatedly 3 channel)) 0)
+                   f (spawn-fiber #(loop [n (int 0)
+                                          res []]
+                                     (if (&lt; n 10)
+                                        (do 
+                                          (snd cout n)
+                                          (recur (inc n) (conj res (rcv cin))))
+                                        res)))]
+               (join f) =&gt; (vec (range 10))))
+       (fact &quot;another sel test&quot;
+             (let [n 20
+                   cout (channel 1) ;;
+                   cin (fan-in (fan-out cout (repeatedly n #(channel 1))) 1)]
+               (dotimes [i n]
+                 (snd cout i))
+               (sort (repeatedly n #(rcv cin))) =&gt; (range n)))
+       (fact &quot;test select with timeout&quot;
+             (let [c (channel)]
+               (select :timeout 0 
+                       c ([v] v) 
+                       :else &quot;timeout!&quot;)) =&gt; &quot;timeout!&quot;)
+       (fact &quot;test select with timeout2&quot;
+             (let [c (channel)]
+               (select :timeout 100 
+                       c ([v] v) 
+                       :else &quot;timeout!&quot;)) =&gt; &quot;timeout!&quot;)
+       (fact &quot;test select with timeout2&quot;
+             (let [c (channel)
+                   f (spawn-fiber #(snd c 10))]
+               (select :timeout 100 
+                       c ([v] (inc v)) 
+                       :else &quot;timeout!&quot;)) =&gt; 11))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(facts &quot;channels-seq&quot;
        (fact &quot;Receive sequence with sleep&quot;
              (let [ch (channel -1)
