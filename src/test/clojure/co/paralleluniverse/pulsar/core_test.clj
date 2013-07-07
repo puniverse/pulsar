@@ -256,6 +256,61 @@
         (join (list f1 t1 f2 t2 f3 t3 f4 t4))
         :ok) => :ok)
 
+
+(defn fan-in [ins size]
+  (let [c (channel size)]
+    (spawn-fiber #(while true
+                    (let [[x] (sel ins)]
+                      (snd c x))))
+    c))
+
+(defn fan-out [in cs-or-n]
+  (let [cs (if (number? cs-or-n)
+             (repeatedly cs-or-n channel)
+             cs-or-n)]
+    (spawn-fiber (fn []
+                   (while true
+                     (let [x (rcv in)
+                           outs (map #(vector % x) cs)]
+                       (sel outs)))))
+    cs))
+
+(facts "select"
+       (fact "basic sel test"
+             (let [cout (channel 0) ;;
+                   cin (fan-in (fan-out cout (repeatedly 3 channel)) 0)
+                   f (spawn-fiber #(loop [n (int 0)
+                                          res []]
+                                     (if (< n 10)
+                                        (do 
+                                          (snd cout n)
+                                          (recur (inc n) (conj res (rcv cin))))
+                                        res)))]
+               (join f) => (vec (range 10))))
+       (fact "another sel test"
+             (let [n 20
+                   cout (channel 1) ;;
+                   cin (fan-in (fan-out cout (repeatedly n #(channel 1))) 1)]
+               (dotimes [i n]
+                 (snd cout i))
+               (sort (repeatedly n #(rcv cin))) => (range n)))
+       (fact "test select with timeout"
+             (let [c (channel)]
+               (select :timeout 0 
+                       c ([v] v) 
+                       :else "timeout!")) => "timeout!")
+       (fact "test select with timeout2"
+             (let [c (channel)]
+               (select :timeout 100 
+                       c ([v] v) 
+                       :else "timeout!")) => "timeout!")
+       (fact "test select with timeout2"
+             (let [c (channel)
+                   f (spawn-fiber #(snd c 10))]
+               (select :timeout 100 
+                       c ([v] (inc v)) 
+                       :else "timeout!")) => 11))
+
 (facts "channels-seq"
        (fact "Receive sequence with sleep"
              (let [ch (channel -1)

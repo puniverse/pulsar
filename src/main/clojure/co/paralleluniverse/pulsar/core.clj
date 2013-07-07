@@ -540,25 +540,21 @@
 
 (defn ^SelectAction do-sel
   {:no-doc true}
-  [ports priority dflt]
-  (let [^boolean priority (if priority true false)
-        ^java.util.List ps (map (fn [port]
-                                  (if (vector? port)
-                                    (Selector/send ^SendPort (first port) (second port))
-                                    (Selector/receive ^ReceivePort port)))
-                                ports)
-        ^SelectAction sa (if dflt
-                           (Selector/trySelect priority ps)
-                           (Selector/select    priority ps))]
-    sa))
+  [ports priority millis]
+  (let [^TimeUnit unit (when millis TimeUnit/MILLISECONDS)
+        millis (long (or millis 0))]
+    (Selector/select (if priority true false)
+                     millis unit
+                     (map #(if (vector? %)
+                             (Selector/send ^SendPort (first %) (second %))
+                             (Selector/receive ^ReceivePort %))
+                          ports))))
 
 (defn sel
-[ports & {:as opts}]
-(let [dflt (contains? opts :default)
-      ^SelectAction sa (do-sel ports (:priority opts) dflt)]
-  (if (and dflt (nil? sa))
-    [(:default opts) :default]
-    [(.message sa) (.port sa)])))
+  [ports & {:as opts}]
+  (let [^SelectAction sa (do-sel ports (:priority opts) (:timeout opts))]
+    (when sa
+      [(.message sa) (.port sa)])))
 
 (defmacro select
   [& clauses]
@@ -572,21 +568,23 @@
                              e (second %)]; result-expr
                          (if (vector? x) (repeat (count x) e) (list e))) clauses)
         priority (:priority opts)
-        dflt (contains? opts :default)
+        timeout (:timeout opts)
+        dflt (contains? opts :else)
         sa (gensym "sa")]
     `(let [^co.paralleluniverse.strands.channels.SelectAction ~sa
-           (do-sel (list ~@ports) ~priority ~dflt)]
-       ~@(surround-with (when dflt
-                   `(if (nil? ~sa) ~(:default opts)))
-                 `(case (.index ~sa)
-                    ~@(mapcat 
-                        (fn [i e]
-                          (let [b (if (and (list? e) (vector? (first e))) (first e) []) ; binding
-                                a (if (and (list? e) (vector? (first e))) (rest e)  (list e))] ; action
-                            `(~i (let ~(vec (concat (when-let [vr (first b)]  `(~vr (.message ~sa)))
-                                                    (when-let [vr (second b)] `(~vr (.port ~sa)))))
-                                   ~@a))))
-                        (range) exprs))))))
+           (do-sel (list ~@ports) ~priority ~timeout)]
+       ~@(surround-with 
+           (when dflt
+             `(if (nil? ~sa) ~(:else opts)))
+           `(case (.index ~sa)
+              ~@(mapcat 
+                  (fn [i e]
+                    (let [b (if (and (list? e) (vector? (first e))) (first e) []) ; binding
+                          a (if (and (list? e) (vector? (first e))) (rest e)  (list e))] ; action
+                      `(~i (let ~(vec (concat (when-let [vr (first b)]  `(~vr (.message ~sa)))
+                                              (when-let [vr (second b)] `(~vr (.port ~sa)))))
+                             ~@a))))
+                  (range) exprs))))))
 
 ;; ### Primitive channels
 
