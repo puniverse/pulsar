@@ -15,7 +15,6 @@
 (ns co.paralleluniverse.pulsar.async
   "Implementation of core.async"
   (:import
-    [co.paralleluniverse.strands Strand SimpleConditionSynchronizer ConditionSelector]
     [co.paralleluniverse.strands.channels Channel QueueObjectChannel TransferChannel TimeoutChannel Channels$OverflowPolicy
      SendPort ReceivePort Selectable Selector SelectAction]
     [co.paralleluniverse.strands.queues ArrayQueue BoxQueue CircularObjectBuffer]
