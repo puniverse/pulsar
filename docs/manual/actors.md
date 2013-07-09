@@ -4,7 +4,6 @@ title: Pulsar's Actor System
 weight: 2
 ---
 
-## Actors
 
 To use the terms we've learned so far, an *actor* is a strand that owns a single channel with some added lifecyce management and error handling. But this reductionist view of actors does them little justice. Actors are fundamental building blocks that are combined to build a fault-tolerant application. If you are familiar with Erlang, Pulsar actors are just like Erlang processes.
 
@@ -43,7 +42,7 @@ An actor can be `join`ed, just like a fiber.
 {:.alert .alert-info}
 **Note**: Just like fibers, spawning an actor is a very cheap operation in both computation and memory. Do not fear creating many (thousands, tens-of-thousands or even hundereds-of-thousands) actors.
 
-### Sending and Receiving Messages
+## Sending and Receiving Messages
 
 An actor's mailbox is a channel, that can be obtained with the `mailbox-of` function. You can therefore send a message to an actor like so:
 
@@ -79,7 +78,7 @@ But, again, while an actor can be treated as a fiber with a channel, it has some
 
 `receive` has some features that make it very suitable for handling messages in actors. Its most visible feature is pattern matching. When an actor receives a message, it usually takes different action based on the type and content of the message. Making the decision with pattern matching is easy and elegant:
 
-~~~ clj
+~~~ clojure
 (let [actor (spawn
                #(receive
                    :abc "yes!"
@@ -93,7 +92,7 @@ As we can see in the example, `receive` not only picks the action based on the m
 
 Sometimes, we would like to assign the whole message to a variable. We do it by creating a binding clause in `receive`:
 
-~~~ clj
+~~~ clojure
 (receive [m]
    [:foo val] (println "got foo:" val)
    :else      (println "got" m))
@@ -101,7 +100,7 @@ Sometimes, we would like to assign the whole message to a variable. We do it by 
 
 We can also match not on the raw message as its been received, but transform it first, and then match on the transformed value, like so, assuming `transform` is a function that takes a single argument (the message):
 
-~~~ clj
+~~~ clojure
 (receive [m transform]
    [:foo val] (println "got foo:" val)
    :else      (println "got" m))
@@ -111,7 +110,7 @@ Now `m` – and the value we're matching – is the the transformed value.
 
 `receive` also deals with timeouts. Say we want to do something if a message has not been received within 30 milliseconds (all `receive` timeouts are specified in milliseconds):
 
-~~~ clj
+~~~ clojure
 (receive [m transform]
    [:foo val] (println "got foo:" val)
    :else      (println "got" m)
@@ -125,7 +124,7 @@ Before we move on, it's time for a short example. In this example, we will defin
 
 Here's the adder actor:
 
-~~~ clj
+~~~ clojure
 (defsusfn adder []
   (loop []
     (receive
@@ -135,7 +134,7 @@ Here's the adder actor:
 
 And this is how we'll use it from within another actor:
 
-~~~ clj
+~~~ clojure
 ...
 (let [tag (maketag)
       a ...
@@ -149,7 +148,7 @@ And this is how we'll use it from within another actor:
 ...
 ~~~
 
-### Actors vs. Channels
+## Actors vs. Channels
 
 One of the reasons of providing a different `receive` function for actors is because programming with actors is conceptually different from just using fibers and channels. I think of channels as hoses  pumping data into a function, or as sort of like asynchronous parameters. A fiber may pull many different kinds of data from many different channels, and combine the data in some way. 
 
@@ -157,7 +156,7 @@ Actors are a different abstraction. They are more like objects in object-oriente
 
 But while the `receive` syntax is nice and all (it mirrors Erlang's syntax), we could have achieved the same with `rcv` almost as easily:
 
-~~~ clj
+~~~ clojure
 (let [m1 (rcv 30 :ms)]
    (if m1
       (let [m (transform m1)]
@@ -169,15 +168,37 @@ But while the `receive` syntax is nice and all (it mirrors Erlang's syntax), we 
 
 Pretty syntax is not the main goal of the `receive` function. The reason `receive` is much more powerful than `rcv`, is mostly because of a feature we will now introduce.
 
-### Selective Receive
+## Selective Receive
 
 An actor is a state machine. It usually encompasses some *state* and the messages it receives trigger *state transitions*. But because the actor has no control over which messages it receives and when (which can be a result of either other actors' behavior, or even the way the OS schedules threads), an actor would be required to process any message and any state, and build a full *state transition matrix*, namely how to transition whenever *any* messages is received at *any* state.
 
-This can not only lead to code explosion; it can lead to bugs. The key to managing a complex state machine is by not handling messages in the order they arrive, but in the order we wish to process them. If a message does not match any of the clauses in `receive`, it will remain in the mailbox. `receive` will return only when it finds a message that does. When another `receive` statement is called, it will again search the messages that are in the mailbox, and may match a message that has been skipped by a previous `receive`. [This example]({{examples}}/priority.clj) demonstrates receiving messages in order of priority.
+This can not only lead to code explosion; it can lead to bugs. The key to managing a complex state machine is by not handling messages in the order they arrive, but in the order we wish to process them. If a message does not match any of the clauses in `receive`, it will remain in the mailbox. `receive` will return only when it finds a message that does. When another `receive` statement is called, it will again search the messages that are in the mailbox, and may match a message that has been skipped by a previous `receive`. 
+
+In this code snippet, we specifically wait for the `:baz` message after receiving `:foo`, and so process the messages in this order -- `:foo`, `:baz`, `:bar` -- even though `:bar` is sent before `:baz`:
+
+~~~ clojure
+(let [res (atom [])
+      actor (spawn
+              #(dotimes [i 2]
+                 (receive
+                   [:foo x] (do
+                              (swap! res conj x)
+                              (receive
+                                [:baz z] (swap! res conj z)))
+                   [:bar y] (swap! res conj y)
+                   [:baz z] (swap! res conj z))))]
+  (! actor [:foo 1])
+  (! actor [:bar 2])
+  (! actor [:baz 3])
+  (join actor)
+  @res) ; => [1 3 2]
+~~~
+
+[Another example]({{examples}}/priority.clj) demonstrates receiving messages in order of priority.
 
 Selective receive is also very useful when communicating with other actors. Here's an excerpt from [this example]({{examples}}/selective.clj):
 
-~~~ clj
+~~~ clojure
 (defsusfn adder []
   (loop []
     (receive
@@ -221,11 +242,11 @@ There are several actor systems that do not support selective receive, but Erlan
 {:.alert .alert-warn}
 **A word of caution**: Using selective receive in your code may lead to deadlocks (because you're essentially saying, I'm going to wait here until a specific message arrives). This can be easily avoided by always specifying a timeout (with the `:after millis` clause) when doing a selective receive. Selective receive is a powerful tool that can greatly help writing readable, maintainable message-handling code, but don't over-use it.
 
-### Actor State
+## Actor State
 
 In Erlang, actor state is set by recursively calling the actor function with the new state as an argument. In Pulsar, we can do the same. Here’s an example:
 
-~~~ clj
+~~~ clojure
 (let [actor
       (spawn #(loop [i (int 2)
                      state (int 0)]
@@ -241,7 +262,7 @@ Clojure is all about managing state. It ensures that every computation has acces
 
 Every Pulsar actor has a `state` field that can be read like this `@state` and written with `set-state!`. Here’s an example:
 
-~~~ clj
+~~~ clojure
 (let [actor
       (spawn #(do
                 (set-state! 0)
@@ -256,7 +277,7 @@ Every Pulsar actor has a `state` field that can be read like this `@state` and w
 Finally, what if we want several state fields? What if we want some or all of them to be of a primitive type? This, too, poses no risk of race conditions because all state fields are written and read only by the actor, and there is no danger of them appearing inconsistent to an observer.
 Pulsar supports this as an experimental feature (implemented internally with `deftype`), like so:
 
-~~~ clj
+~~~ clojure
 (let [actor (spawn (actor [^int sum 0]
                           (set! sum (int (+ sum (receive))))
                           (set! sum (int (+ sum (receive))))
@@ -268,7 +289,7 @@ Pulsar supports this as an experimental feature (implemented internally with `de
 
 These are three different ways of managing actor state. Eventually, we’ll settle on just one or two (and are open to discussion about which is preferred).
 
-### State Machines with strampoline
+## State Machines with strampoline
 
 As we've seen, the `receive` form defines which messages the actor is willing to accept and process. You can nest `receive` statements, or place them in other functions that the actor calls (in which case the must be defined with `defsusfn`). It is often useful to treat the actor as a state machine, going from one state to another, executing a different `receive` at each state (to define the acceptable transitions from the state). To change state, all we would have to do is call a different function, each with its own receive, but here we face a technical limitation of Clojure. As Clojure (due to JVM limitations) does not perform true tail-call optimization, every state transition (i.e. every function call), would add a frame to the stack, eventually throwing a stack overflow. Clojure solves it with the `clojure.core/trampoline` function. It takes a function and calls it. When the function returns, if the returned value is a function, `trampoline` calls it.
 
@@ -276,7 +297,7 @@ Pulsar comes with a version of `trampoline` for suspendable functions called `st
 
 Consider this example:
 
-~~~ clj
+~~~ clojure
 (let [state2 (susfn []
                     (receive
                       :bar :foobar))
@@ -295,7 +316,7 @@ The actor starts at `state1` (represented by the function with the same name), b
 
 What happens if the messages `:foo` and `:bar` arrive in reverse order? Thanks to selective receive the result will be exactly the same! `state1` will skip the `:bar` message, and transition to `state2` when `:foo` arrives; the `receive` statement in `state2` will then find the `:bar` message waiting in the mailbox:
 
-~~~ clj
+~~~ clojure
 (let [state2 (susfn []
                     (receive
                       :bar :foobar))
@@ -310,15 +331,105 @@ What happens if the messages `:foo` and `:bar` arrive in reverse order? Thanks t
   (join actor)) ; => :foobar
 ~~~
 
-### Error Handling
+## Error Handling
 
 The actor model does not only make concurrency easy; it also helps build fault-tolerant systems by compartmentalizing failure. Each actor is it's own execution context - if it encounters an exception, only the actor is directly affected (like a thread, only actors are lightweight). Unlike regular functions/objects, where an exception has to be caught and handled immediately on the callstack, with actors we can completely separate code execution from error handling.
 
 In fact, when using actors, it is often best to to follow the [philosophy laid out by Joe Armstrong](http://www.erlang.org/download/armstrong_thesis_2003.pdf), Erlang's chief designer, of "let it crash". The idea is not to try and catch exceptions inside an actor, because attempting to catch and handle all exceptions is futile. Instead, we just let the actor crash, monitor its death elsewhere, and then take some action.
 
-The 
+The principle of actor error handling is that an actor can be asked to be notified of another actor's death. This is done through *linking* and *watching*. 
 
-### Actor registration
+### Linking actors
+
+You link two actors with the `link!` function like this:
+
+~~~ clojure
+(link! actor1 actor2)
+~~~
+
+Better yet, is to call the function from within one of the actors, say `actor1`, in which case it will be called like so:
+
+~~~ clojure
+(link! actor2)
+~~~
+
+A link is symmetrical. When two actors are linked, when one of them dies, the other throws an exception which, unless caught, kills it as well.
+
+Here's an example from the tests:
+
+~~~ clojure
+(let [actor1 (spawn #(Fiber/sleep 100))
+      actor2 (spawn
+               (fn []
+                 (link! actor1)
+                 (try
+                   (loop [] (receive [m] :foo :bar) (recur))
+                   (catch co.paralleluniverse.actors.LifecycleException e
+                     true))))]
+  
+  (join actor1)
+  (join actor2)) ; => true
+~~~
+
+Remember, linking is symmetrical, so if `actor2` were to die, `actor1` would get the exception.
+
+What if `actor2` wants to be notified when `actor1` dies, but doesn't want to die itself? The `:trap` flag for the `spawn` macro, tells is to trap lifecycle exceptions and turn them into messages:
+
+~~~ clojure
+(let [actor1 (spawn #(Strand/sleep 100))
+      actor2 (spawn :trap true
+                    (fn []
+                      (link! actor1)
+                      (receive [m]
+                               [:exit _ actor reason] actor)))]
+  (join actor1)
+  (join actor2)) ; => actor1
+~~~
+
+Now, when `actor1` dies, `actor2` receives an `:exit` message, telling it which actor has died and how. We'll look into the `:exit` message in a second.
+
+We can undo the link by calling
+
+~~~ clojure
+(unlink! actor1 actor2)
+~~~
+
+or 
+
+~~~ clojure
+(unlink! actor2)
+~~~
+
+from within `actor1`.
+
+### Watching actors
+
+A more robust way than linking of being notified of actor death is with a *watch* (called *monitor* in Erlang; this is one of the very few occasions we have abandoned the Erlang function names):
+
+~~~ clojure
+(let [actor1 (spawn #(Fiber/sleep 200))
+      actor2 (spawn
+               #(let [w (watch! actor1)]
+                  (receive
+                    [:exit w actor reason] actor)))]
+  (join actor1)
+  (join actor2)) ; => actor1
+~~~
+
+Watches are asymmetrical. Here, `actor2` watches for `actor1`'s death, but not vice-versa. When `actor1` dies, `actor2` gets an `:exit` message, of the exact same structure of the message sent when we used a link and a `:trap` flag.
+
+The `watch!` function returns a watch object. Because an actor can potentially set many watches on another actor (say, it calls a library function which calls `watch!`), we could potentially get several copies of the exit message, each for a different watch.
+
+The message is a vector of 4 elements:
+
+1. `:exit`
+2. The watch interested in the message (or `nil` when linking). Note how in the example we pattern-match on the second element (with the `w` value, which contains the watch object), to ensure that we only process the message belonging to our watch.
+3. The actor that just died.
+4. The dead actor's death cause: `nil` for a natural death (no exception thrown, just like in our example), or the throwable responsible for the actor's death.
+
+## Actor registration
+
+
 
 ## Behaviors
 
@@ -326,7 +437,7 @@ The
 
 ### gen-event
 
-### Supervisors
+## Supervisors
 
 
 

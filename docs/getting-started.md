@@ -12,7 +12,7 @@ Java 7 and Clojure 1.5 are required to run Pulsar.
 
 Add the following dependency to [Leiningen](http://github.com/technomancy/leiningen/)'s project.clj:
 
-~~~ clj
+~~~ clojure
 [co.paralleluniverse/pulsar "0.1.1"]
 ~~~
 

@@ -1,4 +1,3 @@
-#markdown: redcarpet
 markdown: kramdown
 pygments: false
 lsi: false
@@ -6,12 +5,15 @@ safe: false
 baseurl: /pulsar
 
 kramdown:
-  use_coderay: false
+  use_coderay: true
+  coderay:
+    coderay_line_numbers: nil
+    coderay_css: class
 
 # Site globals used throughout docs.
 project: Pulsar
 github: puniverse/pulsar
-google_group: https://groups.google.com/forum/#!forum/quasar-pulsar-user
+google_group: "https://groups.google.com/forum/#!forum/quasar-pulsar-user"
 copyright: "2013, Parallel Universe Software Co."
 tagline: "Erlang-like actors for Clojure"
 ga_tracking_id: UA-25007319-2

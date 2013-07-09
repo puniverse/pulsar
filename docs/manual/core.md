@@ -59,7 +59,7 @@ You can also wait for a fiber's termination for a given duration. The following 
 
 The following will have the same effect:
 
-~~~ clj
+~~~ clojure
 (join 500 :ms fiber)
 ~~~
 
@@ -69,7 +69,7 @@ Fibers behave well with Clojure `bindings`. A newly spawned fiber inherits the b
 and bindings decleared in a fiber last throughout the fiber's lifetime. This is demonstrated in the following tests taken
 from the Pulsar test suite:
 
-~~~ clj
+~~~ clojure
 (def ^:dynamic *foo* 40)
 
 (facts "fiber-bindings"
@@ -123,7 +123,7 @@ The `promise` function defined in Pulsar creates a promise, that, when dereferen
 
 Here's an example of using promises from the tests:
 
-~~~ clj
+~~~ clojure
 (let [v1 (promise)
      v2 (promise)
      v3 (promise)
@@ -140,7 +140,7 @@ This example shows how promises are set, and read, by both fibers and regular th
 
 But Pulsar's promises have one additional, quite nifty, feature. If you pass an optional function to `promise`, a new fiber running that function will be spawned, and the promise will receive the value returned from the function. Here's another example from the tests:
 
-~~~ clj
+~~~ clojure
 (let [v0 (promise)
      v1 (promise)
      v2 (promise #(+ @v1 1))
@@ -190,13 +190,13 @@ The `rcv` function returns the first message in the channel (the one that has wa
 
 It is also possible to limit the amount of time `rcv` will wait for a message:
 
-~~~ clj
+~~~ clojure
 (rcv channel 10 java.util.concurrent.TimeUnit/MILLISECONDS)
 ~~~
 
 or, equivalently:
 
-~~~ clj
+~~~ clojure
 (rcv channel 10 :ms)
 ~~~
 
@@ -206,7 +206,7 @@ These calls will wait for a message for 10 milliseconds before giving up and ret
 
 After calling 
 
-~~~ clj
+~~~ clojure
 (close channel)
 ~~~
 
@@ -257,7 +257,7 @@ To create a lazy-seq from a channel, simply call:
 
 Then, manipulating messages with sequence functions is easy. Here are some examples from the tests:
 
-~~~ clj
+~~~ clojure
 (require [co.paralleluniverse.pulsar.lazyseq :as s :refer [channel->lazy-seq snd-seq]])
 
 (facts "channels-seq"
