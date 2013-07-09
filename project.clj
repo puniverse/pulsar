@@ -29,8 +29,12 @@
   :profiles {:dev
              {:plugins [[lein-midje "3.0.0"]]
               :dependencies [[midje "1.5.1" :exclusions [org.clojure/tools.namespace]]]
-              :jvm-opts ["-ea"
+              :jvm-opts [;; Debugging
+                         "-ea"
                          ;"-Dco.paralleluniverse.lwthreads.verifyInstrumentation=true"
+                         ;; ForkJoin wants these:
+                         "-XX:-UseBiasedLocking"
+                         "-XX:UseCondCardMark"
                          ;; Recording
                          ; "-Dco.paralleluniverse.debugMode=true"
                          ; "-Dco.paralleluniverse.globalFlightRecorder=true"
