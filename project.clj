@@ -34,7 +34,7 @@
                          ;"-Dco.paralleluniverse.lwthreads.verifyInstrumentation=true"
                          ;; ForkJoin wants these:
                          "-XX:-UseBiasedLocking"
-                         "-XX:UseCondCardMark"
+                         "-XX:+UseCondCardMark"
                          ;; Recording
                          ; "-Dco.paralleluniverse.debugMode=true"
                          ; "-Dco.paralleluniverse.globalFlightRecorder=true"
