@@ -24,6 +24,10 @@
   :manifest {"Premain-Class" "co.paralleluniverse.fibers.instrument.JavaAgent"
              "Can-Retransform-Classes" "true"}
   :jvm-opts ["-server"
+             ;; ForkJoin wants these:
+             "-XX:-UseBiasedLocking"
+             "-XX:+UseCondCardMark"
+             ;; The instrumentation agent:
              ~(str "-javaagent:" (System/getProperty "user.home") "/.m2/repository/co/paralleluniverse/quasar-core/0.2-SNAPSHOT/quasar-core-0.2-SNAPSHOT.jar")]
   :pedantic :warn
   :profiles {:dev
@@ -32,9 +36,6 @@
               :jvm-opts [;; Debugging
                          "-ea"
                          ;"-Dco.paralleluniverse.lwthreads.verifyInstrumentation=true"
-                         ;; ForkJoin wants these:
-                         "-XX:-UseBiasedLocking"
-                         "-XX:+UseCondCardMark"
                          ;; Recording
                          ; "-Dco.paralleluniverse.debugMode=true"
                          ; "-Dco.paralleluniverse.globalFlightRecorder=true"
