@@ -26,12 +26,12 @@
                    (recur))))
 
 (defn -main []
-  (register :pong (spawn pong))
+  (register! :pong (spawn pong))
   (spawn ping 3)
   :ok)
 
 #_(defn -main []
-    (let [a1 (register :pong (spawn pong))
+    (let [a1 (register! :pong (spawn pong))
           b1 (spawn ping 3)]
       (join a1)
       (join b1)

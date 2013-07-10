@@ -140,11 +140,12 @@
       (fact "When an actor dies, its watch gets a message"
             (let [actor1 (spawn #(Fiber/sleep 200))
                   actor2 (spawn
-                           #(receive
-                              [:exit watch actor reason] watch))
-                  wtc (watch! actor2 actor1)]
+                           (fn []
+                             (let [w (watch! actor1)]
+                               (receive
+                                 [:exit w actor reason] actor))))]
               (join actor1)
-              (fact (join actor2) => wtc)))
+              (join actor2) => actor1))
       (fact "When an actor dies, its watch gets a message2"
             (let [actor1 (spawn #(Fiber/sleep 200))
                   actor2 (spawn
@@ -274,7 +275,7 @@
                  (gen-server (reify Server
                                (init [_]
                                      (reset! called true)
-                                     (shutdown))
+                                     (shutdown!))
                                (terminate [_ cause]))))]
         (join gs)
         @called) => true)
@@ -288,7 +289,7 @@
                                (handle-timeout [_]
                                                (if (< @times 5)
                                                  (swap! times inc)
-                                                 (shutdown)))
+                                                 (shutdown!)))
                                (terminate [_ cause]))))]
         (fact
           (join 50 :ms gs) => (throws TimeoutException))
@@ -304,7 +305,7 @@
                                           (fact cause => nil)))))]
         (fact
           (join 50 :ms gs) => (throws TimeoutException))
-        (shutdown gs)
+        (shutdown! gs)
         (join gs)) => nil)
 
 
@@ -401,7 +402,7 @@
                                (handle-cast [_ from id [a b]]
                                             (reset! res (+ a b))))))]
         (cast gs 3 4)
-        (shutdown gs)
+        (shutdown! gs)
         (join gs)
         @res => 7))
 
@@ -414,7 +415,7 @@
                                (handle-info [_ m]
                                             (reset! res m)))))]
         (! gs :hi)
-        (shutdown gs)
+        (shutdown! gs)
         (join gs)
         @res => :hi))
 
@@ -438,7 +439,7 @@
                         #(add-handler @self handler1)))]
         (add-handler ge handler2)
         (notify ge "hello")
-        (shutdown ge)
+        (shutdown! ge)
         (join ge)) => nil
       (provided 
         (handler1 "hello") => nil
@@ -451,7 +452,7 @@
         (Strand/sleep 50)
         (remove-handler ge handler1)
         (notify ge "hello")
-        (shutdown ge)
+        (shutdown! ge)
         (join ge)) => nil
       (provided 
         (handler1 anything) => irrelevant :times 0
@@ -495,7 +496,7 @@
                   (! a :shutdown nil)
                   (fact
                     (join a) => res)))
-              (shutdown sup)
+              (shutdown! sup)
               (join sup)))
       (fact "When permanent actor dies of un-natural causes then restart"
             (let [sup (spawn
@@ -506,7 +507,7 @@
                   (! a :hi!)
                   (fact
                     (join a) => throws Exception)))
-              (shutdown sup)
+              (shutdown! sup)
               (join sup)))
       (fact "When transient actor dies of natural causes then don't restart"
             (let [sup (spawn
@@ -519,7 +520,7 @@
                 (fact
                   (join a) => 3))
               (fact (sup-child sup "actor1" 200) => nil)
-              (shutdown sup)
+              (shutdown! sup)
               (join sup)))
       (fact "When transient actor dies of un-natural causes then restart"
             (let [sup (spawn
@@ -530,7 +531,7 @@
                   (! a :hi!)
                   (fact
                     (join a) => throws Exception)))
-              (shutdown sup)
+              (shutdown! sup)
               (join sup)))
       (fact "When temporary actor dies of natural causes then don't restart"
             (let [sup (spawn
@@ -543,7 +544,7 @@
                 (fact
                   (join a) => 3))
               (fact (sup-child sup "actor1" 200) => nil)
-              (shutdown sup)
+              (shutdown! sup)
               (join sup)))
       (fact "When temporary actor dies of un-natural causes then don't restart"
             (let [sup (spawn
@@ -554,7 +555,7 @@
                 (fact
                   (join a) => throws Exception))
               (fact (sup-child sup "actor1" 200) => nil)
-              (shutdown sup)
+              (shutdown! sup)
               (join sup))))
 
 (fact "When a child dies too many times then give up and die"
@@ -617,6 +618,6 @@
           (fact
             (join a) => 15))
         (Strand/sleep 2000) ; give the actor time to start the gen-server
-        (shutdown sup)
+        (shutdown! sup)
         (join sup)
         [@started @terminated]) => [4 4])

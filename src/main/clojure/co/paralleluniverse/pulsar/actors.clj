@@ -143,7 +143,7 @@
   {:arglists '([:name? :mailbox-size? :overflow-policy? :lifecycle-handler? :stack-size? :pool? f & args])}
   [& args]
   `(let [actor# ~(list `spawn ~@args)]
-     (link! @self actor#)
+     (link! actor#)
      actor#))
 
 (defmacro spawn-watch
@@ -151,7 +151,7 @@
   {:arglists '([:name? :mailbox-size? :overflow-policy? :lifecycle-handler? :stack-size? :pool? f & args])}
   [& args]
   `(let [actor# ~(list `spawn ~@args)]
-     (watch! @self actor#)
+     (watch! actor#)
      actor#))
 
 (ann done? [LocalActor -> Boolean])
@@ -226,11 +226,9 @@
 (ann monitor (Fn [Actor Actor -> LifecycleListener]
                  [Actor -> LifecycleListener]))
 (defn watch!
-  "Makes an actor watch another actor. Returns a watch object which should be used when calling demonitor."
-  ([actor2]
-   (.watch ^LocalActor @self actor2))
-  ([actor1 actor2]
-   (.watch ^LocalActor (clojure.core/cast LocalActor (get-actor actor1)) (get-actor actor2))))
+  "Makes the current actor watch another actor. Returns a watch object which should be used when calling demonitor."
+  [actor]
+   (.watch ^LocalActor @self actor))
 
 (ann monitor (Fn [Actor Actor LifecycleListener -> nil]
                  [Actor LifecycleListener -> nil]))
@@ -243,7 +241,7 @@
 
 (ann register (Fn [String LocalActor -> LocalActor]
                   [LocalActor -> LocalActor]))
-(defn register
+(defn register!
   "Registers an actor"
   ([name ^LocalActor actor]
    (.register actor name))
@@ -251,7 +249,7 @@
    (.register actor)))
 
 (ann unregister [LocalActor -> LocalActor])
-(defn unregister
+(defn unregister!
   "Un-registers an actor"
   [x]
   (let [^LocalActor actor x]
@@ -395,7 +393,7 @@
                              `(case (int ~mtc) ~@(mapcat #(list %2 `(match [~m] [~(first %1)] ~(second %1))) pbody (range))))))))))
 ;`(match [~mtc ~m] ~@(mapcat #(list [%2 (first %1)] (second %1)) pbody (range))))))))))
 
-(defn shutdown
+(defn shutdown!
   "Asks a gen-server or a supervisor to shut down"
   ([^GenBehavior gs]
    (.shutdown gs))
@@ -503,7 +501,7 @@
   ([^GenServer gs m & args]
    (.cast gs (vec (cons m args)))))
 
-(defn set-timeout
+(defn set-timeout!
   "Sets the timeout for the current gen-server"
   [timeout unit]
   (.setTimeout (LocalGenServer/currentGenServer) timeout (->timeunit unit)))
