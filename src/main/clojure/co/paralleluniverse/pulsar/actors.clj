@@ -605,7 +605,6 @@
                      ^LocalSupervisor$RestartStrategy (keyword->enum LocalSupervisor$RestartStrategy restart-strategy)
                      (->Initializer
                        (fn [] (doseq [child (seq ((suspendable! init)))]
-                                (println "ZZZZZZZZ" child)
                                 (apply add-child (cons @self child)))))))
   ([restart-strategy init]
    (supervisor nil restart-strategy init)))
