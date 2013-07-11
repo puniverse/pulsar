@@ -427,17 +427,206 @@ The message is a vector of 4 elements:
 3. The actor that just died.
 4. The dead actor's death cause: `nil` for a natural death (no exception thrown, just like in our example), or the throwable responsible for the actor's death.
 
+We can remove a watch by calling
+
+~~~ clojure
+(unwatch! actor1 actor2)
+~~~
+
+or 
+
+~~~ clojure
+(unwatch! actor2)
+~~~
+
+from within `actor1`.
+
 ## Actor registration
 
+*Registering* an actor gives it a public name that can be used to locate the actor. You register an actor like so:
 
+~~~ clojure
+(register! actor name)
+~~~
+
+or:
+
+~~~ clojure
+(register! actor)
+~~~
+
+in which case the name will be the one given to the actor when it was `spawn`ed. `name` can be a string, or any object with a nice string representation (like a keyword).
+
+You obtain a reference to a registered actor with:
+
+~~~ clojure
+(whois name)
+~~~
+
+but most actor-related functions can work directly with the registered name. For example, instead of this:
+
+~~~ clojure
+(register! actor :foo)
+(! (whois :foo) "hi foo!")
+~~~
+
+you can write:
+
+~~~ clojure
+(register !actor :foo)
+(! :foo "hi foo!")
+~~~
+
+You unregister an actor like so:
+
+~~~ clojure
+(unregister! actor)
+~~~
+
+### Registration and Monitoring
+
+When you register an actor, Pulsar automatically creates a JMX MBean to monitor it. Look for it using JConsole or VisualVM.
+
+Details TBD.
+
+### Registration and Clustering
+
+If you're running in a Galaxy cluster, registering an actor will make it globally available on the cluster (so the name must be unique to the entire cluster).
+
+Details TBD.
 
 ## Behaviors
 
+Erlang's designers have realized that many actors follow some common patterns - like an actor that receives requests for work and then sends back a result to the requester. They've turned those patterns into actor templates, called behaviors, in order to save poeple work and avoid some common errors. Some of these behaviors have been ported to Pulsar. 
+
+Behaviors have two sides. One is the provider side, and is modeled in Pulsar as a protocols. You implement the protocol, and Pulsar provides the full actor implementation that uses your protocol. The other is the consumer side -- functions used by other actors to access the functionality provided by the behavior.
+
 ### gen-server
+
+`gen-server` is a template for a server actor that receives requests and replies with responses. The consumer side for gen-server consists of the following functions:
+
+~~~ clojure
+(call actor request)
+~~~
+
+This would send the `request` message to the gen-server actor, and block until a response is received. It will then return the response. If the request triggers an exception in the actor, that exception will be thrown by `call`.
+
+There's also a timed version of `call`, which gives up and returns `nil` if the timeout expires. For example, :
+
+~~~ clojure
+(call-timed actor 100 :ms request)
+~~~
+
+would wait up to 100ms for a response.
+
+You can also send a gen-server messages that do not require a response with the `cast` function:
+
+~~~ clojure
+(cast actor message)
+~~~
+
+Finally, you can shutdown a gen-server with the shutdown function:
+
+~~~ clojure
+(shutdown! actor)
+~~~
+
+In order to create a gen-server actor(the provider side), you need to implement the following protocol:
+
+~~~ clojure
+(defprotocol Server
+  (init [this])
+  (handle-call [this ^Actor from id message])
+  (handle-cast [this ^Actor from id message])
+  (handle-info [this message])
+  (handle-timeout [this])
+  (terminate [this ^Throwable cause]))
+~~~
+
+* `init` -- will be called alled when the actor starts
+* `terminate` -- will be called when the actor terminates.
+* `handle-call` -- called when the `call` function has been called on the actor :). This is where the gen-server's functionality usually lies. The value returned from `handle-call` will be sent back to the actor making the request, unless `nil` is returned, in which case the response has to be sent manually as we'll see later.
+* `handle-cast` -- called to handle messages sent with `cast`.
+* `handle-info` -- called whenever a message has been sent to the actor directly (i.e., with `!`) rather than through `call` or `cast`.
+* `handle-timeout` -- called whenever the gen-server has not received any messages for a configurable duration of time. The timeout can be configured using either the `:timeout` option to the `gen-server` function, or by calling the `set-timeout!` function, as we'll immediately see.
+
+You spawn a gen-server actor like so:
+
+~~~ clojure
+(spawn (gen-server <options?> server))
+~~~
+
+where `options` can now only be `:timeout millis`. Here's an example from the tests:
+
+~~~ clojure
+(let [gs (spawn
+           (gen-server (reify Server
+                         (init [_])
+                         (terminate [_ cause])
+                         (handle-call [_ from id [a b]]
+                                      (Strand/sleep 50)
+                                      (+ a b)))))]
+  (call gs 3 4); => 7
+~~~
+
+And here's one with server timeouts:
+
+~~~ clojure
+(let [times (atom 0)
+            gs (spawn
+                 (gen-server :timeout 20
+                             (reify Server
+                               (init [_])
+                               (handle-timeout [_]
+                                               (if (< @times 5)
+                                                 (swap! times inc)
+                                                 (shutdown!)))
+                               (terminate [_ cause]))))]
+        (join 200 :ms gs)
+        @times) ; => 5
+~~~
+
+You can set (and reset) the timeout from anywhere within the protocol's methods by calling, say 
+
+~~~ clojure
+(set-timeout 100 :ms)
+~~~
+
+A timeout value of 0 or less means no timeout.
+
+If the `handle-call` function returns `nil`, then no response is sent to the caller. The `call` function remains blocked until a response is sent manually. This is done with the `reply` function, which takes, along with the response message, the identitiy of the caller and the request ID, both passed to `handle-call`. Here's an example:
+
+~~~ clojure
+(let [gs (spawn
+           (gen-server :timeout 50
+                       (reify Server
+                         (init [_]
+                               (set-state! {}))
+                         (terminate [_ cause])
+                         (handle-call [_ from id [a b]]
+                                      (set-state! (assoc @state :a a :b b :from from :id id))
+                                      nil)
+                         (handle-timeout [_]
+                                         (let [{:keys [a b from id]} @state]
+                                           (when id
+                                             (reply from id (+ a b))))))))]
+  (call-timed gs 100 :ms 5 6)) ; => 11
+~~~
+
+In the example, `handle-call` saves the request in the actor's state, and later, in `handle-timeout` sends the response using `reply`. The response is returned by `call-timed`.
+
+If an error is encountered during the generation of the delayed repsonse, an exception can be returned to the caller (and will be thrown by `call`), using `reply-error`:
+
+~~~ clojure
+ (reply-error to id (Exception. "does not compute"))
+~~~
+
+where `to` is the identity of the caller passed as `from` to `handle-call`.
 
 ### gen-event
 
 ## Supervisors
 
+A supervisor is an actor behavior designed to standardize error handling. Internally it uses watches and links, but it offers a more structured, standard, and simple way to react to errors.
 
-
+The general idea is that actors performing business logic, "worker actors", are supervised by asupervisor actor that detects when they die and takes one of several pre-configured actions. 
