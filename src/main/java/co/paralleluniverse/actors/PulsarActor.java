@@ -58,18 +58,17 @@ public class PulsarActor extends LocalActor<Object, Object> {
     }
 
     public static Object selfGetState() {
-        return self().getState();
+        return LocalActor.self().getAux();
     }
 
     public static Object selfSetState(Object newState) {
-        self().setState(newState);
+        LocalActor.self().setAux(newState);
         return newState;
     }
     ///////////////////////////////////////////////////////////////
     private final SuspendableCallable<Object> target;
     private final IFn lifecycleMessageHandler;
     private boolean trap;
-    private Object state;
 
     @SuppressWarnings("LeakingThisInConstructor")
     public PulsarActor(String name, boolean trap, MailboxConfig mailboxConfig, IFn lifecycleMessageHandler, IFn target) {
@@ -85,14 +84,6 @@ public class PulsarActor extends LocalActor<Object, Object> {
 
     public boolean isTrap() {
         return trap;
-    }
-
-    private Object getState() {
-        return state;
-    }
-
-    private void setState(Object state) {
-        this.state = state;
     }
 
     @Override

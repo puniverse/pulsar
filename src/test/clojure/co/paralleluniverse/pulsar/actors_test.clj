@@ -375,17 +375,17 @@
         (call-timed gs 10 :ms 3 4) => (throws TimeoutException)))
 
 (fact "when reply is called return value in call"
-      (let [info (atom {})
-            gs (spawn
+      (let [gs (spawn
                  (gen-server :timeout 50
                              (reify Server
-                               (init [_])
+                               (init [_]
+                                     (set-state! {}))
                                (terminate [_ cause])
                                (handle-call [_ from id [a b]]
-                                            (swap! info assoc :a a :b b :from from :id id)
+                                            (set-state! (assoc @state :a a :b b :from from :id id))
                                             nil)
                                (handle-timeout [_]
-                                               (let [{:keys [a b from id]} @info]
+                                               (let [{:keys [a b from id]} @state]
                                                  (when id
                                                    (reply from id (+ a b))))))))]
         (fact
