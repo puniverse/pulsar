@@ -3156,13 +3156,13 @@ as published by the Free Software Foundation.</p>
   {:arglists '([:name? :mailbox-size? :overflow-policy? :lifecycle-handler? :stack-size? :pool? f &amp; args])}
   [&amp; args]
   `(let [actor# ~(list `spawn ~@args)]
-     (link! @self actor#)
+     (link! actor#)
      actor#))</pre></td></tr><tr><td class="docs"><p>Creates and starts a new actor, and makes @self monitor it</p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro spawn-watch
   {:arglists '([:name? :mailbox-size? :overflow-policy? :lifecycle-handler? :stack-size? :pool? f &amp; args])}
   [&amp; args]
   `(let [actor# ~(list `spawn ~@args)]
-     (watch! @self actor#)
+     (watch! actor#)
      actor#))</pre></td></tr><tr><td class="docs"><p>Tests whether or not an actor has terminated.</p>
 </td><td class="codes"><pre class="brush: clojure">(ann done? [LocalActor -&gt; Boolean])
 (defn done?
@@ -3213,14 +3213,12 @@ as published by the Free Software Foundation.</p>
   ([actor2]
    (.unlink ^LocalActor @self actor2))
   ([actor1 actor2]
-   (.unlink ^LocalActor (clojure.core/cast LocalActor (get-actor actor1)) (get-actor actor2))))</pre></td></tr><tr><td class="docs"><p>Makes an actor watch another actor. Returns a watch object which should be used when calling demonitor.</p>
+   (.unlink ^LocalActor (clojure.core/cast LocalActor (get-actor actor1)) (get-actor actor2))))</pre></td></tr><tr><td class="docs"><p>Makes the current actor watch another actor. Returns a watch object which should be used when calling demonitor.</p>
 </td><td class="codes"><pre class="brush: clojure">(ann monitor (Fn [Actor Actor -&gt; LifecycleListener]
                  [Actor -&gt; LifecycleListener]))
 (defn watch!
-  ([actor2]
-   (.watch ^LocalActor @self actor2))
-  ([actor1 actor2]
-   (.watch ^LocalActor (clojure.core/cast LocalActor (get-actor actor1)) (get-actor actor2))))</pre></td></tr><tr><td class="docs"><p>Makes an actor stop watch another actor</p>
+  [actor]
+   (.watch ^LocalActor @self actor))</pre></td></tr><tr><td class="docs"><p>Makes an actor stop watch another actor</p>
 </td><td class="codes"><pre class="brush: clojure">(ann monitor (Fn [Actor Actor LifecycleListener -&gt; nil]
                  [Actor LifecycleListener -&gt; nil]))
 (defn unwatch!
@@ -3230,13 +3228,13 @@ as published by the Free Software Foundation.</p>
    (.unwatch ^LocalActor (clojure.core/cast LocalActor (get-actor actor1)) (get-actor actor2) monitor)))</pre></td></tr><tr><td class="docs"><p>Registers an actor</p>
 </td><td class="codes"><pre class="brush: clojure">(ann register (Fn [String LocalActor -&gt; LocalActor]
                   [LocalActor -&gt; LocalActor]))
-(defn register
+(defn register!
   ([name ^LocalActor actor]
    (.register actor name))
   ([^LocalActor actor]
    (.register actor)))</pre></td></tr><tr><td class="docs"><p>Un-registers an actor</p>
 </td><td class="codes"><pre class="brush: clojure">(ann unregister [LocalActor -&gt; LocalActor])
-(defn unregister
+(defn unregister!
   [x]
   (let [^LocalActor actor x]
     (.unregister actor)))</pre></td></tr><tr><td class="docs">
@@ -3363,7 +3361,7 @@ as published by the Free Software Foundation.</p>
                              ; but the patterns might have wildcards so we need to match again (for the bindings)
                              `(case (int ~mtc) ~@(mapcat #(list %2 `(match [~m] [~(first %1)] ~(second %1))) pbody (range))))))))))</pre></td></tr><tr><td class="docs"><p>`(match [~mtc ~m] ~@(mapcat #(list [%2 (first %1)] (second %1)) pbody (range))))))))))</p>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>Asks a gen-server or a supervisor to shut down</p>
-</td><td class="codes"><pre class="brush: clojure">(defn shutdown
+</td><td class="codes"><pre class="brush: clojure">(defn shutdown!
   ([^GenBehavior gs]
    (.shutdown gs))
   ([]
@@ -3452,7 +3450,7 @@ as published by the Free Software Foundation.</p>
    (.cast gs m))
   ([^GenServer gs m &amp; args]
    (.cast gs (vec (cons m args)))))</pre></td></tr><tr><td class="docs"><p>Sets the timeout for the current gen-server</p>
-</td><td class="codes"><pre class="brush: clojure">(defn set-timeout
+</td><td class="codes"><pre class="brush: clojure">(defn set-timeout!
   [timeout unit]
   (.setTimeout (LocalGenServer/currentGenServer) timeout (-&gt;timeunit unit)))</pre></td></tr><tr><td class="docs"><p>Replies to a message sent to the current gen-server</p>
 </td><td class="codes"><pre class="brush: clojure">(defn reply
@@ -3530,7 +3528,6 @@ as published by the Free Software Foundation.</p>
                      ^LocalSupervisor$RestartStrategy (keyword-&gt;enum LocalSupervisor$RestartStrategy restart-strategy)
                      (-&gt;Initializer
                        (fn [] (doseq [child (seq ((suspendable! init)))]
-                                (println &quot;ZZZZZZZZ&quot; child)
                                 (apply add-child (cons @self child)))))))
   ([restart-strategy init]
    (supervisor nil restart-strategy init)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.async" name="co.paralleluniverse.pulsar.async"><h1 class="project-name">co.paralleluniverse.pulsar.async</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Implementation of core.async</p>
@@ -4672,11 +4669,12 @@ as published by the Free Software Foundation.</p>
       (fact &quot;When an actor dies, its watch gets a message&quot;
             (let [actor1 (spawn #(Fiber/sleep 200))
                   actor2 (spawn
-                           #(receive
-                              [:exit watch actor reason] watch))
-                  wtc (watch! actor2 actor1)]
+                           (fn []
+                             (let [w (watch! actor1)]
+                               (receive
+                                 [:exit w actor reason] actor))))]
               (join actor1)
-              (fact (join actor2) =&gt; wtc)))
+              (join actor2) =&gt; actor1))
       (fact &quot;When an actor dies, its watch gets a message2&quot;
             (let [actor1 (spawn #(Fiber/sleep 200))
                   actor2 (spawn
@@ -4796,7 +4794,7 @@ as published by the Free Software Foundation.</p>
                  (gen-server (reify Server
                                (init [_]
                                      (reset! called true)
-                                     (shutdown))
+                                     (shutdown!))
                                (terminate [_ cause]))))]
         (join gs)
         @called) =&gt; true)</pre></td></tr><tr><td class="docs">
@@ -4809,7 +4807,7 @@ as published by the Free Software Foundation.</p>
                                (handle-timeout [_]
                                                (if (&lt; @times 5)
                                                  (swap! times inc)
-                                                 (shutdown)))
+                                                 (shutdown!)))
                                (terminate [_ cause]))))]
         (fact
           (join 50 :ms gs) =&gt; (throws TimeoutException))
@@ -4824,7 +4822,7 @@ as published by the Free Software Foundation.</p>
                                           (fact cause =&gt; nil)))))]
         (fact
           (join 50 :ms gs) =&gt; (throws TimeoutException))
-        (shutdown gs)
+        (shutdown! gs)
         (join gs)) =&gt; nil)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(facts &quot;gen-server call&quot;
        (fact &quot;When gen-server call then result is returned&quot;
@@ -4890,17 +4888,17 @@ as published by the Free Software Foundation.</p>
                                             (+ a b)))))]
         (call-timed gs 10 :ms 3 4) =&gt; (throws TimeoutException)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(fact &quot;when reply is called return value in call&quot;
-      (let [info (atom {})
-            gs (spawn
+      (let [gs (spawn
                  (gen-server :timeout 50
                              (reify Server
-                               (init [_])
+                               (init [_]
+                                     (set-state! {}))
                                (terminate [_ cause])
                                (handle-call [_ from id [a b]]
-                                            (swap! info assoc :a a :b b :from from :id id)
+                                            (set-state! (assoc @state :a a :b b :from from :id id))
                                             nil)
                                (handle-timeout [_]
-                                               (let [{:keys [a b from id]} @info]
+                                               (let [{:keys [a b from id]} @state]
                                                  (when id
                                                    (reply from id (+ a b))))))))]
         (fact
@@ -4915,7 +4913,7 @@ as published by the Free Software Foundation.</p>
                                (handle-cast [_ from id [a b]]
                                             (reset! res (+ a b))))))]
         (cast gs 3 4)
-        (shutdown gs)
+        (shutdown! gs)
         (join gs)
         @res =&gt; 7))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(fact &quot;Messages sent to a gen-server are passed to handle-info&quot;
@@ -4927,7 +4925,7 @@ as published by the Free Software Foundation.</p>
                                (handle-info [_ m]
                                             (reset! res m)))))]
         (! gs :hi)
-        (shutdown gs)
+        (shutdown! gs)
         (join gs)
         @res =&gt; :hi))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(fact &quot;When handle-info throws exception, terminate is called with the cause&quot;
@@ -4947,7 +4945,7 @@ as published by the Free Software Foundation.</p>
                         #(add-handler @self handler1)))]
         (add-handler ge handler2)
         (notify ge &quot;hello&quot;)
-        (shutdown ge)
+        (shutdown! ge)
         (join ge)) =&gt; nil
       (provided 
         (handler1 &quot;hello&quot;) =&gt; nil
@@ -4959,7 +4957,7 @@ as published by the Free Software Foundation.</p>
         (Strand/sleep 50)
         (remove-handler ge handler1)
         (notify ge &quot;hello&quot;)
-        (shutdown ge)
+        (shutdown! ge)
         (join ge)) =&gt; nil
       (provided 
         (handler1 anything) =&gt; irrelevant :times 0
@@ -4996,7 +4994,7 @@ manually add a known actor to a supervisor, so this ugly function is only useful
                   (! a :shutdown nil)
                   (fact
                     (join a) =&gt; res)))
-              (shutdown sup)
+              (shutdown! sup)
               (join sup)))
       (fact &quot;When permanent actor dies of un-natural causes then restart&quot;
             (let [sup (spawn
@@ -5007,7 +5005,7 @@ manually add a known actor to a supervisor, so this ugly function is only useful
                   (! a :hi!)
                   (fact
                     (join a) =&gt; throws Exception)))
-              (shutdown sup)
+              (shutdown! sup)
               (join sup)))
       (fact &quot;When transient actor dies of natural causes then don't restart&quot;
             (let [sup (spawn
@@ -5020,7 +5018,7 @@ manually add a known actor to a supervisor, so this ugly function is only useful
                 (fact
                   (join a) =&gt; 3))
               (fact (sup-child sup &quot;actor1&quot; 200) =&gt; nil)
-              (shutdown sup)
+              (shutdown! sup)
               (join sup)))
       (fact &quot;When transient actor dies of un-natural causes then restart&quot;
             (let [sup (spawn
@@ -5031,7 +5029,7 @@ manually add a known actor to a supervisor, so this ugly function is only useful
                   (! a :hi!)
                   (fact
                     (join a) =&gt; throws Exception)))
-              (shutdown sup)
+              (shutdown! sup)
               (join sup)))
       (fact &quot;When temporary actor dies of natural causes then don't restart&quot;
             (let [sup (spawn
@@ -5044,7 +5042,7 @@ manually add a known actor to a supervisor, so this ugly function is only useful
                 (fact
                   (join a) =&gt; 3))
               (fact (sup-child sup &quot;actor1&quot; 200) =&gt; nil)
-              (shutdown sup)
+              (shutdown! sup)
               (join sup)))
       (fact &quot;When temporary actor dies of un-natural causes then don't restart&quot;
             (let [sup (spawn
@@ -5055,7 +5053,7 @@ manually add a known actor to a supervisor, so this ugly function is only useful
                 (fact
                   (join a) =&gt; throws Exception))
               (fact (sup-child sup &quot;actor1&quot; 200) =&gt; nil)
-              (shutdown sup)
+              (shutdown! sup)
               (join sup))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(fact &quot;When a child dies too many times then give up and die&quot;
       (let [sup (spawn
@@ -5114,7 +5112,7 @@ manually add a known actor to a supervisor, so this ugly function is only useful
           (fact
             (join a) =&gt; 15))
         (Strand/sleep 2000) ; give the actor time to start the gen-server
-        (shutdown sup)
+        (shutdown! sup)
         (join sup)
         [@started @terminated]) =&gt; [4 4])</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.core-test" name="co.paralleluniverse.pulsar.core-test"><h1 class="project-name">co.paralleluniverse.pulsar.core-test</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>This program and the accompanying materials are dual-licensed under
 either the terms of the Eclipse Public License v1.0 as published by
@@ -5610,7 +5608,7 @@ so it is not written in idiomatic Clojure.</p>
                    (! ping :pong)
                    (recur))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn -main []
-  (register :pong (spawn pong))
+  (register! :pong (spawn pong))
   (spawn ping 3)
   :ok)</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.examples.primitive-ring-benchmark" name="co.paralleluniverse.pulsar.examples.primitive-ring-benchmark"><h1 class="project-name">co.paralleluniverse.pulsar.examples.primitive-ring-benchmark</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>An implementation of the ring benchmark using fibers and primitive (int) channels</p>
 </td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar.examples.primitive-ring-benchmark

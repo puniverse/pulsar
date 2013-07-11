@@ -13,7 +13,8 @@
 </title>
 <!--<link rel="shortcut icon" href="/images/icons/loading_icon.png">-->
 <link href="/pulsar/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
-<link href="/pulsar/css/prettify/sunburst.css" rel="stylesheet" type="text/css">
+<link href="/pulsar/css/coderay.css" rel="stylesheet" type="text/css">
+<!-- <link href="/pulsar/css/prettify/sunburst.css" rel="stylesheet" type="text/css"> -->
 <!-- <link href="/css/pygments/default.css" rel="stylesheet" type="text/css"> -->
 <link href="/pulsar/css/site.css?now" rel="stylesheet" type="text/css">
 
@@ -189,7 +190,7 @@
 
 <p>Add the following dependency to <a href="http://github.com/technomancy/leiningen/">Leiningen</a>’s project.clj:</p>
 
-<pre><code class="language-clj">[co.paralleluniverse/pulsar "0.1.1"]
+<pre><code class="language-clojure">[co.paralleluniverse/pulsar "0.1.1"]
 </code></pre>
 
 <p>Then, the following must be added to the <code>java</code> command line or to project.clj’s <code>:jvm-opts</code>
@@ -234,7 +235,7 @@ section:</p>
   </div>
 </div>
 
-<script src="/pulsar/js/prettify/prettify.js"></script>
+<!-- <script src="/pulsar/js/prettify/prettify.js"></script> -->
 <script src="/pulsar/js/jquery.min.js"></script>
 <script src="/pulsar/bootstrap/js/bootstrap.min.js"></script>
 <script src="/pulsar/js/bootstrap-scrollspy.js"></script>
@@ -262,8 +263,9 @@ $(document).ready(function () {
 
   // TODO: Use kramdown {:.prettyprint .linenums .lang-ruby} to add the
   // <pre class="prettyprint"> instead of doing this client-side.
-  $('pre:has(code:not(.language-txt))').addClass('prettyprint');
-  window.prettyPrint && prettyPrint();
+
+  // $('pre:has(code:not(.language-txt))').addClass('prettyprint');
+  // window.prettyPrint && prettyPrint();
 });
 </script>
 

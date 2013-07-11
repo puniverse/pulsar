@@ -13,7 +13,8 @@
 </title>
 <!--<link rel="shortcut icon" href="/images/icons/loading_icon.png">-->
 <link href="/pulsar/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
-<link href="/pulsar/css/prettify/sunburst.css" rel="stylesheet" type="text/css">
+<link href="/pulsar/css/coderay.css" rel="stylesheet" type="text/css">
+<!-- <link href="/pulsar/css/prettify/sunburst.css" rel="stylesheet" type="text/css"> -->
 <!-- <link href="/css/pygments/default.css" rel="stylesheet" type="text/css"> -->
 <link href="/pulsar/css/site.css?now" rel="stylesheet" type="text/css">
 
@@ -235,7 +236,7 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
 
 <p>The following will have the same effect:</p>
 
-<pre><code class="language-clj">(join 500 :ms fiber)
+<pre><code class="language-clojure">(join 500 :ms fiber)
 </code></pre>
 
 <h3 id="bindings">Bindings</h3>
@@ -244,7 +245,7 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
 and bindings decleared in a fiber last throughout the fiber&#8217;s lifetime. This is demonstrated in the following tests taken
 from the Pulsar test suite:</p>
 
-<pre><code class="language-clj">(def ^:dynamic *foo* 40)
+<pre><code class="language-clojure">(def ^:dynamic *foo* 40)
 
 (facts "fiber-bindings"
       (fact "Fiber inherits thread bindings"
@@ -298,7 +299,7 @@ from the Pulsar test suite:</p>
 
 <p>Here&#8217;s an example of using promises from the tests:</p>
 
-<pre><code class="language-clj">(let [v1 (promise)
+<pre><code class="language-clojure">(let [v1 (promise)
      v2 (promise)
      v3 (promise)
      v4 (promise)
@@ -314,7 +315,7 @@ from the Pulsar test suite:</p>
 
 <p>But Pulsar&#8217;s promises have one additional, quite nifty, feature. If you pass an optional function to <code>promise</code>, a new fiber running that function will be spawned, and the promise will receive the value returned from the function. Here&#8217;s another example from the tests:</p>
 
-<pre><code class="language-clj">(let [v0 (promise)
+<pre><code class="language-clojure">(let [v0 (promise)
      v1 (promise)
      v2 (promise #(+ @v1 1))
      v3 (promise #(+ @v1 @v2))
@@ -366,12 +367,12 @@ from the Pulsar test suite:</p>
 
 <p>It is also possible to limit the amount of time <code>rcv</code> will wait for a message:</p>
 
-<pre><code class="language-clj">(rcv channel 10 java.util.concurrent.TimeUnit/MILLISECONDS)
+<pre><code class="language-clojure">(rcv channel 10 java.util.concurrent.TimeUnit/MILLISECONDS)
 </code></pre>
 
 <p>or, equivalently:</p>
 
-<pre><code class="language-clj">(rcv channel 10 :ms)
+<pre><code class="language-clojure">(rcv channel 10 :ms)
 </code></pre>
 
 <p>These calls will wait for a message for 10 milliseconds before giving up and returning <code>nil</code>.</p>
@@ -380,7 +381,7 @@ from the Pulsar test suite:</p>
 
 <p>After calling </p>
 
-<pre><code class="language-clj">(close channel)
+<pre><code class="language-clojure">(close channel)
 </code></pre>
 
 <p>any future messages sent to the channel will be ignored. Any messages already in the channel will be received. Once the last message has been received, another call to <code>rcv</code> will return <code>nil</code>. </p>
@@ -432,7 +433,7 @@ from the Pulsar test suite:</p>
 
 <p>Then, manipulating messages with sequence functions is easy. Here are some examples from the tests:</p>
 
-<pre><code class="language-clj">(require [co.paralleluniverse.pulsar.lazyseq :as s :refer [channel-&gt;lazy-seq snd-seq]])
+<pre><code class="language-clojure">(require [co.paralleluniverse.pulsar.lazyseq :as s :refer [channel-&gt;lazy-seq snd-seq]])
 
 (facts "channels-seq"
        (fact "Receive sequence with sleep"
@@ -488,7 +489,7 @@ from the Pulsar test suite:</p>
   </div>
 </div>
 
-<script src="/pulsar/js/prettify/prettify.js"></script>
+<!-- <script src="/pulsar/js/prettify/prettify.js"></script> -->
 <script src="/pulsar/js/jquery.min.js"></script>
 <script src="/pulsar/bootstrap/js/bootstrap.min.js"></script>
 <script src="/pulsar/js/bootstrap-scrollspy.js"></script>
@@ -516,8 +517,9 @@ $(document).ready(function () {
 
   // TODO: Use kramdown {:.prettyprint .linenums .lang-ruby} to add the
   // <pre class="prettyprint"> instead of doing this client-side.
-  $('pre:has(code:not(.language-txt))').addClass('prettyprint');
-  window.prettyPrint && prettyPrint();
+
+  // $('pre:has(code:not(.language-txt))').addClass('prettyprint');
+  // window.prettyPrint && prettyPrint();
 });
 </script>
 

@@ -13,7 +13,8 @@
 </title>
 <!--<link rel="shortcut icon" href="/images/icons/loading_icon.png">-->
 <link href="/pulsar/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
-<link href="/pulsar/css/prettify/sunburst.css" rel="stylesheet" type="text/css">
+<link href="/pulsar/css/coderay.css" rel="stylesheet" type="text/css">
+<!-- <link href="/pulsar/css/prettify/sunburst.css" rel="stylesheet" type="text/css"> -->
 <!-- <link href="/css/pygments/default.css" rel="stylesheet" type="text/css"> -->
 <link href="/pulsar/css/site.css?now" rel="stylesheet" type="text/css">
 
@@ -134,7 +135,7 @@
                 Pulsar's Actor System
               </a>
               
-              <ul class="nav nav-list"><li><a href="#actors">Actors</a></li><li><a href="#behaviors">Behaviors</a></li></ul>
+              <ul class="nav nav-list"><li><a href="#sending-and-receiving-messages">Sending and Receiving Messages</a></li><li><a href="#actors-vs-channels">Actors vs. Channels</a></li><li><a href="#selective-receive">Selective Receive</a></li><li><a href="#actor-state">Actor State</a></li><li><a href="#state-machines-with-strampoline">State Machines with strampoline</a></li><li><a href="#error-handling">Error Handling</a></li><li><a href="#actor-registration">Actor registration</a></li><li><a href="#behaviors">Behaviors</a></li><li><a href="#supervisors">Supervisors</a></li></ul>
               
             </li>
           
@@ -181,9 +182,7 @@
       </div>
       
 
-      <div id="content"><h2 id="actors">Actors</h2>
-
-<p>To use the terms we’ve learned so far, an <em>actor</em> is a strand that owns a single channel with some added lifecyce management and error handling. But this reductionist view of actors does them little justice. Actors are fundamental building blocks that are combined to build a fault-tolerant application. If you are familiar with Erlang, Pulsar actors are just like Erlang processes.</p>
+      <div id="content"><p>To use the terms we’ve learned so far, an <em>actor</em> is a strand that owns a single channel with some added lifecyce management and error handling. But this reductionist view of actors does them little justice. Actors are fundamental building blocks that are combined to build a fault-tolerant application. If you are familiar with Erlang, Pulsar actors are just like Erlang processes.</p>
 
 <p>An actor is a self-contained execution unit with well-defined inputs and outputs. Actors communicate with other actors (as well as regular program threads and fibers) by passing messages.</p>
 
@@ -221,7 +220,7 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
 
 <p class="alert alert-info"><strong>Note</strong>: Just like fibers, spawning an actor is a very cheap operation in both computation and memory. Do not fear creating many (thousands, tens-of-thousands or even hundereds-of-thousands) actors.</p>
 
-<h3 id="sending-and-receiving-messages">Sending and Receiving Messages</h3>
+<h2 id="sending-and-receiving-messages">Sending and Receiving Messages</h2>
 
 <p>An actor’s mailbox is a channel, that can be obtained with the <code>mailbox-of</code> function. You can therefore send a message to an actor like so:</p>
 
@@ -264,7 +263,7 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
 
 <p><code>receive</code> has some features that make it very suitable for handling messages in actors. Its most visible feature is pattern matching. When an actor receives a message, it usually takes different action based on the type and content of the message. Making the decision with pattern matching is easy and elegant:</p>
 
-<pre><code class="language-clj">(let [actor (spawn
+<pre><code class="language-clojure">(let [actor (spawn
                #(receive
                    :abc "yes!"
                    [:why? answer] answer
@@ -277,14 +276,14 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
 
 <p>Sometimes, we would like to assign the whole message to a variable. We do it by creating a binding clause in <code>receive</code>:</p>
 
-<pre><code class="language-clj">(receive [m]
+<pre><code class="language-clojure">(receive [m]
    [:foo val] (println "got foo:" val)
    :else      (println "got" m))
 </code></pre>
 
 <p>We can also match not on the raw message as its been received, but transform it first, and then match on the transformed value, like so, assuming <code>transform</code> is a function that takes a single argument (the message):</p>
 
-<pre><code class="language-clj">(receive [m transform]
+<pre><code class="language-clojure">(receive [m transform]
    [:foo val] (println "got foo:" val)
    :else      (println "got" m))
 </code></pre>
@@ -293,7 +292,7 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
 
 <p><code>receive</code> also deals with timeouts. Say we want to do something if a message has not been received within 30 milliseconds (all <code>receive</code> timeouts are specified in milliseconds):</p>
 
-<pre><code class="language-clj">(receive [m transform]
+<pre><code class="language-clojure">(receive [m transform]
    [:foo val] (println "got foo:" val)
    :else      (println "got" m)
    :after 30  (println "nothing..."))
@@ -305,7 +304,7 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
 
 <p>Here’s the adder actor:</p>
 
-<pre><code class="language-clj">(defsusfn adder []
+<pre><code class="language-clojure">(defsusfn adder []
   (loop []
     (receive
      [from tag [:add a b]] (! from tag [:sum (+ a b)]))
@@ -314,7 +313,7 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
 
 <p>And this is how we’ll use it from within another actor:</p>
 
-<pre><code class="language-clj">...
+<pre><code class="language-clojure">...
 (let [tag (maketag)
       a ...
       b ...]
@@ -327,7 +326,7 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
 ...
 </code></pre>
 
-<h3 id="actors-vs-channels">Actors vs. Channels</h3>
+<h2 id="actors-vs-channels">Actors vs. Channels</h2>
 
 <p>One of the reasons of providing a different <code>receive</code> function for actors is because programming with actors is conceptually different from just using fibers and channels. I think of channels as hoses  pumping data into a function, or as sort of like asynchronous parameters. A fiber may pull many different kinds of data from many different channels, and combine the data in some way. </p>
 
@@ -335,7 +334,7 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
 
 <p>But while the <code>receive</code> syntax is nice and all (it mirrors Erlang’s syntax), we could have achieved the same with <code>rcv</code> almost as easily:</p>
 
-<pre><code class="language-clj">(let [m1 (rcv 30 :ms)]
+<pre><code class="language-clojure">(let [m1 (rcv 30 :ms)]
    (if m1
       (let [m (transform m1)]
          (match (transform (rcv 30 :ms))
@@ -346,15 +345,36 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
 
 <p>Pretty syntax is not the main goal of the <code>receive</code> function. The reason <code>receive</code> is much more powerful than <code>rcv</code>, is mostly because of a feature we will now introduce.</p>
 
-<h3 id="selective-receive">Selective Receive</h3>
+<h2 id="selective-receive">Selective Receive</h2>
 
 <p>An actor is a state machine. It usually encompasses some <em>state</em> and the messages it receives trigger <em>state transitions</em>. But because the actor has no control over which messages it receives and when (which can be a result of either other actors’ behavior, or even the way the OS schedules threads), an actor would be required to process any message and any state, and build a full <em>state transition matrix</em>, namely how to transition whenever <em>any</em> messages is received at <em>any</em> state.</p>
 
-<p>This can not only lead to code explosion; it can lead to bugs. The key to managing a complex state machine is by not handling messages in the order they arrive, but in the order we wish to process them. If a message does not match any of the clauses in <code>receive</code>, it will remain in the mailbox. <code>receive</code> will return only when it finds a message that does. When another <code>receive</code> statement is called, it will again search the messages that are in the mailbox, and may match a message that has been skipped by a previous <code>receive</code>. <a href="/priority.clj">This example</a> demonstrates receiving messages in order of priority.</p>
+<p>This can not only lead to code explosion; it can lead to bugs. The key to managing a complex state machine is by not handling messages in the order they arrive, but in the order we wish to process them. If a message does not match any of the clauses in <code>receive</code>, it will remain in the mailbox. <code>receive</code> will return only when it finds a message that does. When another <code>receive</code> statement is called, it will again search the messages that are in the mailbox, and may match a message that has been skipped by a previous <code>receive</code>. </p>
+
+<p>In this code snippet, we specifically wait for the <code>:baz</code> message after receiving <code>:foo</code>, and so process the messages in this order – <code>:foo</code>, <code>:baz</code>, <code>:bar</code> – even though <code>:bar</code> is sent before <code>:baz</code>:</p>
+
+<pre><code class="language-clojure">(let [res (atom [])
+      actor (spawn
+              #(dotimes [i 2]
+                 (receive
+                   [:foo x] (do
+                              (swap! res conj x)
+                              (receive
+                                [:baz z] (swap! res conj z)))
+                   [:bar y] (swap! res conj y)
+                   [:baz z] (swap! res conj z))))]
+  (! actor [:foo 1])
+  (! actor [:bar 2])
+  (! actor [:baz 3])
+  (join actor)
+  @res) ; =&gt; [1 3 2]
+</code></pre>
+
+<p><a href="/priority.clj">Another example</a> demonstrates receiving messages in order of priority.</p>
 
 <p>Selective receive is also very useful when communicating with other actors. Here’s an excerpt from <a href="/selective.clj">this example</a>:</p>
 
-<pre><code class="language-clj">(defsusfn adder []
+<pre><code class="language-clojure">(defsusfn adder []
   (loop []
     (receive
       [from tag [:add a b]] (! from tag [:sum (+ a b)]))
@@ -396,11 +416,11 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
 
 <p class="alert alert-warn"><strong>A word of caution</strong>: Using selective receive in your code may lead to deadlocks (because you’re essentially saying, I’m going to wait here until a specific message arrives). This can be easily avoided by always specifying a timeout (with the <code>:after millis</code> clause) when doing a selective receive. Selective receive is a powerful tool that can greatly help writing readable, maintainable message-handling code, but don’t over-use it.</p>
 
-<h3 id="actor-state">Actor State</h3>
+<h2 id="actor-state">Actor State</h2>
 
 <p>In Erlang, actor state is set by recursively calling the actor function with the new state as an argument. In Pulsar, we can do the same. Here’s an example:</p>
 
-<pre><code class="language-clj">(let [actor
+<pre><code class="language-clojure">(let [actor
       (spawn #(loop [i (int 2)
                      state (int 0)]
                 (if (== i 0)
@@ -415,7 +435,7 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
 
 <p>Every Pulsar actor has a <code>state</code> field that can be read like this <code>@state</code> and written with <code>set-state!</code>. Here’s an example:</p>
 
-<pre><code class="language-clj">(let [actor
+<pre><code class="language-clojure">(let [actor
       (spawn #(do
                 (set-state! 0)
                 (set-state! (+ @state (receive)))
@@ -429,7 +449,7 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
 <p>Finally, what if we want several state fields? What if we want some or all of them to be of a primitive type? This, too, poses no risk of race conditions because all state fields are written and read only by the actor, and there is no danger of them appearing inconsistent to an observer.
 Pulsar supports this as an experimental feature (implemented internally with <code>deftype</code>), like so:</p>
 
-<pre><code class="language-clj">(let [actor (spawn (actor [^int sum 0]
+<pre><code class="language-clojure">(let [actor (spawn (actor [^int sum 0]
                           (set! sum (int (+ sum (receive))))
                           (set! sum (int (+ sum (receive))))
                           sum))]
@@ -440,7 +460,7 @@ Pulsar supports this as an experimental feature (implemented internally with <co
 
 <p>These are three different ways of managing actor state. Eventually, we’ll settle on just one or two (and are open to discussion about which is preferred).</p>
 
-<h3 id="state-machines-with-strampoline">State Machines with strampoline</h3>
+<h2 id="state-machines-with-strampoline">State Machines with strampoline</h2>
 
 <p>As we’ve seen, the <code>receive</code> form defines which messages the actor is willing to accept and process. You can nest <code>receive</code> statements, or place them in other functions that the actor calls (in which case the must be defined with <code>defsusfn</code>). It is often useful to treat the actor as a state machine, going from one state to another, executing a different <code>receive</code> at each state (to define the acceptable transitions from the state). To change state, all we would have to do is call a different function, each with its own receive, but here we face a technical limitation of Clojure. As Clojure (due to JVM limitations) does not perform true tail-call optimization, every state transition (i.e. every function call), would add a frame to the stack, eventually throwing a stack overflow. Clojure solves it with the <code>clojure.core/trampoline</code> function. It takes a function and calls it. When the function returns, if the returned value is a function, <code>trampoline</code> calls it.</p>
 
@@ -448,7 +468,7 @@ Pulsar supports this as an experimental feature (implemented internally with <co
 
 <p>Consider this example:</p>
 
-<pre><code class="language-clj">(let [state2 (susfn []
+<pre><code class="language-clojure">(let [state2 (susfn []
                     (receive
                       :bar :foobar))
       state1 (susfn []
@@ -466,7 +486,7 @@ Pulsar supports this as an experimental feature (implemented internally with <co
 
 <p>What happens if the messages <code>:foo</code> and <code>:bar</code> arrive in reverse order? Thanks to selective receive the result will be exactly the same! <code>state1</code> will skip the <code>:bar</code> message, and transition to <code>state2</code> when <code>:foo</code> arrives; the <code>receive</code> statement in <code>state2</code> will then find the <code>:bar</code> message waiting in the mailbox:</p>
 
-<pre><code class="language-clj">(let [state2 (susfn []
+<pre><code class="language-clojure">(let [state2 (susfn []
                     (receive
                       :bar :foobar))
       state1 (susfn []
@@ -480,24 +500,283 @@ Pulsar supports this as an experimental feature (implemented internally with <co
   (join actor)) ; =&gt; :foobar
 </code></pre>
 
-<h3 id="error-handling">Error Handling</h3>
+<h2 id="error-handling">Error Handling</h2>
 
 <p>The actor model does not only make concurrency easy; it also helps build fault-tolerant systems by compartmentalizing failure. Each actor is it’s own execution context - if it encounters an exception, only the actor is directly affected (like a thread, only actors are lightweight). Unlike regular functions/objects, where an exception has to be caught and handled immediately on the callstack, with actors we can completely separate code execution from error handling.</p>
 
 <p>In fact, when using actors, it is often best to to follow the <a href="http://www.erlang.org/download/armstrong_thesis_2003.pdf">philosophy laid out by Joe Armstrong</a>, Erlang’s chief designer, of “let it crash”. The idea is not to try and catch exceptions inside an actor, because attempting to catch and handle all exceptions is futile. Instead, we just let the actor crash, monitor its death elsewhere, and then take some action.</p>
 
-<p>The </p>
+<p>The principle of actor error handling is that an actor can be asked to be notified of another actor’s death. This is done through <em>linking</em> and <em>watching</em>. </p>
 
-<h3 id="actor-registration">Actor registration</h3>
+<h3 id="linking-actors">Linking actors</h3>
+
+<p>You link two actors with the <code>link!</code> function like this:</p>
+
+<pre><code class="language-clojure">(link! actor1 actor2)
+</code></pre>
+
+<p>Better yet, is to call the function from within one of the actors, say <code>actor1</code>, in which case it will be called like so:</p>
+
+<pre><code class="language-clojure">(link! actor2)
+</code></pre>
+
+<p>A link is symmetrical. When two actors are linked, when one of them dies, the other throws an exception which, unless caught, kills it as well.</p>
+
+<p>Here’s an example from the tests:</p>
+
+<pre><code class="language-clojure">(let [actor1 (spawn #(Fiber/sleep 100))
+      actor2 (spawn
+               (fn []
+                 (link! actor1)
+                 (try
+                   (loop [] (receive [m] :foo :bar) (recur))
+                   (catch co.paralleluniverse.actors.LifecycleException e
+                     true))))]
+  
+  (join actor1)
+  (join actor2)) ; =&gt; true
+</code></pre>
+
+<p>Remember, linking is symmetrical, so if <code>actor2</code> were to die, <code>actor1</code> would get the exception.</p>
+
+<p>What if <code>actor2</code> wants to be notified when <code>actor1</code> dies, but doesn’t want to die itself? The <code>:trap</code> flag for the <code>spawn</code> macro, tells is to trap lifecycle exceptions and turn them into messages:</p>
+
+<pre><code class="language-clojure">(let [actor1 (spawn #(Strand/sleep 100))
+      actor2 (spawn :trap true
+                    (fn []
+                      (link! actor1)
+                      (receive [m]
+                               [:exit _ actor reason] actor)))]
+  (join actor1)
+  (join actor2)) ; =&gt; actor1
+</code></pre>
+
+<p>Now, when <code>actor1</code> dies, <code>actor2</code> receives an <code>:exit</code> message, telling it which actor has died and how. We’ll look into the <code>:exit</code> message in a second.</p>
+
+<p>We can undo the link by calling</p>
+
+<pre><code class="language-clojure">(unlink! actor1 actor2)
+</code></pre>
+
+<p>or </p>
+
+<pre><code class="language-clojure">(unlink! actor2)
+</code></pre>
+
+<p>from within <code>actor1</code>.</p>
+
+<h3 id="watching-actors">Watching actors</h3>
+
+<p>A more robust way than linking of being notified of actor death is with a <em>watch</em> (called <em>monitor</em> in Erlang; this is one of the very few occasions we have abandoned the Erlang function names):</p>
+
+<pre><code class="language-clojure">(let [actor1 (spawn #(Fiber/sleep 200))
+      actor2 (spawn
+               #(let [w (watch! actor1)]
+                  (receive
+                    [:exit w actor reason] actor)))]
+  (join actor1)
+  (join actor2)) ; =&gt; actor1
+</code></pre>
+
+<p>Watches are asymmetrical. Here, <code>actor2</code> watches for <code>actor1</code>’s death, but not vice-versa. When <code>actor1</code> dies, <code>actor2</code> gets an <code>:exit</code> message, of the exact same structure of the message sent when we used a link and a <code>:trap</code> flag.</p>
+
+<p>The <code>watch!</code> function returns a watch object. Because an actor can potentially set many watches on another actor (say, it calls a library function which calls <code>watch!</code>), we could potentially get several copies of the exit message, each for a different watch.</p>
+
+<p>The message is a vector of 4 elements:</p>
+
+<ol>
+  <li><code>:exit</code></li>
+  <li>The watch interested in the message (or <code>nil</code> when linking). Note how in the example we pattern-match on the second element (with the <code>w</code> value, which contains the watch object), to ensure that we only process the message belonging to our watch.</li>
+  <li>The actor that just died.</li>
+  <li>The dead actor’s death cause: <code>nil</code> for a natural death (no exception thrown, just like in our example), or the throwable responsible for the actor’s death.</li>
+</ol>
+
+<p>We can remove a watch by calling</p>
+
+<pre><code class="language-clojure">(unwatch! actor1 actor2)
+</code></pre>
+
+<p>or </p>
+
+<pre><code class="language-clojure">(unwatch! actor2)
+</code></pre>
+
+<p>from within <code>actor1</code>.</p>
+
+<h2 id="actor-registration">Actor registration</h2>
+
+<p><em>Registering</em> an actor gives it a public name that can be used to locate the actor. You register an actor like so:</p>
+
+<pre><code class="language-clojure">(register! actor name)
+</code></pre>
+
+<p>or:</p>
+
+<pre><code class="language-clojure">(register! actor)
+</code></pre>
+
+<p>in which case the name will be the one given to the actor when it was <code>spawn</code>ed. <code>name</code> can be a string, or any object with a nice string representation (like a keyword).</p>
+
+<p>You obtain a reference to a registered actor with:</p>
+
+<pre><code class="language-clojure">(whois name)
+</code></pre>
+
+<p>but most actor-related functions can work directly with the registered name. For example, instead of this:</p>
+
+<pre><code class="language-clojure">(register! actor :foo)
+(! (whois :foo) "hi foo!")
+</code></pre>
+
+<p>you can write:</p>
+
+<pre><code class="language-clojure">(register !actor :foo)
+(! :foo "hi foo!")
+</code></pre>
+
+<p>You unregister an actor like so:</p>
+
+<pre><code class="language-clojure">(unregister! actor)
+</code></pre>
+
+<h3 id="registration-and-monitoring">Registration and Monitoring</h3>
+
+<p>When you register an actor, Pulsar automatically creates a JMX MBean to monitor it. Look for it using JConsole or VisualVM.</p>
+
+<p>Details TBD.</p>
+
+<h3 id="registration-and-clustering">Registration and Clustering</h3>
+
+<p>If you’re running in a Galaxy cluster, registering an actor will make it globally available on the cluster (so the name must be unique to the entire cluster).</p>
+
+<p>Details TBD.</p>
 
 <h2 id="behaviors">Behaviors</h2>
 
+<p>Erlang’s designers have realized that many actors follow some common patterns - like an actor that receives requests for work and then sends back a result to the requester. They’ve turned those patterns into actor templates, called behaviors, in order to save poeple work and avoid some common errors. Some of these behaviors have been ported to Pulsar. </p>
+
+<p>Behaviors have two sides. One is the provider side, and is modeled in Pulsar as a protocols. You implement the protocol, and Pulsar provides the full actor implementation that uses your protocol. The other is the consumer side – functions used by other actors to access the functionality provided by the behavior.</p>
+
 <h3 id="gen-server">gen-server</h3>
+
+<p><code>gen-server</code> is a template for a server actor that receives requests and replies with responses. The consumer side for gen-server consists of the following functions:</p>
+
+<pre><code class="language-clojure">(call actor request)
+</code></pre>
+
+<p>This would send the <code>request</code> message to the gen-server actor, and block until a response is received. It will then return the response. If the request triggers an exception in the actor, that exception will be thrown by <code>call</code>.</p>
+
+<p>There’s also a timed version of <code>call</code>, which gives up and returns <code>nil</code> if the timeout expires. For example, :</p>
+
+<pre><code class="language-clojure">(call-timed actor 100 :ms request)
+</code></pre>
+
+<p>would wait up to 100ms for a response.</p>
+
+<p>You can also send a gen-server messages that do not require a response with the <code>cast</code> function:</p>
+
+<pre><code class="language-clojure">(cast actor message)
+</code></pre>
+
+<p>Finally, you can shutdown a gen-server with the shutdown function:</p>
+
+<pre><code class="language-clojure">(shutdown! actor)
+</code></pre>
+
+<p>In order to create a gen-server actor(the provider side), you need to implement the following protocol:</p>
+
+<pre><code class="language-clojure">(defprotocol Server
+  (init [this])
+  (handle-call [this ^Actor from id message])
+  (handle-cast [this ^Actor from id message])
+  (handle-info [this message])
+  (handle-timeout [this])
+  (terminate [this ^Throwable cause]))
+</code></pre>
+
+<ul>
+  <li><code>init</code> – will be called alled when the actor starts</li>
+  <li><code>terminate</code> – will be called when the actor terminates.</li>
+  <li><code>handle-call</code> – called when the <code>call</code> function has been called on the actor :). This is where the gen-server’s functionality usually lies. The value returned from <code>handle-call</code> will be sent back to the actor making the request, unless <code>nil</code> is returned, in which case the response has to be sent manually as we’ll see later.</li>
+  <li><code>handle-cast</code> – called to handle messages sent with <code>cast</code>.</li>
+  <li><code>handle-info</code> – called whenever a message has been sent to the actor directly (i.e., with <code>!</code>) rather than through <code>call</code> or <code>cast</code>.</li>
+  <li><code>handle-timeout</code> – called whenever the gen-server has not received any messages for a configurable duration of time. The timeout can be configured using either the <code>:timeout</code> option to the <code>gen-server</code> function, or by calling the <code>set-timeout!</code> function, as we’ll immediately see.</li>
+</ul>
+
+<p>You spawn a gen-server actor like so:</p>
+
+<pre><code class="language-clojure">(spawn (gen-server &lt;options?&gt; server))
+</code></pre>
+
+<p>where <code>options</code> can now only be <code>:timeout millis</code>. Here’s an example from the tests:</p>
+
+<pre><code class="language-clojure">(let [gs (spawn
+           (gen-server (reify Server
+                         (init [_])
+                         (terminate [_ cause])
+                         (handle-call [_ from id [a b]]
+                                      (Strand/sleep 50)
+                                      (+ a b)))))]
+  (call gs 3 4); =&gt; 7
+</code></pre>
+
+<p>And here’s one with server timeouts:</p>
+
+<pre><code class="language-clojure">(let [times (atom 0)
+            gs (spawn
+                 (gen-server :timeout 20
+                             (reify Server
+                               (init [_])
+                               (handle-timeout [_]
+                                               (if (&lt; @times 5)
+                                                 (swap! times inc)
+                                                 (shutdown!)))
+                               (terminate [_ cause]))))]
+        (join 200 :ms gs)
+        @times) ; =&gt; 5
+</code></pre>
+
+<p>You can set (and reset) the timeout from anywhere within the protocol’s methods by calling, say </p>
+
+<pre><code class="language-clojure">(set-timeout 100 :ms)
+</code></pre>
+
+<p>A timeout value of 0 or less means no timeout.</p>
+
+<p>If the <code>handle-call</code> function returns <code>nil</code>, then no response is sent to the caller. The <code>call</code> function remains blocked until a response is sent manually. This is done with the <code>reply</code> function, which takes, along with the response message, the identitiy of the caller and the request ID, both passed to <code>handle-call</code>. Here’s an example:</p>
+
+<pre><code class="language-clojure">(let [gs (spawn
+           (gen-server :timeout 50
+                       (reify Server
+                         (init [_]
+                               (set-state! {}))
+                         (terminate [_ cause])
+                         (handle-call [_ from id [a b]]
+                                      (set-state! (assoc @state :a a :b b :from from :id id))
+                                      nil)
+                         (handle-timeout [_]
+                                         (let [{:keys [a b from id]} @state]
+                                           (when id
+                                             (reply from id (+ a b))))))))]
+  (call-timed gs 100 :ms 5 6)) ; =&gt; 11
+</code></pre>
+
+<p>In the example, <code>handle-call</code> saves the request in the actor’s state, and later, in <code>handle-timeout</code> sends the response using <code>reply</code>. The response is returned by <code>call-timed</code>.</p>
+
+<p>If an error is encountered during the generation of the delayed repsonse, an exception can be returned to the caller (and will be thrown by <code>call</code>), using <code>reply-error</code>:</p>
+
+<pre><code class="language-clojure"> (reply-error to id (Exception. "does not compute"))
+</code></pre>
+
+<p>where <code>to</code> is the identity of the caller passed as <code>from</code> to <code>handle-call</code>.</p>
 
 <h3 id="gen-event">gen-event</h3>
 
-<h3 id="supervisors">Supervisors</h3>
+<h2 id="supervisors">Supervisors</h2>
 
+<p>A supervisor is an actor behavior designed to standardize error handling. Internally it uses watches and links, but it offers a more structured, standard, and simple way to react to errors.</p>
+
+<p>The general idea is that actors performing business logic, “worker actors”, are supervised by asupervisor actor that detects when they die and takes one of several pre-configured actions. </p>
 </div>
 
       <hr>
@@ -512,7 +791,7 @@ Pulsar supports this as an experimental feature (implemented internally with <co
   </div>
 </div>
 
-<script src="/pulsar/js/prettify/prettify.js"></script>
+<!-- <script src="/pulsar/js/prettify/prettify.js"></script> -->
 <script src="/pulsar/js/jquery.min.js"></script>
 <script src="/pulsar/bootstrap/js/bootstrap.min.js"></script>
 <script src="/pulsar/js/bootstrap-scrollspy.js"></script>
@@ -540,8 +819,9 @@ $(document).ready(function () {
 
   // TODO: Use kramdown {:.prettyprint .linenums .lang-ruby} to add the
   // <pre class="prettyprint"> instead of doing this client-side.
-  $('pre:has(code:not(.language-txt))').addClass('prettyprint');
-  window.prettyPrint && prettyPrint();
+
+  // $('pre:has(code:not(.language-txt))').addClass('prettyprint');
+  // window.prettyPrint && prettyPrint();
 });
 </script>
 
