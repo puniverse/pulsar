@@ -309,16 +309,16 @@
         (join gs)) => nil)
 
 
-(facts "gen-server call"
-       (fact "When gen-server call then result is returned"
+(facts "gen-server call!"
+       (fact "When gen-server call! then result is returned"
              (let [gs (spawn
                         (gen-server (reify Server
                                       (init [_])
                                       (terminate [_ cause])
                                       (handle-call [_ from id [a b]]
                                                    (+ a b)))))]
-               (call gs 3 4) => 7))
-       (fact "When gen-server call then result is returned (with sleep)"
+               (call! gs 3 4) => 7))
+       (fact "When gen-server call! then result is returned (with sleep)"
              (let [gs (spawn
                         (gen-server (reify Server
                                       (init [_])
@@ -326,17 +326,17 @@
                                       (handle-call [_ from id [a b]]
                                                    (Strand/sleep 50)
                                                    (+ a b)))))]
-               (call gs 3 4) => 7))
-       (fact "When gen-server call from fiber then result is returned"
+               (call! gs 3 4) => 7))
+       (fact "When gen-server call! from fiber then result is returned"
              (let [gs (spawn
                         (gen-server (reify Server
                                       (init [_])
                                       (terminate [_ cause])
                                       (handle-call [_ from id [a b]]
                                                    (+ a b)))))
-                   fib (spawn-fiber #(call gs 3 4))]
+                   fib (spawn-fiber #(call! gs 3 4))]
                (join fib) => 7))
-       (fact "When gen-server call from fiber then result is returned (with sleep)"
+       (fact "When gen-server call! from fiber then result is returned (with sleep)"
              (let [gs (spawn
                         (gen-server (reify Server
                                       (init [_])
@@ -344,25 +344,25 @@
                                       (handle-call [_ from id [a b]]
                                                    (Strand/sleep 50)
                                                    (+ a b)))))
-                   fib (spawn-fiber #(call gs 3 4))]
+                   fib (spawn-fiber #(call! gs 3 4))]
                (join fib) => 7))
-       (fact "When gen-server call from actor then result is returned"
+       (fact "When gen-server call! from actor then result is returned"
              (let [gs (spawn (gen-server
                                (reify Server
                                  (init [_])
                                  (terminate [_ cause])
                                  (handle-call [_ from id [a b]]
                                               (+ a b)))))
-                   actor (spawn #(call gs 3 4))]
+                   actor (spawn #(call! gs 3 4))]
                (join actor) => 7))
-       (fact "When handle-call throws exception then call throws it"
+       (fact "When handle-call throws exception then call! throws it"
              (let [gs (spawn
                         (gen-server (reify Server
                                       (init [_])
                                       (terminate [_ cause])
                                       (handle-call [_ from id [a b]]
                                                    (throw (Exception. "oops!"))))))]
-               (call gs 3 4) => (throws Exception "oops!"))))
+               (call! gs 3 4) => (throws Exception "oops!"))))
 
 (fact "when gen-server doesn't respond then timeout"
       (let [gs (spawn
@@ -372,9 +372,9 @@
                                (handle-call [_ from id [a b]]
                                             (Strand/sleep 100)
                                             (+ a b)))))]
-        (call-timed gs 10 :ms 3 4) => (throws TimeoutException)))
+        (call-timed! gs 10 :ms 3 4) => (throws TimeoutException)))
 
-(fact "when reply is called return value in call"
+(fact "when reply! is called return value in call!"
       (let [gs (spawn
                  (gen-server :timeout 50
                              (reify Server
@@ -387,13 +387,13 @@
                                (handle-timeout [_]
                                                (let [{:keys [a b from id]} @state]
                                                  (when id
-                                                   (reply from id (+ a b))))))))]
+                                                   (reply! from id (+ a b))))))))]
         (fact
-          (call-timed gs 10 :ms 3 4) => (throws TimeoutException))
-        (call-timed gs 100 :ms 5 6)) => 11)
+          (call-timed! gs 10 :ms 3 4) => (throws TimeoutException))
+        (call-timed! gs 100 :ms 5 6)) => 11)
 
 
-(fact "When cast then handle-cast is called"
+(fact "When cast! then handle-cast is called"
       (let [res (atom nil)
             gs (spawn
                  (gen-server (reify Server
@@ -401,7 +401,7 @@
                                (terminate [_ cause])
                                (handle-cast [_ from id [a b]]
                                             (reset! res (+ a b))))))]
-        (cast gs 3 4)
+        (cast! gs 3 4)
         (shutdown! gs)
         (join gs)
         @res => 7))
@@ -436,9 +436,9 @@
 
 (fact "When notify gen-event then call handlers"
       (let [ge (spawn (gen-event
-                        #(add-handler @self handler1)))]
-        (add-handler ge handler2)
-        (notify ge "hello")
+                        #(add-handler! @self handler1)))]
+        (add-handler! ge handler2)
+        (notify! ge "hello")
         (shutdown! ge)
         (join ge)) => nil
       (provided 
@@ -447,11 +447,11 @@
 
 (fact "When handler is removed then don't call it"
       (let [ge (spawn (gen-event
-                        #(add-handler @self handler1)))]
-        (add-handler ge handler2)
+                        #(add-handler! @self handler1)))]
+        (add-handler! ge handler2)
         (Strand/sleep 50)
-        (remove-handler ge handler1)
-        (notify ge "hello")
+        (remove-handler! ge handler1)
+        (notify! ge "hello")
         (shutdown! ge)
         (join ge)) => nil
       (provided 
@@ -573,7 +573,7 @@
 (defsusfn actor3
   [sup started terminated]
   (let [adder
-        (add-child sup nil :temporary 5 1 :sec 10
+        (add-child! sup nil :temporary 5 1 :sec 10
                    (gen-server ; or (spawn (gen-server...))
                                (reify Server
                                  (init        [_]       (swap! started inc))
@@ -586,7 +586,7 @@
                                                   res))))))
         a (receive)
         b (receive)]
-    (call adder a b)))
+    (call! adder a b)))
 
 (fact "Complex example test1"
       (let [prev       (atom nil)

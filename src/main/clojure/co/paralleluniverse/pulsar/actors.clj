@@ -12,7 +12,6 @@
 
 (ns co.paralleluniverse.pulsar.actors
   "Defines actors and behaviors like gen-server and supervisor"
-  (:refer-clojure :exclude [cast])
   (:import [java.util.concurrent TimeUnit ExecutionException TimeoutException]
            [co.paralleluniverse.strands Strand]
            [co.paralleluniverse.strands.channels Channel]
@@ -212,7 +211,7 @@
   ([actor2]
    (.link ^LocalActor @self actor2))
   ([actor1 actor2]
-   (.link ^LocalActor (clojure.core/cast LocalActor (get-actor actor1)) (get-actor actor2))))
+   (.link ^LocalActor (cast LocalActor (get-actor actor1)) (get-actor actor2))))
 
 (ann unlink! (Fn [Actor -> Actor]
                  [Actor Actor -> Actor]))
@@ -221,7 +220,7 @@
   ([actor2]
    (.unlink ^LocalActor @self actor2))
   ([actor1 actor2]
-   (.unlink ^LocalActor (clojure.core/cast LocalActor (get-actor actor1)) (get-actor actor2))))
+   (.unlink ^LocalActor (cast LocalActor (get-actor actor1)) (get-actor actor2))))
 
 (ann monitor (Fn [Actor Actor -> LifecycleListener]
                  [Actor -> LifecycleListener]))
@@ -237,7 +236,7 @@
   ([actor2 monitor]
    (.unwatch ^LocalActor @self actor2 monitor))
   ([actor1 actor2 monitor]
-   (.unwatch ^LocalActor (clojure.core/cast LocalActor (get-actor actor1)) (get-actor actor2) monitor)))
+   (.unwatch ^LocalActor (cast LocalActor (get-actor actor1)) (get-actor actor2) monitor)))
 
 (ann register (Fn [String LocalActor -> LocalActor]
                   [LocalActor -> LocalActor]))
@@ -413,13 +412,13 @@
   ([init]
    (->Initializer init nil)))
 
-(defmacro request
+(defmacro request!
   [actor & message]
   `(join (spawn (fn [] 
                   (! actor ~@message)
                   (receive)))))
 
-(defmacro request-timed
+(defmacro request-timed!
   [timeout actor & message]
   `(join (spawn (fn [] 
                   (! actor ~@message)
@@ -476,7 +475,7 @@
                                                            (long ~timeout) java.util.concurrent.TimeUnit/MILLISECONDS
                                                            nil (->MailboxConfig ~mailbox-size ~overflow-policy))))
 
-(defn call
+(defn call!
   "Makes a synchronous call to a gen-server and returns the response"
   ([^GenServer gs m]
    (unwrap-exception
@@ -485,7 +484,7 @@
    (unwrap-exception
      (.call gs (vec (cons m args))))))
 
-(defn call-timed
+(defn call-timed!
   "Makes a synchronous call to a gen-server and returns the response"
   ([^GenServer gs timeout unit m]
    (unwrap-exception
@@ -494,7 +493,7 @@
    (unwrap-exception
      (.call gs (vec (cons m args)) (long timeout) (->timeunit unit)))))
 
-(defn cast
+(defn cast!
   "Makes an asynchronous call to a gen-server"
   ([^GenServer gs m]
    (.cast gs m))
@@ -506,12 +505,12 @@
   [timeout unit]
   (.setTimeout (LocalGenServer/currentGenServer) timeout (->timeunit unit)))
 
-(defn reply
+(defn reply!
   "Replies to a message sent to the current gen-server"
   [^Actor to id res]
   (.reply (LocalGenServer/currentGenServer) to id res))
 
-(defn reply-error
+(defn reply-error!
   "Replies with an error to a message sent to the current gen-server"
   [^Actor to id ^Throwable error]
   (.replyError (LocalGenServer/currentGenServer) to id error))
@@ -536,15 +535,15 @@
   (equals [this other]
           (and (instance? PulsarEventHandler other) (= handler (.handler ^PulsarEventHandler other)))))
 
-(defn notify
+(defn notify!
   [^GenEvent ge event]
   (.notify ge event))
 
-(defn add-handler
+(defn add-handler!
   [^GenEvent ge handler]
   (.addHandler ge (->PulsarEventHandler (suspendable! handler))))
 
-(defn remove-handler
+(defn remove-handler!
   [^GenEvent ge handler]
   (.removeHandler ge (->PulsarEventHandler (suspendable! handler))))
 
@@ -578,17 +577,17 @@
                            (first args)
                            (actor-builder #(apply create-actor args)))))
 
-(defsusfn add-child
+(defsusfn add-child!
   "Adds an actor to a supervisor"
   [^Supervisor supervisor id mode max-restarts duration unit shutdown-deadline-millis & args]
   (.addChild supervisor (apply-variadic child-spec id mode max-restarts duration unit shutdown-deadline-millis args)))
 
-(defsusfn remove-child
+(defsusfn remove-child!
   "Removes an actor from a supervisor"
   [^Supervisor supervisor id]
   (.removeChild supervisor id false))
 
-(defn remove-and-terminate-child
+(defn remove-and-terminate-child!
   "Removes an actor from a supervisor and terminates the actor"
   [^Supervisor supervisor id]
   (.removeChild supervisor id true))
@@ -605,7 +604,7 @@
                      ^LocalSupervisor$RestartStrategy (keyword->enum LocalSupervisor$RestartStrategy restart-strategy)
                      (->Initializer
                        (fn [] (doseq [child (seq ((suspendable! init)))]
-                                (apply add-child (cons @self child)))))))
+                                (apply add-child! (cons @self child)))))))
   ([restart-strategy init]
    (supervisor nil restart-strategy init)))
 

@@ -512,23 +512,23 @@ All behaviors (gen-server, gen-event and supervisors) support the `shutdown!` fu
 `gen-server` is a template for a server actor that receives requests and replies with responses. The consumer side for gen-server consists of the following functions:
 
 ~~~ clojure
-(call actor request)
+(call! actor request)
 ~~~
 
-This would send the `request` message to the gen-server actor, and block until a response is received. It will then return the response. If the request triggers an exception in the actor, that exception will be thrown by `call`.
+This would send the `request` message to the gen-server actor, and block until a response is received. It will then return the response. If the request triggers an exception in the actor, that exception will be thrown by `call!`.
 
-There's also a timed version of `call`, which gives up and returns `nil` if the timeout expires. For example, :
+There's also a timed version of `call!`, which gives up and returns `nil` if the timeout expires. For example, :
 
 ~~~ clojure
-(call-timed actor 100 :ms request)
+(call-timed! actor 100 :ms request)
 ~~~
 
 would wait up to 100ms for a response.
 
-You can also send a gen-server messages that do not require a response with the `cast` function:
+You can also send a gen-server messages that do not require a response with the `cast!` function:
 
 ~~~ clojure
-(cast actor message)
+(cast! actor message)
 ~~~
 
 Finally, you can shutdown a gen-server with the shutdown function:
@@ -552,8 +552,8 @@ In order to create a gen-server actor(the provider side), you need to implement 
 * `init` -- will be called alled when the actor starts
 * `terminate` -- will be called when the actor terminates.
 * `handle-call` -- called when the `call` function has been called on the actor :). This is where the gen-server's functionality usually lies. The value returned from `handle-call` will be sent back to the actor making the request, unless `nil` is returned, in which case the response has to be sent manually as we'll see later.
-* `handle-cast` -- called to handle messages sent with `cast`.
-* `handle-info` -- called whenever a message has been sent to the actor directly (i.e., with `!`) rather than through `call` or `cast`.
+* `handle-cast` -- called to handle messages sent with `cast!`.
+* `handle-info` -- called whenever a message has been sent to the actor directly (i.e., with `!`) rather than through `call!` or `cast!`.
 * `handle-timeout` -- called whenever the gen-server has not received any messages for a configurable duration of time. The timeout can be configured using either the `:timeout` option to the `gen-server` function, or by calling the `set-timeout!` function, as we'll immediately see.
 
 You spawn a gen-server actor like so:
@@ -572,7 +572,7 @@ where `options` can now only be `:timeout millis`. Here's an example from the te
                          (handle-call [_ from id [a b]]
                                       (Strand/sleep 50)
                                       (+ a b)))))]
-  (call gs 3 4); => 7
+  (call! gs 3 4); => 7
 ~~~
 
 And here's one with server timeouts:
@@ -595,12 +595,12 @@ And here's one with server timeouts:
 You can set (and reset) the timeout from anywhere within the protocol's methods by calling, say 
 
 ~~~ clojure
-(set-timeout 100 :ms)
+(set-timeout! 100 :ms)
 ~~~
 
 A timeout value of 0 or less means no timeout.
 
-If the `handle-call` function returns `nil`, then no response is sent to the caller. The `call` function remains blocked until a response is sent manually. This is done with the `reply` function, which takes, along with the response message, the identitiy of the caller and the request ID, both passed to `handle-call`. Here's an example:
+If the `handle-call` function returns `nil`, then no response is sent to the caller. The `call!` function remains blocked until a response is sent manually. This is done with the `reply!` function, which takes, along with the response message, the identitiy of the caller and the request ID, both passed to `handle-call`. Here's an example:
 
 ~~~ clojure
 (let [gs (spawn
@@ -615,16 +615,16 @@ If the `handle-call` function returns `nil`, then no response is sent to the cal
                          (handle-timeout [_]
                                          (let [{:keys [a b from id]} @state]
                                            (when id
-                                             (reply from id (+ a b))))))))]
-  (call-timed gs 100 :ms 5 6)) ; => 11
+                                             (reply! from id (+ a b))))))))]
+  (call-timed! gs 100 :ms 5 6)) ; => 11
 ~~~
 
-In the example, `handle-call` saves the request in the actor's state, and later, in `handle-timeout` sends the response using `reply`. The response is returned by `call-timed`.
+In the example, `handle-call` saves the request in the actor's state, and later, in `handle-timeout` sends the response using `reply!`. The response is returned by `call-timed!`.
 
-If an error is encountered during the generation of the delayed repsonse, an exception can be returned to the caller (and will be thrown by `call`), using `reply-error`:
+If an error is encountered during the generation of the delayed repsonse, an exception can be returned to the caller (and will be thrown by `call!`), using `reply-error!`:
 
 ~~~ clojure
- (reply-error to id (Exception. "does not compute"))
+(reply-error! to id (Exception. "does not compute"))
 ~~~
 
 where `to` is the identity of the caller passed as `from` to `handle-call`.
@@ -644,15 +644,15 @@ You spawn a gen-event like this:
 You can then add event handlers:
 
 ~~~~ clojure
-(add-handler ge handler)
+(add-handler! ge handler)
 ~~~~
 
 with `ge` being the gen-event actor (returned by the call to `spawn`), and `handler` being a function of a single argument that will be called whenever an event is generated.
 
-You generate an event with the `notify` function:
+You generate an event with the `notify!` function:
 
 ~~~ clojure
-(notify ge event)
+(notify! ge event)
 ~~~
 
 with `ge` being the gen-event actor, and `event` is the event object (which can be any object). The event object is then passed to all registered event handlers.
@@ -660,21 +660,21 @@ with `ge` being the gen-event actor, and `event` is the event object (which can 
 An event handler can be removed like so:
 
 ~~~ clojure
-(remove-handler ge handler)
+(remove-handler! ge handler)
 ~~~
 
 Here's a complete example, taken from the tests:
 
 ~~~ clojure
 (let [ge (spawn (gen-event
-                  #(add-handler @self handler1)))]
-  (add-handler ge handler2)
-  (notify ge "hello"))
+                  #(add-handler! @self handler1)))]
+  (add-handler! ge handler2)
+  (notify! ge "hello"))
 ~~~
 
 In this example, `handler1` is added in the `init` function (note how `@self` refers to the gen-event actor itself, as the init function is called from within the actor), and `handler2` is added later.
 
-When `notify` is called, both handlers will be called and passed the event object (in this case, the `"hello"` string).
+When `notify!` is called, both handlers will be called and passed the event object (in this case, the `"hello"` string).
 
 ## Supervisors
 
@@ -715,7 +715,7 @@ It is often useful to pass the supervisor to a child (so it could later dynamica
 Other than returning a sequence of child specs from the `init` function, you can also dynamically add a child to a supervisor by simply calling
 
 ~~~ clojure
-(add-child sup id mode max-restarts duration unit shutdown-deadline-millis actor-fn & actor-args)
+(add-child! sup id mode max-restarts duration unit shutdown-deadline-millis actor-fn & actor-args)
 ~~~
 
 with `sup` being the supervisor, and the rest of the arguments comprising the child spec for the actor, with the difference that if `actor-fn`, instead of an actor function, is a spawned actor (the value returned from `spawn`), then supervisor will supervise an already-spawned actor. Otherwise, (if it is a function), a new actor will be spawned.
@@ -723,7 +723,7 @@ with `sup` being the supervisor, and the rest of the arguments comprising the ch
 A supervised actor may be removed from the supervisor by calling
 
 ~~~ clojure
-(remove-child sup id)
+(remove-child! sup id)
 ~~~
 
 with `id` being the one given to the actor in the child spec or the arguments to `add-child`.

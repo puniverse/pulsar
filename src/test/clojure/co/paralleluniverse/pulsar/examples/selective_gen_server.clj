@@ -17,12 +17,12 @@
                 (terminate [_ cause])
                 (handle-call [_ from id [command a b c d]]
                              (case command
-                               :compute (call-timed adder 10 :ms :add (* a b) (* c d)))))))
+                               :compute (call-timed! adder 10 :ms :add (* a b) (* c d)))))))
 
 (defsusfn curious [nums computer]
   (when (seq nums)
     (let [[a b c d] (take 4 nums)
-          res (call computer :compute a b c d)]
+          res (call! computer :compute a b c d)]
       (println a b c d "->" res)
       (recur (drop 4 nums) computer))))
 
