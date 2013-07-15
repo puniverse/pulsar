@@ -3039,7 +3039,6 @@ the Eclipse Foundation</p>
 as published by the Free Software Foundation.</p>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>Defines actors and behaviors like gen-server and supervisor</p>
 </td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar.actors
-  (:refer-clojure :exclude [cast])
   (:import [java.util.concurrent TimeUnit ExecutionException TimeoutException]
            [co.paralleluniverse.strands Strand]
            [co.paralleluniverse.strands.channels Channel]
@@ -3206,14 +3205,14 @@ as published by the Free Software Foundation.</p>
   ([actor2]
    (.link ^LocalActor @self actor2))
   ([actor1 actor2]
-   (.link ^LocalActor (clojure.core/cast LocalActor (get-actor actor1)) (get-actor actor2))))</pre></td></tr><tr><td class="docs"><p>Unlinks two actors</p>
+   (.link ^LocalActor (cast LocalActor (get-actor actor1)) (get-actor actor2))))</pre></td></tr><tr><td class="docs"><p>Unlinks two actors</p>
 </td><td class="codes"><pre class="brush: clojure">(ann unlink! (Fn [Actor -&gt; Actor]
                  [Actor Actor -&gt; Actor]))
 (defn unlink!
   ([actor2]
    (.unlink ^LocalActor @self actor2))
   ([actor1 actor2]
-   (.unlink ^LocalActor (clojure.core/cast LocalActor (get-actor actor1)) (get-actor actor2))))</pre></td></tr><tr><td class="docs"><p>Makes the current actor watch another actor. Returns a watch object which should be used when calling demonitor.</p>
+   (.unlink ^LocalActor (cast LocalActor (get-actor actor1)) (get-actor actor2))))</pre></td></tr><tr><td class="docs"><p>Makes the current actor watch another actor. Returns a watch object which should be used when calling demonitor.</p>
 </td><td class="codes"><pre class="brush: clojure">(ann monitor (Fn [Actor Actor -&gt; LifecycleListener]
                  [Actor -&gt; LifecycleListener]))
 (defn watch!
@@ -3225,7 +3224,7 @@ as published by the Free Software Foundation.</p>
   ([actor2 monitor]
    (.unwatch ^LocalActor @self actor2 monitor))
   ([actor1 actor2 monitor]
-   (.unwatch ^LocalActor (clojure.core/cast LocalActor (get-actor actor1)) (get-actor actor2) monitor)))</pre></td></tr><tr><td class="docs"><p>Registers an actor</p>
+   (.unwatch ^LocalActor (cast LocalActor (get-actor actor1)) (get-actor actor2) monitor)))</pre></td></tr><tr><td class="docs"><p>Registers an actor</p>
 </td><td class="codes"><pre class="brush: clojure">(ann register (Fn [String LocalActor -&gt; LocalActor]
                   [LocalActor -&gt; LocalActor]))
 (defn register!
@@ -3378,12 +3377,12 @@ as published by the Free Software Foundation.</p>
               (when terminate (terminate cause))))))
   ([init]
    (-&gt;Initializer init nil)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defmacro request
+</td><td class="codes"><pre class="brush: clojure">(defmacro request!
   [actor &amp; message]
   `(join (spawn (fn [] 
                   (! actor ~@message)
                   (receive)))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defmacro request-timed
+</td><td class="codes"><pre class="brush: clojure">(defmacro request-timed!
   [timeout actor &amp; message]
   `(join (spawn (fn [] 
                   (! actor ~@message)
@@ -3431,21 +3430,21 @@ as published by the Free Software Foundation.</p>
                                                            ^co.paralleluniverse.actors.behaviors.Server (Server-&gt;java ~(first body))
                                                            (long ~timeout) java.util.concurrent.TimeUnit/MILLISECONDS
                                                            nil (-&gt;MailboxConfig ~mailbox-size ~overflow-policy))))</pre></td></tr><tr><td class="docs"><p>Makes a synchronous call to a gen-server and returns the response</p>
-</td><td class="codes"><pre class="brush: clojure">(defn call
+</td><td class="codes"><pre class="brush: clojure">(defn call!
   ([^GenServer gs m]
    (unwrap-exception
      (.call gs m)))
   ([^GenServer gs m &amp; args]
    (unwrap-exception
      (.call gs (vec (cons m args))))))</pre></td></tr><tr><td class="docs"><p>Makes a synchronous call to a gen-server and returns the response</p>
-</td><td class="codes"><pre class="brush: clojure">(defn call-timed
+</td><td class="codes"><pre class="brush: clojure">(defn call-timed!
   ([^GenServer gs timeout unit m]
    (unwrap-exception
      (.call gs m (long timeout) (-&gt;timeunit unit))))
   ([^GenServer gs timeout unit m &amp; args]
    (unwrap-exception
      (.call gs (vec (cons m args)) (long timeout) (-&gt;timeunit unit)))))</pre></td></tr><tr><td class="docs"><p>Makes an asynchronous call to a gen-server</p>
-</td><td class="codes"><pre class="brush: clojure">(defn cast
+</td><td class="codes"><pre class="brush: clojure">(defn cast!
   ([^GenServer gs m]
    (.cast gs m))
   ([^GenServer gs m &amp; args]
@@ -3453,10 +3452,10 @@ as published by the Free Software Foundation.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn set-timeout!
   [timeout unit]
   (.setTimeout (LocalGenServer/currentGenServer) timeout (-&gt;timeunit unit)))</pre></td></tr><tr><td class="docs"><p>Replies to a message sent to the current gen-server</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reply
+</td><td class="codes"><pre class="brush: clojure">(defn reply!
   [^Actor to id res]
   (.reply (LocalGenServer/currentGenServer) to id res))</pre></td></tr><tr><td class="docs"><p>Replies with an error to a message sent to the current gen-server</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reply-error
+</td><td class="codes"><pre class="brush: clojure">(defn reply-error!
   [^Actor to id ^Throwable error]
   (.replyError (LocalGenServer/currentGenServer) to id error))</pre></td></tr><tr><td class="docs"><h2>gen-event</h2>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>Creates (but doesn't start) a new gen-event</p>
@@ -3475,13 +3474,13 @@ as published by the Free Software Foundation.</p>
   Object
   (equals [this other]
           (and (instance? PulsarEventHandler other) (= handler (.handler ^PulsarEventHandler other)))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn notify
+</td><td class="codes"><pre class="brush: clojure">(defn notify!
   [^GenEvent ge event]
   (.notify ge event))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn add-handler
+</td><td class="codes"><pre class="brush: clojure">(defn add-handler!
   [^GenEvent ge handler]
   (.addHandler ge (-&gt;PulsarEventHandler (suspendable! handler))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn remove-handler
+</td><td class="codes"><pre class="brush: clojure">(defn remove-handler!
   [^GenEvent ge handler]
   (.removeHandler ge (-&gt;PulsarEventHandler (suspendable! handler))))</pre></td></tr><tr><td class="docs"><h2>supervisor</h2>
 </td><td class="codes"></td></tr><tr><td class="docs">
@@ -3510,13 +3509,13 @@ as published by the Free Software Foundation.</p>
                          (if (instance? ActorBuilder (first args))
                            (first args)
                            (actor-builder #(apply create-actor args)))))</pre></td></tr><tr><td class="docs"><p>Adds an actor to a supervisor</p>
-</td><td class="codes"><pre class="brush: clojure">(defsusfn add-child
+</td><td class="codes"><pre class="brush: clojure">(defsusfn add-child!
   [^Supervisor supervisor id mode max-restarts duration unit shutdown-deadline-millis &amp; args]
   (.addChild supervisor (apply-variadic child-spec id mode max-restarts duration unit shutdown-deadline-millis args)))</pre></td></tr><tr><td class="docs"><p>Removes an actor from a supervisor</p>
-</td><td class="codes"><pre class="brush: clojure">(defsusfn remove-child
+</td><td class="codes"><pre class="brush: clojure">(defsusfn remove-child!
   [^Supervisor supervisor id]
   (.removeChild supervisor id false))</pre></td></tr><tr><td class="docs"><p>Removes an actor from a supervisor and terminates the actor</p>
-</td><td class="codes"><pre class="brush: clojure">(defn remove-and-terminate-child
+</td><td class="codes"><pre class="brush: clojure">(defn remove-and-terminate-child!
   [^Supervisor supervisor id]
   (.removeChild supervisor id true))</pre></td></tr><tr><td class="docs"><p>Returns a supervisor's child by id</p>
 </td><td class="codes"><pre class="brush: clojure">(defn ^LocalActor get-child
@@ -3528,7 +3527,7 @@ as published by the Free Software Foundation.</p>
                      ^LocalSupervisor$RestartStrategy (keyword-&gt;enum LocalSupervisor$RestartStrategy restart-strategy)
                      (-&gt;Initializer
                        (fn [] (doseq [child (seq ((suspendable! init)))]
-                                (apply add-child (cons @self child)))))))
+                                (apply add-child! (cons @self child)))))))
   ([restart-strategy init]
    (supervisor nil restart-strategy init)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.async" name="co.paralleluniverse.pulsar.async"><h1 class="project-name">co.paralleluniverse.pulsar.async</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Implementation of core.async</p>
 
@@ -4824,16 +4823,16 @@ as published by the Free Software Foundation.</p>
           (join 50 :ms gs) =&gt; (throws TimeoutException))
         (shutdown! gs)
         (join gs)) =&gt; nil)</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(facts &quot;gen-server call&quot;
-       (fact &quot;When gen-server call then result is returned&quot;
+</td><td class="codes"><pre class="brush: clojure">(facts &quot;gen-server call!&quot;
+       (fact &quot;When gen-server call! then result is returned&quot;
              (let [gs (spawn
                         (gen-server (reify Server
                                       (init [_])
                                       (terminate [_ cause])
                                       (handle-call [_ from id [a b]]
                                                    (+ a b)))))]
-               (call gs 3 4) =&gt; 7))
-       (fact &quot;When gen-server call then result is returned (with sleep)&quot;
+               (call! gs 3 4) =&gt; 7))
+       (fact &quot;When gen-server call! then result is returned (with sleep)&quot;
              (let [gs (spawn
                         (gen-server (reify Server
                                       (init [_])
@@ -4841,17 +4840,17 @@ as published by the Free Software Foundation.</p>
                                       (handle-call [_ from id [a b]]
                                                    (Strand/sleep 50)
                                                    (+ a b)))))]
-               (call gs 3 4) =&gt; 7))
-       (fact &quot;When gen-server call from fiber then result is returned&quot;
+               (call! gs 3 4) =&gt; 7))
+       (fact &quot;When gen-server call! from fiber then result is returned&quot;
              (let [gs (spawn
                         (gen-server (reify Server
                                       (init [_])
                                       (terminate [_ cause])
                                       (handle-call [_ from id [a b]]
                                                    (+ a b)))))
-                   fib (spawn-fiber #(call gs 3 4))]
+                   fib (spawn-fiber #(call! gs 3 4))]
                (join fib) =&gt; 7))
-       (fact &quot;When gen-server call from fiber then result is returned (with sleep)&quot;
+       (fact &quot;When gen-server call! from fiber then result is returned (with sleep)&quot;
              (let [gs (spawn
                         (gen-server (reify Server
                                       (init [_])
@@ -4859,25 +4858,25 @@ as published by the Free Software Foundation.</p>
                                       (handle-call [_ from id [a b]]
                                                    (Strand/sleep 50)
                                                    (+ a b)))))
-                   fib (spawn-fiber #(call gs 3 4))]
+                   fib (spawn-fiber #(call! gs 3 4))]
                (join fib) =&gt; 7))
-       (fact &quot;When gen-server call from actor then result is returned&quot;
+       (fact &quot;When gen-server call! from actor then result is returned&quot;
              (let [gs (spawn (gen-server
                                (reify Server
                                  (init [_])
                                  (terminate [_ cause])
                                  (handle-call [_ from id [a b]]
                                               (+ a b)))))
-                   actor (spawn #(call gs 3 4))]
+                   actor (spawn #(call! gs 3 4))]
                (join actor) =&gt; 7))
-       (fact &quot;When handle-call throws exception then call throws it&quot;
+       (fact &quot;When handle-call throws exception then call! throws it&quot;
              (let [gs (spawn
                         (gen-server (reify Server
                                       (init [_])
                                       (terminate [_ cause])
                                       (handle-call [_ from id [a b]]
                                                    (throw (Exception. &quot;oops!&quot;))))))]
-               (call gs 3 4) =&gt; (throws Exception &quot;oops!&quot;))))</pre></td></tr><tr><td class="docs">
+               (call! gs 3 4) =&gt; (throws Exception &quot;oops!&quot;))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(fact &quot;when gen-server doesn't respond then timeout&quot;
       (let [gs (spawn
                  (gen-server (reify Server
@@ -4886,8 +4885,8 @@ as published by the Free Software Foundation.</p>
                                (handle-call [_ from id [a b]]
                                             (Strand/sleep 100)
                                             (+ a b)))))]
-        (call-timed gs 10 :ms 3 4) =&gt; (throws TimeoutException)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(fact &quot;when reply is called return value in call&quot;
+        (call-timed! gs 10 :ms 3 4) =&gt; (throws TimeoutException)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(fact &quot;when reply! is called return value in call!&quot;
       (let [gs (spawn
                  (gen-server :timeout 50
                              (reify Server
@@ -4900,11 +4899,11 @@ as published by the Free Software Foundation.</p>
                                (handle-timeout [_]
                                                (let [{:keys [a b from id]} @state]
                                                  (when id
-                                                   (reply from id (+ a b))))))))]
+                                                   (reply! from id (+ a b))))))))]
         (fact
-          (call-timed gs 10 :ms 3 4) =&gt; (throws TimeoutException))
-        (call-timed gs 100 :ms 5 6)) =&gt; 11)</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(fact &quot;When cast then handle-cast is called&quot;
+          (call-timed! gs 10 :ms 3 4) =&gt; (throws TimeoutException))
+        (call-timed! gs 100 :ms 5 6)) =&gt; 11)</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(fact &quot;When cast! then handle-cast is called&quot;
       (let [res (atom nil)
             gs (spawn
                  (gen-server (reify Server
@@ -4912,7 +4911,7 @@ as published by the Free Software Foundation.</p>
                                (terminate [_ cause])
                                (handle-cast [_ from id [a b]]
                                             (reset! res (+ a b))))))]
-        (cast gs 3 4)
+        (cast! gs 3 4)
         (shutdown! gs)
         (join gs)
         @res =&gt; 7))</pre></td></tr><tr><td class="docs">
@@ -4942,9 +4941,9 @@ as published by the Free Software Foundation.</p>
 </td><td class="codes"><pre class="brush: clojure">(unfinished handler1 handler2)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(fact &quot;When notify gen-event then call handlers&quot;
       (let [ge (spawn (gen-event
-                        #(add-handler @self handler1)))]
-        (add-handler ge handler2)
-        (notify ge &quot;hello&quot;)
+                        #(add-handler! @self handler1)))]
+        (add-handler! ge handler2)
+        (notify! ge &quot;hello&quot;)
         (shutdown! ge)
         (join ge)) =&gt; nil
       (provided 
@@ -4952,11 +4951,11 @@ as published by the Free Software Foundation.</p>
         (handler2 &quot;hello&quot;) =&gt; nil))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(fact &quot;When handler is removed then don't call it&quot;
       (let [ge (spawn (gen-event
-                        #(add-handler @self handler1)))]
-        (add-handler ge handler2)
+                        #(add-handler! @self handler1)))]
+        (add-handler! ge handler2)
         (Strand/sleep 50)
-        (remove-handler ge handler1)
-        (notify ge &quot;hello&quot;)
+        (remove-handler! ge handler1)
+        (notify! ge &quot;hello&quot;)
         (shutdown! ge)
         (join ge)) =&gt; nil
       (provided 
@@ -5068,7 +5067,7 @@ manually add a known actor to a supervisor, so this ugly function is only useful
 </td><td class="codes"><pre class="brush: clojure">(defsusfn actor3
   [sup started terminated]
   (let [adder
-        (add-child sup nil :temporary 5 1 :sec 10
+        (add-child! sup nil :temporary 5 1 :sec 10
                    (gen-server ; or (spawn (gen-server...))
                                (reify Server
                                  (init        [_]       (swap! started inc))
@@ -5081,7 +5080,7 @@ manually add a known actor to a supervisor, so this ugly function is only useful
                                                   res))))))
         a (receive)
         b (receive)]
-    (call adder a b)))</pre></td></tr><tr><td class="docs">
+    (call! adder a b)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(fact &quot;Complex example test1&quot;
       (let [prev       (atom nil)
             started    (atom 0)
@@ -5745,11 +5744,11 @@ so it is not written in idiomatic Clojure</p>
                 (terminate [_ cause])
                 (handle-call [_ from id [command a b c d]]
                              (case command
-                               :compute (call-timed adder 10 :ms :add (* a b) (* c d)))))))</pre></td></tr><tr><td class="docs">
+                               :compute (call-timed! adder 10 :ms :add (* a b) (* c d)))))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defsusfn curious [nums computer]
   (when (seq nums)
     (let [[a b c d] (take 4 nums)
-          res (call computer :compute a b c d)]
+          res (call! computer :compute a b c d)]
       (println a b c d &quot;-&gt;&quot; res)
       (recur (drop 4 nums) computer))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn -main []

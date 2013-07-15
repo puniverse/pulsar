@@ -666,21 +666,21 @@ Pulsar supports this as an experimental feature (implemented internally with <co
 
 <p><code>gen-server</code> is a template for a server actor that receives requests and replies with responses. The consumer side for gen-server consists of the following functions:</p>
 
-<pre><code class="language-clojure">(call actor request)
+<pre><code class="language-clojure">(call! actor request)
 </code></pre>
 
-<p>This would send the <code>request</code> message to the gen-server actor, and block until a response is received. It will then return the response. If the request triggers an exception in the actor, that exception will be thrown by <code>call</code>.</p>
+<p>This would send the <code>request</code> message to the gen-server actor, and block until a response is received. It will then return the response. If the request triggers an exception in the actor, that exception will be thrown by <code>call!</code>.</p>
 
-<p>There’s also a timed version of <code>call</code>, which gives up and returns <code>nil</code> if the timeout expires. For example, :</p>
+<p>There’s also a timed version of <code>call!</code>, which gives up and returns <code>nil</code> if the timeout expires. For example, :</p>
 
-<pre><code class="language-clojure">(call-timed actor 100 :ms request)
+<pre><code class="language-clojure">(call-timed! actor 100 :ms request)
 </code></pre>
 
 <p>would wait up to 100ms for a response.</p>
 
-<p>You can also send a gen-server messages that do not require a response with the <code>cast</code> function:</p>
+<p>You can also send a gen-server messages that do not require a response with the <code>cast!</code> function:</p>
 
-<pre><code class="language-clojure">(cast actor message)
+<pre><code class="language-clojure">(cast! actor message)
 </code></pre>
 
 <p>Finally, you can shutdown a gen-server with the shutdown function:</p>
@@ -703,8 +703,8 @@ Pulsar supports this as an experimental feature (implemented internally with <co
   <li><code>init</code> – will be called alled when the actor starts</li>
   <li><code>terminate</code> – will be called when the actor terminates.</li>
   <li><code>handle-call</code> – called when the <code>call</code> function has been called on the actor :). This is where the gen-server’s functionality usually lies. The value returned from <code>handle-call</code> will be sent back to the actor making the request, unless <code>nil</code> is returned, in which case the response has to be sent manually as we’ll see later.</li>
-  <li><code>handle-cast</code> – called to handle messages sent with <code>cast</code>.</li>
-  <li><code>handle-info</code> – called whenever a message has been sent to the actor directly (i.e., with <code>!</code>) rather than through <code>call</code> or <code>cast</code>.</li>
+  <li><code>handle-cast</code> – called to handle messages sent with <code>cast!</code>.</li>
+  <li><code>handle-info</code> – called whenever a message has been sent to the actor directly (i.e., with <code>!</code>) rather than through <code>call!</code> or <code>cast!</code>.</li>
   <li><code>handle-timeout</code> – called whenever the gen-server has not received any messages for a configurable duration of time. The timeout can be configured using either the <code>:timeout</code> option to the <code>gen-server</code> function, or by calling the <code>set-timeout!</code> function, as we’ll immediately see.</li>
 </ul>
 
@@ -722,7 +722,7 @@ Pulsar supports this as an experimental feature (implemented internally with <co
                          (handle-call [_ from id [a b]]
                                       (Strand/sleep 50)
                                       (+ a b)))))]
-  (call gs 3 4); =&gt; 7
+  (call! gs 3 4); =&gt; 7
 </code></pre>
 
 <p>And here’s one with server timeouts:</p>
@@ -743,12 +743,12 @@ Pulsar supports this as an experimental feature (implemented internally with <co
 
 <p>You can set (and reset) the timeout from anywhere within the protocol’s methods by calling, say </p>
 
-<pre><code class="language-clojure">(set-timeout 100 :ms)
+<pre><code class="language-clojure">(set-timeout! 100 :ms)
 </code></pre>
 
 <p>A timeout value of 0 or less means no timeout.</p>
 
-<p>If the <code>handle-call</code> function returns <code>nil</code>, then no response is sent to the caller. The <code>call</code> function remains blocked until a response is sent manually. This is done with the <code>reply</code> function, which takes, along with the response message, the identitiy of the caller and the request ID, both passed to <code>handle-call</code>. Here’s an example:</p>
+<p>If the <code>handle-call</code> function returns <code>nil</code>, then no response is sent to the caller. The <code>call!</code> function remains blocked until a response is sent manually. This is done with the <code>reply!</code> function, which takes, along with the response message, the identitiy of the caller and the request ID, both passed to <code>handle-call</code>. Here’s an example:</p>
 
 <pre><code class="language-clojure">(let [gs (spawn
            (gen-server :timeout 50
@@ -762,15 +762,15 @@ Pulsar supports this as an experimental feature (implemented internally with <co
                          (handle-timeout [_]
                                          (let [{:keys [a b from id]} @state]
                                            (when id
-                                             (reply from id (+ a b))))))))]
-  (call-timed gs 100 :ms 5 6)) ; =&gt; 11
+                                             (reply! from id (+ a b))))))))]
+  (call-timed! gs 100 :ms 5 6)) ; =&gt; 11
 </code></pre>
 
-<p>In the example, <code>handle-call</code> saves the request in the actor’s state, and later, in <code>handle-timeout</code> sends the response using <code>reply</code>. The response is returned by <code>call-timed</code>.</p>
+<p>In the example, <code>handle-call</code> saves the request in the actor’s state, and later, in <code>handle-timeout</code> sends the response using <code>reply!</code>. The response is returned by <code>call-timed!</code>.</p>
 
-<p>If an error is encountered during the generation of the delayed repsonse, an exception can be returned to the caller (and will be thrown by <code>call</code>), using <code>reply-error</code>:</p>
+<p>If an error is encountered during the generation of the delayed repsonse, an exception can be returned to the caller (and will be thrown by <code>call!</code>), using <code>reply-error!</code>:</p>
 
-<pre><code class="language-clojure"> (reply-error to id (Exception. "does not compute"))
+<pre><code class="language-clojure">(reply-error! to id (Exception. "does not compute"))
 </code></pre>
 
 <p>where <code>to</code> is the identity of the caller passed as <code>from</code> to <code>handle-call</code>.</p>
@@ -788,34 +788,34 @@ Pulsar supports this as an experimental feature (implemented internally with <co
 
 <p>You can then add event handlers:</p>
 
-<pre><code class="language-clojure">(add-handler ge handler)
+<pre><code class="language-clojure">(add-handler! ge handler)
 </code></pre>
 
 <p>with <code>ge</code> being the gen-event actor (returned by the call to <code>spawn</code>), and <code>handler</code> being a function of a single argument that will be called whenever an event is generated.</p>
 
-<p>You generate an event with the <code>notify</code> function:</p>
+<p>You generate an event with the <code>notify!</code> function:</p>
 
-<pre><code class="language-clojure">(notify ge event)
+<pre><code class="language-clojure">(notify! ge event)
 </code></pre>
 
 <p>with <code>ge</code> being the gen-event actor, and <code>event</code> is the event object (which can be any object). The event object is then passed to all registered event handlers.</p>
 
 <p>An event handler can be removed like so:</p>
 
-<pre><code class="language-clojure">(remove-handler ge handler)
+<pre><code class="language-clojure">(remove-handler! ge handler)
 </code></pre>
 
 <p>Here’s a complete example, taken from the tests:</p>
 
 <pre><code class="language-clojure">(let [ge (spawn (gen-event
-                  #(add-handler @self handler1)))]
-  (add-handler ge handler2)
-  (notify ge "hello"))
+                  #(add-handler! @self handler1)))]
+  (add-handler! ge handler2)
+  (notify! ge "hello"))
 </code></pre>
 
 <p>In this example, <code>handler1</code> is added in the <code>init</code> function (note how <code>@self</code> refers to the gen-event actor itself, as the init function is called from within the actor), and <code>handler2</code> is added later.</p>
 
-<p>When <code>notify</code> is called, both handlers will be called and passed the event object (in this case, the <code>"hello"</code> string).</p>
+<p>When <code>notify!</code> is called, both handlers will be called and passed the event object (in this case, the <code>"hello"</code> string).</p>
 
 <h2 id="supervisors">Supervisors</h2>
 
@@ -855,14 +855,14 @@ Pulsar supports this as an experimental feature (implemented internally with <co
 
 <p>Other than returning a sequence of child specs from the <code>init</code> function, you can also dynamically add a child to a supervisor by simply calling</p>
 
-<pre><code class="language-clojure">(add-child sup id mode max-restarts duration unit shutdown-deadline-millis actor-fn &amp; actor-args)
+<pre><code class="language-clojure">(add-child! sup id mode max-restarts duration unit shutdown-deadline-millis actor-fn &amp; actor-args)
 </code></pre>
 
 <p>with <code>sup</code> being the supervisor, and the rest of the arguments comprising the child spec for the actor, with the difference that if <code>actor-fn</code>, instead of an actor function, is a spawned actor (the value returned from <code>spawn</code>), then supervisor will supervise an already-spawned actor. Otherwise, (if it is a function), a new actor will be spawned.</p>
 
 <p>A supervised actor may be removed from the supervisor by calling</p>
 
-<pre><code class="language-clojure">(remove-child sup id)
+<pre><code class="language-clojure">(remove-child! sup id)
 </code></pre>
 
 <p>with <code>id</code> being the one given to the actor in the child spec or the arguments to <code>add-child</code>.</p>
