@@ -501,6 +501,12 @@ Erlang's designers have realized that many actors follow some common patterns - 
 
 Behaviors have two sides. One is the provider side, and is modeled in Pulsar as a protocols. You implement the protocol, and Pulsar provides the full actor implementation that uses your protocol. The other is the consumer side -- functions used by other actors to access the functionality provided by the behavior.
 
+All behaviors (gen-server, gen-event and supervisors) support the `shutdown!` function, which requests an orderly shutdown of the actor:
+
+~~~ clojure
+(shutdown! behavior-actor)
+~~~
+
 ### gen-server
 
 `gen-server` is a template for a server actor that receives requests and replies with responses. The consumer side for gen-server consists of the following functions:
@@ -625,8 +631,102 @@ where `to` is the identity of the caller passed as `from` to `handle-call`.
 
 ### gen-event
 
+gen-event is an actor behavior that receives messages (*events*) and forwards them to registered *event handlers*.
+
+You spawn a gen-event like this:
+
+~~~ clojure
+(spawn (gen-event init))
+~~~
+
+`init` is an initializer function called from within the gen-event actor.
+
+You can then add event handlers:
+
+~~~~ clojure
+(add-handler ge handler)
+~~~~
+
+with `ge` being the gen-event actor (returned by the call to `spawn`), and `handler` being a function of a single argument that will be called whenever an event is generated.
+
+You generate an event with the `notify` function:
+
+~~~ clojure
+(notify ge event)
+~~~
+
+with `ge` being the gen-event actor, and `event` is the event object (which can be any object). The event object is then passed to all registered event handlers.
+
+An event handler can be removed like so:
+
+~~~ clojure
+(remove-handler ge handler)
+~~~
+
+Here's a complete example, taken from the tests:
+
+~~~ clojure
+(let [ge (spawn (gen-event
+                  #(add-handler @self handler1)))]
+  (add-handler ge handler2)
+  (notify ge "hello"))
+~~~
+
+In this example, `handler1` is added in the `init` function (note how `@self` refers to the gen-event actor itself, as the init function is called from within the actor), and `handler2` is added later.
+
+When `notify` is called, both handlers will be called and passed the event object (in this case, the `"hello"` string).
+
 ## Supervisors
 
 A supervisor is an actor behavior designed to standardize error handling. Internally it uses watches and links, but it offers a more structured, standard, and simple way to react to errors.
 
-The general idea is that actors performing business logic, "worker actors", are supervised by asupervisor actor that detects when they die and takes one of several pre-configured actions. 
+The general idea is that actors performing business logic, "worker actors", are supervised by a supervisor actor that detects when they die and takes one of several pre-configured actions. Supervisors may, in turn, be supervised by other supervisors, thus forming a supervision hierarchy that compartmentalizes failure and recovery. 
+
+A supervisors work as follows: it has a number of *children*, worker actors or other supervisors that are registered to be supervised wither at the supervisor's construction time or at a later time. Each child has a mode, `:permanent`, `:transient` or `:temporary` that determines whether its death will trigger the supervisor's *recovery event*. When the recovery event is triggered, the supervisor takes action specified by its *restart strategy*, or it will give up and fail, depending on predefined failure modes. 
+
+When a child actor in the `:permanent` mode dies, it will always trigger its supervisor's recovery event. When a child in the `:transient` mode dies, it will trigger a recovery event only if it has died as a result of an exception, but not if it has simply finished its operation. A `:temporary` child never triggers it supervisor's recovery event.
+
+A supervisor's *restart strategy* determines what it does during a *recovery event*: A strategy of `:escalate` measns that the supervisor will shut down ("kill") all its surviving children and then die; a `:one-for-one` strategy will restart the dead child; an `:all-for-one` strategy will shut down all children and then restart them all; a `:rest-for-one` strategy will shut down and restart all those children added to the suervisor after the dead child.
+
+A supervisor is spawned so:
+
+~~~ clojure
+(spawn (supervisor restart-strategy init))
+~~~
+
+where `restart-strategy` is one of: `:escalate`, `:one-for-one`, `:all-for-one`, or `:rest-for-one`, and `init` is a function that returns a sequence of *child specs* that will be used to add children to the supervisor when it's constructed.
+
+A *child spec* is a vector of the following form:
+
+~~~ clojure
+[id mode max-restarts duration unit shutdown-deadline-millis actor-fn & actor-args]
+~~~
+
+where:
+
+* `id` is an optional identifier (usually a string) for the child actor. May be `nil`.
+* `mode` is one of `:permanent`, `:transient` or `:temporary`.
+* `max-restarts`, `duration` and `unit` are a triplet specifying how many times is the child allowed to restart in a given period of time before the supervisor should give up, kill all its children and die. For example `20 5 :sec` means at most 20 restarts in 5 seconds.
+* `shutdown-deadline-millis` is the maximal amount of time, in milliseconds that the child is allowed to spend from the time it's requested to shut down until the time it is terminated. Whenever a the supervisor shuts down a child, it does so by sending it the message `[:shutdown sup]`, with `sup` being the supervisor. If the shutdown deadline elapses, the supervisor will forcefully shut it down by interrupting the child's strand.
+* `actor-fn & actor-args` are the (suspendable) function (with optional arguments) that's to serve as the child actor's body.
+
+It is often useful to pass the supervisor to a child (so it could later dynamically add other children to the supervisor, for example). This is easily done because the `init` function is called inside the supervisor; therefore, any reference to `@self` insode the init function returns the supervisor. If you pass `@self`, then, as an argument to a child actor, it will receive the supervisor.
+
+Other than returning a sequence of child specs from the `init` function, you can also dynamically add a child to a supervisor by simply calling
+
+~~~ clojure
+(add-child sup id mode max-restarts duration unit shutdown-deadline-millis actor-fn & actor-args)
+~~~
+
+with `sup` being the supervisor, and the rest of the arguments comprising the child spec for the actor, with the difference that if `actor-fn`, instead of an actor function, is a spawned actor (the value returned from `spawn`), then supervisor will supervise an already-spawned actor. Otherwise, (if it is a function), a new actor will be spawned.
+
+A supervised actor may be removed from the supervisor by calling
+
+~~~ clojure
+(remove-child sup id)
+~~~
+
+with `id` being the one given to the actor in the child spec or the arguments to `add-child`.
+
+
+
