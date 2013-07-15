@@ -585,13 +585,13 @@
 
 (defsusfn remove-child
   "Removes an actor from a supervisor"
-  [^Supervisor supervisor name]
-  (.removeChild supervisor name false))
+  [^Supervisor supervisor id]
+  (.removeChild supervisor id false))
 
 (defn remove-and-terminate-child
   "Removes an actor from a supervisor and terminates the actor"
-  [^Supervisor supervisor name]
-  (.removeChild supervisor name true))
+  [^Supervisor supervisor id]
+  (.removeChild supervisor id true))
 
 (defn ^LocalActor get-child
   "Returns a supervisor's child by id"
