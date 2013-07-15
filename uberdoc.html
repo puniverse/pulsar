@@ -3514,11 +3514,11 @@ as published by the Free Software Foundation.</p>
   [^Supervisor supervisor id mode max-restarts duration unit shutdown-deadline-millis &amp; args]
   (.addChild supervisor (apply-variadic child-spec id mode max-restarts duration unit shutdown-deadline-millis args)))</pre></td></tr><tr><td class="docs"><p>Removes an actor from a supervisor</p>
 </td><td class="codes"><pre class="brush: clojure">(defsusfn remove-child
-  [^Supervisor supervisor name]
-  (.removeChild supervisor name false))</pre></td></tr><tr><td class="docs"><p>Removes an actor from a supervisor and terminates the actor</p>
+  [^Supervisor supervisor id]
+  (.removeChild supervisor id false))</pre></td></tr><tr><td class="docs"><p>Removes an actor from a supervisor and terminates the actor</p>
 </td><td class="codes"><pre class="brush: clojure">(defn remove-and-terminate-child
-  [^Supervisor supervisor name]
-  (.removeChild supervisor name true))</pre></td></tr><tr><td class="docs"><p>Returns a supervisor's child by id</p>
+  [^Supervisor supervisor id]
+  (.removeChild supervisor id true))</pre></td></tr><tr><td class="docs"><p>Returns a supervisor's child by id</p>
 </td><td class="codes"><pre class="brush: clojure">(defn ^LocalActor get-child
   [^Supervisor sup id]
   (.getChild sup id))</pre></td></tr><tr><td class="docs"><p>Creates (but doesn't start) a new supervisor</p>
