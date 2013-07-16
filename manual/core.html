@@ -57,13 +57,6 @@
           
           
           
-        
-          
-          
-            
-          
-          
-          
             <li>
               <a  href="/pulsar/getting-started.html">
                 Getting Started
@@ -107,8 +100,22 @@
             </li>
           
         
+          
+          
+            
+          
+          
+          
+        
       
         <li class="nav-header">User Manual</li>
+        
+          
+          
+            
+          
+          
+          
         
           
           
@@ -121,16 +128,9 @@
                 Pulsar Core
               </a>
               
-              <ul class="nav nav-list"><li><a href="#quasar-and-pulsar">Quasar and Pulsar</a></li><li><a href="#fibers">Fibers</a></li><li><a href="#channels">Channels</a></li></ul>
+              <ul class="nav nav-list"><li><a href="#quasar-and-pulsar">Quasar and Pulsar</a></li><li><a href="#fibers">Fibers</a></li><li><a href="#promises-promises">Promises, Promises</a></li><li><a href="#channels">Channels</a></li></ul>
               
             </li>
-          
-        
-          
-          
-            
-          
-          
           
         
           
@@ -167,19 +167,19 @@
           
           
           
-            <li>
-              <a  href="/pulsar/manual/examples.html">
-                Examples
-              </a>
-              
-            </li>
-          
         
           
           
             
           
           
+          
+            <li>
+              <a  href="/pulsar/manual/examples.html">
+                Examples
+              </a>
+              
+            </li>
           
         
       
@@ -305,9 +305,15 @@ from the Pulsar test suite:</p>
 
 <p>Running a <code>dosync</code> block inside a fiber is discouraged as it uses locks internally, but your mileage may vary.</p>
 
-<p>Promises are supported and encouraged, but you should not make use of <code>clojure.core/promise</code> to create a promise that&#8217;s to be dereferenced in a fiber. Pulsar provides a different &#8211; yet completely compatible &#8211; form of promises, as you&#8217;ll immediately see.</p>
+<p>Promises are supported and encouraged, but you should not make use of <code>clojure.core/promise</code> to create a promise that&#8217;s to be dereferenced in a fiber. Pulsar provides a different &#8211; yet completely compatible &#8211; form of promises, as you&#8217;ll see soon.</p>
 
-<h3 id="promises-promises">Promises, Promises</h3>
+<h3 id="strands">Strands</h3>
+
+<p>Before we continue, one more bit of nomenclature: a single flow of execution in Quasar/Pulsar is called a <em>strand</em>. To put it more simply, a strand is either a normal JVM thread, or a fiber.</p>
+
+<p>The strand abstraction helps you write code that works whether it runs in a fiber or not. For example, <code>(Strand/currentStrand)</code> returns the current fiber, if called from a fiber, or the current thread, if not. <code>(Strand/sleep millis)</code> suspends the current strand for a given number of milliseconds whether it&#8217;s a fiber or a normal thread. Also, <code>join</code> works for both fibers and threads (although for threads <code>join</code> will always return <code>nil</code>).</p>
+
+<h2 id="promises-promises">Promises, Promises</h2>
 
 <p>Promises, also known as dataflow variables, are an especially effective, and simple, concurrency primitive.</p>
 
@@ -359,12 +365,6 @@ from the Pulsar test suite:</p>
 </pre></div>
 </div>
 </div>
-
-<h3 id="strands">Strands</h3>
-
-<p>Before we continue, one more bit of nomenclature: a single flow of execution in Quasar/Pulsar is called a <em>strand</em>. To put it more simply, a strand is either a normal JVM thread, or a fiber.</p>
-
-<p>The strand abstraction helps you write code that works whether it runs in a fiber or not. For example, <code>(Strand/currentStrand)</code> returns the current fiber, if called from a fiber, or the current thread, if not. <code>(Strand/sleep millis)</code> suspends the current strand for a given number of milliseconds whether it&#8217;s a fiber or a normal thread. Also, <code>join</code> works for both fibers and threads (although for threads <code>join</code> will always return <code>nil</code>).</p>
 
 <h2 id="channels">Channels</h2>
 
