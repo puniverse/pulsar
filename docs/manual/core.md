@@ -163,15 +163,32 @@ The strand abstraction helps you write code that works whether it runs in a fibe
 
 Channels are queues used to pass messages between strands (remember, strands are a general name for threads and fibers). If you are familiar with Go, Pulsar channels are like Go channels. The call
 
-    (channel)
+~~~ clojure
+(channel)
+~~~
 
-creates and returns a new channel. A channel has a capacity, i.e. the number of messages it can hold before they are consumed. By default, the `channel` function creates an unbounded channel. To create a channel with a limited capacity, call
+creates and returns a new channel. 
 
-    (channel size)
+A more general form of the `channel` function is:
 
-with `size` being a positive integer. Bounded channels are generally faster than unbounded channels. Attempting to send a message to a bounded channel that has filled up will throw an exception.
+~~~ clojure
+(channel capacity overflow-policy)
+~~~
 
-Many strands can send messages to the channel, but only one may receive messages from the channel. The strand that receives messages from the channel is the channel's *owner*. The first strand that tries to receive a message from a channel becomes its owner. Attempting to receive from a channel on a strand that is not the channel's owner results in an exception.
+The channel's `capacity` is the number of messages that can wait in the queue. A positive integer creates a bounded queue that can hold up to the given number of messages until they're consumed. A capacity of -1 specifies an unbounded channel (unlimited number of pending messages), and a capacity of 0 specifies a *transfer channel*, one where the producer is blocked until a consumer requests a message and vice-versa.
+
+`overflow-policy` specifies what happens to the producer (sender) of a message when the channel's capacity is exhausted, and may be one of:
+
+* `:throw` - throws an exception 
+* `:drop` - silently drops (discards) the message
+* `:block` - blocks the sender until messages are consumed from the channel and it has remaining capacity
+* `:displace` - removes the oldest message waiting in the channel to make room for the new message.
+
+If you leave out the `overflow-policy` argument, the default policy of `:block` is used. Leaving both out (and simply calling `(channel)` is the same as `(channel 0 :block)` (obviously, a transfer channel (a channel of capacity 0), would only work with a `:block` policy). 
+
+Bounded channels are generally faster than unbounded channels. 
+
+Use of the `:displace` policy places an additional restriction on the channel: its messages may be consumed by a single strand only.
 
 ### Sending and receiving messages
 
@@ -207,10 +224,92 @@ These calls will wait for a message for 10 milliseconds before giving up and ret
 After calling 
 
 ~~~ clojure
-(close channel)
+(close! channel)
 ~~~
 
 any future messages sent to the channel will be ignored. Any messages already in the channel will be received. Once the last message has been received, another call to `rcv` will return `nil`. 
+
+### Channel Selection (`sel`, `select` and `rcv-group`)
+
+A powerful tool when working with channels is the ability to wait on a message from several channels at once.
+
+The `sel` function takes a collection containing *channel operation descriptors*. A descriptor is either a channel or a pair (vector) of a channel and a message. Each channel in the sequence represents a `rcv` attempt, and each channel-message pair represents a `snd` attempt. The `sel` function performs at most one operation on the sequence, a `rcv` or a `snd`, which is determined by the first operation that can succeed. If no operation can be carried out immediately, `sel` will block until an operation can be performed.
+
+For example, in the following call,
+
+~~~ clojure
+(sel [ch1 [ch2 msg1] ch3 [ch4 msg2]])
+~~~ 
+
+a message will either be received from `ch1` or `ch2`, or one will be sent to eiter `ch2` or `ch4`. If, for instance, `ch2` will become available for reading (i.e. it has been sent a message) first, than only that operation, in this case a `rcv` will be performed on `ch1`. If `ch2` becomes available for writing before that happens, then only that operation, a `snd`, will be performed. If two operations are available at the same time, one will be chosen randomly (unless the `:priority` option is set, as we'll see later).
+
+Note that if a channel's overflow policy is anything by `:block`, then `snd` operations are always available.
+
+The general form of the `sel` function is
+
+~~~ clojure
+(sel ports & opts)
+~~~
+
+`sel` returns a vector of two values describing the single operation that has been performed. The first is the message received if the operation is a `rcv`, or `nil` if it's a `snd`; the second is the channel on which the operation has been performed.
+
+The `sel` function takes two options. If `:priority` is set to `true` (thus: `:priority true`), then if more than one operation becomes available at the same time, then the one that's listed earlier in the channels collection will be performed.
+
+The second option is `:timeout`, which takes an integer argument specifying the timeout in milliseconds. If the timeout elapses without any of the operations succeeding, `sel` will return `nil`. If the timeout value is `0`, then `sel` will never block. It will attempt to perform any of the requested operations, but if none are *immediately* available, it will return `nil`.
+
+So, for example, calling
+
+~~~ clojure
+(sel [ch1 ch2 ch3] :timeout 0)
+~~~
+
+Will return, `[msg ch]` if any of the channels was immediately available for a `rcv`, or `nil` if none of them were.
+
+The `select` macro performs a very similar operation as `sel`, but allows you to specify an action to perform depending on which operation has succeeded.
+It takes an even number of expressions, ordered as (ops1, action1, ops2, action2 ...) with the ops being a channel operation descriptior (remember: a descriptor is either a channel for an `rcv` operation, or a vector of a channel and a message specifying a `snd` operation) or a collection of descriptors, and the actions are Clojure expressions. Like `sel`, `select` performs at most one operation, in which case it will run the operation's respective action and return its result.
+
+An action expression can bind values to the operations results. The action expression may begin with a vector of one or two symbols. In that case, the first symbol will be bound to the message returned from the successful receive in the respective ops clause (or `nil` if the successful operation is a `snd`), and the second symbol, if present, will be bound to the successful operation's channel.
+
+Like `sel`, `select` blocks until an operation succeeds, or, if a `:timeout` option is specified, until the timeout (in milliseconds) elapses. If a timeout is specfied and elapses, `select` will run the action in an optional `:else` clause and return its result, or, if an `:else` clause is not present, `select` will return `nil`.
+
+Here's an example:
+
+~~~ clojure
+(select :timeout 100 
+        c1 ([v] (println "received" v))
+        [[c2 m2] [c3 m3]] ([v c] (println "sent to" c))
+        :else "timeout!")
+~~~
+
+In the example, if a message is received from channel `c1`, then it will be printed. If a message is sent to either `c2` or `c3`, then the identity of the channel will be printed, and if the 100 ms timeout elapses then "timeout!" will be printed.
+
+Finally, just like `sel`, you can pass `:priority true` to `select`, in which case if more than one operation is available, the first one among them as listed in the `select` statement will be performed.
+
+It is common for a function to always wait to receive from the same set of channels. An alternative to `sel` can be to create a `rcv-group`, on which you can call `rcv` as if it were a simple channel:
+
+~~~ clojure
+(let [group (rcv-group ch1 ch2 ch3)]
+   (rcv group))
+~~~
+
+You can also use a timeout when receiving from a channel group.
+
+### Ticker Channels
+
+A channel created with the `:displace` policy is called a *ticker channel* because it provides guarantees similar to that of a digital stock-ticker: you can start watching at any time, the messages you read are always read in order, but because of the limited screen size, if you look away or read to slowly you may miss some messages.
+
+The ticker channel is useful when a program component continually broadcasts some information. The size channel's circular buffer, its "screen" if you like, gives the subscribers some leeway if they occasionally fall behind reading.
+
+As mentioned earlier, a ticker channel is single-consumer, i.e. only one strand is allowed to consume messages from the channel. On the other hand, it is possible, and useful, to create several views of the channel, each used by a different consumer strand. A view is created thus:
+
+~~~ clojure
+(ticker-consumer ch)
+~~~
+
+`ch` must be a channel of bounded capacity with the `:displace` policy. `ticker-consumer` returns a *receive port* (a channel that can only receive messages, not send them) that can be used to receive messages from `ch`. Each ticker-consumer will yield monotonic messages, namely no message will be received more than once, and the messages will be received in the order they're sent, but if the consumer is too slow, messages could be lost. 
+
+Each consumer strand will use its own `ticker-consumer`, and each can consume messages at its own pace, and each `ticker-consumer` port will return the same messages (messages consumed from one will not be removed from the other views), subject possibly to different messages being missed by different consumers depending on their pace.
+
 
 ### Primitive channels
 
@@ -221,26 +320,9 @@ It is also possible to create channels that carry messages of primitive JVM type
 * `float` channels: `float-channel`, `snd-float`, `rcv-float`
 * `double` channels: `double-channel`, `snd-double`, `rcv-double`
 
-Because they don't require boxing (for this reason `snd-xxx` and `rcv-xxx` are actually macros), primitive channels can provide better performance than regular channels.
+Because they don't require boxing (for this reason `snd-xxx` and `rcv-xxx` are actually macros), primitive channels can provide better performance than regular channels. Primitive channels, however, are single-consumer, namely, only a single strand may read messages from any given channel.
 
 Calling `rcv-xxx` on a closed channel will throw an exception.
-
-### Channel Groups
-
-A strand may also wait for a message to arrive on several channels at once by creating a `channel-group`:
-
-{:.prettyprint .lang-clj}
-    (rcv (channel-group ch1 ch2 ch3))
-
-You can also use a timeout when receiving from a channel group.
-
-### Ticker Channels
-
-The channel created by the `channel` function is a single-consumer multiple-producer channel. A ticker-channel is a single-*producer* multiple-*consumer* channel. It's called a ticker channel because it provides guarantees similar to that of a digital stock-ticker: you can start watching at any time, the messages you read are always read in order, but because of the limited screen size, if you look away or read to slowly you may miss some messages.
-
-The ticker channel is useful when a program component continually broadcasts some information. The size channel's circular buffer, its "screen" if you like, gives the subscribers some leeway if they occasionally fall behind reading.
-
-Another way of looking at ticker channels (from the perspective of the consumers), is that when a new message is added to the channel, the oldest message in the channel will be displaced if the buffer is exhausted.
 
 ### Channel lazy-seqs
 
