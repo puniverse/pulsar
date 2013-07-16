@@ -257,8 +257,11 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
 
 <p>The following will have the same effect:</p>
 
-<pre><code class="language-clojure">(join 500 :ms fiber)
-</code></pre>
+<div><div class="CodeRay">
+  <div class="code"><pre>(join <span class="integer">500</span> <span class="symbol">:ms</span> fiber)
+</pre></div>
+</div>
+</div>
 
 <h3 id="bindings">Bindings</h3>
 
@@ -266,30 +269,33 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
 and bindings decleared in a fiber last throughout the fiber&#8217;s lifetime. This is demonstrated in the following tests taken
 from the Pulsar test suite:</p>
 
-<pre><code class="language-clojure">(def ^:dynamic *foo* 40)
+<div><div class="CodeRay">
+  <div class="code"><pre>(<span class="keyword">def</span> ^<span class="symbol">:dynamic</span> *foo* <span class="integer">40</span>)
 
-(facts "fiber-bindings"
-      (fact "Fiber inherits thread bindings"
-            (let [fiber
-                  (binding [*foo* 20]
+(facts <span class="string"><span class="delimiter">&quot;</span><span class="content">fiber-bindings</span><span class="delimiter">&quot;</span></span>
+      (fact <span class="string"><span class="delimiter">&quot;</span><span class="content">Fiber inherits thread bindings</span><span class="delimiter">&quot;</span></span>
+            (<span class="keyword">let</span> [fiber
+                  (<span class="keyword">binding</span> [*foo* <span class="integer">20</span>]
                     (spawn-fiber
-                     #(let [v1 *foo*]
-                        (Fiber/sleep 200)
-                        (let [v2 *foo*]
-                          (+ v1 v2)))))]
+                     #(<span class="keyword">let</span> [v1 *foo*]
+                        (Fiber/sleep <span class="integer">200</span>)
+                        (<span class="keyword">let</span> [v2 *foo*]
+                          (<span class="keyword">+</span> v1 v2)))))]
               (join fiber))
-            =&gt; 40)
-      (fact "Bindings declared in fiber last throughout fiber lifetime"
-            (let [fiber
+            =&gt; <span class="integer">40</span>)
+      (fact <span class="string"><span class="delimiter">&quot;</span><span class="content">Bindings declared in fiber last throughout fiber lifetime</span><span class="delimiter">&quot;</span></span>
+            (<span class="keyword">let</span> [fiber
                   (spawn-fiber
-                   #(binding [*foo* 15]
-                      (let [v1 *foo*]
-                        (Fiber/sleep 200)
-                        (let [v2 *foo*]
-                          (+ v1 v2)))))]
+                   #(<span class="keyword">binding</span> [*foo* <span class="integer">15</span>]
+                      (<span class="keyword">let</span> [v1 *foo*]
+                        (Fiber/sleep <span class="integer">200</span>)
+                        (<span class="keyword">let</span> [v2 *foo*]
+                          (<span class="keyword">+</span> v1 v2)))))]
               (join fiber))
-            =&gt; 30))
-</code></pre>
+            =&gt; <span class="integer">30</span>))
+</pre></div>
+</div>
+</div>
 
 <h3 id="compatibility-with-clojure-concurrency-constructs">Compatibility with Clojure Concurrency Constructs</h3>
 
@@ -320,33 +326,39 @@ from the Pulsar test suite:</p>
 
 <p>Here&#8217;s an example of using promises from the tests:</p>
 
-<pre><code class="language-clojure">(let [v1 (promise)
-     v2 (promise)
-     v3 (promise)
-     v4 (promise)
-     f1 (spawn-fiber  #(deliver v2 (+ @v1 1)))
-     t1 (spawn-thread #(deliver v3 (+ @v1 @v2)))
-     f2 (spawn-fiber  #(deliver v4 (+ @v3 @v2)))]
- (Strand/sleep 50)
- (deliver v1 1)
- @v4) ; =&gt; 5
-</code></pre>
+<div><div class="CodeRay">
+  <div class="code"><pre>(<span class="keyword">let</span> [v1 (<span class="keyword">promise</span>)
+     v2 (<span class="keyword">promise</span>)
+     v3 (<span class="keyword">promise</span>)
+     v4 (<span class="keyword">promise</span>)
+     f1 (spawn-fiber  #(<span class="keyword">deliver</span> v2 (<span class="keyword">+</span> @v1 <span class="integer">1</span>)))
+     t1 (spawn-thread #(<span class="keyword">deliver</span> v3 (<span class="keyword">+</span> @v1 @v2)))
+     f2 (spawn-fiber  #(<span class="keyword">deliver</span> v4 (<span class="keyword">+</span> @v3 @v2)))]
+ (Strand/sleep <span class="integer">50</span>)
+ (<span class="keyword">deliver</span> v1 <span class="integer">1</span>)
+ @v4) <span class="comment">; =&gt; 5</span>
+</pre></div>
+</div>
+</div>
 
 <p>This example shows how promises are set, and read, by both fibers and regular threads.</p>
 
 <p>But Pulsar&#8217;s promises have one additional, quite nifty, feature. If you pass an optional function to <code>promise</code>, a new fiber running that function will be spawned, and the promise will receive the value returned from the function. Here&#8217;s another example from the tests:</p>
 
-<pre><code class="language-clojure">(let [v0 (promise)
-     v1 (promise)
-     v2 (promise #(+ @v1 1))
-     v3 (promise #(+ @v1 @v2))
-     v4 (promise #(* (+ @v3 @v2) @v0))]
- (Strand/sleep 50)
- (deliver v1 1)
- (mapv realized? [v0 v1 v2 v3 v4]) ; =&gt; [false true true true false]
- (deliver v0 2)
- @v4) ; =&gt; 10
-</code></pre>
+<div><div class="CodeRay">
+  <div class="code"><pre>(<span class="keyword">let</span> [v0 (<span class="keyword">promise</span>)
+     v1 (<span class="keyword">promise</span>)
+     v2 (<span class="keyword">promise</span> #(<span class="keyword">+</span> @v1 <span class="integer">1</span>))
+     v3 (<span class="keyword">promise</span> #(<span class="keyword">+</span> @v1 @v2))
+     v4 (<span class="keyword">promise</span> #(<span class="keyword">*</span> (<span class="keyword">+</span> @v3 @v2) @v0))]
+ (Strand/sleep <span class="integer">50</span>)
+ (<span class="keyword">deliver</span> v1 <span class="integer">1</span>)
+ (mapv realized? [v0 v1 v2 v3 v4]) <span class="comment">; =&gt; [false true true true false]</span>
+ (<span class="keyword">deliver</span> v0 <span class="integer">2</span>)
+ @v4) <span class="comment">; =&gt; 10</span>
+</pre></div>
+</div>
+</div>
 
 <h3 id="strands">Strands</h3>
 
@@ -358,15 +370,21 @@ from the Pulsar test suite:</p>
 
 <p>Channels are queues used to pass messages between strands (remember, strands are a general name for threads and fibers). If you are familiar with Go, Pulsar channels are like Go channels. The call</p>
 
-<pre><code class="language-clojure">(channel)
-</code></pre>
+<div><div class="CodeRay">
+  <div class="code"><pre>(channel)
+</pre></div>
+</div>
+</div>
 
 <p>creates and returns a new channel. </p>
 
 <p>A more general form of the <code>channel</code> function is:</p>
 
-<pre><code class="language-clojure">(channel capacity overflow-policy)
-</code></pre>
+<div><div class="CodeRay">
+  <div class="code"><pre>(channel capacity overflow-policy)
+</pre></div>
+</div>
+</div>
 
 <p>The channel&#8217;s <code>capacity</code> is the number of messages that can wait in the queue. A positive integer creates a bounded queue that can hold up to the given number of messages until they&#8217;re consumed. A capacity of -1 specifies an unbounded channel (unlimited number of pending messages), and a capacity of 0 specifies a <em>transfer channel</em>, one where the producer is blocked until a consumer requests a message and vice-versa.</p>
 
@@ -403,13 +421,19 @@ from the Pulsar test suite:</p>
 
 <p>It is also possible to limit the amount of time <code>rcv</code> will wait for a message:</p>
 
-<pre><code class="language-clojure">(rcv channel 10 java.util.concurrent.TimeUnit/MILLISECONDS)
-</code></pre>
+<div><div class="CodeRay">
+  <div class="code"><pre>(rcv channel <span class="integer">10</span> java.util.concurrent.TimeUnit/MILLISECONDS)
+</pre></div>
+</div>
+</div>
 
 <p>or, equivalently:</p>
 
-<pre><code class="language-clojure">(rcv channel 10 :ms)
-</code></pre>
+<div><div class="CodeRay">
+  <div class="code"><pre>(rcv channel <span class="integer">10</span> <span class="symbol">:ms</span>)
+</pre></div>
+</div>
+</div>
 
 <p>These calls will wait for a message for 10 milliseconds before giving up and returning <code>nil</code>.</p>
 
@@ -417,8 +441,11 @@ from the Pulsar test suite:</p>
 
 <p>After calling </p>
 
-<pre><code class="language-clojure">(close! channel)
-</code></pre>
+<div><div class="CodeRay">
+  <div class="code"><pre>(close! channel)
+</pre></div>
+</div>
+</div>
 
 <p>any future messages sent to the channel will be ignored. Any messages already in the channel will be received. Once the last message has been received, another call to <code>rcv</code> will return <code>nil</code>. </p>
 
@@ -430,8 +457,11 @@ from the Pulsar test suite:</p>
 
 <p>For example, in the following call,</p>
 
-<pre><code class="language-clojure">(sel [ch1 [ch2 msg1] ch3 [ch4 msg2]])
-</code></pre>
+<div><div class="CodeRay">
+  <div class="code"><pre>(sel [ch1 [ch2 msg1] ch3 [ch4 msg2]])
+</pre></div>
+</div>
+</div>
 
 <p>a message will either be received from <code>ch1</code> or <code>ch2</code>, or one will be sent to eiter <code>ch2</code> or <code>ch4</code>. If, for instance, <code>ch2</code> will become available for reading (i.e. it has been sent a message) first, than only that operation, in this case a <code>rcv</code> will be performed on <code>ch1</code>. If <code>ch2</code> becomes available for writing before that happens, then only that operation, a <code>snd</code>, will be performed. If two operations are available at the same time, one will be chosen randomly (unless the <code>:priority</code> option is set, as we&#8217;ll see later).</p>
 
@@ -439,8 +469,11 @@ from the Pulsar test suite:</p>
 
 <p>The general form of the <code>sel</code> function is</p>
 
-<pre><code class="language-clojure">(sel ports &amp; opts)
-</code></pre>
+<div><div class="CodeRay">
+  <div class="code"><pre>(sel ports &amp; opts)
+</pre></div>
+</div>
+</div>
 
 <p><code>sel</code> returns a vector of two values describing the single operation that has been performed. The first is the message received if the operation is a <code>rcv</code>, or <code>nil</code> if it&#8217;s a <code>snd</code>; the second is the channel on which the operation has been performed.</p>
 
@@ -450,8 +483,11 @@ from the Pulsar test suite:</p>
 
 <p>So, for example, calling</p>
 
-<pre><code class="language-clojure">(sel [ch1 ch2 ch3] :timeout 0)
-</code></pre>
+<div><div class="CodeRay">
+  <div class="code"><pre>(sel [ch1 ch2 ch3] <span class="symbol">:timeout</span> <span class="integer">0</span>)
+</pre></div>
+</div>
+</div>
 
 <p>Will return, <code>[msg ch]</code> if any of the channels was immediately available for a <code>rcv</code>, or <code>nil</code> if none of them were.</p>
 
@@ -464,11 +500,14 @@ It takes an even number of expressions, ordered as (ops1, action1, ops2, action2
 
 <p>Here&#8217;s an example:</p>
 
-<pre><code class="language-clojure">(select :timeout 100 
-        c1 ([v] (println "received" v))
-        [[c2 m2] [c3 m3]] ([v c] (println "sent to" c))
-        :else "timeout!")
-</code></pre>
+<div><div class="CodeRay">
+  <div class="code"><pre>(select <span class="symbol">:timeout</span> <span class="integer">100</span> 
+        c1 ([v] (<span class="keyword">println</span> <span class="string"><span class="delimiter">&quot;</span><span class="content">received</span><span class="delimiter">&quot;</span></span> v))
+        [[c2 m2] [c3 m3]] ([v c] (<span class="keyword">println</span> <span class="string"><span class="delimiter">&quot;</span><span class="content">sent to</span><span class="delimiter">&quot;</span></span> c))
+        <span class="symbol">:else</span> <span class="string"><span class="delimiter">&quot;</span><span class="content">timeout!</span><span class="delimiter">&quot;</span></span>)
+</pre></div>
+</div>
+</div>
 
 <p>In the example, if a message is received from channel <code>c1</code>, then it will be printed. If a message is sent to either <code>c2</code> or <code>c3</code>, then the identity of the channel will be printed, and if the 100 ms timeout elapses then &#8220;timeout!&#8221; will be printed.</p>
 
@@ -476,9 +515,12 @@ It takes an even number of expressions, ordered as (ops1, action1, ops2, action2
 
 <p>It is common for a function to always wait to receive from the same set of channels. An alternative to <code>sel</code> can be to create a <code>rcv-group</code>, on which you can call <code>rcv</code> as if it were a simple channel:</p>
 
-<pre><code class="language-clojure">(let [group (rcv-group ch1 ch2 ch3)]
+<div><div class="CodeRay">
+  <div class="code"><pre>(<span class="keyword">let</span> [group (rcv-group ch1 ch2 ch3)]
    (rcv group))
-</code></pre>
+</pre></div>
+</div>
+</div>
 
 <p>You can also use a timeout when receiving from a channel group.</p>
 
@@ -490,8 +532,11 @@ It takes an even number of expressions, ordered as (ops1, action1, ops2, action2
 
 <p>As mentioned earlier, a ticker channel is single-consumer, i.e. only one strand is allowed to consume messages from the channel. On the other hand, it is possible, and useful, to create several views of the channel, each used by a different consumer strand. A view is created thus:</p>
 
-<pre><code class="language-clojure">(ticker-consumer ch)
-</code></pre>
+<div><div class="CodeRay">
+  <div class="code"><pre>(ticker-consumer ch)
+</pre></div>
+</div>
+</div>
 
 <p><code>ch</code> must be a channel of bounded capacity with the <code>:displace</code> policy. <code>ticker-consumer</code> returns a <em>receive port</em> (a channel that can only receive messages, not send them) that can be used to receive messages from <code>ch</code>. Each ticker-consumer will yield monotonic messages, namely no message will be received more than once, and the messages will be received in the order they&#8217;re sent, but if the consumer is too slow, messages could be lost. </p>
 
@@ -527,47 +572,50 @@ It takes an even number of expressions, ordered as (ops1, action1, ops2, action2
 
 <p>Then, manipulating messages with sequence functions is easy. Here are some examples from the tests:</p>
 
-<pre><code class="language-clojure">(require [co.paralleluniverse.pulsar.lazyseq :as s :refer [channel-&gt;lazy-seq snd-seq]])
+<div><div class="CodeRay">
+  <div class="code"><pre>(<span class="keyword">require</span> [co.paralleluniverse.pulsar.lazyseq <span class="symbol">:as</span> s <span class="symbol">:refer</span> [channel-&gt;lazy-seq snd-seq]])
 
-(facts "channels-seq"
-       (fact "Receive sequence with sleep"
-             (let [ch (channel)
+(facts <span class="string"><span class="delimiter">&quot;</span><span class="content">channels-seq</span><span class="delimiter">&quot;</span></span>
+       (fact <span class="string"><span class="delimiter">&quot;</span><span class="content">Receive sequence with sleep</span><span class="delimiter">&quot;</span></span>
+             (<span class="keyword">let</span> [ch (channel)
                    fiber (spawn-fiber
-                          (fn []
-                            (let [s (s/take 5 (channel-&gt;lazy-seq ch))]
+                          (<span class="keyword">fn</span> []
+                            (<span class="keyword">let</span> [s (s/take <span class="integer">5</span> (channel-&gt;lazy-seq ch))]
                               (s/doall s))))]
-               (dotimes [m 10]
-                 (Thread/sleep 20)
+               (<span class="keyword">dotimes</span> [m <span class="integer">10</span>]
+                 (Thread/sleep <span class="integer">20</span>)
                  (snd ch m))
-               (join fiber))  =&gt; (list 0 1 2 3 4))
-       (fact "Map received sequence with sleep"
-             (let [ch (channel)
-                   fiber (spawn-fiber (fn [] (s/doall (s/map #(* % %) (s/take 5 (channel-&gt;lazy-seq ch))))))]
-               (dotimes [m 10]
-                 (Thread/sleep 20)
+               (join fiber))  =&gt; (<span class="keyword">list</span> <span class="integer">0</span> <span class="integer">1</span> <span class="integer">2</span> <span class="integer">3</span> <span class="integer">4</span>))
+       (fact <span class="string"><span class="delimiter">&quot;</span><span class="content">Map received sequence with sleep</span><span class="delimiter">&quot;</span></span>
+             (<span class="keyword">let</span> [ch (channel)
+                   fiber (spawn-fiber (<span class="keyword">fn</span> [] (s/doall (s/map #(<span class="keyword">*</span> % %) (s/take <span class="integer">5</span> (channel-&gt;lazy-seq ch))))))]
+               (<span class="keyword">dotimes</span> [m <span class="integer">10</span>]
+                 (Thread/sleep <span class="integer">20</span>)
                  (snd ch m))
-               (join fiber)) =&gt; (list 0 1 4 9 16))
-       (fact "Filter received sequence with sleep (odd)"
-             (let [ch (channel)
+               (join fiber)) =&gt; (<span class="keyword">list</span> <span class="integer">0</span> <span class="integer">1</span> <span class="integer">4</span> <span class="integer">9</span> <span class="integer">16</span>))
+       (fact <span class="string"><span class="delimiter">&quot;</span><span class="content">Filter received sequence with sleep (odd)</span><span class="delimiter">&quot;</span></span>
+             (<span class="keyword">let</span> [ch (channel)
                    fiber (spawn-fiber
-                          #(s/doall (s/filter odd? (s/take 5 (channel-&gt;lazy-seq ch)))))]
-               (dotimes [m 10]
-                 (Thread/sleep 20)null
+                          #(s/doall (s/filter <span class="keyword">odd?</span> (s/take <span class="integer">5</span> (channel-&gt;lazy-seq ch)))))]
+               (<span class="keyword">dotimes</span> [m <span class="integer">10</span>]
+                 (Thread/sleep <span class="integer">20</span>)null
                  (snd ch m))
-               (join fiber)) =&gt; (list 1 3))
-       (fact "Filter and map received sequence with sleep (even)"
-             (let [ch (channel)
+               (join fiber)) =&gt; (<span class="keyword">list</span> <span class="integer">1</span> <span class="integer">3</span>))
+       (fact <span class="string"><span class="delimiter">&quot;</span><span class="content">Filter and map received sequence with sleep (even)</span><span class="delimiter">&quot;</span></span>
+             (<span class="keyword">let</span> [ch (channel)
                    fiber (spawn-fiber
-                          (fn [] (s/doall
-                                  (s/filter #(&gt; % 10)
-                                            (s/map #(* % %)
-                                                   (s/filter even?
-                                                             (s/take 5 (channel-&gt;lazy-seq ch))))))))]
-               (dotimes [m 10]
-                 (Thread/sleep 20)
+                          (<span class="keyword">fn</span> [] (s/doall
+                                  (s/filter #(<span class="keyword">&gt;</span> % <span class="integer">10</span>)
+                                            (s/map #(<span class="keyword">*</span> % %)
+                                                   (s/filter <span class="keyword">even?</span>
+                                                             (s/take <span class="integer">5</span> (channel-&gt;lazy-seq ch))))))))]
+               (<span class="keyword">dotimes</span> [m <span class="integer">10</span>]
+                 (Thread/sleep <span class="integer">20</span>)
                  (snd ch m))
-               (join fiber)) =&gt; (list 16)))
-</code></pre>
+               (join fiber)) =&gt; (<span class="keyword">list</span> <span class="integer">16</span>)))
+</pre></div>
+</div>
+</div>
 
 </div>
 
