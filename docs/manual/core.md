@@ -103,9 +103,15 @@ Spawning or dereferencing a future created with `clojure.core/future` is ok, but
 
 Running a `dosync` block inside a fiber is discouraged as it uses locks internally, but your mileage may vary.
 
-Promises are supported and encouraged, but you should not make use of `clojure.core/promise` to create a promise that's to be dereferenced in a fiber. Pulsar provides a different -- yet completely compatible -- form of promises, as you'll immediately see.
+Promises are supported and encouraged, but you should not make use of `clojure.core/promise` to create a promise that's to be dereferenced in a fiber. Pulsar provides a different -- yet completely compatible -- form of promises, as you'll see soon.
 
-### Promises, Promises
+### Strands
+
+Before we continue, one more bit of nomenclature: a single flow of execution in Quasar/Pulsar is called a *strand*. To put it more simply, a strand is either a normal JVM thread, or a fiber.
+
+The strand abstraction helps you write code that works whether it runs in a fiber or not. For example, `(Strand/currentStrand)` returns the current fiber, if called from a fiber, or the current thread, if not. `(Strand/sleep millis)` suspends the current strand for a given number of milliseconds whether it's a fiber or a normal thread. Also, `join` works for both fibers and threads (although for threads `join` will always return `nil`).
+
+## Promises, Promises
 
 Promises, also known as dataflow variables, are an especially effective, and simple, concurrency primitive.
 
@@ -152,12 +158,6 @@ But Pulsar's promises have one additional, quite nifty, feature. If you pass an 
  (deliver v0 2)
  @v4) ; => 10
 ~~~
-
-### Strands
-
-Before we continue, one more bit of nomenclature: a single flow of execution in Quasar/Pulsar is called a *strand*. To put it more simply, a strand is either a normal JVM thread, or a fiber.
-
-The strand abstraction helps you write code that works whether it runs in a fiber or not. For example, `(Strand/currentStrand)` returns the current fiber, if called from a fiber, or the current thread, if not. `(Strand/sleep millis)` suspends the current strand for a given number of milliseconds whether it's a fiber or a normal thread. Also, `join` works for both fibers and threads (although for threads `join` will always return `nil`).
 
 ## Channels {#channels}
 
