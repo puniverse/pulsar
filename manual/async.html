@@ -92,19 +92,19 @@
           
           
           
-            <li>
-              <a  href="/pulsar/news.html">
-                News
-              </a>
-              
-            </li>
-          
         
           
           
             
           
           
+          
+            <li>
+              <a  href="/pulsar/news.html">
+                News
+              </a>
+              
+            </li>
           
         
       
@@ -167,19 +167,19 @@
           
           
           
-        
-          
-          
-            
-          
-          
-          
             <li>
               <a  href="/pulsar/manual/examples.html">
                 Examples
               </a>
               
             </li>
+          
+        
+          
+          
+            
+          
+          
           
         
       
@@ -205,7 +205,7 @@
 
       <div id="content"><p>core.async is a new <a href="https://github.com/clojure/core.async/">asynchronous programming library</a> for Clojure built by Rich Hickey and other contributors. It provides something akin to fibers (though more limited than Pulsar fibers) and channels, and is also available in ClojureScript. Because core.async provides a subset of Pulsar’s capability, Pulsar provides an optional API that’s compatible with core.async which some people may prefer.</p>
 
-<p>The core.async implementation is found in the <code>co.paralleluniverse.pulsar.async</code> namespace. It defines the following names: <code>chan</code>, <code>buffer</code>, <code>dropping-buffer</code>, <code>sliding-buffer</code>, <code>go</code>, <code>thread</code>, <code>close!</code>, <code>take!</code>, <code>put!</code>, <code>&gt;!</code>, <code>&gt;!!</code>, <code>&lt;!</code>, <code>&lt;!!</code>, <code>alts!</code>, <code>alts!!</code>, <code>alt!</code>, <code>alt!!</code> and <code>timeout</code>.</p>
+<p>The core.async implementation is found in the <code>co.paralleluniverse.pulsar.async</code> namespace. It defines the following names: <code>chan</code>, <code>buffer</code>, <code>dropping-buffer</code>, <code>sliding-buffer</code>, <code>go</code>, <code>thread-call</code>, <code>thread</code>, <code>close!</code>, <code>take!</code>, <code>put!</code>, <code>&gt;!</code>, <code>&gt;!!</code>, <code>&lt;!</code>, <code>&lt;!!</code>, <code>alts!</code>, <code>alts!!</code>, <code>alt!</code>, <code>alt!!</code> and <code>timeout</code>.</p>
 
 <p>These definitions are no more than thin wrappers around Pulsar functions and macros:</p>
 

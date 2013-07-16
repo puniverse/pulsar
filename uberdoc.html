@@ -3736,16 +3736,27 @@ as published by the Free Software Foundation.</p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro go
 [&amp; body]
 `(fiber-call (fn [] ~@body)))</pre></td></tr><tr><td class="docs"><p>The following defs are redundant in this implementation, but are provided for compatibility with core.async</p>
-</td><td class="codes"></td></tr><tr><td class="docs"><p>takes a val from port. Will return nil if closed. Will block if nothing is available.</p>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>takes a val from port. Will return nil if closed. Will block 
+  if nothing is available.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn &lt;!!
   [port]
-  (&lt;! port))</pre></td></tr><tr><td class="docs"><p>puts a val into port. nil values are not allowed. Will block if no buffer space is available. Returns nil.</p>
+  (&lt;! port))</pre></td></tr><tr><td class="docs"><p>puts a val into port. nil values are not allowed. Will block if no 
+  buffer space is available. Returns nil.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn &gt;!!
   [port val]
-  (&gt;! port val))</pre></td></tr><tr><td class="docs">
+  (&gt;! port val))</pre></td></tr><tr><td class="docs"><p>Like alts!, except takes will be made as if by <!!, and puts will
+  be made as if by >!!, will block until completed, and not intended
+  for use in (go ...) blocks.</p>
+
+<p>  Pulsar implementation: identical to alt! and may be
+  used in go blocks</p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro alts!!
   [&amp; args]
-  `(alts! ~@args))</pre></td></tr><tr><td class="docs">
+  `(alts! ~@args))</pre></td></tr><tr><td class="docs"><p>Like alt!, except as if by alts!!, will block until completed, and
+  not intended for use in (go ...) blocks.</p>
+
+<p>  Pulsar implementation: identical to alt! and may be
+  used in go blocks</p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro alt!!
   [&amp; args]
   `(alt! ~@args))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.core" name="co.paralleluniverse.pulsar.core"><h1 class="project-name">co.paralleluniverse.pulsar.core</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>This program and the accompanying materials are dual-licensed under
