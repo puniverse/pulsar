@@ -6,7 +6,7 @@ weight: 3
 
 core.async is a new [asynchronous programming library](https://github.com/clojure/core.async/) for Clojure built by Rich Hickey and other contributors. It provides something akin to fibers (though more limited than Pulsar fibers) and channels, and is also available in ClojureScript. Because core.async provides a subset of Pulsar's capability, Pulsar provides an optional API that's compatible with core.async which some people may prefer.
 
-The core.async implementation is found in the `co.paralleluniverse.pulsar.async` namespace. It defines the following names: `chan`, `buffer`, `dropping-buffer`, `sliding-buffer`, `go`, `thread`, `close!`, `take!`, `put!`, `>!`, `>!!`, `<!`, `<!!`, `alts!`, `alts!!`, `alt!`, `alt!!` and `timeout`.
+The core.async implementation is found in the `co.paralleluniverse.pulsar.async` namespace. It defines the following names: `chan`, `buffer`, `dropping-buffer`, `sliding-buffer`, `go`, `thread-call`, `thread`, `close!`, `take!`, `put!`, `>!`, `>!!`, `<!`, `<!!`, `alts!`, `alts!!`, `alt!`, `alt!!` and `timeout`.
 
 These definitions are no more than thin wrappers around Pulsar functions and macros:
 

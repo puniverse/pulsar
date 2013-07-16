@@ -248,19 +248,32 @@
 ;; The following defs are redundant in this implementation, but are provided for compatibility with core.async
 
 (defn <!!
-  "takes a val from port. Will return nil if closed. Will block if nothing is available."
+  "takes a val from port. Will return nil if closed. Will block 
+  if nothing is available."
   [port]
   (<! port))
 
 (defn >!!
-  "puts a val into port. nil values are not allowed. Will block if no buffer space is available. Returns nil."
+  "puts a val into port. nil values are not allowed. Will block if no 
+  buffer space is available. Returns nil."
   [port val]
   (>! port val))
 
 (defmacro alts!!
+ "Like alts!, except takes will be made as if by <!!, and puts will
+  be made as if by >!!, will block until completed, and not intended
+  for use in (go ...) blocks.
+ 
+  Pulsar implementation: identical to alt! and may be
+  used in go blocks"
   [& args]
   `(alts! ~@args))
 
 (defmacro alt!!
+  "Like alt!, except as if by alts!!, will block until completed, and
+  not intended for use in (go ...) blocks.
+  
+  Pulsar implementation: identical to alt! and may be
+  used in go blocks"
   [& args]
   `(alt! ~@args))
