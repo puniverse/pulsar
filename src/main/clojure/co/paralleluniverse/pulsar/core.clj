@@ -528,12 +528,12 @@
   []
   (Topic.))
 
-(defn subscribe
+(defn subscribe!
   "Subscribes a channel to a topic"
   [^Topic topic ^SendPort channel]
   (.subscribe topic channel))
 
-(defn unsubscribe
+(defn unsubscribe!
   "Unsubscribes a channel from a topic"
   [^Topic topic ^SendPort channel]
   (.unsubscribe topic channel))
