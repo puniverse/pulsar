@@ -33,6 +33,7 @@ This will create a new actor, and start running it in a new fiber.
   - `:throw`, in which case an exception will be thrown *into the receiving actor*
   - `:drop`, in which case the message will be silently discarded, or 
   - `:block`, in which case the sender will block until there's room in the mailbox.
+* `:trap` - If set to `true`, linked actors' death will send an exit message rather than throw an exception (see below).
 * `:lifecycle-handle` - A function that will be called to handle special messages sent to the actor. If set to `nil` (the default), the default handler is used, which is what you want in all circumstances, except for some actors that are meant to do some special tricks.
 * `:fj-pool` - The `ForkJoinPool` in which the fiber will run.
   If `:fj-pool` is not specified, then the pool used will be either 1) the pool of the fiber calling `spawn-fiber`, or, if `spawn-fiber` is not called from within a fiber, a default pool.

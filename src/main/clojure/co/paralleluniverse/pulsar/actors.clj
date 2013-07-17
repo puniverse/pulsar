@@ -136,6 +136,7 @@
      - `:throw` - an exception will be thrown *into the receiving actor*
      - `:drop`  -  the message will be silently discarded 
      - `:block` - the sender will block until there's room in the mailbox.  
+  * `:trap` - If set to `true`, linked actors' death will send an exit message rather than throw an exception.
   * `:lifecycle-handle` - A function that will be called to handle special messages sent to the actor. 
                           If set to `nil` (the default), the default handler is used, which is what you 
                           want in all circumstances, except for some actors that are meant to do some 
@@ -158,7 +159,9 @@
        actor#)))
 
 (defmacro spawn-link
-  "Creates and starts, as by `spawn`, a new actor, and links it to @self"
+  "Creates and starts, as by `spawn`, a new actor, and links it to @self.
+  
+  See: `link!`"
   {:arglists '([:name? :mailbox-size? :overflow-policy? :lifecycle-handler? :stack-size? :pool? f & args])}
   [& args]
   `(let [actor# ~(list `spawn ~@args)]
@@ -204,13 +207,6 @@
     (deref [_] (PulsarActor/selfMailbox))))
 
 
-(ann trap! [-> nil])
-(defn trap!
-  "Sets the current actor to trap lifecycle events (like a dead linked actor) 
-  and turn them into messages."
-  []
-  (.setTrap ^PulsarActor @self true))
-
 (ann get-actor [Any -> Actor])
 (defn ^Actor get-actor
   "If the argument is an actor -- returns it. If not, looks up a registered 
@@ -221,10 +217,30 @@
       a
       (LocalActor/getActor a))))
 
+(ann trap! [-> nil])
+(defn trap!
+  "Sets the current actor to trap lifecycle events (like a dead linked actor) 
+  and turn them into exit messages.
+  Same as adding `:trap true` to `spawn`."
+  []
+  (.setTrap ^PulsarActor @self true))
+
+
 (ann link! (Fn [Actor -> Actor]
                [Actor Actor -> Actor]))
 (defn link!
-  "Links two actors."
+  "Links two actors. If only one actor is specified, links the current actor with the
+  specified actor.
+  
+  A link is symmetrical. When two actors are linked, when one of them dies, the other throws 
+  a `co.paralleluniverse.actors.LifecycleException` exception which, unless caught, kills it 
+  as well.
+  If `:trap true` was added to the actor's `spawn` call, or if `(trap!)` has been called by
+  the actor, rather than an exception being thrown, an exit message is sent to the actor.
+  The message is of the same structure as the one sent as a result of `watch!` except that
+  the watch element is `nil`.
+  
+  See: `unlink!`, `watch!`"
   ([actor2]
    (.link ^LocalActor @self actor2))
   ([actor1 actor2]
@@ -233,23 +249,44 @@
 (ann unlink! (Fn [Actor -> Actor]
                  [Actor Actor -> Actor]))
 (defn unlink!
-  "Unlinks two actors"
+  "Unlinks two actors. If only one actor is specified, unlinks the current actor from the
+  specified actor.
+  
+  See: `link!`"
   ([actor2]
    (.unlink ^LocalActor @self actor2))
   ([actor1 actor2]
    (.unlink ^LocalActor (cast LocalActor (get-actor actor1)) (get-actor actor2))))
 
-(ann monitor (Fn [Actor Actor -> LifecycleListener]
+(ann watch! (Fn [Actor Actor -> LifecycleListener]
                  [Actor -> LifecycleListener]))
 (defn watch!
-  "Makes the current actor watch another actor. Returns a watch object which should be used when calling demonitor."
+  "Makes the current actor watch another actor. Returns a watch object which is then
+  used in all relevant exit messages, and should also be used when calling `unwatch!`.
+  
+  Unlike links, watches are assymetrical. If a the watched actor dies, the watching 
+  actor (the actor calling this function), receives an exit message. 
+  
+  The message is a vector of 4 elements, of the following structure:
+  
+  [:exit w actor cause]
+  
+  `w` - the watch object returned from the call to `watch!`, which is responsible for the
+        message being sent. If the `watch!` function is called more than once to watch
+        the same actor, an exit message will be received several times, each one corresponding
+        to an invocation of `watch!`, and each with a different value for `w`.
+  `actor` - the dead (watched) actor.
+  `cause` - the dead actor's cause of death: `nil` for a normal termination; a Throwable for
+            an exceptional termination.
+
+  See: `unwatch!`, `link!`"
   [actor]
    (.watch ^LocalActor @self actor))
 
-(ann monitor (Fn [Actor Actor LifecycleListener -> nil]
+(ann unwatch! (Fn [Actor Actor LifecycleListener -> nil]
                  [Actor LifecycleListener -> nil]))
 (defn unwatch!
-  "Makes an actor stop watch another actor"
+  "Makes an actor stop watching another actor"
   ([actor2 monitor]
    (.unwatch ^LocalActor @self actor2 monitor))
   ([actor1 actor2 monitor]
@@ -258,7 +295,7 @@
 (ann register (Fn [String LocalActor -> LocalActor]
                   [LocalActor -> LocalActor]))
 (defn register!
-  "Registers an actor."
+  "Registers an actor in the actor registry."
   ([name ^LocalActor actor]
    (.register actor name))
   ([^LocalActor actor]
@@ -266,13 +303,14 @@
 
 (ann unregister [LocalActor -> LocalActor])
 (defn unregister!
-  "Un-registers an actor."
+  "Unregisters an actor."
   [x]
   (let [^LocalActor actor x]
     (.unregister actor)))
 
 (ann mailbox-of [PulsarActor -> Channel])
 (defn ^Channel mailbox-of
+  "Returns the mailbox of the given actor."
   [^PulsarActor actor]
   (.mailbox actor))
 
@@ -307,7 +345,11 @@
 
 (defmacro !
   "Sends a message to an actor.
-  This function returns nil."
+  This function returns `nil`.
+  If the actor's mailbox capacity has been exceeded, this function's behavior
+  is determined by the `overflow-policy` set by the receiving actor's `spawn`.
+  
+  See: `spawn`"
   ([actor message]
    `(co.paralleluniverse.actors.PulsarActor/send (get-actor ~actor) (clojure->java-msg ~message)))
   ([actor arg & args]
@@ -315,8 +357,10 @@
 
 (defmacro !!
   "Sends a message to an actor synchronously.
-  This has the exact same semantics as ! (in particular, this function always returns nil),
-  but it hints the scheduler that the current actor is about to wait for a response from the message's addressee."
+  This has the exact same semantics as !, but hints to the scheduler that the 
+  current actor is about to wait for a response from the message's addressee.
+  
+  See: `!`"
   ([actor message]
    `(co.paralleluniverse.actors.PulsarActor/sendSync (get-actor ~actor) (clojure->java-msg ~message)))
   ([actor arg & args]
