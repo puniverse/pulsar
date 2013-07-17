@@ -123,7 +123,27 @@
   `(co.paralleluniverse.actors.MailboxConfig. (int ~size) (keyword->enum co.paralleluniverse.strands.channels.Channels$OverflowPolicy ~overflow-policy)))
 
 (defmacro spawn
-  "Creates and starts a new actor"
+  "Creates and starts a new actor running in its own, newly-spawned fiber.
+  
+  f - the actor function.
+  args - (optional) arguments to for the function.
+  
+  Options:
+  * `:name` - The actor's name (that's also given to the fiber running the actor).
+  * `:mailbox-size` - The number of messages that can wait in the mailbox, 
+                      or -1 (the default) for an unbounded mailbox.
+  * `:overflow-policy` - What to do if a bounded mailbox overflows. Can be on of:
+     - `:throw` - an exception will be thrown *into the receiving actor*
+     - `:drop`  -  the message will be silently discarded 
+     - `:block` - the sender will block until there's room in the mailbox.  
+  * `:lifecycle-handle` - A function that will be called to handle special messages sent to the actor. 
+                          If set to `nil` (the default), the default handler is used, which is what you 
+                          want in all circumstances, except for some actors that are meant to do some 
+                          special tricks.
+  * `:fj-pool` - The `ForkJoinPool` in which the fiber will run.
+                 If `:fj-pool` is not specified, then the pool used will be either the pool of the fiber calling 
+                 `spawn-fiber`, or, if `spawn-fiber` is not called from within a fiber, a default pool.
+  * `:stack-size` - The initial fiber stack size."
   {:arglists '([:name? :mailbox-size? :overflow-policy? :lifecycle-handler? :stack-size? :pool? f & args])}
   [& args]
   (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size overflow-policy ^IFn lifecycle-handler ^Integer stack-size ^ForkJoinPool pool], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)]
@@ -145,14 +165,6 @@
      (link! actor#)
      actor#))
 
-(defmacro spawn-watch
-  "Creates and starts, as by `spawn`, a new actor, and makes @self monitor it"
-  {:arglists '([:name? :mailbox-size? :overflow-policy? :lifecycle-handler? :stack-size? :pool? f & args])}
-  [& args]
-  `(let [actor# ~(list `spawn ~@args)]
-     (watch! actor#)
-     actor#))
-
 (ann done? [LocalActor -> Boolean])
 (defn done?
   "Tests whether or not an actor has terminated."
@@ -171,10 +183,18 @@
 
 (ann state (IDeref Any))
 (def state
-  "@state is the state of the currently running actor"
+  "@state is the state of the currently running actor.
+  The state can be set with `set-state!`"
   (reify
     clojure.lang.IDeref
     (deref [_] (PulsarActor/selfGetState))))
+
+(ann set-state! (All [x] [x -> x]))
+(defn set-state!
+  "Sets the state of the currently running actor.
+  The state can be read with `@state`."
+  [x]
+  (PulsarActor/selfSetState x))
 
 (ann mailbox (IDeref Channel))
 (def mailbox
@@ -183,21 +203,18 @@
     clojure.lang.IDeref
     (deref [_] (PulsarActor/selfMailbox))))
 
-(ann set-state! (All [x] [x -> x]))
-(defn set-state!
-  "Sets the state of the currently running actor"
-  [x]
-  (PulsarActor/selfSetState x))
 
 (ann trap! [-> nil])
 (defn trap!
-  "Sets the current actor to trap lifecycle events (like a dead linked actor) and turn them into messages"
+  "Sets the current actor to trap lifecycle events (like a dead linked actor) 
+  and turn them into messages."
   []
   (.setTrap ^PulsarActor @self true))
 
 (ann get-actor [Any -> Actor])
 (defn ^Actor get-actor
-  "If the argument is an actor -- returns it. If not, looks up a registered actor with the argument as its name"
+  "If the argument is an actor -- returns it. If not, looks up a registered 
+  actor with the argument as its name."
   [a]
   (when a
     (if (instance? Actor a)
@@ -207,7 +224,7 @@
 (ann link! (Fn [Actor -> Actor]
                [Actor Actor -> Actor]))
 (defn link!
-  "links two actors"
+  "Links two actors."
   ([actor2]
    (.link ^LocalActor @self actor2))
   ([actor1 actor2]
@@ -241,7 +258,7 @@
 (ann register (Fn [String LocalActor -> LocalActor]
                   [LocalActor -> LocalActor]))
 (defn register!
-  "Registers an actor"
+  "Registers an actor."
   ([name ^LocalActor actor]
    (.register actor name))
   ([^LocalActor actor]
@@ -249,7 +266,7 @@
 
 (ann unregister [LocalActor -> LocalActor])
 (defn unregister!
-  "Un-registers an actor"
+  "Un-registers an actor."
   [x]
   (let [^LocalActor actor x]
     (.unregister actor)))
@@ -261,7 +278,7 @@
 
 (ann whereis [Any -> Actor])
 (defn ^Actor whereis
-  "Returns a registered actor by name"
+  "Returns a registered actor by name."
   [name]
   (ActorImpl/getActor name))
 
@@ -275,10 +292,12 @@
 (ann tagged-tuple? [Any -> Boolean])
 (defn tagged-tuple?
   "Tests whether argument x is a vector whose first element is a keyword."
+  {:no-doc true}
   [x]
   (and (vector? x) (keyword? (first x))))
 
 (defn clojure->java-msg
+  {:no-doc true}
   [x]
   (if (not (tagged-tuple? x))
     x

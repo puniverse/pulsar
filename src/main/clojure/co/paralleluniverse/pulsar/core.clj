@@ -257,17 +257,25 @@
 
 (defmacro susfn
   "Creates a suspendable function that can be used by a fiber or actor.
-  Used exactly like 'fn"
+  Used exactly like `fn`"
   [& expr]
   `(suspendable! (fn ~@expr)))
 
 (defmacro defsusfn
   "Defines a suspendable function that can be used by a fiber or actor.
-  Used exactly like 'defn'"
+  Used exactly like `defn`"
   [& expr]
   `(do
      (defn ~@expr)
      (def ~(first expr) (suspendable! ~(first expr)))))
+
+(defmacro letsusfn
+  "Defines a local suspendable function that can be used by a fiber or actor.
+  Used exactly like `letfn`"
+[fnspecs & body] 
+`(let ~(vec (interleave (map first fnspecs) 
+                        (map #(cons `susfn %) fnspecs)))
+   ~@body))
 
 (ann ^:nocheck strampoline (All [v1 v2 ...]
                                 (Fn
@@ -319,7 +327,7 @@
   "Creates and starts a new fiber.
   
   f - the function to run in the fiber.
-  args - (optional) arguments to pass to the function
+  args - (optional) arguments for the function
   
   Options:
   :name str     - the fiber's name
@@ -590,9 +598,9 @@
   A message received from the group is consumed (removed) from the original member
   channel to which it has been sent."
   ([ports]
-   (ReceivePortGroup. ports))
+   (ReceivePortGroup. ^java.util.Collection ports))
   ([port & ports]
-   (ReceivePortGroup. (cons port ports))))
+   (ReceivePortGroup. ^java.util.Collection (cons port ports))))
 
 (defn topic
   "Creates a new topic.
@@ -620,12 +628,12 @@
   [ports priority millis]
   (let [^TimeUnit unit (when millis TimeUnit/MILLISECONDS)
         millis (long (or millis 0))]
-    (Selector/select (if priority true false)
+    (Selector/select ^boolean (if priority true false)
                      millis unit
-                     (map #(if (vector? %)
-                             (Selector/send ^SendPort (first %) (second %))
-                             (Selector/receive ^ReceivePort %))
-                          ports))))
+                     ^java.util.List (map #(if (vector? %)
+                                             (Selector/send ^SendPort (first %) (second %))
+                                             (Selector/receive ^ReceivePort %))
+                                          ports))))
 
 (defn sel
   "Performs up to one of several given channel operations.

@@ -29,7 +29,10 @@ This will create a new actor, and start running it in a new fiber.
 
 * `:name` - The actor's name (that's also given to the fiber running the actor).
 * `:mailbox-size` - The number of messages that can wait in the mailbox, or -1 (the default) for an unbounded mailbox.
-* `:overflow-policy` - What to do if a bounded mailbox overflows. Can be either `:kill`, in which case an exception will be thrown into the receivnig actor, or `:backpressure`, in which case the sender will block until there's room in the mailbox.
+* `:overflow-policy` - What to do if a bounded mailbox overflows. Can be either:
+  - `:throw`, in which case an exception will be thrown *into the receiving actor*
+  - `:drop`, in which case the message will be silently discarded, or 
+  - `:block`, in which case the sender will block until there's room in the mailbox.
 * `:lifecycle-handle` - A function that will be called to handle special messages sent to the actor. If set to `nil` (the default), the default handler is used, which is what you want in all circumstances, except for some actors that are meant to do some special tricks.
 * `:fj-pool` - The `ForkJoinPool` in which the fiber will run.
   If `:fj-pool` is not specified, then the pool used will be either 1) the pool of the fiber calling `spawn-fiber`, or, if `spawn-fiber` is not called from within a fiber, a default pool.
