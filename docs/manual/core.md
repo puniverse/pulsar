@@ -229,7 +229,7 @@ After calling
 
 any future messages sent to the channel will be ignored. Any messages already in the channel will be received. Once the last message has been received, another call to `rcv` will return `nil`. 
 
-### Channel Selection (`sel`, `select` and `rcv-group`)
+### Channel Selection – `sel` and `select`
 
 A powerful tool when working with channels is the ability to wait on a message from several channels at once.
 
@@ -285,6 +285,8 @@ In the example, if a message is received from channel `c1`, then it will be prin
 
 Finally, just like `sel`, you can pass `:priority true` to `select`, in which case if more than one operation is available, the first one among them as listed in the `select` statement will be performed.
 
+### Channel Groups
+
 It is common for a function to always wait to receive from the same set of channels. An alternative to `sel` can be to create a `rcv-group`, on which you can call `rcv` as if it were a simple channel:
 
 ~~~ clojure
@@ -293,6 +295,30 @@ It is common for a function to always wait to receive from the same set of chann
 ~~~
 
 You can also use a timeout when receiving from a channel group.
+
+### Topics
+
+Topics are, in a sense, the opposite of rcv-groups. A topic is a send-port (a channel you can send to but not receive from), that broadcasts any message written to it to a number of *subscriber* channels.
+
+A topic is created simply with:
+
+~~~ clojure
+(topic)
+~~~
+
+When a channel *subscribes* to the topic, it will receive all messages sent to the topic:
+
+~~~ clojure
+(subscribe! tpc ch)
+~~~
+
+You can also unsubscribe a channel:
+
+~~~ clojure
+(subscribe! tpc ch)
+~~~
+
+Note that a messages sent to the topic is essentialy replicated to all subscribers, i.e. it will be received once in each channel.
 
 ### Ticker Channels
 
