@@ -57,6 +57,7 @@
                            (alter-var-root #'clojure.test/*load-tests* (constantly false))]
               :codox {:include [co.paralleluniverse.pulsar.core 
                                 co.paralleluniverse.pulsar.actors
-                                co.paralleluniverse.pulsar.lazyseq]
+                                co.paralleluniverse.pulsar.lazyseq
+                                co.paralleluniverse.pulsar.async]
                       :output-dir "docs/api"}
               :global-vars {*warn-on-reflection* false}}})
