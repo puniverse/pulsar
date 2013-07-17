@@ -87,6 +87,7 @@
 ;;     (surround-with '(1 (2)) '(3 4)) -> ((1 (2) (3 4)))
 (ann surround-with [(ISeq Any) Any * -> (ISeq Any)])
 (defn surround-with
+  {:no-doc true}
   [expr & exprs]
   (if (nil? expr)
     exprs
@@ -104,6 +105,7 @@
 
 (ann ops-args [(ISeq (Vector* (Fn [Any -> Boolean]) Any)) (ISeq Any) -> (ISeq Any)])
 (defn- ops-args
+  {:no-doc true}
   [pds xs]
   "Used to simplify optional parameters in functions.
   Takes a sequence of [predicate? default] pairs, and a sequence of arguments. Tests the first predicate against
@@ -127,15 +129,6 @@
         positionals (reduce into [] ps)]
     [options positionals]))
 
-(ann extract-keys [(ISeq Keyword) (ISeq Any) -> (Vector* (ISeq Any) (ISeq Any))])
-(defn- extract-keys
-  [ks pargs]
-  (if (not (seq ks))
-    [[] pargs]
-    (let [[k ps] (split-with #(= (first ks) (first %)) pargs)
-          [rks rpargs] (extract-keys (next ks) ps)]
-      [(vec (cons (first k) rks)) rpargs])))
-
 (ann merge-meta (All [[x :< clojure.lang.IObj] [y :< (IPersistentMap Keyword Any)]]
                      [x y -> (I x (IMeta y))]))
 (defn merge-meta
@@ -149,19 +142,8 @@
   [f & args]
   (apply f (concat (butlast args) (last args))))
 
-(ann as-timeunit [Keyword -> TimeUnit])
-(defn ^TimeUnit as-timeunit
-  "Converts a keyword to a java.util.concurrent.TimeUnit
-  <pre>
-  :nanoseconds | :nanos | :ns   -> TimeUnit/NANOSECONDS
-  :microseconds | :us           -> TimeUnit/MICROSECONDS
-  :milliseconds | :millis | :ms -> TimeUnit/MILLISECONDS
-  :seconds | :sec               -> TimeUnit/SECONDS
-  :minutes | :mins              -> TimeUnit/MINUTES
-  :hours | :hrs                 -> TimeUnit/HOURS
-  :days                         -> TimeUnit/DAYS
-  </pre>
-  "
+(ann keyword->timeunit [Keyword -> TimeUnit])
+(defn- ^TimeUnit keyword->timeunit
   [x]
   (case x
     (:nanoseconds :nanos :ns)   TimeUnit/NANOSECONDS
@@ -174,19 +156,33 @@
 
 (ann ->timeunit [(U TimeUnit Keyword) -> TimeUnit])
 (defn ^TimeUnit ->timeunit
+  "Constructs an instance of `java.util.concurrent.TimeUnit`.
+  If argument x is already an instance of `TimeUnit`, the function returns x.
+  Otherwise, x *must* be a keyword, in which case the following conversion
+  is performed:
+  
+  <pre>
+  :nanoseconds | :nanos | :ns   -> TimeUnit/NANOSECONDS
+  :microseconds | :us           -> TimeUnit/MICROSECONDS
+  :milliseconds | :millis | :ms -> TimeUnit/MILLISECONDS
+  :seconds | :sec               -> TimeUnit/SECONDS
+  :minutes | :mins              -> TimeUnit/MINUTES
+  :hours | :hrs                 -> TimeUnit/HOURS
+  :days                         -> TimeUnit/DAYS
+  </pre>
+  "
   [x]
   (if (instance? TimeUnit x)
     x
-    (as-timeunit x)))
+    (keyword->timeunit x)))
 
 (defn convert-duration
+  "Converts a time duration from one time unit to another.
+  x is the duration; `from-unit` and `to-unit` are the source
+  and target units repsectively, given as either a j.u.c.TimeUnit instance
+  or as a keyword, as specified by `->timeunit`."
   [x from-unit to-unit]
   (.convert (->timeunit to-unit) x (->timeunit from-unit)))
-
-(ann tagged-tuple? [Any -> Boolean])
-(defn tagged-tuple?
-  [x]
-  (and (vector? x) (keyword? (first x))))
 
 (ann unwrap-exception* [Throwable -> Throwable])
 (defn unwrap-exception*
@@ -246,7 +242,7 @@
                       [IFn * -> (ISeq IFn)]
                       [(ISeq IFn) -> (ISeq IFn)]))
 (defn suspendable!
-  "Makes a function suspendable"
+  "Makes a function suspendable."
   ([f]
    (ClojureHelper/retransform f nil))
   ([x prot]
@@ -260,12 +256,14 @@
   (ClojureHelper/asSuspendableCallable f))
 
 (defmacro susfn
-  "Creates a suspendable function that can be used by a fiber or actor"
+  "Creates a suspendable function that can be used by a fiber or actor.
+  Used exactly like 'fn"
   [& expr]
   `(suspendable! (fn ~@expr)))
 
 (defmacro defsusfn
-  "Defines a suspendable function that can be used by a fiber or actor"
+  "Defines a suspendable function that can be used by a fiber or actor.
+  Used exactly like 'defn'"
   [& expr]
   `(do
      (defn ~@expr)
@@ -304,19 +302,31 @@
 
 (ann fiber [String ForkJoinPool AnyInteger [Any -> Any] -> Fiber])
 (defn ^Fiber fiber
-  "Creates a new fiber (a lightweight thread) running in a fork/join pool."
+  "Creates, but does not start a new fiber (a lightweight thread) running in a fork/join pool.
+  
+  It is much preferable to use `spawn-fiber`."
   [& args]
   (let [[^String name ^ForkJoinPool pool ^Integer stacksize f] (ops-args [[string? nil] [#(instance? ForkJoinPool %) fj-pool] [integer? -1]] args)]
     (Fiber. name (get-pool pool) (int stacksize) (->suspendable-callable f))))
 
 (ann start [Fiber -> Fiber])
 (defn start
-  "Starts a fiber"
+  "Starts a fiber created with `fiber`."
   [^Fiber fiber]
   (.start fiber))
 
 (defmacro spawn-fiber
-  "Creates and starts a new fiber"
+  "Creates and starts a new fiber.
+  
+  f - the function to run in the fiber.
+  args - (optional) arguments to pass to the function
+  
+  Options:
+  :name str     - the fiber's name
+  :stack-size n - the fiber's initial stack size
+  :fj-pool      - the fork-join pool in which the fiber will run
+  "
+  {:arglists '([:name? :stack-size? :fj-pool? f & args])}
   [& args]
   (let [[{:keys [^String name ^Integer stack-size ^ForkJoinPool pool] :or {stack-size -1}} body] (kps-args args)]
     `(let [f#     (suspendable! ~(if (== (count body) 1) (first body) `(fn [] (apply ~@body))))
@@ -325,7 +335,7 @@
 
 (ann current-fiber [-> Fiber])
 (defn current-fiber
-  "Returns the currently running lightweight-thread or nil if none"
+  "Returns the currently running lightweight-thread or `nil` if none."
   []
   (Fiber/currentFiber))
 
@@ -361,23 +371,27 @@
 
 (ann current-strand [-> Strand])
 (defn ^Strand current-strand
-  "Returns the currently running fiber or current thread in case of new active fiber"
+  "Returns the currently running fiber (if running in fiber)
+  or current thread (if not)."
   []
   (Strand/currentStrand))
 
 (ann alive? [Strand -> Boolean])
 (defn alive?
-  "Tests whether or not a strand is alive. A strand is alive if it has been started but has not yet died."
+  "Tests whether or not a strand is alive. 
+  A strand is alive if it has been started but has not yet died."
   [^Strand a]
   (.isAlive a))
 
-(ann get-strand [Stranded -> Strand])
-(defn get-strand
-  [^Stranded x]
-  (.getStrand x))
-
 (defn spawn-thread
-  "Creates and starts a new thread"
+  "Creates and starts a new thread.
+  
+  f - the function to run in the thread.
+  args - (optional) arguments to pass to the function
+  
+  Options:
+  :name str     - the thread's name"
+  {:arglists '([:name? f & args])}
   [& args]
   (let [[{:keys [^String name]} body] (kps-args args)]
     (let [f      (if (== (count body) 1) (first body) (fn [] (apply (first body) (rest body))))
@@ -401,12 +415,26 @@
 (ann join (Fn [(U Joinable Thread) -> (Option Any)]
               [(Sequential (U Joinable Thread)) -> (ISeq Any)]))
 (defn join
+  "Awaits the termination of the given strand or strands, and returns
+  their result, if applicable.
+  
+  If a single strand is given, its result is returned;
+  if a collection - then a collection of the repsective results.
+  
+  Note that for threads, the result is always `nil`, as threads don't return a value.
+  
+  If a timeout is supplied and it elapses before the strand has terminated,
+  a j.u.c.TimeoutException is thrown.
+  
+  s       - either a strand or a collection of strands.
+  timeout - how long to wait for the strands termination
+  unit    - the unit of the timeout duration. TimeUnit or keyword as in `->timeunit`"
   ([s]
-   (if (sequential? s)
+   (if (coll? s)
      (doall (map join* s))
      (join* s)))
   ([timeout unit s]
-   (if (sequential? s)
+   (if (coll? s)
      (loop [nanos (long (convert-duration timeout unit :nanos))
             res []
             ss s]
@@ -463,12 +491,37 @@
 (ann channel (Fn [AnyInteger -> Channel]
                  [-> Channel]))
 (defn ^Channel channel
-  "Creates a channel"
-  ([size overflow-policy] (Channels/newChannel (int size) (keyword->enum Channels$OverflowPolicy overflow-policy)))
-  ([size]                 (Channels/newChannel (int size)))
-  ([]                     (Channels/newChannel 0)))
+  "Creates a new channel.
+  
+  Optional arguments:
+  capacity        - specifies how many messages the channel can contain (until they are consumed)
+                    * A value of `0` designates a *transfer channel*, that blocks both `snd` and `rcv` 
+                      until a corresponding operation (`rcv` or `snd` respectively) is called.
+                    * A value of `-1` creates an unbounded channel.
+  
+                    default: 0
+  
+  overflow-policy - specifies what `snd` does when the channel's capacity is exhausted.
+                    May be one of:
+                    * :throw    - throws an exception.
+                    * :block    - blocks until a message is consumed and room is available
+                    * :drop     - the message is silently dropped
+                    * :displace - the old message waiting in the queue is discarded to make room for the new message.
+                    
+                    default: :block
+  
+  The default channel capacity is 0 and the default policy is :block"
+  ([capacity overflow-policy] (Channels/newChannel (int capacity) (keyword->enum Channels$OverflowPolicy overflow-policy)))
+  ([capacity]                 (Channels/newChannel (int capacity)))
+  ([]                         (Channels/newChannel 0)))
 
 (defn ^TickerChannelConsumer ticker-consumer
+  "Creates a rcv-port (read-only channel) that returns messages from a *ticker channel*.
+  A ticker channel is a bounded channel with an overflow policy of :displace.
+  
+  Different ticker consumers are independent (a message received from one is not removed from others),
+  and guarantee monotonicty (messages are received in order), but if messages are sent to the
+  ticker channel faster than they are consumed then messages can be lost."
   [^Channel ticker]
   (cond 
     (instance? IntChannel ticker)    (Channels/newTickerConsumerFor ^IntChannel ticker)
@@ -479,13 +532,18 @@
 
 (ann snd (All [x] [Channel x -> x]))
 (defn snd
-  "Sends a message to a channel"
+  "Sends a message to a channel.
+  If the channel's overflow policy is `:block` than this function will block
+  if the channels' capacity is exceeded."
   [^SendPort channel message]
   (.send channel message))
 
 (ann snd (All [x] [Channel x -> x]))
 (defn try-snd
-  "Tries to immediately send a message to a channel"
+  "Tries to immediately send a message to a channel.
+  If the channel's capacity is exceeded, this function fails and returns `false`.
+  Returns `true` if the operation succeeded; `false` otherwise.
+  This function never blocks."
   [^SendPort channel message]
   (.trySend channel message))
 
@@ -493,18 +551,26 @@
              [Channel Long (U TimeUnit Keyword) -> (Option Any)]))
 (defsusfn rcv
   "Receives a message from a channel or a channel group.
-  If a timeout is given, and it expires, rcv returns nil."
+  This function will block until a message is available or until the timeout,
+  if specified, expires.
+  If a timeout is given, and it expires, rcv returns nil.
+  Otherwise, the message is returned."
   ([^ReceivePort channel]
    (.receive channel))
   ([^ReceivePort channel timeout unit]
    (.receive channel (long timeout) (->timeunit unit))))
 
 (defn try-rcv
+  "Attempts to immediately (without blocking) receive a message from a channel.
+  Returns the message if one is immediately available; `nil` otherwise.
+  This function never blocks."
   [^ReceivePort channel]
   (.tryReceive channel))
 
 (defn close!
-  "Closes a channel"
+  "Closes a channel.
+  Messages already in the channel will be received, but all future attempts at `snd`
+  will silently discard the message."
   [channel]
   (cond
     (instance? SendPort channel)    (.close ^SendPort channel)
@@ -512,29 +578,40 @@
     :else (throw (IllegalArgumentException. (str (.toString ^Object channel) " is not a channel")))))
 
 (defn closed?
-  "Tests whether a channel has been closed and no more messages will be received.
-  This function can only be called by the channel's owning strand (the receiver)"
+  "Tests whether a channel has been closed and contains no more messages that 
+  can be received."
 [^ReceivePort channel]
 (.isClosed channel))
 
 (defn ^ReceivePort rcv-group
+  "Creates a receive-port (a read-only channel) from a group of channels.
+  Receiving a message from the group will return the next message available from
+  any of the channels in the group.
+  A message received from the group is consumed (removed) from the original member
+  channel to which it has been sent."
   ([ports]
    (ReceivePortGroup. ports))
   ([port & ports]
    (ReceivePortGroup. (cons port ports))))
 
 (defn topic
-  "Creates a new topic."
+  "Creates a new topic.
+  A topic is a send-port (a write-only channel) that forwards every message sent to it
+  to a group of subscribed channels.
+  Use `subscribe!` and `unsubscribe!` to subscribe and unsubscribe a channel to or from
+  the topic."
   []
   (Topic.))
 
 (defn subscribe!
-  "Subscribes a channel to a topic"
+  "Subscribes a channel to a topic.
+  The subscribed channel will receive all messages sent to the topic."
   [^Topic topic ^SendPort channel]
   (.subscribe topic channel))
 
 (defn unsubscribe!
-  "Unsubscribes a channel from a topic"
+  "Unsubscribes a channel from a topic.
+  The channel will stop receiving messages sent to the topic."
   [^Topic topic ^SendPort channel]
   (.unsubscribe topic channel))
 
@@ -551,12 +628,66 @@
                           ports))))
 
 (defn sel
+  "Performs up to one of several given channel operations.
+  sel takes a collection containing *channel operation descriptors*. A descriptor is 
+  either a channel or a pair (vector) of a channel and a message. 
+  Each channel in the sequence represents a `rcv` attempt, and each channel-message pair 
+  represents a `snd` attempt. 
+  The `sel` function performs at most one operation on the sequence, a `rcv` or a `snd`, 
+  which is determined by the first operation that can succeed. If no operation can be 
+  carried out immediately, `sel` will block until an operation can be performed, or the
+  optionally specified timeout expires.
+  If two or more operations are available at the same time, one of them will be chosen
+  at random, unless the `:priority` option is set to `true`.
+  
+  Options:
+  :priority bool -  If set to `true`, then whenever two or more operations are available
+                    the first among them, in the order they are listed in the `ports` collection,
+                    will be the one executed.
+  :timeout millis - If timeout is set and expires before any of the operations are available,
+                    the function will return `nil`
+  
+  Returns:
+  If an operation succeeds, returns a vector `[m ch]` with `m` being the message received if the
+  operation is a `rcv`, or `nil` if it's a `snd`, and `ch` is the channel on which the succesful
+  opration was performed.
+  If a timeout is set and expires before any of the operations are available, returns `nil`."
   [ports & {:as opts}]
   (let [^SelectAction sa (do-sel ports (:priority opts) (:timeout opts))]
     (when sa
       [(.message sa) (.port sa)])))
 
 (defmacro select
+  "Performs a very similar operation to `sel`, but allows you to specify an action to perform depending 
+  on which operation has succeeded.
+  Takes an even number of expressions, ordered as (ops1, action1, ops2, action2 ...) with the ops being 
+  a channel operation descriptior (remember: a descriptor is either a channel for an `rcv` operation, 
+  or a vector of a channel and a message specifying a `snd` operation) or a collection of descriptors, 
+  and the actions are Clojure expressions. 
+  Like `sel`, `select` performs at most one operation, in which case it will run the operation's 
+  respective action and return its result.
+
+  An action expression can bind values to the operations results. 
+  The action expression may begin with a vector of one or two symbols. In that case, the first symbol 
+  will be bound to the message returned from the successful receive in the respective ops clause 
+  (or `nil` if the successful operation is a `snd`), and the second symbol, if present, will be bound 
+  to the successful operation's channel.
+
+  Like `sel`, `select` blocks until an operation succeeds, or, if a `:timeout` option is specified, 
+  until the timeout (in milliseconds) elapses. If a timeout is specfied and elapses, `select` will run 
+  the action in an optional `:else` clause and return its result, or, if an `:else` clause is not present, 
+  `select` will return `nil`.
+
+  Example:
+
+  (select :timeout 100 
+         c1 ([v] (println \"received\" v))
+         [[c2 m2] [c3 m3]] ([v c] (println \"sent to\" c))
+         :else \"timeout!\")
+
+  In the example, if a message is received from channel `c1`, then it will be printed. 
+  If a message is sent to either `c2` or `c3`, then the identity of the channel will be printed, 
+  and if the 100 ms timeout elapses then \"timeout!\" will be printed."
   [& clauses]
   (let [clauses (partition 2 clauses)
         opt? #(keyword? (first %)) 

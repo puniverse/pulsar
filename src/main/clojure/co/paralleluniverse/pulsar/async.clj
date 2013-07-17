@@ -30,17 +30,21 @@
   [(if (= n 1) (BoxQueue. false false) (ArrayQueue. n)) Channels$OverflowPolicy/BLOCK])
 
 (defn dropping-buffer
-  "Returns a buffer of size n. When full, puts will complete but val will be dropped (no transfer)."
+  "Returns a buffer of size n. When full, puts will complete but 
+  val will be dropped (no transfer)."
   [n]
   [(if (= n 1) (BoxQueue. false false) (ArrayQueue. n)) Channels$OverflowPolicy/DROP])
 
 (defn sliding-buffer
-  "Returns a buffer of size n. When full, puts will complete, and be buffered, but oldest elements in buffer will be dropped (not transferred)."
+  "Returns a buffer of size n. When full, puts will complete, and be 
+  buffered, but oldest elements in buffer will be dropped (not 
+  transferred)."
   [n]
   [(if (= n 1) (BoxQueue. true false) (CircularObjectBuffer. (int n) false)) Channels$OverflowPolicy/DISPLACE])
 
 (defn chan
-  "Creates a channel with an optional buffer. If buf-or-n is a number, will create and use a fixed buffer of that size."
+  "Creates a channel with an optional buffer. If buf-or-n is a number, 
+  will create and use a fixed buffer of that size."
   ([] (chan nil))
   ([buf-or-n] 
    (cond
@@ -49,11 +53,15 @@
      :else              (QueueObjectChannel. (first buf-or-n) (second buf-or-n) false))))
 
 (defn <!
-  "takes a val from port. Must be called inside a (go ...) block. Will return nil if closed. Will park if nothing is available."
+  "takes a val from port. Must be called inside a (go ...) block. Will
+  return nil if closed. Will park if nothing is available.
+  
+  Pulsar implementation: Identical to <!!. May be used outside go blocks as well."
   [port]
   (p/rcv port))
 
-;; Unlike in core.async take! is a secon-class citizen of this implementation. It gives no performance benefits over using go <!
+;; Unlike in core.async take! is a second-class citizen of this implementation. 
+;; It gives no performance benefits over using go <!
 (defn take!
   "Asynchronously takes a val from port, passing to fn1. Will pass nil
   if closed. If on-caller? (default true) is true, and value is
@@ -66,11 +74,15 @@
    (p/spawn-fiber #(fn1 (p/rcv port))))))
 
 (defn >!
-  "puts a val into port. nil values are not allowed. Must be called inside a (go ...) block. Will park if no buffer space is available."
+  "puts a val into port. nil values are not allowed. Must be called
+  inside a (go ...) block. Will park if no buffer space is available.
+  
+  Pulsar implementation: Identical to >!!. May be used outside go blocks as well. "
   [port val]
   (p/snd port val))
 
-;; Unlike in core.async put! is a secon-class citizen of this implementation. It gives no performance benefits over using go >!
+;; Unlike in core.async put! is a second-class citizen of this implementation. 
+;; It gives no performance benefits over using go >!
 (defn put!
   "Asynchronously puts a val into port, calling fn0 (if supplied) when
   complete. nil values are not allowed. Will throw if closed. If

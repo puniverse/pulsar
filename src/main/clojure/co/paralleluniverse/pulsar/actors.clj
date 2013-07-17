@@ -138,7 +138,7 @@
        actor#)))
 
 (defmacro spawn-link
-  "Creates and starts a new actor, and links it to @self"
+  "Creates and starts, as by `spawn`, a new actor, and links it to @self"
   {:arglists '([:name? :mailbox-size? :overflow-policy? :lifecycle-handler? :stack-size? :pool? f & args])}
   [& args]
   `(let [actor# ~(list `spawn ~@args)]
@@ -146,7 +146,7 @@
      actor#))
 
 (defmacro spawn-watch
-  "Creates and starts a new actor, and makes @self monitor it"
+  "Creates and starts, as by `spawn`, a new actor, and makes @self monitor it"
   {:arglists '([:name? :mailbox-size? :overflow-policy? :lifecycle-handler? :stack-size? :pool? f & args])}
   [& args]
   `(let [actor# ~(list `spawn ~@args)]

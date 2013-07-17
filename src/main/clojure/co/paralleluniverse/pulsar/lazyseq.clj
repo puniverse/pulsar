@@ -39,7 +39,7 @@
 ;  (list 'new 'clojure.lang.LazySeq (list* '^{:once true} fn* [] body)))
 
 (defn channel->lazy-seq
-  "Turns a channel into a lazy-seq"
+  "Turns a channel into a lazy-seq."
   ([^Channel channel]
    (lazy-seq
     (when-let [m (.receive channel)]
