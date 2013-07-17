@@ -57,19 +57,19 @@
           
           
           
-        
-          
-          
-            
-          
-          
-          
             <li>
               <a  href="/pulsar/getting-started.html">
                 Getting Started
               </a>
               
             </li>
+          
+        
+          
+          
+            
+          
+          
           
         
           
@@ -116,6 +116,13 @@
           
           
           
+        
+          
+          
+            
+          
+          
+          
             <li>
               <a class="active" href="/pulsar/manual/core.html">
                 Pulsar Core
@@ -124,13 +131,6 @@
               <ul class="nav nav-list"><li><a href="#quasar-and-pulsar">Quasar and Pulsar</a></li><li><a href="#fibers">Fibers</a></li><li><a href="#promises-promises">Promises, Promises</a></li><li><a href="#channels">Channels</a></li></ul>
               
             </li>
-          
-        
-          
-          
-            
-          
-          
           
         
           
@@ -210,7 +210,7 @@
 
 <h2 id="fibers">Fibers</h2>
 
-<p>Fibers are lightweight threads. They provide functionality similar to threads, and a similar API, but they&#8217;re not managed by the OS. They are lightweight (an idle fiber occupies ~400 bytes of RAM), and you can have millions of them in an application. If you are familiar with Go, fibers are like goroutines. Fibers in Pulsar (well, Quasar, actually) are scheduled by one or more <a href="http://docs.oracle.com/javase/7/docs/api/java/util/concurrent/ForkJoinPool.html">ForkJoinPool</a>s. </p>
+<p>Fibers are lightweight threads. They provide functionality similar to threads, and a similar API, but they’re not managed by the OS. They are lightweight (an idle fiber occupies ~400 bytes of RAM), and you can have millions of them in an application. If you are familiar with Go, fibers are like goroutines. Fibers in Pulsar (well, Quasar, actually) are scheduled by one or more <a href="http://docs.oracle.com/javase/7/docs/api/java/util/concurrent/ForkJoinPool.html">ForkJoinPool</a>s. </p>
 
 <p>One significant difference between Fibers and Threads is that Fibers are not preempted; i.e. a fiber is (permanently or temporarily) unscheduled by the scheduler only if it terminates, or if it calls one of a few specific Java methods that cause the fiber to become suspended. A function that calls a suspending operation is called a <em>suspendable</em> function, and a function that calls another suspendable function is itself suspendable. </p>
 
@@ -226,12 +226,12 @@ The function <code>suspendable!</code> marks a given function as a suspendable f
 <pre><code>(spawn-fiber f arg1 arg2)
 </code></pre>
 
-<p><code>spawn-fiber</code> automatically marks <code>f</code> as suspendable, so there&#8217;s no need to do so explicitly.</p>
+<p><code>spawn-fiber</code> automatically marks <code>f</code> as suspendable, so there’s no need to do so explicitly.</p>
 
 <p><code>spawn-fiber</code> takes optional keyword arguments:</p>
 
 <ul>
-  <li><code>:name</code> - The fiber&#8217;s name.</li>
+  <li><code>:name</code> - The fiber’s name.</li>
   <li><code>:fj-pool</code> - The <code>ForkJoinPool</code> in which the fiber will run.
 If <code>:fj-pool</code> is not specified, then the pool used will be either 1) the pool of the fiber calling <code>spawn-fiber</code>, or, if <code>spawn-fiber</code> is not called from within a fiber, a default pool.</li>
   <li><code>:stack-size</code> - The initial fiber data stack size.</li>
@@ -243,14 +243,14 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
 
 <h3 id="joining-fibers">Joining Fibers</h3>
 
-<p>To wait for the fiber&#8217;s termination, use</p>
+<p>To wait for the fiber’s termination, use</p>
 
 <pre><code>(join fiber)
 </code></pre>
 
 <p>If <code>f</code> returns a value, <code>join</code> will return that value. If <code>f</code> throws an exception, <code>join</code> will throw that exception.</p>
 
-<p>You can also wait for a fiber&#8217;s termination for a given duration. The following will wait for half a second for the fiber to terminate:</p>
+<p>You can also wait for a fiber’s termination for a given duration. The following will wait for half a second for the fiber to terminate:</p>
 
 <pre><code>(join 500 java.util.concurrent.TimeUnit/MILLISECONDS fiber)
 </code></pre>
@@ -266,7 +266,7 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
 <h3 id="bindings">Bindings</h3>
 
 <p>Fibers behave well with Clojure <code>bindings</code>. A newly spawned fiber inherits the bindings in effect at the time of spawning,
-and bindings decleared in a fiber last throughout the fiber&#8217;s lifetime. This is demonstrated in the following tests taken
+and bindings decleared in a fiber last throughout the fiber’s lifetime. This is demonstrated in the following tests taken
 from the Pulsar test suite:</p>
 
 <div><div class="CodeRay">
@@ -301,17 +301,17 @@ from the Pulsar test suite:</p>
 
 <p>Code running in fibers may make free use of Clojure atoms and agents. </p>
 
-<p>Spawning or dereferencing a future created with <code>clojure.core/future</code> is ok, but there&#8217;s a better alternative: you can turn a spawned fiber into a future with <code>fiber-&gt;future</code> and can then dereference or call regular future functions on the returned value, like <code>realized?</code> (In fact, you don&#8217;t even have to call <code>fiber-&gt;future</code>; fibers already implement the <code>Future</code> interface and can be treated as futures directly, but this may change in the future, so, until the API is fully settled, we recommend using <code>fiber-&gt;future</code>).</p>
+<p>Spawning or dereferencing a future created with <code>clojure.core/future</code> is ok, but there’s a better alternative: you can turn a spawned fiber into a future with <code>fiber-&gt;future</code> and can then dereference or call regular future functions on the returned value, like <code>realized?</code> (In fact, you don’t even have to call <code>fiber-&gt;future</code>; fibers already implement the <code>Future</code> interface and can be treated as futures directly, but this may change in the future, so, until the API is fully settled, we recommend using <code>fiber-&gt;future</code>).</p>
 
 <p>Running a <code>dosync</code> block inside a fiber is discouraged as it uses locks internally, but your mileage may vary.</p>
 
-<p>Promises are supported and encouraged, but you should not make use of <code>clojure.core/promise</code> to create a promise that&#8217;s to be dereferenced in a fiber. Pulsar provides a different &#8211; yet completely compatible &#8211; form of promises, as you&#8217;ll see soon.</p>
+<p>Promises are supported and encouraged, but you should not make use of <code>clojure.core/promise</code> to create a promise that’s to be dereferenced in a fiber. Pulsar provides a different – yet completely compatible – form of promises, as you’ll see soon.</p>
 
 <h3 id="strands">Strands</h3>
 
 <p>Before we continue, one more bit of nomenclature: a single flow of execution in Quasar/Pulsar is called a <em>strand</em>. To put it more simply, a strand is either a normal JVM thread, or a fiber.</p>
 
-<p>The strand abstraction helps you write code that works whether it runs in a fiber or not. For example, <code>(Strand/currentStrand)</code> returns the current fiber, if called from a fiber, or the current thread, if not. <code>(Strand/sleep millis)</code> suspends the current strand for a given number of milliseconds whether it&#8217;s a fiber or a normal thread. Also, <code>join</code> works for both fibers and threads (although for threads <code>join</code> will always return <code>nil</code>).</p>
+<p>The strand abstraction helps you write code that works whether it runs in a fiber or not. For example, <code>(Strand/currentStrand)</code> returns the current fiber, if called from a fiber, or the current thread, if not. <code>(Strand/sleep millis)</code> suspends the current strand for a given number of milliseconds whether it’s a fiber or a normal thread. Also, <code>join</code> works for both fibers and threads (although for threads <code>join</code> will always return <code>nil</code>).</p>
 
 <h2 id="promises-promises">Promises, Promises</h2>
 
@@ -326,11 +326,11 @@ from the Pulsar test suite:</p>
 <pre><code>(promise)
 </code></pre>
 
-<p>And is set with <code>deliver</code>. It can be read by dereferencing it with <code>@</code>, and you can test whether it&#8217;s been set with <code>realized?</code> (other than the <code>promise</code> function itself, all other functions, like <code>deliver</code> and <code>realized</code> are those defined in <code>clojure.core</code>)</p>
+<p>And is set with <code>deliver</code>. It can be read by dereferencing it with <code>@</code>, and you can test whether it’s been set with <code>realized?</code> (other than the <code>promise</code> function itself, all other functions, like <code>deliver</code> and <code>realized</code> are those defined in <code>clojure.core</code>)</p>
 
-<p>The <code>promise</code> function defined in Pulsar creates a promise, that, when dereferenced within a fiber, simply blocks the fiber and not the entire OS thread it&#8217;s running in.</p>
+<p>The <code>promise</code> function defined in Pulsar creates a promise, that, when dereferenced within a fiber, simply blocks the fiber and not the entire OS thread it’s running in.</p>
 
-<p>Here&#8217;s an example of using promises from the tests:</p>
+<p>Here’s an example of using promises from the tests:</p>
 
 <div><div class="CodeRay">
   <div class="code"><pre>(<span class="keyword">let</span> [v1 (<span class="keyword">promise</span>)
@@ -349,7 +349,7 @@ from the Pulsar test suite:</p>
 
 <p>This example shows how promises are set, and read, by both fibers and regular threads.</p>
 
-<p>But Pulsar&#8217;s promises have one additional, quite nifty, feature. If you pass an optional function to <code>promise</code>, a new fiber running that function will be spawned, and the promise will receive the value returned from the function. Here&#8217;s another example from the tests:</p>
+<p>But Pulsar’s promises have one additional, quite nifty, feature. If you pass an optional function to <code>promise</code>, a new fiber running that function will be spawned, and the promise will receive the value returned from the function. Here’s another example from the tests:</p>
 
 <div><div class="CodeRay">
   <div class="code"><pre>(<span class="keyword">let</span> [v0 (<span class="keyword">promise</span>)
@@ -386,9 +386,9 @@ from the Pulsar test suite:</p>
 </div>
 </div>
 
-<p>The channel&#8217;s <code>capacity</code> is the number of messages that can wait in the queue. A positive integer creates a bounded queue that can hold up to the given number of messages until they&#8217;re consumed. A capacity of -1 specifies an unbounded channel (unlimited number of pending messages), and a capacity of 0 specifies a <em>transfer channel</em>, one where the producer is blocked until a consumer requests a message and vice-versa.</p>
+<p>The channel’s <code>capacity</code> is the number of messages that can wait in the queue. A positive integer creates a bounded queue that can hold up to the given number of messages until they’re consumed. A capacity of -1 specifies an unbounded channel (unlimited number of pending messages), and a capacity of 0 specifies a <em>transfer channel</em>, one where the producer is blocked until a consumer requests a message and vice-versa.</p>
 
-<p><code>overflow-policy</code> specifies what happens to the producer (sender) of a message when the channel&#8217;s capacity is exhausted, and may be one of:</p>
+<p><code>overflow-policy</code> specifies what happens to the producer (sender) of a message when the channel’s capacity is exhausted, and may be one of:</p>
 
 <ul>
   <li><code>:throw</code> - throws an exception </li>
@@ -449,7 +449,7 @@ from the Pulsar test suite:</p>
 
 <p>any future messages sent to the channel will be ignored. Any messages already in the channel will be received. Once the last message has been received, another call to <code>rcv</code> will return <code>nil</code>. </p>
 
-<h3 id="channel-selection-sel-select-and-rcv-group">Channel Selection (<code>sel</code>, <code>select</code> and <code>rcv-group</code>)</h3>
+<h3 id="channel-selection--sel-and-select">Channel Selection – <code>sel</code> and <code>select</code></h3>
 
 <p>A powerful tool when working with channels is the ability to wait on a message from several channels at once.</p>
 
@@ -463,9 +463,9 @@ from the Pulsar test suite:</p>
 </div>
 </div>
 
-<p>a message will either be received from <code>ch1</code> or <code>ch2</code>, or one will be sent to eiter <code>ch2</code> or <code>ch4</code>. If, for instance, <code>ch2</code> will become available for reading (i.e. it has been sent a message) first, than only that operation, in this case a <code>rcv</code> will be performed on <code>ch1</code>. If <code>ch2</code> becomes available for writing before that happens, then only that operation, a <code>snd</code>, will be performed. If two operations are available at the same time, one will be chosen randomly (unless the <code>:priority</code> option is set, as we&#8217;ll see later).</p>
+<p>a message will either be received from <code>ch1</code> or <code>ch2</code>, or one will be sent to eiter <code>ch2</code> or <code>ch4</code>. If, for instance, <code>ch2</code> will become available for reading (i.e. it has been sent a message) first, than only that operation, in this case a <code>rcv</code> will be performed on <code>ch1</code>. If <code>ch2</code> becomes available for writing before that happens, then only that operation, a <code>snd</code>, will be performed. If two operations are available at the same time, one will be chosen randomly (unless the <code>:priority</code> option is set, as we’ll see later).</p>
 
-<p>Note that if a channel&#8217;s overflow policy is anything by <code>:block</code>, then <code>snd</code> operations are always available.</p>
+<p>Note that if a channel’s overflow policy is anything by <code>:block</code>, then <code>snd</code> operations are always available.</p>
 
 <p>The general form of the <code>sel</code> function is</p>
 
@@ -475,9 +475,9 @@ from the Pulsar test suite:</p>
 </div>
 </div>
 
-<p><code>sel</code> returns a vector of two values describing the single operation that has been performed. The first is the message received if the operation is a <code>rcv</code>, or <code>nil</code> if it&#8217;s a <code>snd</code>; the second is the channel on which the operation has been performed.</p>
+<p><code>sel</code> returns a vector of two values describing the single operation that has been performed. The first is the message received if the operation is a <code>rcv</code>, or <code>nil</code> if it’s a <code>snd</code>; the second is the channel on which the operation has been performed.</p>
 
-<p>The <code>sel</code> function takes two options. If <code>:priority</code> is set to <code>true</code> (thus: <code>:priority true</code>), then if more than one operation becomes available at the same time, then the one that&#8217;s listed earlier in the channels collection will be performed.</p>
+<p>The <code>sel</code> function takes two options. If <code>:priority</code> is set to <code>true</code> (thus: <code>:priority true</code>), then if more than one operation becomes available at the same time, then the one that’s listed earlier in the channels collection will be performed.</p>
 
 <p>The second option is <code>:timeout</code>, which takes an integer argument specifying the timeout in milliseconds. If the timeout elapses without any of the operations succeeding, <code>sel</code> will return <code>nil</code>. If the timeout value is <code>0</code>, then <code>sel</code> will never block. It will attempt to perform any of the requested operations, but if none are <em>immediately</em> available, it will return <code>nil</code>.</p>
 
@@ -492,13 +492,13 @@ from the Pulsar test suite:</p>
 <p>Will return, <code>[msg ch]</code> if any of the channels was immediately available for a <code>rcv</code>, or <code>nil</code> if none of them were.</p>
 
 <p>The <code>select</code> macro performs a very similar operation as <code>sel</code>, but allows you to specify an action to perform depending on which operation has succeeded.
-It takes an even number of expressions, ordered as (ops1, action1, ops2, action2 &#8230;) with the ops being a channel operation descriptior (remember: a descriptor is either a channel for an <code>rcv</code> operation, or a vector of a channel and a message specifying a <code>snd</code> operation) or a collection of descriptors, and the actions are Clojure expressions. Like <code>sel</code>, <code>select</code> performs at most one operation, in which case it will run the operation&#8217;s respective action and return its result.</p>
+It takes an even number of expressions, ordered as (ops1, action1, ops2, action2 …) with the ops being a channel operation descriptior (remember: a descriptor is either a channel for an <code>rcv</code> operation, or a vector of a channel and a message specifying a <code>snd</code> operation) or a collection of descriptors, and the actions are Clojure expressions. Like <code>sel</code>, <code>select</code> performs at most one operation, in which case it will run the operation’s respective action and return its result.</p>
 
-<p>An action expression can bind values to the operations results. The action expression may begin with a vector of one or two symbols. In that case, the first symbol will be bound to the message returned from the successful receive in the respective ops clause (or <code>nil</code> if the successful operation is a <code>snd</code>), and the second symbol, if present, will be bound to the successful operation&#8217;s channel.</p>
+<p>An action expression can bind values to the operations results. The action expression may begin with a vector of one or two symbols. In that case, the first symbol will be bound to the message returned from the successful receive in the respective ops clause (or <code>nil</code> if the successful operation is a <code>snd</code>), and the second symbol, if present, will be bound to the successful operation’s channel.</p>
 
 <p>Like <code>sel</code>, <code>select</code> blocks until an operation succeeds, or, if a <code>:timeout</code> option is specified, until the timeout (in milliseconds) elapses. If a timeout is specfied and elapses, <code>select</code> will run the action in an optional <code>:else</code> clause and return its result, or, if an <code>:else</code> clause is not present, <code>select</code> will return <code>nil</code>.</p>
 
-<p>Here&#8217;s an example:</p>
+<p>Here’s an example:</p>
 
 <div><div class="CodeRay">
   <div class="code"><pre>(select <span class="symbol">:timeout</span> <span class="integer">100</span> 
@@ -509,9 +509,11 @@ It takes an even number of expressions, ordered as (ops1, action1, ops2, action2
 </div>
 </div>
 
-<p>In the example, if a message is received from channel <code>c1</code>, then it will be printed. If a message is sent to either <code>c2</code> or <code>c3</code>, then the identity of the channel will be printed, and if the 100 ms timeout elapses then &#8220;timeout!&#8221; will be printed.</p>
+<p>In the example, if a message is received from channel <code>c1</code>, then it will be printed. If a message is sent to either <code>c2</code> or <code>c3</code>, then the identity of the channel will be printed, and if the 100 ms timeout elapses then “timeout!” will be printed.</p>
 
 <p>Finally, just like <code>sel</code>, you can pass <code>:priority true</code> to <code>select</code>, in which case if more than one operation is available, the first one among them as listed in the <code>select</code> statement will be performed.</p>
+
+<h3 id="channel-groups">Channel Groups</h3>
 
 <p>It is common for a function to always wait to receive from the same set of channels. An alternative to <code>sel</code> can be to create a <code>rcv-group</code>, on which you can call <code>rcv</code> as if it were a simple channel:</p>
 
@@ -524,11 +526,41 @@ It takes an even number of expressions, ordered as (ops1, action1, ops2, action2
 
 <p>You can also use a timeout when receiving from a channel group.</p>
 
+<h3 id="topics">Topics</h3>
+
+<p>Topics are, in a sense, the opposite of rcv-groups. A topic is a send-port (a channel you can send to but not receive from), that broadcasts any message written to it to a number of <em>subscriber</em> channels.</p>
+
+<p>A topic is created simply with:</p>
+
+<div><div class="CodeRay">
+  <div class="code"><pre>(topic)
+</pre></div>
+</div>
+</div>
+
+<p>When a channel <em>subscribes</em> to the topic, it will receive all messages sent to the topic:</p>
+
+<div><div class="CodeRay">
+  <div class="code"><pre>(subscribe! tpc ch)
+</pre></div>
+</div>
+</div>
+
+<p>You can also unsubscribe a channel:</p>
+
+<div><div class="CodeRay">
+  <div class="code"><pre>(subscribe! tpc ch)
+</pre></div>
+</div>
+</div>
+
+<p>Note that a messages sent to the topic is essentialy replicated to all subscribers, i.e. it will be received once in each channel.</p>
+
 <h3 id="ticker-channels">Ticker Channels</h3>
 
 <p>A channel created with the <code>:displace</code> policy is called a <em>ticker channel</em> because it provides guarantees similar to that of a digital stock-ticker: you can start watching at any time, the messages you read are always read in order, but because of the limited screen size, if you look away or read to slowly you may miss some messages.</p>
 
-<p>The ticker channel is useful when a program component continually broadcasts some information. The size channel&#8217;s circular buffer, its &#8220;screen&#8221; if you like, gives the subscribers some leeway if they occasionally fall behind reading.</p>
+<p>The ticker channel is useful when a program component continually broadcasts some information. The size channel’s circular buffer, its “screen” if you like, gives the subscribers some leeway if they occasionally fall behind reading.</p>
 
 <p>As mentioned earlier, a ticker channel is single-consumer, i.e. only one strand is allowed to consume messages from the channel. On the other hand, it is possible, and useful, to create several views of the channel, each used by a different consumer strand. A view is created thus:</p>
 
@@ -538,7 +570,7 @@ It takes an even number of expressions, ordered as (ops1, action1, ops2, action2
 </div>
 </div>
 
-<p><code>ch</code> must be a channel of bounded capacity with the <code>:displace</code> policy. <code>ticker-consumer</code> returns a <em>receive port</em> (a channel that can only receive messages, not send them) that can be used to receive messages from <code>ch</code>. Each ticker-consumer will yield monotonic messages, namely no message will be received more than once, and the messages will be received in the order they&#8217;re sent, but if the consumer is too slow, messages could be lost. </p>
+<p><code>ch</code> must be a channel of bounded capacity with the <code>:displace</code> policy. <code>ticker-consumer</code> returns a <em>receive port</em> (a channel that can only receive messages, not send them) that can be used to receive messages from <code>ch</code>. Each ticker-consumer will yield monotonic messages, namely no message will be received more than once, and the messages will be received in the order they’re sent, but if the consumer is too slow, messages could be lost. </p>
 
 <p>Each consumer strand will use its own <code>ticker-consumer</code>, and each can consume messages at its own pace, and each <code>ticker-consumer</code> port will return the same messages (messages consumed from one will not be removed from the other views), subject possibly to different messages being missed by different consumers depending on their pace.</p>
 
@@ -553,7 +585,7 @@ It takes an even number of expressions, ordered as (ops1, action1, ops2, action2
   <li><code>double</code> channels: <code>double-channel</code>, <code>snd-double</code>, <code>rcv-double</code></li>
 </ul>
 
-<p>Because they don&#8217;t require boxing (for this reason <code>snd-xxx</code> and <code>rcv-xxx</code> are actually macros), primitive channels can provide better performance than regular channels. Primitive channels, however, are single-consumer, namely, only a single strand may read messages from any given channel.</p>
+<p>Because they don’t require boxing (for this reason <code>snd-xxx</code> and <code>rcv-xxx</code> are actually macros), primitive channels can provide better performance than regular channels. Primitive channels, however, are single-consumer, namely, only a single strand may read messages from any given channel.</p>
 
 <p>Calling <code>rcv-xxx</code> on a closed channel will throw an exception.</p>
 
@@ -561,9 +593,9 @@ It takes an even number of expressions, ordered as (ops1, action1, ops2, action2
 
 <p class="centered alert alert-warning"><strong>Note</strong>: Channel lazy-seqs are an experimental feature.</p>
 
-<p>Messages received through channels can be manipulted with Clojure&#8217;s sequence manipulation functions by transforming a channel into a <code>lazy-seq</code>. Unfortunately, Clojure implements <code>lazy-seq</code>s with the <code>clojure.lang.LazySeq</code> class, which <em>almost</em> allows a <code>lazy-seq</code> implementation by a channel - but not quite (a simple reordering of a couple of Java lines in the <code>LazySeq</code> class would have made it compatible with channels). The <code>lazy-seq</code> function in the <code>co.paralleluniverse.pulsar.lazyseq</code> namespace therefore creates a <code>lazy-seq</code> that works just like Clojure&#8217;s, but uses a slightly different underlying Java implementation. This is unfortunate, because it required a re-implementation of many sequence manipulation functions.</p>
+<p>Messages received through channels can be manipulted with Clojure’s sequence manipulation functions by transforming a channel into a <code>lazy-seq</code>. Unfortunately, Clojure implements <code>lazy-seq</code>s with the <code>clojure.lang.LazySeq</code> class, which <em>almost</em> allows a <code>lazy-seq</code> implementation by a channel - but not quite (a simple reordering of a couple of Java lines in the <code>LazySeq</code> class would have made it compatible with channels). The <code>lazy-seq</code> function in the <code>co.paralleluniverse.pulsar.lazyseq</code> namespace therefore creates a <code>lazy-seq</code> that works just like Clojure’s, but uses a slightly different underlying Java implementation. This is unfortunate, because it required a re-implementation of many sequence manipulation functions.</p>
 
-<p>Nevertheless, it&#8217;s still possible to work with channels as you would with lazy-seqs, you only need to mind calling the functions in the right namespace.</p>
+<p>Nevertheless, it’s still possible to work with channels as you would with lazy-seqs, you only need to mind calling the functions in the right namespace.</p>
 
 <p>To create a lazy-seq from a channel, simply call:</p>
 

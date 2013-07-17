@@ -3150,13 +3150,13 @@ as published by the Free Software Foundation.</p>
                                 (co.paralleluniverse.actors.PulsarActor. ~name ~trap (-&gt;MailboxConfig ~mailbox-size ~overflow-policy) ~lifecycle-handler f#))
            fiber# (co.paralleluniverse.fibers.Fiber. ~name (get-pool ~pool) (int ~stack-size) actor#)]
        (.start fiber#)
-       actor#)))</pre></td></tr><tr><td class="docs"><p>Creates and starts a new actor, and links it to @self</p>
+       actor#)))</pre></td></tr><tr><td class="docs"><p>Creates and starts, as by <code>spawn</code>, a new actor, and links it to @self</p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro spawn-link
   {:arglists '([:name? :mailbox-size? :overflow-policy? :lifecycle-handler? :stack-size? :pool? f &amp; args])}
   [&amp; args]
   `(let [actor# ~(list `spawn ~@args)]
      (link! actor#)
-     actor#))</pre></td></tr><tr><td class="docs"><p>Creates and starts a new actor, and makes @self monitor it</p>
+     actor#))</pre></td></tr><tr><td class="docs"><p>Creates and starts, as by <code>spawn</code>, a new actor, and makes @self monitor it</p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro spawn-watch
   {:arglists '([:name? :mailbox-size? :overflow-policy? :lifecycle-handler? :stack-size? :pool? f &amp; args])}
   [&amp; args]
@@ -3249,7 +3249,11 @@ as published by the Free Software Foundation.</p>
 </td><td class="codes"><pre class="brush: clojure">(ann maketag [-&gt; Number])
 (defn maketag
   []
-  (ActorImpl/randtag))</pre></td></tr><tr><td class="docs">
+  (ActorImpl/randtag))</pre></td></tr><tr><td class="docs"><p>Tests whether argument x is a vector whose first element is a keyword.</p>
+</td><td class="codes"><pre class="brush: clojure">(ann tagged-tuple? [Any -&gt; Boolean])
+(defn tagged-tuple?
+  [x]
+  (and (vector? x) (keyword? (first x))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn clojure-&gt;java-msg
   [x]
   (if (not (tagged-tuple? x))
@@ -3553,20 +3557,27 @@ as published by the Free Software Foundation.</p>
     [co.paralleluniverse.pulsar.core :as p]))</pre></td></tr><tr><td class="docs"><p>Returns a fixed buffer of size n. When full, puts will block/park.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn buffer
   [n]
-  [(if (= n 1) (BoxQueue. false false) (ArrayQueue. n)) Channels$OverflowPolicy/BLOCK])</pre></td></tr><tr><td class="docs"><p>Returns a buffer of size n. When full, puts will complete but val will be dropped (no transfer).</p>
+  [(if (= n 1) (BoxQueue. false false) (ArrayQueue. n)) Channels$OverflowPolicy/BLOCK])</pre></td></tr><tr><td class="docs"><p>Returns a buffer of size n. When full, puts will complete but 
+  val will be dropped (no transfer).</p>
 </td><td class="codes"><pre class="brush: clojure">(defn dropping-buffer
   [n]
-  [(if (= n 1) (BoxQueue. false false) (ArrayQueue. n)) Channels$OverflowPolicy/DROP])</pre></td></tr><tr><td class="docs"><p>Returns a buffer of size n. When full, puts will complete, and be buffered, but oldest elements in buffer will be dropped (not transferred).</p>
+  [(if (= n 1) (BoxQueue. false false) (ArrayQueue. n)) Channels$OverflowPolicy/DROP])</pre></td></tr><tr><td class="docs"><p>Returns a buffer of size n. When full, puts will complete, and be 
+  buffered, but oldest elements in buffer will be dropped (not 
+  transferred).</p>
 </td><td class="codes"><pre class="brush: clojure">(defn sliding-buffer
   [n]
-  [(if (= n 1) (BoxQueue. true false) (CircularObjectBuffer. (int n) false)) Channels$OverflowPolicy/DISPLACE])</pre></td></tr><tr><td class="docs"><p>Creates a channel with an optional buffer. If buf-or-n is a number, will create and use a fixed buffer of that size.</p>
+  [(if (= n 1) (BoxQueue. true false) (CircularObjectBuffer. (int n) false)) Channels$OverflowPolicy/DISPLACE])</pre></td></tr><tr><td class="docs"><p>Creates a channel with an optional buffer. If buf-or-n is a number, 
+  will create and use a fixed buffer of that size.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn chan
   ([] (chan nil))
   ([buf-or-n] 
    (cond
      (nil? buf-or-n)    (TransferChannel.)
      (number? buf-or-n) (chan (buffer buf-or-n))
-     :else              (QueueObjectChannel. (first buf-or-n) (second buf-or-n) false))))</pre></td></tr><tr><td class="docs"><p>takes a val from port. Must be called inside a (go ...) block. Will return nil if closed. Will park if nothing is available.</p>
+     :else              (QueueObjectChannel. (first buf-or-n) (second buf-or-n) false))))</pre></td></tr><tr><td class="docs"><p>takes a val from port. Must be called inside a (go ...) block. Will
+  return nil if closed. Will park if nothing is available.</p>
+
+<p>  Pulsar implementation: Identical to <!!. May be used outside go blocks as well.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn &lt;!
   [port]
   (p/rcv port))</pre></td></tr><tr><td class="docs"><p>Asynchronously takes a val from port, passing to fn1. Will pass nil
@@ -3574,13 +3585,17 @@ as published by the Free Software Foundation.</p>
   immediately available, will call fn1 on calling thread.
   Returns nil.</p>
 
-<p>Unlike in core.async take! is a secon-class citizen of this implementation. It gives no performance benefits over using go <!</p>
+<p>Unlike in core.async take! is a second-class citizen of this implementation. 
+It gives no performance benefits over using go <!</p>
 </td><td class="codes"><pre class="brush: clojure">(defn take!
 ([port fn1] (take! port fn1 true))
 ([port fn1 on-caller?]
  (if-let [v (and on-caller? (p/try-rcv port))]
    (fn1 v)
-   (p/spawn-fiber #(fn1 (p/rcv port))))))</pre></td></tr><tr><td class="docs"><p>puts a val into port. nil values are not allowed. Must be called inside a (go ...) block. Will park if no buffer space is available.</p>
+   (p/spawn-fiber #(fn1 (p/rcv port))))))</pre></td></tr><tr><td class="docs"><p>puts a val into port. nil values are not allowed. Must be called
+  inside a (go ...) block. Will park if no buffer space is available.</p>
+
+<p>  Pulsar implementation: Identical to >!!. May be used outside go blocks as well. </p>
 </td><td class="codes"><pre class="brush: clojure">(defn &gt;!
   [port val]
   (p/snd port val))</pre></td></tr><tr><td class="docs"><p>Asynchronously puts a val into port, calling fn0 (if supplied) when
@@ -3588,7 +3603,8 @@ as published by the Free Software Foundation.</p>
   on-caller? (default true) is true, and the put is immediately
   accepted, will call fn0 on calling thread.  Returns nil.</p>
 
-<p>Unlike in core.async put! is a secon-class citizen of this implementation. It gives no performance benefits over using go >!</p>
+<p>Unlike in core.async put! is a second-class citizen of this implementation. 
+It gives no performance benefits over using go >!</p>
 </td><td class="codes"><pre class="brush: clojure">(defn put!
 ([port val] (put! port val nil))
 ([port val fn0] (put! port val fn0 true))
@@ -3832,6 +3848,7 @@ as published by the Free Software Foundation.</p>
 </code></pre>
 </td><td class="codes"><pre class="brush: clojure">(ann surround-with [(ISeq Any) Any * -&gt; (ISeq Any)])
 (defn surround-with
+  {:no-doc true}
   [expr &amp; exprs]
   (if (nil? expr)
     exprs
@@ -3847,6 +3864,7 @@ as published by the Free Software Foundation.</p>
     (concat (butlast expr) (list (apply deep-surround-with (cons (last expr) exprs))))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ann ops-args [(ISeq (Vector* (Fn [Any -&gt; Boolean]) Any)) (ISeq Any) -&gt; (ISeq Any)])
 (defn- ops-args
+  {:no-doc true}
   [pds xs]
   &quot;Used to simplify optional parameters in functions.
   Takes a sequence of [predicate? default] pairs, and a sequence of arguments. Tests the first predicate against
@@ -3868,14 +3886,6 @@ as published by the Free Software Foundation.</p>
         options (into {} (map vec opts-and-vals))
         positionals (reduce into [] ps)]
     [options positionals]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(ann extract-keys [(ISeq Keyword) (ISeq Any) -&gt; (Vector* (ISeq Any) (ISeq Any))])
-(defn- extract-keys
-  [ks pargs]
-  (if (not (seq ks))
-    [[] pargs]
-    (let [[k ps] (split-with #(= (first ks) (first %)) pargs)
-          [rks rpargs] (extract-keys (next ks) ps)]
-      [(vec (cons (first k) rks)) rpargs])))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ann merge-meta (All [[x :&lt; clojure.lang.IObj] [y :&lt; (IPersistentMap Keyword Any)]]
                      [x y -&gt; (I x (IMeta y))]))
 (defn merge-meta
@@ -3885,18 +3895,9 @@ as published by the Free Software Foundation.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn apply-variadic
   {:no-doc true}
   [f &amp; args]
-  (apply f (concat (butlast args) (last args))))</pre></td></tr><tr><td class="docs"><p>Converts a keyword to a java.util.concurrent.TimeUnit
-  <pre>
-  :nanoseconds | :nanos | :ns   -> TimeUnit/NANOSECONDS
-  :microseconds | :us           -> TimeUnit/MICROSECONDS
-  :milliseconds | :millis | :ms -> TimeUnit/MILLISECONDS
-  :seconds | :sec               -> TimeUnit/SECONDS
-  :minutes | :mins              -> TimeUnit/MINUTES
-  :hours | :hrs                 -> TimeUnit/HOURS
-  :days                         -> TimeUnit/DAYS
-  </pre></p>
-</td><td class="codes"><pre class="brush: clojure">(ann as-timeunit [Keyword -&gt; TimeUnit])
-(defn ^TimeUnit as-timeunit
+  (apply f (concat (butlast args) (last args))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(ann keyword-&gt;timeunit [Keyword -&gt; TimeUnit])
+(defn- ^TimeUnit keyword-&gt;timeunit
   [x]
   (case x
     (:nanoseconds :nanos :ns)   TimeUnit/NANOSECONDS
@@ -3905,20 +3906,32 @@ as published by the Free Software Foundation.</p>
     (:seconds :sec)             TimeUnit/SECONDS
     (:minutes :mins)            TimeUnit/MINUTES
     (:hours :hrs)               TimeUnit/HOURS
-    :days                       TimeUnit/DAYS))</pre></td></tr><tr><td class="docs">
+    :days                       TimeUnit/DAYS))</pre></td></tr><tr><td class="docs"><p>Constructs an instance of <code>java.util.concurrent.TimeUnit</code>.
+  If argument x is already an instance of <code>TimeUnit</code>, the function returns x.
+  Otherwise, x <em>must</em> be a keyword, in which case the following conversion
+  is performed:</p>
+
+<p>  <pre>
+  :nanoseconds | :nanos | :ns   -> TimeUnit/NANOSECONDS
+  :microseconds | :us           -> TimeUnit/MICROSECONDS
+  :milliseconds | :millis | :ms -> TimeUnit/MILLISECONDS
+  :seconds | :sec               -> TimeUnit/SECONDS
+  :minutes | :mins              -> TimeUnit/MINUTES
+  :hours | :hrs                 -> TimeUnit/HOURS
+  :days                         -> TimeUnit/DAYS
+  </pre></p>
 </td><td class="codes"><pre class="brush: clojure">(ann -&gt;timeunit [(U TimeUnit Keyword) -&gt; TimeUnit])
 (defn ^TimeUnit -&gt;timeunit
   [x]
   (if (instance? TimeUnit x)
     x
-    (as-timeunit x)))</pre></td></tr><tr><td class="docs">
+    (keyword-&gt;timeunit x)))</pre></td></tr><tr><td class="docs"><p>Converts a time duration from one time unit to another.
+  x is the duration; <code>from-unit</code> and <code>to-unit</code> are the source
+  and target units repsectively, given as either a j.u.c.TimeUnit instance
+  or as a keyword, as specified by <code>-&gt;timeunit</code>.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn convert-duration
   [x from-unit to-unit]
   (.convert (-&gt;timeunit to-unit) x (-&gt;timeunit from-unit)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(ann tagged-tuple? [Any -&gt; Boolean])
-(defn tagged-tuple?
-  [x]
-  (and (vector? x) (keyword? (first x))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ann unwrap-exception* [Throwable -&gt; Throwable])
 (defn unwrap-exception*
   {:no-doc true}
@@ -3959,7 +3972,7 @@ while running in a fiber.</p>
 (defn suspendable?
   [f]
   (or (instance? co.paralleluniverse.pulsar.IInstrumented f)
-      (.isAnnotationPresent (.getClass ^Object f) co.paralleluniverse.fibers.Instrumented)))</pre></td></tr><tr><td class="docs"><p>Makes a function suspendable</p>
+      (.isAnnotationPresent (.getClass ^Object f) co.paralleluniverse.fibers.Instrumented)))</pre></td></tr><tr><td class="docs"><p>Makes a function suspendable.</p>
 </td><td class="codes"><pre class="brush: clojure">(ann suspendable! (Fn [IFn -&gt; IFn]
                       [IFn * -&gt; (ISeq IFn)]
                       [(ISeq IFn) -&gt; (ISeq IFn)]))
@@ -3972,10 +3985,12 @@ while running in a fiber.</p>
 (defn ^SuspendableCallable -&gt;suspendable-callable
   {:no-doc true}
   [f]
-  (ClojureHelper/asSuspendableCallable f))</pre></td></tr><tr><td class="docs"><p>Creates a suspendable function that can be used by a fiber or actor</p>
+  (ClojureHelper/asSuspendableCallable f))</pre></td></tr><tr><td class="docs"><p>Creates a suspendable function that can be used by a fiber or actor.
+  Used exactly like 'fn</p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro susfn
   [&amp; expr]
-  `(suspendable! (fn ~@expr)))</pre></td></tr><tr><td class="docs"><p>Defines a suspendable function that can be used by a fiber or actor</p>
+  `(suspendable! (fn ~@expr)))</pre></td></tr><tr><td class="docs"><p>Defines a suspendable function that can be used by a fiber or actor.
+  Used exactly like 'defn'</p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro defsusfn
   [&amp; expr]
   `(do
@@ -4007,22 +4022,33 @@ while running in a fiber.</p>
 (defn ^ForkJoinPool get-pool
   {:no-doc true}
   [^ForkJoinPool pool]
-  (or pool (current-fj-pool) fj-pool))</pre></td></tr><tr><td class="docs"><p>Creates a new fiber (a lightweight thread) running in a fork/join pool.</p>
+  (or pool (current-fj-pool) fj-pool))</pre></td></tr><tr><td class="docs"><p>Creates, but does not start a new fiber (a lightweight thread) running in a fork/join pool.</p>
+
+<p>  It is much preferable to use <code>spawn-fiber</code>.</p>
 </td><td class="codes"><pre class="brush: clojure">(ann fiber [String ForkJoinPool AnyInteger [Any -&gt; Any] -&gt; Fiber])
 (defn ^Fiber fiber
   [&amp; args]
   (let [[^String name ^ForkJoinPool pool ^Integer stacksize f] (ops-args [[string? nil] [#(instance? ForkJoinPool %) fj-pool] [integer? -1]] args)]
-    (Fiber. name (get-pool pool) (int stacksize) (-&gt;suspendable-callable f))))</pre></td></tr><tr><td class="docs"><p>Starts a fiber</p>
+    (Fiber. name (get-pool pool) (int stacksize) (-&gt;suspendable-callable f))))</pre></td></tr><tr><td class="docs"><p>Starts a fiber created with <code>fiber</code>.</p>
 </td><td class="codes"><pre class="brush: clojure">(ann start [Fiber -&gt; Fiber])
 (defn start
   [^Fiber fiber]
-  (.start fiber))</pre></td></tr><tr><td class="docs"><p>Creates and starts a new fiber</p>
+  (.start fiber))</pre></td></tr><tr><td class="docs"><p>Creates and starts a new fiber.</p>
+
+<p>  f - the function to run in the fiber.
+  args - (optional) arguments to pass to the function</p>
+
+<p>  Options:
+  :name str     - the fiber's name
+  :stack-size n - the fiber's initial stack size
+  :fj-pool      - the fork-join pool in which the fiber will run</p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro spawn-fiber
+  {:arglists '([:name? :stack-size? :fj-pool? f &amp; args])}
   [&amp; args]
   (let [[{:keys [^String name ^Integer stack-size ^ForkJoinPool pool] :or {stack-size -1}} body] (kps-args args)]
     `(let [f#     (suspendable! ~(if (== (count body) 1) (first body) `(fn [] (apply ~@body))))
            fiber# (co.paralleluniverse.fibers.Fiber. ~name (get-pool ~pool) (int ~stack-size) (-&gt;suspendable-callable f#))]
-       (.start fiber#))))</pre></td></tr><tr><td class="docs"><p>Returns the currently running lightweight-thread or nil if none</p>
+       (.start fiber#))))</pre></td></tr><tr><td class="docs"><p>Returns the currently running lightweight-thread or <code>nil</code> if none.</p>
 </td><td class="codes"><pre class="brush: clojure">(ann current-fiber [-&gt; Fiber])
 (defn current-fiber
   []
@@ -4054,20 +4080,25 @@ while running in a fiber.</p>
       (cancel [_ interrupt?] (.cancel fut interrupt?)))))</pre></td></tr><tr><td class="docs"><h2>Strands</h2>
 
 <p>A strand is either a thread or a fiber.</p>
-</td><td class="codes"></td></tr><tr><td class="docs"><p>Returns the currently running fiber or current thread in case of new active fiber</p>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>Returns the currently running fiber (if running in fiber)
+  or current thread (if not).</p>
 </td><td class="codes"><pre class="brush: clojure">(ann current-strand [-&gt; Strand])
 (defn ^Strand current-strand
   []
-  (Strand/currentStrand))</pre></td></tr><tr><td class="docs"><p>Tests whether or not a strand is alive. A strand is alive if it has been started but has not yet died.</p>
+  (Strand/currentStrand))</pre></td></tr><tr><td class="docs"><p>Tests whether or not a strand is alive. 
+  A strand is alive if it has been started but has not yet died.</p>
 </td><td class="codes"><pre class="brush: clojure">(ann alive? [Strand -&gt; Boolean])
 (defn alive?
   [^Strand a]
-  (.isAlive a))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(ann get-strand [Stranded -&gt; Strand])
-(defn get-strand
-  [^Stranded x]
-  (.getStrand x))</pre></td></tr><tr><td class="docs"><p>Creates and starts a new thread</p>
+  (.isAlive a))</pre></td></tr><tr><td class="docs"><p>Creates and starts a new thread.</p>
+
+<p>  f - the function to run in the thread.
+  args - (optional) arguments to pass to the function</p>
+
+<p>  Options:
+  :name str     - the thread's name</p>
 </td><td class="codes"><pre class="brush: clojure">(defn spawn-thread
+  {:arglists '([:name? f &amp; args])}
   [&amp; args]
   (let [[{:keys [^String name]} body] (kps-args args)]
     (let [f      (if (== (count body) 1) (first body) (fn [] (apply (first body) (rest body))))
@@ -4085,16 +4116,29 @@ while running in a fiber.</p>
    (if (instance? Joinable s)
      (unwrap-exception
       (.get ^Joinable s timeout (-&gt;timeunit unit)))
-     (Strand/join s timeout (-&gt;timeunit unit)))))</pre></td></tr><tr><td class="docs">
+     (Strand/join s timeout (-&gt;timeunit unit)))))</pre></td></tr><tr><td class="docs"><p>Awaits the termination of the given strand or strands, and returns
+  their result, if applicable.</p>
+
+<p>  If a single strand is given, its result is returned;
+  if a collection - then a collection of the repsective results.</p>
+
+<p>  Note that for threads, the result is always <code>nil</code>, as threads don't return a value.</p>
+
+<p>  If a timeout is supplied and it elapses before the strand has terminated,
+  a j.u.c.TimeoutException is thrown.</p>
+
+<p>  s       - either a strand or a collection of strands.
+  timeout - how long to wait for the strands termination
+  unit    - the unit of the timeout duration. TimeUnit or keyword as in <code>-&gt;timeunit</code></p>
 </td><td class="codes"><pre class="brush: clojure">(ann join (Fn [(U Joinable Thread) -&gt; (Option Any)]
               [(Sequential (U Joinable Thread)) -&gt; (ISeq Any)]))
 (defn join
   ([s]
-   (if (sequential? s)
+   (if (coll? s)
      (doall (map join* s))
      (join* s)))
   ([timeout unit s]
-   (if (sequential? s)
+   (if (coll? s)
      (loop [nanos (long (convert-duration timeout unit :nanos))
             res []
             ss s]
@@ -4142,13 +4186,39 @@ while running in a fiber.</p>
      (suspendable! f)
      (spawn-fiber #(deliver p (f)))
      p)))</pre></td></tr><tr><td class="docs"><h2>Channels</h2>
-</td><td class="codes"></td></tr><tr><td class="docs"><p>Creates a channel</p>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>Creates a new channel.</p>
+
+<p>  Optional arguments:
+  capacity        - specifies how many messages the channel can contain (until they are consumed)
+                    * A value of <code>0</code> designates a <em>transfer channel</em>, that blocks both <code>snd</code> and <code>rcv</code> 
+                      until a corresponding operation (<code>rcv</code> or <code>snd</code> respectively) is called.
+                    * A value of <code>-1</code> creates an unbounded channel.</p>
+
+<pre><code>                default: 0
+</code></pre>
+
+<p>  overflow-policy - specifies what <code>snd</code> does when the channel's capacity is exhausted.
+                    May be one of:
+                    * :throw    - throws an exception.
+                    * :block    - blocks until a message is consumed and room is available
+                    * :drop     - the message is silently dropped
+                    * :displace - the old message waiting in the queue is discarded to make room for the new message.</p>
+
+<pre><code>                default: :block
+</code></pre>
+
+<p>  The default channel capacity is 0 and the default policy is :block</p>
 </td><td class="codes"><pre class="brush: clojure">(ann channel (Fn [AnyInteger -&gt; Channel]
                  [-&gt; Channel]))
 (defn ^Channel channel
-  ([size overflow-policy] (Channels/newChannel (int size) (keyword-&gt;enum Channels$OverflowPolicy overflow-policy)))
-  ([size]                 (Channels/newChannel (int size)))
-  ([]                     (Channels/newChannel 0)))</pre></td></tr><tr><td class="docs">
+  ([capacity overflow-policy] (Channels/newChannel (int capacity) (keyword-&gt;enum Channels$OverflowPolicy overflow-policy)))
+  ([capacity]                 (Channels/newChannel (int capacity)))
+  ([]                         (Channels/newChannel 0)))</pre></td></tr><tr><td class="docs"><p>Creates a rcv-port (read-only channel) that returns messages from a <em>ticker channel</em>.
+  A ticker channel is a bounded channel with an overflow policy of :displace.</p>
+
+<p>  Different ticker consumers are independent (a message received from one is not removed from others),
+  and guarantee monotonicty (messages are received in order), but if messages are sent to the
+  ticker channel faster than they are consumed then messages can be lost.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn ^TickerChannelConsumer ticker-consumer
   [^Channel ticker]
   (cond 
@@ -4156,48 +4226,70 @@ while running in a fiber.</p>
     (instance? LongChannel ticker)   (Channels/newTickerConsumerFor ^LongChannel ticker)
     (instance? FloatChannel ticker)  (Channels/newTickerConsumerFor ^FloatChannel ticker)
     (instance? DoubleChannel ticker) (Channels/newTickerConsumerFor ^DoubleChannel ticker)
-    :else                            (Channels/newTickerConsumerFor ticker)))</pre></td></tr><tr><td class="docs"><p>Sends a message to a channel</p>
+    :else                            (Channels/newTickerConsumerFor ticker)))</pre></td></tr><tr><td class="docs"><p>Sends a message to a channel.
+  If the channel's overflow policy is <code>:block</code> than this function will block
+  if the channels' capacity is exceeded.</p>
 </td><td class="codes"><pre class="brush: clojure">(ann snd (All [x] [Channel x -&gt; x]))
 (defn snd
   [^SendPort channel message]
-  (.send channel message))</pre></td></tr><tr><td class="docs"><p>Tries to immediately send a message to a channel</p>
+  (.send channel message))</pre></td></tr><tr><td class="docs"><p>Tries to immediately send a message to a channel.
+  If the channel's capacity is exceeded, this function fails and returns <code>false</code>.
+  Returns <code>true</code> if the operation succeeded; <code>false</code> otherwise.
+  This function never blocks.</p>
 </td><td class="codes"><pre class="brush: clojure">(ann snd (All [x] [Channel x -&gt; x]))
 (defn try-snd
   [^SendPort channel message]
   (.trySend channel message))</pre></td></tr><tr><td class="docs"><p>Receives a message from a channel or a channel group.
-  If a timeout is given, and it expires, rcv returns nil.</p>
+  This function will block until a message is available or until the timeout,
+  if specified, expires.
+  If a timeout is given, and it expires, rcv returns nil.
+  Otherwise, the message is returned.</p>
 </td><td class="codes"><pre class="brush: clojure">(ann rcv (Fn [Channel -&gt; Any]
              [Channel Long (U TimeUnit Keyword) -&gt; (Option Any)]))
 (defsusfn rcv
   ([^ReceivePort channel]
    (.receive channel))
   ([^ReceivePort channel timeout unit]
-   (.receive channel (long timeout) (-&gt;timeunit unit))))</pre></td></tr><tr><td class="docs">
+   (.receive channel (long timeout) (-&gt;timeunit unit))))</pre></td></tr><tr><td class="docs"><p>Attempts to immediately (without blocking) receive a message from a channel.
+  Returns the message if one is immediately available; <code>nil</code> otherwise.
+  This function never blocks.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn try-rcv
   [^ReceivePort channel]
-  (.tryReceive channel))</pre></td></tr><tr><td class="docs"><p>Closes a channel</p>
+  (.tryReceive channel))</pre></td></tr><tr><td class="docs"><p>Closes a channel.
+  Messages already in the channel will be received, but all future attempts at <code>snd</code>
+  will silently discard the message.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn close!
   [channel]
   (cond
     (instance? SendPort channel)    (.close ^SendPort channel)
     (instance? ReceivePort channel) (.close ^ReceivePort channel)
-    :else (throw (IllegalArgumentException. (str (.toString ^Object channel) &quot; is not a channel&quot;)))))</pre></td></tr><tr><td class="docs"><p>Tests whether a channel has been closed and no more messages will be received.
-  This function can only be called by the channel's owning strand (the receiver)</p>
+    :else (throw (IllegalArgumentException. (str (.toString ^Object channel) &quot; is not a channel&quot;)))))</pre></td></tr><tr><td class="docs"><p>Tests whether a channel has been closed and contains no more messages that 
+  can be received.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn closed?
 [^ReceivePort channel]
-(.isClosed channel))</pre></td></tr><tr><td class="docs">
+(.isClosed channel))</pre></td></tr><tr><td class="docs"><p>Creates a receive-port (a read-only channel) from a group of channels.
+  Receiving a message from the group will return the next message available from
+  any of the channels in the group.
+  A message received from the group is consumed (removed) from the original member
+  channel to which it has been sent.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn ^ReceivePort rcv-group
   ([ports]
    (ReceivePortGroup. ports))
   ([port &amp; ports]
-   (ReceivePortGroup. (cons port ports))))</pre></td></tr><tr><td class="docs"><p>Creates a new topic.</p>
+   (ReceivePortGroup. (cons port ports))))</pre></td></tr><tr><td class="docs"><p>Creates a new topic.
+  A topic is a send-port (a write-only channel) that forwards every message sent to it
+  to a group of subscribed channels.
+  Use <code>subscribe!</code> and <code>unsubscribe!</code> to subscribe and unsubscribe a channel to or from
+  the topic.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn topic
   []
-  (Topic.))</pre></td></tr><tr><td class="docs"><p>Subscribes a channel to a topic</p>
-</td><td class="codes"><pre class="brush: clojure">(defn subscribe
+  (Topic.))</pre></td></tr><tr><td class="docs"><p>Subscribes a channel to a topic.
+  The subscribed channel will receive all messages sent to the topic.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn subscribe!
   [^Topic topic ^SendPort channel]
-  (.subscribe topic channel))</pre></td></tr><tr><td class="docs"><p>Unsubscribes a channel from a topic</p>
-</td><td class="codes"><pre class="brush: clojure">(defn unsubscribe
+  (.subscribe topic channel))</pre></td></tr><tr><td class="docs"><p>Unsubscribes a channel from a topic.
+  The channel will stop receiving messages sent to the topic.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn unsubscribe!
   [^Topic topic ^SendPort channel]
   (.unsubscribe topic channel))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn ^SelectAction do-sel
@@ -4210,12 +4302,64 @@ while running in a fiber.</p>
                      (map #(if (vector? %)
                              (Selector/send ^SendPort (first %) (second %))
                              (Selector/receive ^ReceivePort %))
-                          ports))))</pre></td></tr><tr><td class="docs">
+                          ports))))</pre></td></tr><tr><td class="docs"><p>Performs up to one of several given channel operations.
+  sel takes a collection containing <em>channel operation descriptors</em>. A descriptor is 
+  either a channel or a pair (vector) of a channel and a message. 
+  Each channel in the sequence represents a <code>rcv</code> attempt, and each channel-message pair 
+  represents a <code>snd</code> attempt. 
+  The <code>sel</code> function performs at most one operation on the sequence, a <code>rcv</code> or a <code>snd</code>, 
+  which is determined by the first operation that can succeed. If no operation can be 
+  carried out immediately, <code>sel</code> will block until an operation can be performed, or the
+  optionally specified timeout expires.
+  If two or more operations are available at the same time, one of them will be chosen
+  at random, unless the <code>:priority</code> option is set to <code>true</code>.</p>
+
+<p>  Options:
+  :priority bool -  If set to <code>true</code>, then whenever two or more operations are available
+                    the first among them, in the order they are listed in the <code>ports</code> collection,
+                    will be the one executed.
+  :timeout millis - If timeout is set and expires before any of the operations are available,
+                    the function will return <code>nil</code></p>
+
+<p>  Returns:
+  If an operation succeeds, returns a vector <code>[m ch]</code> with <code>m</code> being the message received if the
+  operation is a <code>rcv</code>, or <code>nil</code> if it's a <code>snd</code>, and <code>ch</code> is the channel on which the succesful
+  opration was performed.
+  If a timeout is set and expires before any of the operations are available, returns <code>nil</code>.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn sel
   [ports &amp; {:as opts}]
   (let [^SelectAction sa (do-sel ports (:priority opts) (:timeout opts))]
     (when sa
-      [(.message sa) (.port sa)])))</pre></td></tr><tr><td class="docs">
+      [(.message sa) (.port sa)])))</pre></td></tr><tr><td class="docs"><p>Performs a very similar operation to <code>sel</code>, but allows you to specify an action to perform depending 
+  on which operation has succeeded.
+  Takes an even number of expressions, ordered as (ops1, action1, ops2, action2 ...) with the ops being 
+  a channel operation descriptior (remember: a descriptor is either a channel for an <code>rcv</code> operation, 
+  or a vector of a channel and a message specifying a <code>snd</code> operation) or a collection of descriptors, 
+  and the actions are Clojure expressions. 
+  Like <code>sel</code>, <code>select</code> performs at most one operation, in which case it will run the operation's 
+  respective action and return its result.</p>
+
+<p>  An action expression can bind values to the operations results. 
+  The action expression may begin with a vector of one or two symbols. In that case, the first symbol 
+  will be bound to the message returned from the successful receive in the respective ops clause 
+  (or <code>nil</code> if the successful operation is a <code>snd</code>), and the second symbol, if present, will be bound 
+  to the successful operation's channel.</p>
+
+<p>  Like <code>sel</code>, <code>select</code> blocks until an operation succeeds, or, if a <code>:timeout</code> option is specified, 
+  until the timeout (in milliseconds) elapses. If a timeout is specfied and elapses, <code>select</code> will run 
+  the action in an optional <code>:else</code> clause and return its result, or, if an <code>:else</code> clause is not present, 
+  <code>select</code> will return <code>nil</code>.</p>
+
+<p>  Example:</p>
+
+<p>  (select :timeout 100 
+         c1 ([v] (println "received" v))
+         [[c2 m2] [c3 m3]] ([v c] (println "sent to" c))
+         :else "timeout!")</p>
+
+<p>  In the example, if a message is received from channel <code>c1</code>, then it will be printed. 
+  If a message is sent to either <code>c2</code> or <code>c3</code>, then the identity of the channel will be printed, 
+  and if the 100 ms timeout elapses then "timeout!" will be printed.</p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro select
   [&amp; clauses]
   (let [clauses (partition 2 clauses)
@@ -4407,7 +4551,7 @@ implementation adds the ^:once metadata which clears closure during the first ca
 Here, lazy-seq is defined without the :once tag.</p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro lazy-seq
   [&amp; body]
-  `(new co.paralleluniverse.pulsar.SuspendableLazySeq (fn [] ~@body)))</pre></td></tr><tr><td class="docs"><p>Turns a channel into a lazy-seq</p>
+  `(new co.paralleluniverse.pulsar.SuspendableLazySeq (fn [] ~@body)))</pre></td></tr><tr><td class="docs"><p>Turns a channel into a lazy-seq.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn channel-&gt;lazy-seq
   ([^Channel channel]
    (lazy-seq
@@ -5297,9 +5441,9 @@ as published by the Free Software Foundation.</p>
                    f1 (spawn-fiber #(list (rcv ch1) (rcv ch1) (rcv ch1)))
                    f2 (spawn-fiber #(list (rcv ch2) (rcv ch2) (rcv ch2)))
                    f3 (spawn-fiber #(list (rcv ch3) (rcv ch3) (rcv ch3)))]
-               (subscribe topic ch1)
-               (subscribe topic ch2)
-               (subscribe topic ch3)
+               (subscribe! topic ch1)
+               (subscribe! topic ch2)
+               (subscribe! topic ch3)
                (Thread/sleep 20)
                (snd topic &quot;m1&quot;)
                (Thread/sleep 20)
@@ -5320,14 +5464,14 @@ as published by the Free Software Foundation.</p>
                    f1 (spawn-fiber #(list (rcv ch1 1000 :ms) (rcv ch1 1000 :ms) (rcv ch1 1000 :ms)))
                    f2 (spawn-fiber #(list (rcv ch2 1000 :ms) (rcv ch2 1000 :ms) (rcv ch2 1000 :ms)))
                    f3 (spawn-fiber #(list (rcv ch3 1000 :ms) (rcv ch3 1000 :ms) (rcv ch3 1000 :ms)))]
-               (subscribe topic ch1)
-               (subscribe topic ch2)
-               (subscribe topic ch3)
+               (subscribe! topic ch1)
+               (subscribe! topic ch2)
+               (subscribe! topic ch3)
                ;(Thread/sleep 5)
                (snd topic &quot;m1&quot;)
                (Thread/sleep 5)
                (snd topic &quot;m2&quot;)
-               (unsubscribe topic ch2)
+               (unsubscribe! topic ch2)
                (Thread/sleep 5)
                (snd topic &quot;m3&quot;)
                (fact 
