@@ -3137,7 +3137,27 @@ as published by the Free Software Foundation.</p>
              sn#)))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmacro -&gt;MailboxConfig 
   [size overflow-policy]
-  `(co.paralleluniverse.actors.MailboxConfig. (int ~size) (keyword-&gt;enum co.paralleluniverse.strands.channels.Channels$OverflowPolicy ~overflow-policy)))</pre></td></tr><tr><td class="docs"><p>Creates and starts a new actor</p>
+  `(co.paralleluniverse.actors.MailboxConfig. (int ~size) (keyword-&gt;enum co.paralleluniverse.strands.channels.Channels$OverflowPolicy ~overflow-policy)))</pre></td></tr><tr><td class="docs"><p>Creates and starts a new actor running in its own, newly-spawned fiber.</p>
+
+<p>  f - the actor function.
+  args - (optional) arguments to for the function.</p>
+
+<p>  Options:
+  * <code>:name</code> - The actor's name (that's also given to the fiber running the actor).
+  * <code>:mailbox-size</code> - The number of messages that can wait in the mailbox, 
+                      or -1 (the default) for an unbounded mailbox.
+  * <code>:overflow-policy</code> - What to do if a bounded mailbox overflows. Can be on of:
+     - <code>:throw</code> - an exception will be thrown <em>into the receiving actor</em>
+     - <code>:drop</code>  -  the message will be silently discarded 
+     - <code>:block</code> - the sender will block until there's room in the mailbox. <br />
+  * <code>:lifecycle-handle</code> - A function that will be called to handle special messages sent to the actor. 
+                          If set to <code>nil</code> (the default), the default handler is used, which is what you 
+                          want in all circumstances, except for some actors that are meant to do some 
+                          special tricks.
+  * <code>:fj-pool</code> - The <code>ForkJoinPool</code> in which the fiber will run.
+                 If <code>:fj-pool</code> is not specified, then the pool used will be either the pool of the fiber calling 
+                 <code>spawn-fiber</code>, or, if <code>spawn-fiber</code> is not called from within a fiber, a default pool.
+  * <code>:stack-size</code> - The initial fiber stack size.</p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro spawn
   {:arglists '([:name? :mailbox-size? :overflow-policy? :lifecycle-handler? :stack-size? :pool? f &amp; args])}
   [&amp; args]
@@ -3156,12 +3176,6 @@ as published by the Free Software Foundation.</p>
   [&amp; args]
   `(let [actor# ~(list `spawn ~@args)]
      (link! actor#)
-     actor#))</pre></td></tr><tr><td class="docs"><p>Creates and starts, as by <code>spawn</code>, a new actor, and makes @self monitor it</p>
-</td><td class="codes"><pre class="brush: clojure">(defmacro spawn-watch
-  {:arglists '([:name? :mailbox-size? :overflow-policy? :lifecycle-handler? :stack-size? :pool? f &amp; args])}
-  [&amp; args]
-  `(let [actor# ~(list `spawn ~@args)]
-     (watch! actor#)
      actor#))</pre></td></tr><tr><td class="docs"><p>Tests whether or not an actor has terminated.</p>
 </td><td class="codes"><pre class="brush: clojure">(ann done? [LocalActor -&gt; Boolean])
 (defn done?
@@ -3173,32 +3187,36 @@ as published by the Free Software Foundation.</p>
 (def self
   (reify
     clojure.lang.IDeref
-    (deref [_] (LocalActor/self))))</pre></td></tr><tr><td class="docs"><p>@state is the state of the currently running actor</p>
+    (deref [_] (LocalActor/self))))</pre></td></tr><tr><td class="docs"><p>@state is the state of the currently running actor.
+  The state can be set with <code>set-state!</code></p>
 </td><td class="codes"><pre class="brush: clojure">(ann state (IDeref Any))
 (def state
   (reify
     clojure.lang.IDeref
-    (deref [_] (PulsarActor/selfGetState))))</pre></td></tr><tr><td class="docs"><p>@mailbox is the mailbox channel of the currently running actor</p>
+    (deref [_] (PulsarActor/selfGetState))))</pre></td></tr><tr><td class="docs"><p>Sets the state of the currently running actor.
+  The state can be read with <code>@state</code>.</p>
+</td><td class="codes"><pre class="brush: clojure">(ann set-state! (All [x] [x -&gt; x]))
+(defn set-state!
+  [x]
+  (PulsarActor/selfSetState x))</pre></td></tr><tr><td class="docs"><p>@mailbox is the mailbox channel of the currently running actor</p>
 </td><td class="codes"><pre class="brush: clojure">(ann mailbox (IDeref Channel))
 (def mailbox
   (reify
     clojure.lang.IDeref
-    (deref [_] (PulsarActor/selfMailbox))))</pre></td></tr><tr><td class="docs"><p>Sets the state of the currently running actor</p>
-</td><td class="codes"><pre class="brush: clojure">(ann set-state! (All [x] [x -&gt; x]))
-(defn set-state!
-  [x]
-  (PulsarActor/selfSetState x))</pre></td></tr><tr><td class="docs"><p>Sets the current actor to trap lifecycle events (like a dead linked actor) and turn them into messages</p>
+    (deref [_] (PulsarActor/selfMailbox))))</pre></td></tr><tr><td class="docs"><p>Sets the current actor to trap lifecycle events (like a dead linked actor) 
+  and turn them into messages.</p>
 </td><td class="codes"><pre class="brush: clojure">(ann trap! [-&gt; nil])
 (defn trap!
   []
-  (.setTrap ^PulsarActor @self true))</pre></td></tr><tr><td class="docs"><p>If the argument is an actor -- returns it. If not, looks up a registered actor with the argument as its name</p>
+  (.setTrap ^PulsarActor @self true))</pre></td></tr><tr><td class="docs"><p>If the argument is an actor -- returns it. If not, looks up a registered 
+  actor with the argument as its name.</p>
 </td><td class="codes"><pre class="brush: clojure">(ann get-actor [Any -&gt; Actor])
 (defn ^Actor get-actor
   [a]
   (when a
     (if (instance? Actor a)
       a
-      (LocalActor/getActor a))))</pre></td></tr><tr><td class="docs"><p>links two actors</p>
+      (LocalActor/getActor a))))</pre></td></tr><tr><td class="docs"><p>Links two actors.</p>
 </td><td class="codes"><pre class="brush: clojure">(ann link! (Fn [Actor -&gt; Actor]
                [Actor Actor -&gt; Actor]))
 (defn link!
@@ -3224,14 +3242,14 @@ as published by the Free Software Foundation.</p>
   ([actor2 monitor]
    (.unwatch ^LocalActor @self actor2 monitor))
   ([actor1 actor2 monitor]
-   (.unwatch ^LocalActor (cast LocalActor (get-actor actor1)) (get-actor actor2) monitor)))</pre></td></tr><tr><td class="docs"><p>Registers an actor</p>
+   (.unwatch ^LocalActor (cast LocalActor (get-actor actor1)) (get-actor actor2) monitor)))</pre></td></tr><tr><td class="docs"><p>Registers an actor.</p>
 </td><td class="codes"><pre class="brush: clojure">(ann register (Fn [String LocalActor -&gt; LocalActor]
                   [LocalActor -&gt; LocalActor]))
 (defn register!
   ([name ^LocalActor actor]
    (.register actor name))
   ([^LocalActor actor]
-   (.register actor)))</pre></td></tr><tr><td class="docs"><p>Un-registers an actor</p>
+   (.register actor)))</pre></td></tr><tr><td class="docs"><p>Un-registers an actor.</p>
 </td><td class="codes"><pre class="brush: clojure">(ann unregister [LocalActor -&gt; LocalActor])
 (defn unregister!
   [x]
@@ -3240,7 +3258,7 @@ as published by the Free Software Foundation.</p>
 </td><td class="codes"><pre class="brush: clojure">(ann mailbox-of [PulsarActor -&gt; Channel])
 (defn ^Channel mailbox-of
   [^PulsarActor actor]
-  (.mailbox actor))</pre></td></tr><tr><td class="docs"><p>Returns a registered actor by name</p>
+  (.mailbox actor))</pre></td></tr><tr><td class="docs"><p>Returns a registered actor by name.</p>
 </td><td class="codes"><pre class="brush: clojure">(ann whereis [Any -&gt; Actor])
 (defn ^Actor whereis
   [name]
@@ -3252,9 +3270,11 @@ as published by the Free Software Foundation.</p>
   (ActorImpl/randtag))</pre></td></tr><tr><td class="docs"><p>Tests whether argument x is a vector whose first element is a keyword.</p>
 </td><td class="codes"><pre class="brush: clojure">(ann tagged-tuple? [Any -&gt; Boolean])
 (defn tagged-tuple?
+  {:no-doc true}
   [x]
   (and (vector? x) (keyword? (first x))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn clojure-&gt;java-msg
+  {:no-doc true}
   [x]
   (if (not (tagged-tuple? x))
     x
@@ -3986,16 +4006,22 @@ while running in a fiber.</p>
   {:no-doc true}
   [f]
   (ClojureHelper/asSuspendableCallable f))</pre></td></tr><tr><td class="docs"><p>Creates a suspendable function that can be used by a fiber or actor.
-  Used exactly like 'fn</p>
+  Used exactly like <code>fn</code></p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro susfn
   [&amp; expr]
   `(suspendable! (fn ~@expr)))</pre></td></tr><tr><td class="docs"><p>Defines a suspendable function that can be used by a fiber or actor.
-  Used exactly like 'defn'</p>
+  Used exactly like <code>defn</code></p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro defsusfn
   [&amp; expr]
   `(do
      (defn ~@expr)
-     (def ~(first expr) (suspendable! ~(first expr)))))</pre></td></tr><tr><td class="docs"><p>A suspendable version of trampoline. Should be used to implement
+     (def ~(first expr) (suspendable! ~(first expr)))))</pre></td></tr><tr><td class="docs"><p>Defines a local suspendable function that can be used by a fiber or actor.
+  Used exactly like <code>letfn</code></p>
+</td><td class="codes"><pre class="brush: clojure">(defmacro letsusfn
+[fnspecs &amp; body] 
+`(let ~(vec (interleave (map first fnspecs) 
+                        (map #(cons `susfn %) fnspecs)))
+   ~@body))</pre></td></tr><tr><td class="docs"><p>A suspendable version of trampoline. Should be used to implement
   finite-state-machine actors.</p>
 
 <p>  trampoline can be used to convert algorithms requiring mutual
@@ -4036,7 +4062,7 @@ while running in a fiber.</p>
   (.start fiber))</pre></td></tr><tr><td class="docs"><p>Creates and starts a new fiber.</p>
 
 <p>  f - the function to run in the fiber.
-  args - (optional) arguments to pass to the function</p>
+  args - (optional) arguments for the function</p>
 
 <p>  Options:
   :name str     - the fiber's name
@@ -4274,9 +4300,9 @@ while running in a fiber.</p>
   channel to which it has been sent.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn ^ReceivePort rcv-group
   ([ports]
-   (ReceivePortGroup. ports))
+   (ReceivePortGroup. ^java.util.Collection ports))
   ([port &amp; ports]
-   (ReceivePortGroup. (cons port ports))))</pre></td></tr><tr><td class="docs"><p>Creates a new topic.
+   (ReceivePortGroup. ^java.util.Collection (cons port ports))))</pre></td></tr><tr><td class="docs"><p>Creates a new topic.
   A topic is a send-port (a write-only channel) that forwards every message sent to it
   to a group of subscribed channels.
   Use <code>subscribe!</code> and <code>unsubscribe!</code> to subscribe and unsubscribe a channel to or from
@@ -4297,12 +4323,12 @@ while running in a fiber.</p>
   [ports priority millis]
   (let [^TimeUnit unit (when millis TimeUnit/MILLISECONDS)
         millis (long (or millis 0))]
-    (Selector/select (if priority true false)
+    (Selector/select ^boolean (if priority true false)
                      millis unit
-                     (map #(if (vector? %)
-                             (Selector/send ^SendPort (first %) (second %))
-                             (Selector/receive ^ReceivePort %))
-                          ports))))</pre></td></tr><tr><td class="docs"><p>Performs up to one of several given channel operations.
+                     ^java.util.List (map #(if (vector? %)
+                                             (Selector/send ^SendPort (first %) (second %))
+                                             (Selector/receive ^ReceivePort %))
+                                          ports))))</pre></td></tr><tr><td class="docs"><p>Performs up to one of several given channel operations.
   sel takes a collection containing <em>channel operation descriptors</em>. A descriptor is 
   either a channel or a pair (vector) of a channel and a message. 
   Each channel in the sequence represents a <code>rcv</code> attempt, and each channel-message pair 

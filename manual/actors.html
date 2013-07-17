@@ -57,19 +57,19 @@
           
           
           
-            <li>
-              <a  href="/pulsar/getting-started.html">
-                Getting Started
-              </a>
-              
-            </li>
-          
         
           
           
             
           
           
+          
+            <li>
+              <a  href="/pulsar/getting-started.html">
+                Getting Started
+              </a>
+              
+            </li>
           
         
           
@@ -116,19 +116,19 @@
           
           
           
-        
-          
-          
-            
-          
-          
-          
             <li>
               <a  href="/pulsar/manual/core.html">
                 Pulsar Core
               </a>
               
             </li>
+          
+        
+          
+          
+            
+          
+          
           
         
           
@@ -228,7 +228,13 @@ To create and start an actor of a function <code>f</code> that takes arguments <
 <ul>
   <li><code>:name</code> - The actor’s name (that’s also given to the fiber running the actor).</li>
   <li><code>:mailbox-size</code> - The number of messages that can wait in the mailbox, or -1 (the default) for an unbounded mailbox.</li>
-  <li><code>:overflow-policy</code> - What to do if a bounded mailbox overflows. Can be either <code>:kill</code>, in which case an exception will be thrown into the receivnig actor, or <code>:backpressure</code>, in which case the sender will block until there’s room in the mailbox.</li>
+  <li><code>:overflow-policy</code> - What to do if a bounded mailbox overflows. Can be either:
+    <ul>
+      <li><code>:throw</code>, in which case an exception will be thrown <em>into the receiving actor</em></li>
+      <li><code>:drop</code>, in which case the message will be silently discarded, or </li>
+      <li><code>:block</code>, in which case the sender will block until there’s room in the mailbox.</li>
+    </ul>
+  </li>
   <li><code>:lifecycle-handle</code> - A function that will be called to handle special messages sent to the actor. If set to <code>nil</code> (the default), the default handler is used, which is what you want in all circumstances, except for some actors that are meant to do some special tricks.</li>
   <li><code>:fj-pool</code> - The <code>ForkJoinPool</code> in which the fiber will run.
 If <code>:fj-pool</code> is not specified, then the pool used will be either 1) the pool of the fiber calling <code>spawn-fiber</code>, or, if <code>spawn-fiber</code> is not called from within a fiber, a default pool.</li>
