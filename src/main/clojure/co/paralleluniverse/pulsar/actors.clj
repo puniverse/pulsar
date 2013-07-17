@@ -272,6 +272,12 @@
   []
   (ActorImpl/randtag))
 
+(ann tagged-tuple? [Any -> Boolean])
+(defn tagged-tuple?
+  "Tests whether argument x is a vector whose first element is a keyword."
+  [x]
+  (and (vector? x) (keyword? (first x))))
+
 (defn clojure->java-msg
   [x]
   (if (not (tagged-tuple? x))
