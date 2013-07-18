@@ -1,5 +1,5 @@
 (ns co.paralleluniverse.pulsar.examples.distributed.pong
-  "The classic ping-pong example from the Erlang tutorial"
+  "A distributed version of the classic ping-pong example"
   (:use [co.paralleluniverse.pulsar core actors]))
 
 ;; This example is intended to be a line-by-line translation of the canonical
@@ -19,6 +19,6 @@
                    (recur))))
 
 (defn -main []
-    (let [a1 (register! "pong" (spawn pong))]
+    (let [a1 (register! :pong (spawn pong))]
       (join a1)
       (System/exit 0)))

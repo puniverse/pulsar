@@ -51,9 +51,9 @@ public class ClojureKryoSerializers {
 
         KryoSerializer.register(Keyword.class, new KeywordSerializer());
         KryoSerializer.register(BigInt.class, new BigIntSerializer());
-        KryoSerializer.register(IPersistentVector.class, new VectorSerializer());
-        KryoSerializer.register(IPersistentList.class, new ListSerializer());
-        KryoSerializer.register(IPersistentList.class, new ListSerializer());
+        KryoSerializer.register(PersistentVector.class, new VectorSerializer());
+        KryoSerializer.register(PersistentList.class, new ListSerializer());
+        KryoSerializer.register(PersistentList.class, new ListSerializer());
         KryoSerializer.register(PersistentQueue.class, new PersistentQueueSerializer());
         KryoSerializer.register(PersistentHashSet.class, new HashSetSerializer());
         KryoSerializer.register(PersistentTreeSet.class, new TreeSetSerializer());
