@@ -26,7 +26,19 @@ section:
 Alternatively, to build Pulsar from the source, clone the repository and run:
 
 ```
-lein test
+lein midje
+```
+
+You can run the examples like this:
+
+```
+lein -o run -m co.paralleluniverse.pulsar.examples.pingpong
+```
+
+For benchmarks, you should use `lein trampoline`, like so:
+
+```
+lein trampoline run -m co.paralleluniverse.pulsar.examples.ring-benchmark 1000 1000
 ```
 
 ## Usage
