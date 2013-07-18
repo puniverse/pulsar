@@ -736,14 +736,24 @@
   ([]                     (Channels/newIntChannel -1)))
 
 (defmacro snd-int
+  "Sends an int value to an int-channel.
+  
+  See: `snd`"
   [channel message]
   `(co.paralleluniverse.pulsar.ChannelsHelper/sendInt ^co.paralleluniverse.strands.channels.IntSendPort ~channel (int ~message)))
 
 (defmacro try-snd-int
+  "Tries to immediately send an int value to an int-channel.
+  Returns `true` if successful, `false` otherwise.
+  
+  See: `try-snd`"
   [channel message]
   `(co.paralleluniverse.pulsar.ChannelsHelper/trySendInt ^co.paralleluniverse.strands.channels.IntSendPort ~channel (int ~message)))
 
 (defmacro rcv-int
+  "Receives an int value from an int-channel.
+  
+  See: `rcv`"
   ([channel]
    `(int (.receiveInt ^co.paralleluniverse.strands.channels.IntReceivePort ~channel)))
   ([channel timeout unit]
@@ -758,14 +768,24 @@
   ([]                     (Channels/newLongChannel -1)))
 
 (defmacro snd-long
+  "Sends a long value to a long-channel.  
+  
+  See: `snd`"
   [channel message]
   `(co.paralleluniverse.pulsar.ChannelsHelper/sendLong ^co.paralleluniverse.strands.channels.LongSendPort ~channel (long ~message)))
 
-(defmacro stry-nd-long
+(defmacro try-snd-long
+  "Tries to immediately send a long value to a long-channel.
+  Returns `true` if successful, `false` otherwise.  
+  
+  See: `try-snd`"
   [channel message]
   `(co.paralleluniverse.pulsar.ChannelsHelper/trySendLong ^co.paralleluniverse.strands.channels.LongSendPort ~channel (long ~message)))
 
 (defmacro rcv-long
+  "Receives a long value from a long-channel.
+  
+  See: `rcv`"
   ([channel]
    `(long (.receiveLong ^co.paralleluniverse.strands.channels.LongReceivePort ~channel)))
   ([channel timeout unit]
@@ -780,14 +800,24 @@
   ([]                     (Channels/newFloatChannel -1)))
 
 (defmacro snd-float
+  "Sends a float value to a float-channel.  
+  
+  See: `snd`"
   [channel message]
   `(co.paralleluniverse.pulsar.ChannelsHelper/sendFloat ^co.paralleluniverse.strands.channels.FloatSendPort ~channel (float ~message)))
 
 (defmacro try-snd-float
+  "Tries to immediately send a float value to a float-channel.
+  Returns `true` if successful, `false` otherwise.  
+  
+  See: `try-snd`"
   [channel message]
   `(co.paralleluniverse.pulsar.ChannelsHelper/trySendFloat ^co.paralleluniverse.strands.channels.FloatSendPort ~channel (float ~message)))
 
 (defmacro rcv-float
+  "Receives a float value from a float-channel.
+  
+  See: `rcv`"
   ([channel]
    `(float (.receiveFloat ^co.paralleluniverse.strands.channels.FloatReceivePort ~channel)))
   ([channel timeout unit]
@@ -802,14 +832,24 @@
   ([]                     (Channels/newDoubleChannel -1)))
 
 (defmacro snd-double
+  "Sends a double value to a double-channel.  
+  
+  See: `snd`"
   [channel message]
   `(co.paralleluniverse.pulsar.ChannelsHelper/sendDouble ^co.paralleluniverse.strands.channels.DoubleSendPort ~channel (double ~message)))
 
 (defmacro try-snd-double
+  "Tries to immediately send a double value to a double-channel.
+  Returns `true` if successful, `false` otherwise.  
+  
+  See: `try-snd`"
   [channel message]
   `(co.paralleluniverse.pulsar.ChannelsHelper/trySendDouble ^co.paralleluniverse.strands.channels.DoubleSendPort ~channel (double ~message)))
 
 (defmacro rcv-double
+  "Receives a double value from a double-channel.
+  
+  See: `rcv`"
   ([channel]
    `(double (.receiveDouble ^co.paralleluniverse.strands.channels.DoubleReceivePort ~channel)))
   ([channel timeout unit]
