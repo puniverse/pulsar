@@ -5,7 +5,6 @@ If argument x is already an instance of `TimeUnit`, the function returns x.
 Otherwise, x *must* be a keyword, in which case the following conversion
 is performed:
 
-&lt;pre&gt;
 :nanoseconds | :nanos | :ns   -&gt; TimeUnit/NANOSECONDS
 :microseconds | :us           -&gt; TimeUnit/MICROSECONDS
 :milliseconds | :millis | :ms -&gt; TimeUnit/MILLISECONDS
@@ -13,7 +12,6 @@ is performed:
 :minutes | :mins              -&gt; TimeUnit/MINUTES
 :hours | :hrs                 -&gt; TimeUnit/HOURS
 :days                         -&gt; TimeUnit/DAYS
-&lt;/pre&gt;
 </pre></div><div class="public" id="var-alive%3F"><h3>alive?</h3><div class="usage"><code>(alive? a)</code></div><pre class="doc">Tests whether or not a strand is alive. 
 A strand is alive if it has been started but has not yet died.</pre></div><div class="public" id="var-channel"><h3>channel</h3><div class="usage"><code>(channel capacity overflow-policy)</code><code>(channel capacity)</code><code>(channel)</code></div><pre class="doc">Creates a new channel.
 

@@ -8,7 +8,7 @@
 <meta itemprop="description" content="Erlang-like actors for Clojure">
 <title>
   
-    core.async - 
+    Clustering - 
    Pulsar
 </title>
 <!--<link rel="shortcut icon" href="/images/icons/loading_icon.png">-->
@@ -159,11 +159,9 @@
           
           
             <li>
-              <a class="active" href="/pulsar/manual/async.html">
+              <a  href="/pulsar/manual/async.html">
                 core.async
               </a>
-              
-              <ul class="nav nav-list"></ul>
               
             </li>
           
@@ -175,9 +173,11 @@
           
           
             <li>
-              <a  href="/pulsar/manual/cluster.html">
+              <a class="active" href="/pulsar/manual/cluster.html">
                 Clustering
               </a>
+              
+              <ul class="nav nav-list"></ul>
               
             </li>
           
@@ -212,46 +212,19 @@
     <div class="span8" id="content-container">
 
       <span class="edit-on-github">
-  <a href="https://github.com/puniverse/pulsar/edit/master/docs/manual/async.md">Edit on Github</a>
+  <a href="https://github.com/puniverse/pulsar/edit/master/docs/manual/cluster.md">Edit on Github</a>
 </span>
 
 
       
       <div class="page-header">
-        <h1>core.async
+        <h1>Clustering
           
         </h1>
       </div>
       
 
-      <div id="content"><p>core.async is a new <a href="https://github.com/clojure/core.async/">asynchronous programming library</a> for Clojure built by Rich Hickey and other contributors. It provides something akin to fibers (though more limited than Pulsar fibers) and channels, and is also available in ClojureScript. Because core.async provides a subset of Pulsar’s capability, Pulsar provides an optional API that’s compatible with core.async which some people may prefer.</p>
-
-<p>The core.async implementation is found in the <code>co.paralleluniverse.pulsar.async</code> namespace. It defines the following names: <code>chan</code>, <code>buffer</code>, <code>dropping-buffer</code>, <code>sliding-buffer</code>, <code>go</code>, <code>thread-call</code>, <code>thread</code>, <code>close!</code>, <code>take!</code>, <code>put!</code>, <code>&gt;!</code>, <code>&gt;!!</code>, <code>&lt;!</code>, <code>&lt;!!</code>, <code>alts!</code>, <code>alts!!</code>, <code>alt!</code>, <code>alt!!</code> and <code>timeout</code>.</p>
-
-<p>These definitions are no more than thin wrappers around Pulsar functions and macros:</p>
-
-<ul>
-  <li><code>(chan)</code> is the same as calling <code>(channel)</code>.</li>
-  <li><code>(chan (buffer n))</code> or <code>(chan n)</code> are the same as <code>(channel n :block)</code> and <code>(channel n)</code>.</li>
-  <li><code>(chan (dropping-buffer n))</code> is the same as <code>(channel n :drop)</code></li>
-  <li><code>(chan (sliding-buffer n))</code> is the same as <code>(channel n :displace)</code></li>
-  <li><code>close!</code> is the same as <code>close!</code></li>
-  <li><code>&gt;!</code> and <code>&gt;!!</code> are the same as <code>snd</code></li>
-  <li><code>&lt;!</code> and <code>&lt;!!</code> are the same as <code>rcv</code></li>
-</ul>
-
-<p>The core.async API and the Pulsar API may be used interchangably, so you can call ‘&gt;!’ on a channel created with <code>channel</code> or <code>snd</code> on a channel created with <code>chan</code>. They are one and the same.</p>
-
-<p><code>go</code> simply performs its body within a newly spawned fiber.</p>
-
-<p>These are the differences between the Pulsar implementation of the core.async API, and the orgiginal implementation:</p>
-
-<ul>
-  <li>Channels created with <code>(chan (sliding-buffer n))</code> are single-consumer.</li>
-  <li>You may use the <code>!</code> and the <code>!!</code> defs interchangeably (the original implementation forces the use of the single-bang defs in go-blocks and the double-bang defs in regular threads). This means that in the Pulsar implementation all of the double-bang names (<code>&gt;!!</code>, <code>&lt;!!</code>, <code>alts!!</code> and <code>alt!!</code>) are actually redundant (but included for compatibility).</li>
-</ul>
-
-<p>In addition, there are performance differences, mostly resulting from the fact that Pulsar uses fork-join pools to schedule fibers, while core.async uses regular thread pools. In short, if there is little interaction between go blocks (say, each go block writes something to a channel and completes), you can expet better performance from the original implementation. If there is a lot of interaction between go blocks (there’s non-trivial message passing among them), then the Pulsar implementation will yield better performance.</p>
+      <div id="content">
 </div>
 
       <hr>

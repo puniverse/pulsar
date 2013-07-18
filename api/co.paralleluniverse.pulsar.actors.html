@@ -34,8 +34,46 @@ the watch element is `nil`.
 See: `unlink!`, `watch!`</pre></div><div class="public" id="var-mailbox"><h3>mailbox</h3><div class="usage"></div><pre class="doc">@mailbox is the mailbox channel of the currently running actor
 </pre></div><div class="public" id="var-mailbox-of"><h3>mailbox-of</h3><div class="usage"><code>(mailbox-of actor)</code></div><pre class="doc">Returns the mailbox of the given actor.
 </pre></div><div class="public" id="var-maketag"><h3>maketag</h3><div class="usage"><code>(maketag)</code></div><pre class="doc">Returns a random, probably unique, identifier.
-(this is similar to Erlang's makeref).</pre></div><div class="public" id="var-receive"><h3>receive</h3><h4 class="macro">macro</h4><div class="usage"><code>(receive)</code><code>(receive patterns* &lt;:after ms action&gt;?)</code><code>(receive [binding transformation?] patterns* &lt;:after ms action&gt;?)</code></div><pre class="doc">Receives a message in the current actor and processes it
-</pre></div><div class="public" id="var-register%21"><h3>register!</h3><div class="usage"><code>(register! name actor)</code><code>(register! actor)</code></div><pre class="doc">Registers an actor in the actor registry.
+(this is similar to Erlang's makeref).</pre></div><div class="public" id="var-receive"><h3>receive</h3><h4 class="macro">macro</h4><div class="usage"><code>(receive)</code><code>(receive patterns* &lt;:after ms action&gt;?)</code><code>(receive [binding transformation?] patterns* &lt;:after ms action&gt;?)</code></div><pre class="doc">Receives a message in the current actor and processes it.
+
+Receive performs pattern matching (with free var binding) on the message.
+Example:
+  (let [actor (spawn
+               #(receive
+                   :abc &quot;yes!&quot;
+                   [:why? answer] answer
+                   :else &quot;oy&quot;))]
+     (! actor [:why? &quot;because!&quot;])
+     (join actor)) ; =&gt; &quot;because!&quot;
+
+`receive` performs a *selective receive*. If the next message in the mailbox does
+not match any of the patterns (and an `:else` clause is not present), it is skipped, 
+and the next message will be attempted.
+`receive` will block until a matching message arrives, and will return the value of
+the matching clause.
+
+Skipped messages are not discarded, but are left in the mailbox. Every call to `receive` 
+will attempt to match any message in the mailbox, starting with the oldest. 
+(Skipped messages migh accumulate in the mailbox if not matched, so it's good practice
+to at least occasionally call a `receive` that has an `:else` clause.)
+
+If the first element of the `receive` expression is a vector, it is used for binding:
+The vector's first element is the name assigned to the entire message, and the second,
+if it exists, is a transformation function, of one argument, that will be applied to 
+the message before binding and before pattern-matching:
+
+   (receive [m transform]
+     [:foo val] (println &quot;got foo:&quot; val)
+     :else      (println &quot;got&quot; m))
+
+ Now `m` – and the value we're matching – is the the transformed value.
+
+A timeout in milliseconds, may be specified in an `:after` clause, which must appear last:
+
+  (receive [m transform]
+     [:foo val] (println &quot;got foo:&quot; val)
+     :else      (println &quot;got&quot; m)
+     :after 30  (println &quot;nothing...&quot;))</pre></div><div class="public" id="var-register%21"><h3>register!</h3><div class="usage"><code>(register! name actor)</code><code>(register! actor)</code></div><pre class="doc">Registers an actor in the actor registry.
 </pre></div><div class="public" id="var-remove-and-terminate-child%21"><h3>remove-and-terminate-child!</h3><div class="usage"><code>(remove-and-terminate-child! supervisor id)</code></div><pre class="doc">Removes an actor from a supervisor and terminates the actor
 </pre></div><div class="public" id="var-reply%21"><h3>reply!</h3><div class="usage"><code>(reply! to id res)</code></div><pre class="doc">Replies to a message sent to the current gen-server
 </pre></div><div class="public" id="var-reply-error%21"><h3>reply-error!</h3><div class="usage"><code>(reply-error! to id error)</code></div><pre class="doc">Replies with an error to a message sent to the current gen-server
