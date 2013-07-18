@@ -66,7 +66,7 @@
 (defn ^clojure.lang.ISeq seq [x]
   (co.paralleluniverse.pulsar.SuspendableLazySeq/seq x))
 
-(defsusfn dorun
+(defsfn dorun
   "When lazy sequences are produced via functions that have side
   effects, any effects other than those needed to produce the first
   element in the seq do not occur until the seq is consumed. dorun can
@@ -85,7 +85,7 @@
    (when (and (seq coll) (pos? n))
      (recur (dec n) (next coll)))))
 
-(defsusfn doall
+(defsfn doall
   "When lazy sequences are produced via functions that have side
   effects, any effects other than those needed to produce the first
   element in the seq do not occur until the seq is consumed. doall can
@@ -103,7 +103,7 @@
 
 (ann nthnext (All [x]
                   [(Option (Seqable x)) AnyInteger -> (Option (I (Seqable x) (CountRange 1)))]))
-(defsusfn nthnext
+(defsfn nthnext
   "Returns the nth next of coll, (seq coll) when n is 0."
   {:added "1.0"
    :static true}
@@ -115,7 +115,7 @@
 
 (ann nthrest (All [x]
                   [(Option (Seqable x)) AnyInteger -> (Option (I (Seqable x)))]))
-(defsusfn nthrest
+(defsfn nthrest
   "Returns the nth rest of coll, coll when n is 0."
   {:added "1.3"
    :static true}
@@ -159,7 +159,7 @@
   {:added "1.0"
    :static true}
   [n coll]
-  (let [step (susfn [n coll]
+  (let [step (sfn [n coll]
                     (let [s (seq coll)]
                       (if (and (pos? n) s)
                         (recur (dec n) (rest s))

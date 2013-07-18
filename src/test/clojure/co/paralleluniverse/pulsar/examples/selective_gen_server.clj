@@ -19,7 +19,7 @@
                              (case command
                                :compute (call-timed! adder 10 :ms :add (* a b) (* c d)))))))
 
-(defsusfn curious [nums computer]
+(defsfn curious [nums computer]
   (when (seq nums)
     (let [[a b c d] (take 4 nums)
           res (call! computer :compute a b c d)]

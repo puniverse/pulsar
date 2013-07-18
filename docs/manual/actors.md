@@ -129,7 +129,7 @@ Before we move on, it's time for a short example. In this example, we will defin
 Here's the adder actor:
 
 ~~~ clojure
-(defsusfn adder []
+(defsfn adder []
   (loop []
     (receive
      [from tag [:add a b]] (! from tag [:sum (+ a b)]))
@@ -203,13 +203,13 @@ In this code snippet, we specifically wait for the `:baz` message after receivin
 Selective receive is also very useful when communicating with other actors. Here's an excerpt from [this example]({{examples}}/selective.clj):
 
 ~~~ clojure
-(defsusfn adder []
+(defsfn adder []
   (loop []
     (receive
       [from tag [:add a b]] (! from tag [:sum (+ a b)]))
     (recur)))
 
-(defsusfn computer [adder]
+(defsfn computer [adder]
   (loop []
     (receive [m]
              [from tag [:compute a b c d]] (let [tag1 (maketag)]
@@ -220,7 +220,7 @@ Selective receive is also very useful when communicating with other actors. Here
              :else (println "Unknown message: " m))
     (recur)))
 
-(defsusfn curious [nums computer]
+(defsfn curious [nums computer]
   (when (seq nums)
     (let [[a b c d] (take 4 nums)
           tag       (maketag)]
@@ -295,17 +295,17 @@ These are three different ways of managing actor state. Eventually, we’ll sett
 
 ## State Machines with strampoline
 
-As we've seen, the `receive` form defines which messages the actor is willing to accept and process. You can nest `receive` statements, or place them in other functions that the actor calls (in which case the must be defined with `defsusfn`). It is often useful to treat the actor as a state machine, going from one state to another, executing a different `receive` at each state (to define the acceptable transitions from the state). To change state, all we would have to do is call a different function, each with its own receive, but here we face a technical limitation of Clojure. As Clojure (due to JVM limitations) does not perform true tail-call optimization, every state transition (i.e. every function call), would add a frame to the stack, eventually throwing a stack overflow. Clojure solves it with the `clojure.core/trampoline` function. It takes a function and calls it. When the function returns, if the returned value is a function, `trampoline` calls it.
+As we've seen, the `receive` form defines which messages the actor is willing to accept and process. You can nest `receive` statements, or place them in other functions that the actor calls (in which case the must be defined with `defsfn`). It is often useful to treat the actor as a state machine, going from one state to another, executing a different `receive` at each state (to define the acceptable transitions from the state). To change state, all we would have to do is call a different function, each with its own receive, but here we face a technical limitation of Clojure. As Clojure (due to JVM limitations) does not perform true tail-call optimization, every state transition (i.e. every function call), would add a frame to the stack, eventually throwing a stack overflow. Clojure solves it with the `clojure.core/trampoline` function. It takes a function and calls it. When the function returns, if the returned value is a function, `trampoline` calls it.
 
 Pulsar comes with a version of `trampoline` for suspendable functions called `strampoline` (with the exact same API as `trampoline`).
 
 Consider this example:
 
 ~~~ clojure
-(let [state2 (susfn []
+(let [state2 (sfn []
                     (receive
                       :bar :foobar))
-      state1 (susfn []
+      state1 (sfn []
                     (receive
                       :foo state2))
       actor (spawn (fn []
@@ -321,10 +321,10 @@ The actor starts at `state1` (represented by the function with the same name), b
 What happens if the messages `:foo` and `:bar` arrive in reverse order? Thanks to selective receive the result will be exactly the same! `state1` will skip the `:bar` message, and transition to `state2` when `:foo` arrives; the `receive` statement in `state2` will then find the `:bar` message waiting in the mailbox:
 
 ~~~ clojure
-(let [state2 (susfn []
+(let [state2 (sfn []
                     (receive
                       :bar :foobar))
-      state1 (susfn []
+      state1 (sfn []
                     (receive
                       :foo state2))
       actor (spawn (fn []

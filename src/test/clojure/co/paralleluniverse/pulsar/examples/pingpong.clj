@@ -6,7 +6,7 @@
 ;; Erlang [ping-pong example](http://www.erlang.org/doc/getting_started/conc_prog.html#id67006),
 ;; so it is not written in idiomatic Clojure.
 
-(defsusfn ping [n pong]
+(defsfn ping [n pong]
   (if (== n 0)
     (do
       (! pong :finished)
@@ -17,7 +17,7 @@
         :pong (println "Ping received pong"))
       (recur (dec n) pong))))
 
-(defsusfn pong []
+(defsfn pong []
   (receive
     :finished (println "Pong finished")
     [:ping ping] (do

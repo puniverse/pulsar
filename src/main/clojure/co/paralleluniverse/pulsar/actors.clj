@@ -367,7 +367,7 @@
    `(co.paralleluniverse.actors.PulsarActor/sendSync (get-actor ~actor) (clojure->java-msg [~arg ~@args]))))
 
 (ann receive-timed [AnyInteger -> (Option Any)])
-(defsusfn receive-timed
+(defsfn receive-timed
   "Waits (and returns) for a message for up to timeout ms. If time elapses -- returns nil."
   [^Integer timeout]
   (co.paralleluniverse.actors.PulsarActor/selfReceive timeout))
@@ -646,12 +646,12 @@
                            (first args)
                            (actor-builder #(apply create-actor args)))))
 
-(defsusfn add-child!
+(defsfn add-child!
   "Adds an actor to a supervisor"
   [^Supervisor supervisor id mode max-restarts duration unit shutdown-deadline-millis & args]
   (.addChild supervisor (apply-variadic child-spec id mode max-restarts duration unit shutdown-deadline-millis args)))
 
-(defsusfn remove-child!
+(defsfn remove-child!
   "Removes an actor from a supervisor"
   [^Supervisor supervisor id]
   (.removeChild supervisor id false))

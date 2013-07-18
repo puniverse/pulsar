@@ -20,10 +20,10 @@ Fibers are lightweight threads. They provide functionality similar to threads, a
 One significant difference between Fibers and Threads is that Fibers are not preempted; i.e. a fiber is (permanently or temporarily) unscheduled by the scheduler only if it terminates, or if it calls one of a few specific Java methods that cause the fiber to become suspended. A function that calls a suspending operation is called a *suspendable* function, and a function that calls another suspendable function is itself suspendable. 
 
 Suspendable functions require special bytecode instrumentation (performed by an instrumentation agent), so they must be explicitly designated as such.
-The function `suspendable!` marks a given function as a suspendable function (this operation cannot be undone). The `defsusfn` macro, with the same syntax as `defn` defines a suspendable function.
+The function `suspendable!` marks a given function as a suspendable function (this operation cannot be undone). The `defsfn` macro, with the same syntax as `defn` defines a suspendable function.
 
 {:.alert .alert-info}
-**Note**: All functions (i.e. `fn`s) passed to any of the Pulsar API functions and macros are automatically made suspendable, so in most simple cases you will never need to use `susfn`, `defsusfn` or `suspendable!`.
+**Note**: All functions (i.e. `fn`s) passed to any of the Pulsar API functions and macros are automatically made suspendable, so in most simple cases you will never need to use `sfn`, `defsfn` or `suspendable!`.
 
 ### Spawning Fibers
 

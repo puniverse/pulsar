@@ -8,7 +8,7 @@
 ;; This is the layout of our binary buffer:
 (def fr (compile-frame {:a :int16, :b :float32}))
 
-(defsusfn receiver []
+(defsfn receiver []
   (receive [buffer #(decode fr %)]
            {:a 1 :b b} (println "Got buffer (a=1) b: " b)
            {:a a :b b} (println "Got unexpected buffer" buffer "a: " a "b: " b)

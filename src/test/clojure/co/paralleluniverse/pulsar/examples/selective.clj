@@ -3,13 +3,13 @@
   (:use [co.paralleluniverse.pulsar core actors]))
 
 
-(defsusfn adder []
+(defsfn adder []
   (loop []
     (receive
       [from tag [:add a b]] (! from tag [:sum (+ a b)]))
     (recur)))
 
-(defsusfn computer [adder]
+(defsfn computer [adder]
   (loop []
     (receive [m]
              [from tag [:compute a b c d]] (let [tag1 (maketag)]
@@ -20,7 +20,7 @@
              :else (println "Unknown message: " m))
     (recur)))
 
-(defsusfn curious [nums computer]
+(defsfn curious [nums computer]
   (when (seq nums)
     (let [[a b c d] (take 4 nums)
           tag       (maketag)]

@@ -209,7 +209,7 @@
 
 (defn- f->chan
   [c f]
-  (p/susfn []
+  (p/sfn []
     (let [ret (try (f)
                 (catch Throwable t
                   nil))]

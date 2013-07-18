@@ -233,7 +233,7 @@
 
 (fact "When multiple consumers receive from ticker-channel then each consumer's messages are monotonic"
       (let [ch (channel 10 :displace)
-            task (susfn [] 
+            task (sfn [] 
                         (let [ch (ticker-consumer ch)]
                           (loop [prev -1]
                             (let [m (rcv ch)]

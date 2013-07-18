@@ -255,13 +255,13 @@
   [f]
   (ClojureHelper/asSuspendableCallable f))
 
-(defmacro susfn
+(defmacro sfn
   "Creates a suspendable function that can be used by a fiber or actor.
   Used exactly like `fn`"
   [& expr]
   `(suspendable! (fn ~@expr)))
 
-(defmacro defsusfn
+(defmacro defsfn
   "Defines a suspendable function that can be used by a fiber or actor.
   Used exactly like `defn`"
   [& expr]
@@ -269,19 +269,19 @@
      (defn ~@expr)
      (def ~(first expr) (suspendable! ~(first expr)))))
 
-(defmacro letsusfn
+(defmacro letsfn
   "Defines a local suspendable function that can be used by a fiber or actor.
   Used exactly like `letfn`"
 [fnspecs & body] 
 `(let ~(vec (interleave (map first fnspecs) 
-                        (map #(cons `susfn %) fnspecs)))
+                        (map #(cons `sfn %) fnspecs)))
    ~@body))
 
 (ann ^:nocheck strampoline (All [v1 v2 ...]
                                 (Fn
                                  [(Fn [v1 v2 ... v2 -> Any]) v1 v2 ... v2 -> Any]
                                  [[-> Any] -> Any])))
-(defsusfn strampoline
+(defsfn strampoline
   "A suspendable version of trampoline. Should be used to implement
   finite-state-machine actors.
 
@@ -557,7 +557,7 @@
 
 (ann rcv (Fn [Channel -> Any]
              [Channel Long (U TimeUnit Keyword) -> (Option Any)]))
-(defsusfn rcv
+(defsfn rcv
   "Receives a message from a channel or a channel group.
   This function will block until a message is available or until the timeout,
   if specified, expires.

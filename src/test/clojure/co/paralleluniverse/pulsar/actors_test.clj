@@ -186,10 +186,10 @@
                (! actor 12)
                (join actor)) => 25))
 
-(defsusfn f1 []
+(defsfn f1 []
   (inc (receive)))
 
-(defsusfn f2 [x]
+(defsfn f2 [x]
   (+ x (receive)))
 
 (defactor a1 []
@@ -241,10 +241,10 @@
 
 (fact "strampoline-test"
       (fact "Test trampolining actor"
-            (let [state2 (susfn []
+            (let [state2 (sfn []
                                 (receive
                                   :bar :foobar))
-                  state1 (susfn []
+                  state1 (sfn []
                                 (receive
                                   :foo state2))
                   actor (spawn (fn []
@@ -254,10 +254,10 @@
               (! actor :bar)
               (join actor)) => :foobar)
       (fact "Test trampolining actor with selctive receive"
-            (let [state2 (susfn []
+            (let [state2 (sfn []
                                 (receive
                                   :bar :foobar))
-                  state1 (susfn []
+                  state1 (sfn []
                                 (receive
                                   :foo state2))
                   actor (spawn (fn []
@@ -473,13 +473,13 @@
           (Thread/sleep 10)
           (recur sup id (- timeout 10)))))))
 
-(defsusfn actor1 []
+(defsfn actor1 []
   (loop [i (int 0)]
     (receive
       [:shutdown a] i
       :else (recur (inc i)))))
 
-(defsusfn bad-actor1 []
+(defsfn bad-actor1 []
   (receive)
   (throw (RuntimeException. "Ha!")))
 
@@ -570,7 +570,7 @@
         (join sup)))
 
 
-(defsusfn actor3
+(defsfn actor3
   [sup started terminated]
   (let [adder
         (add-child! sup nil :temporary 5 1 :sec 10

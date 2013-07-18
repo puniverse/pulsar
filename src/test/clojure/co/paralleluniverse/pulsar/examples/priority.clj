@@ -8,12 +8,12 @@
 
 (declare normal)
 
-(defsusfn important []
+(defsfn important []
   (receive
    [(priority :guard #(> % 10)) msg] (cons msg (important))
    :after 0 (normal)))
 
-(defsusfn normal []
+(defsfn normal []
   (receive
    [_ msg] (cons msg (normal))
    :after 0 ()))
