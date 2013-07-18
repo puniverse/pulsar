@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html><head><meta charset="utf-8" content="text/html" http-equiv="Content-Type" /><meta content="A Clojure actor library" name="description" /><style type="text/css">/**
+<html><head><meta charset="utf-8" content="text/html" http-equiv="Content-Type" /><meta content="A Clojure lightweight thread, asynchronous programming, and actor library" name="description" /><style type="text/css">/**
  * SyntaxHighlighter
  * http://alexgorbatchev.com/SyntaxHighlighter
  *
@@ -3028,7 +3028,7 @@ net.brehaut.ClojureTools = (function (SH) {
     build_tree: build_tree
   };
 })(SyntaxHighlighter);
-</script><title>co.paralleluniverse/pulsar -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">co.paralleluniverse/pulsar</h1><h2 class="project-version">0.2-SNAPSHOT</h2><br /><p>A Clojure actor library</p>
+</script><title>co.paralleluniverse/pulsar -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">co.paralleluniverse/pulsar</h1><h2 class="project-version">0.2-SNAPSHOT</h2><br /><p>A Clojure lightweight thread, asynchronous programming, and actor library</p>
 </div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.5.1</td></tr><tr><td class="dep-name">co.paralleluniverse/quasar-core</td><td class="dotted"><hr /></td><td class="dep-version">0.2-SNAPSHOT</td></tr><tr><td class="dep-name">com.yammer.metrics/metrics-core</td><td class="dotted"><hr /></td><td class="dep-version">2.0.2</td></tr><tr><td class="dep-name">org.ow2.asm/asm</td><td class="dotted"><hr /></td><td class="dep-version">4.1</td></tr><tr><td class="dep-name">org.ow2.asm/asm-analysis</td><td class="dotted"><hr /></td><td class="dep-version">4.1</td></tr><tr><td class="dep-name">org.ow2.asm/asm-util</td><td class="dotted"><hr /></td><td class="dep-version">4.1</td></tr><tr><td class="dep-name">com.google.guava/guava</td><td class="dotted"><hr /></td><td class="dep-version">11.0.1</td></tr><tr><td class="dep-name">org.clojure/core.match</td><td class="dotted"><hr /></td><td class="dep-version">0.2.0-alpha12</td></tr><tr><td class="dep-name">useful</td><td class="dotted"><hr /></td><td class="dep-version">0.8.3-alpha8</td></tr><tr><td class="dep-name">gloss</td><td class="dotted"><hr /></td><td class="dep-version">0.2.2-beta4</td></tr><tr><td class="dep-name">org.clojure/core.typed</td><td class="dotted"><hr /></td><td class="dep-version">0.1.14</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#co.paralleluniverse.pulsar.actors">co.paralleluniverse.pulsar.actors</a></li><li><a href="#co.paralleluniverse.pulsar.async">co.paralleluniverse.pulsar.async</a></li><li><a href="#co.paralleluniverse.pulsar.core">co.paralleluniverse.pulsar.core</a></li><li><a href="#co.paralleluniverse.pulsar.interop">co.paralleluniverse.pulsar.interop</a></li><li><a href="#co.paralleluniverse.pulsar.lazyseq">co.paralleluniverse.pulsar.lazyseq</a></li><li><a href="#co.paralleluniverse.pulsar.actors-test">co.paralleluniverse.pulsar.actors-test</a></li><li><a href="#co.paralleluniverse.pulsar.core-test">co.paralleluniverse.pulsar.core-test</a></li><li><a href="#co.paralleluniverse.pulsar.examples.binary">co.paralleluniverse.pulsar.examples.binary</a></li><li><a href="#co.paralleluniverse.pulsar.examples.graph">co.paralleluniverse.pulsar.examples.graph</a></li><li><a href="#co.paralleluniverse.pulsar.examples.io">co.paralleluniverse.pulsar.examples.io</a></li><li><a href="#co.paralleluniverse.pulsar.examples.pingpong">co.paralleluniverse.pulsar.examples.pingpong</a></li><li><a href="#co.paralleluniverse.pulsar.examples.pingpong-register">co.paralleluniverse.pulsar.examples.pingpong-register</a></li><li><a href="#co.paralleluniverse.pulsar.examples.primitive-ring-benchmark">co.paralleluniverse.pulsar.examples.primitive-ring-benchmark</a></li><li><a href="#co.paralleluniverse.pulsar.examples.priority">co.paralleluniverse.pulsar.examples.priority</a></li><li><a href="#co.paralleluniverse.pulsar.examples.ring-benchmark">co.paralleluniverse.pulsar.examples.ring-benchmark</a></li><li><a href="#co.paralleluniverse.pulsar.examples.selective">co.paralleluniverse.pulsar.examples.selective</a></li><li><a href="#co.paralleluniverse.pulsar.examples.selective-gen-server">co.paralleluniverse.pulsar.examples.selective-gen-server</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.actors" name="co.paralleluniverse.pulsar.actors"><h1 class="project-name">co.paralleluniverse.pulsar.actors</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>This program and the accompanying materials are dual-licensed under
 either the terms of the Eclipse Public License v1.0 as published by
 the Eclipse Foundation</p>
@@ -4463,13 +4463,20 @@ while running in a fiber.</p>
 (defn ^IntChannel int-channel
   ([size overflow-policy] (Channels/newIntChannel (int size) (keyword-&gt;enum Channels$OverflowPolicy overflow-policy)))
   ([size]                 (Channels/newIntChannel (int size)))
-  ([]                     (Channels/newIntChannel -1)))</pre></td></tr><tr><td class="docs">
+  ([]                     (Channels/newIntChannel -1)))</pre></td></tr><tr><td class="docs"><p>Sends an int value to an int-channel.</p>
+
+<p>  See: <code>snd</code></p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro snd-int
   [channel message]
-  `(co.paralleluniverse.pulsar.ChannelsHelper/sendInt ^co.paralleluniverse.strands.channels.IntSendPort ~channel (int ~message)))</pre></td></tr><tr><td class="docs">
+  `(co.paralleluniverse.pulsar.ChannelsHelper/sendInt ^co.paralleluniverse.strands.channels.IntSendPort ~channel (int ~message)))</pre></td></tr><tr><td class="docs"><p>Tries to immediately send an int value to an int-channel.
+  Returns <code>true</code> if successful, <code>false</code> otherwise.</p>
+
+<p>  See: <code>try-snd</code></p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro try-snd-int
   [channel message]
-  `(co.paralleluniverse.pulsar.ChannelsHelper/trySendInt ^co.paralleluniverse.strands.channels.IntSendPort ~channel (int ~message)))</pre></td></tr><tr><td class="docs">
+  `(co.paralleluniverse.pulsar.ChannelsHelper/trySendInt ^co.paralleluniverse.strands.channels.IntSendPort ~channel (int ~message)))</pre></td></tr><tr><td class="docs"><p>Receives an int value from an int-channel.</p>
+
+<p>  See: <code>rcv</code></p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro rcv-int
   ([channel]
    `(int (.receiveInt ^co.paralleluniverse.strands.channels.IntReceivePort ~channel)))
@@ -4480,13 +4487,20 @@ while running in a fiber.</p>
 (defn ^LongChannel long-channel
   ([size overflow-policy] (Channels/newLongChannel (int size) (keyword-&gt;enum Channels$OverflowPolicy overflow-policy)))
   ([size]                 (Channels/newLongChannel (int size)))
-  ([]                     (Channels/newLongChannel -1)))</pre></td></tr><tr><td class="docs">
+  ([]                     (Channels/newLongChannel -1)))</pre></td></tr><tr><td class="docs"><p>Sends a long value to a long-channel.  </p>
+
+<p>  See: <code>snd</code></p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro snd-long
   [channel message]
-  `(co.paralleluniverse.pulsar.ChannelsHelper/sendLong ^co.paralleluniverse.strands.channels.LongSendPort ~channel (long ~message)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defmacro stry-nd-long
+  `(co.paralleluniverse.pulsar.ChannelsHelper/sendLong ^co.paralleluniverse.strands.channels.LongSendPort ~channel (long ~message)))</pre></td></tr><tr><td class="docs"><p>Tries to immediately send a long value to a long-channel.
+  Returns <code>true</code> if successful, <code>false</code> otherwise.  </p>
+
+<p>  See: <code>try-snd</code></p>
+</td><td class="codes"><pre class="brush: clojure">(defmacro try-snd-long
   [channel message]
-  `(co.paralleluniverse.pulsar.ChannelsHelper/trySendLong ^co.paralleluniverse.strands.channels.LongSendPort ~channel (long ~message)))</pre></td></tr><tr><td class="docs">
+  `(co.paralleluniverse.pulsar.ChannelsHelper/trySendLong ^co.paralleluniverse.strands.channels.LongSendPort ~channel (long ~message)))</pre></td></tr><tr><td class="docs"><p>Receives a long value from a long-channel.</p>
+
+<p>  See: <code>rcv</code></p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro rcv-long
   ([channel]
    `(long (.receiveLong ^co.paralleluniverse.strands.channels.LongReceivePort ~channel)))
@@ -4497,13 +4511,20 @@ while running in a fiber.</p>
 (defn ^FloatChannel float-channel
   ([size overflow-policy] (Channels/newFloatChannel (int size) (keyword-&gt;enum Channels$OverflowPolicy overflow-policy)))
   ([size]                 (Channels/newFloatChannel (int size)))
-  ([]                     (Channels/newFloatChannel -1)))</pre></td></tr><tr><td class="docs">
+  ([]                     (Channels/newFloatChannel -1)))</pre></td></tr><tr><td class="docs"><p>Sends a float value to a float-channel.  </p>
+
+<p>  See: <code>snd</code></p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro snd-float
   [channel message]
-  `(co.paralleluniverse.pulsar.ChannelsHelper/sendFloat ^co.paralleluniverse.strands.channels.FloatSendPort ~channel (float ~message)))</pre></td></tr><tr><td class="docs">
+  `(co.paralleluniverse.pulsar.ChannelsHelper/sendFloat ^co.paralleluniverse.strands.channels.FloatSendPort ~channel (float ~message)))</pre></td></tr><tr><td class="docs"><p>Tries to immediately send a float value to a float-channel.
+  Returns <code>true</code> if successful, <code>false</code> otherwise.  </p>
+
+<p>  See: <code>try-snd</code></p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro try-snd-float
   [channel message]
-  `(co.paralleluniverse.pulsar.ChannelsHelper/trySendFloat ^co.paralleluniverse.strands.channels.FloatSendPort ~channel (float ~message)))</pre></td></tr><tr><td class="docs">
+  `(co.paralleluniverse.pulsar.ChannelsHelper/trySendFloat ^co.paralleluniverse.strands.channels.FloatSendPort ~channel (float ~message)))</pre></td></tr><tr><td class="docs"><p>Receives a float value from a float-channel.</p>
+
+<p>  See: <code>rcv</code></p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro rcv-float
   ([channel]
    `(float (.receiveFloat ^co.paralleluniverse.strands.channels.FloatReceivePort ~channel)))
@@ -4514,13 +4535,20 @@ while running in a fiber.</p>
 (defn ^DoubleChannel double-channel
   ([size overflow-policy] (Channels/newDoubleChannel (int size) (keyword-&gt;enum Channels$OverflowPolicy overflow-policy)))
   ([size]                 (Channels/newDoubleChannel (int size)))
-  ([]                     (Channels/newDoubleChannel -1)))</pre></td></tr><tr><td class="docs">
+  ([]                     (Channels/newDoubleChannel -1)))</pre></td></tr><tr><td class="docs"><p>Sends a double value to a double-channel.  </p>
+
+<p>  See: <code>snd</code></p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro snd-double
   [channel message]
-  `(co.paralleluniverse.pulsar.ChannelsHelper/sendDouble ^co.paralleluniverse.strands.channels.DoubleSendPort ~channel (double ~message)))</pre></td></tr><tr><td class="docs">
+  `(co.paralleluniverse.pulsar.ChannelsHelper/sendDouble ^co.paralleluniverse.strands.channels.DoubleSendPort ~channel (double ~message)))</pre></td></tr><tr><td class="docs"><p>Tries to immediately send a double value to a double-channel.
+  Returns <code>true</code> if successful, <code>false</code> otherwise.  </p>
+
+<p>  See: <code>try-snd</code></p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro try-snd-double
   [channel message]
-  `(co.paralleluniverse.pulsar.ChannelsHelper/trySendDouble ^co.paralleluniverse.strands.channels.DoubleSendPort ~channel (double ~message)))</pre></td></tr><tr><td class="docs">
+  `(co.paralleluniverse.pulsar.ChannelsHelper/trySendDouble ^co.paralleluniverse.strands.channels.DoubleSendPort ~channel (double ~message)))</pre></td></tr><tr><td class="docs"><p>Receives a double value from a double-channel.</p>
+
+<p>  See: <code>rcv</code></p>
 </td><td class="codes"><pre class="brush: clojure">(defmacro rcv-double
   ([channel]
    `(double (.receiveDouble ^co.paralleluniverse.strands.channels.DoubleReceivePort ~channel)))
