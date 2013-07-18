@@ -78,7 +78,8 @@ public class ClojureHelper {
         } catch (Exception e) {
             throw new AssertionError(e);
         }
-
+        
+        // register kryo serializers for clojure types
         if (ActorRegistry.hasGlobalRegistry()) {
             try {
                 Class.forName("co.paralleluniverse.pulsar.galaxy.ClojureKryoSerializers");
