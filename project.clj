@@ -26,11 +26,12 @@
   :jvm-opts ["-server"
              ;; ForkJoin wants these:
              "-XX:-UseBiasedLocking"
-             "-XX:+UseCondCardMark"
-             ;; The instrumentation agent:
-             ~(str "-javaagent:" (System/getProperty "user.home") "/.m2/repository/co/paralleluniverse/quasar-core/0.2-SNAPSHOT/quasar-core-0.2-SNAPSHOT.jar")]
+             "-XX:+UseCondCardMark"]
+  :java-agents [[co.paralleluniverse/quasar-core "0.2-SNAPSHOT"]] ; :options "v"
   :pedantic :warn
-  :profiles {:dev
+  :profiles {
+             ;; ----------- dev --------------------------------------
+             :dev
              {:plugins [[lein-midje "3.0.0"]]
               :dependencies [[midje "1.5.1" :exclusions [org.clojure/tools.namespace]]]
               :jvm-opts [;; Debugging
@@ -47,13 +48,14 @@
                          ]
               :global-vars {*warn-on-reflection* true}}
              
+             ;; ----------- cluster --------------------------------------
              :cluster
              {:repositories {"oracle" "http://download.oracle.com/maven/"}
               :dependencies [[co.paralleluniverse/quasar-galaxy "0.2-SNAPSHOT"]]
+              :java-source-paths ["src/cluster/java"]
               :jvm-opts [;; Debugging
                          "-ea"
-                         ;"-Dco.paralleluniverse.lwthreads.verifyInstrumentation=true"
-                         ;; Logging
+                         ;; Galaxy
                          "-Djgroups.bind_addr=127.0.0.1"
                          ; "-Dgalaxy.nodeId=1"
                          ; "-Dgalaxy.port=7051"
@@ -62,10 +64,12 @@
                          "-Dgalaxy.multicast.port=7050"
                          "-Dco.paralleluniverse.galaxy.configFile=src/test/clojure/co/paralleluniverse/pulsar/examples/distributed/config/peer.xml"
                          "-Dco.paralleluniverse.galaxy.autoGoOnline=true"
+                         ;; Logging
                          "-Dlog4j.configurationFile=log4j.xml"
                          "-DLog4jContextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector"
                          ]}
              
+             ;; ----------- doc --------------------------------------
              :doc
              {:plugins [[lein-midje "3.0.0"]
                         [codox "0.6.4"]
