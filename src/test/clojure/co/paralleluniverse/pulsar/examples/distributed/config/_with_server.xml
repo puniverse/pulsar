@@ -17,7 +17,7 @@
     <bean id="comm" class="co.paralleluniverse.galaxy.netty.UDPComm">
         <constructor-arg name="serverComm" ref="serverComm"/>
         <constructor-arg name="port" value="${galaxy.port}"/>
-        <property name="sendToServerInsteadOfMulticast" value="true"/>
+        <property name="sendToServerInsteadOfMulticast" value="false"/>
         <property name="minimumNodesToMulticast" value="2"/>
         <property name="multicastGroup">
             <bean class="java.net.InetSocketAddress">
