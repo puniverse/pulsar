@@ -235,7 +235,7 @@ section:</p>
 
 <p>and run:</p>
 
-<pre><code>lein test
+<pre><code>lein midje
 </code></pre>
 
 <p>To build the documentation, you need to have <a href="http://jekyllrb.com/">Jekyll</a> installed. Then run:</p>
@@ -246,6 +246,16 @@ section:</p>
 <p>To generate the API documentation run</p>
 
 <pre><code>lein doc
+</code></pre>
+
+<p>You can run the examples like this:</p>
+
+<pre><code>lein -o run -m co.paralleluniverse.pulsar.examples.pingpong
+</code></pre>
+
+<p>For benchmarks, you should use <code>lein trampoline</code>, like so:</p>
+
+<pre><code>lein trampoline run -m co.paralleluniverse.pulsar.examples.ring-benchmark 1000 1000
 </code></pre>
 
 </div>

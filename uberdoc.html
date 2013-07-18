@@ -3616,7 +3616,7 @@ as published by the Free Software Foundation.</p>
     [java.util.concurrent TimeUnit ThreadLocalRandom Executors Executor ScheduledExecutorService]
     [com.google.common.util.concurrent ThreadFactoryBuilder])
   (:require
-    [co.paralleluniverse.pulsar.core :as p]))</pre></td></tr><tr><td class="docs"><p>Returns a fixed buffer of size n. When full, puts will block/park.</p>
+    [co.paralleluniverse.pulsar.core :as p :refer [defsfn]]))</pre></td></tr><tr><td class="docs"><p>Returns a fixed buffer of size n. When full, puts will block/park.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn buffer
   [n]
   [(if (= n 1) (BoxQueue. false false) (ArrayQueue. n)) Channels$OverflowPolicy/BLOCK])</pre></td></tr><tr><td class="docs"><p>Returns a buffer of size n. When full, puts will complete but 
@@ -3640,7 +3640,7 @@ as published by the Free Software Foundation.</p>
   return nil if closed. Will park if nothing is available.</p>
 
 <p>  Pulsar implementation: Identical to <!!. May be used outside go blocks as well.</p>
-</td><td class="codes"><pre class="brush: clojure">(defn &lt;!
+</td><td class="codes"><pre class="brush: clojure">(defsfn &lt;!
   [port]
   (p/rcv port))</pre></td></tr><tr><td class="docs"><p>Asynchronously takes a val from port, passing to fn1. Will pass nil
   if closed. If on-caller? (default true) is true, and value is
@@ -3658,7 +3658,7 @@ It gives no performance benefits over using go <!</p>
   inside a (go ...) block. Will park if no buffer space is available.</p>
 
 <p>  Pulsar implementation: Identical to >!!. May be used outside go blocks as well. </p>
-</td><td class="codes"><pre class="brush: clojure">(defn &gt;!
+</td><td class="codes"><pre class="brush: clojure">(defsfn &gt;!
   [port val]
   (p/snd port val))</pre></td></tr><tr><td class="docs"><p>Asynchronously puts a val into port, calling fn0 (if supplied) when
   complete. nil values are not allowed. Will throw if closed. If
@@ -3816,13 +3816,15 @@ It gives no performance benefits over using go >!</p>
 `(fiber-call (fn [] ~@body)))</pre></td></tr><tr><td class="docs"><p>The following defs are redundant in this implementation, but are provided for compatibility with core.async</p>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>takes a val from port. Will return nil if closed. Will block 
   if nothing is available.</p>
-</td><td class="codes"><pre class="brush: clojure">(defn &lt;!!
-  [port]
-  (&lt;! port))</pre></td></tr><tr><td class="docs"><p>puts a val into port. nil values are not allowed. Will block if no 
+
+<p>  Pulsar implementation: Identical to <!. May be used outside go blocks as well.</p>
+</td><td class="codes"><pre class="brush: clojure">(def &lt;!!
+  &lt;!)</pre></td></tr><tr><td class="docs"><p>puts a val into port. nil values are not allowed. Will block if no 
   buffer space is available. Returns nil.</p>
-</td><td class="codes"><pre class="brush: clojure">(defn &gt;!!
-  [port val]
-  (&gt;! port val))</pre></td></tr><tr><td class="docs"><p>Like alts!, except takes will be made as if by <!!, and puts will
+
+<p>  Pulsar implementation: Identical to <!!. May be used outside go blocks as well.</p>
+</td><td class="codes"><pre class="brush: clojure">(def &gt;!!
+  &gt;!)</pre></td></tr><tr><td class="docs"><p>Like alts!, except takes will be made as if by <!!, and puts will
   be made as if by >!!, will block until completed, and not intended
   for use in (go ...) blocks.</p>
 
@@ -4298,7 +4300,7 @@ while running in a fiber.</p>
   If the channel's overflow policy is <code>:block</code> than this function will block
   if the channels' capacity is exceeded.</p>
 </td><td class="codes"><pre class="brush: clojure">(ann snd (All [x] [Channel x -&gt; x]))
-(defn snd
+(defsfn snd
   [^SendPort channel message]
   (.send channel message))</pre></td></tr><tr><td class="docs"><p>Tries to immediately send a message to a channel.
   If the channel's capacity is exceeded, this function fails and returns <code>false</code>.
@@ -4360,17 +4362,18 @@ while running in a fiber.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn unsubscribe!
   [^Topic topic ^SendPort channel]
   (.unsubscribe topic channel))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn ^SelectAction do-sel
+</td><td class="codes"><pre class="brush: clojure">(defsfn ^SelectAction do-sel
   {:no-doc true}
   [ports priority millis]
   (let [^TimeUnit unit (when millis TimeUnit/MILLISECONDS)
         millis (long (or millis 0))]
-    (Selector/select ^boolean (if priority true false)
-                     millis unit
-                     ^java.util.List (map #(if (vector? %)
-                                             (Selector/send ^SendPort (first %) (second %))
-                                             (Selector/receive ^ReceivePort %))
-                                          ports))))</pre></td></tr><tr><td class="docs"><p>Performs up to one of several given channel operations.
+    (Selector/select 
+      ^boolean (if priority true false)
+      millis unit
+      ^java.util.List (doall (map #(if (vector? %)
+                                     (Selector/send ^SendPort (first %) (second %))
+                                     (Selector/receive ^ReceivePort %))
+                                  ports)))))</pre></td></tr><tr><td class="docs"><p>Performs up to one of several given channel operations.
   sel takes a collection containing <em>channel operation descriptors</em>. A descriptor is 
   either a channel or a pair (vector) of a channel and a message. 
   Each channel in the sequence represents a <code>rcv</code> attempt, and each channel-message pair 
@@ -4394,7 +4397,7 @@ while running in a fiber.</p>
   operation is a <code>rcv</code>, or <code>nil</code> if it's a <code>snd</code>, and <code>ch</code> is the channel on which the succesful
   opration was performed.
   If a timeout is set and expires before any of the operations are available, returns <code>nil</code>.</p>
-</td><td class="codes"><pre class="brush: clojure">(defn sel
+</td><td class="codes"><pre class="brush: clojure">(defsfn sel
   [ports &amp; {:as opts}]
   (let [^SelectAction sa (do-sel ports (:priority opts) (:timeout opts))]
     (when sa
@@ -4603,19 +4606,19 @@ as published by the Free Software Foundation.</p>
   [enum-type x]
   `(when ~x
      (case (.ordinal ^Enum ~x) ; see http://stackoverflow.com/questions/16777814/is-it-possible-to-use-clojures-case-form-with-a-java-enum/16778119
-       ~@(mapcat #(list (.ordinal %) (keyword (java-name-&gt;clojure (.name %))))
+       ~@(mapcat #(list (.ordinal ^Enum %) (keyword (java-name-&gt;clojure (.name ^Enum %))))
                  (eval (list '. enum-type 'values))))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">#_(defmacro enum-&gt;keyword
     [enum-type x]
     `(when ~x
        (case+ ~x
-              ~@(mapcat #(list (symbol (str enum-type &quot;/&quot; (.name %))) (keyword (java-name-&gt;clojure (.name %))))
+              ~@(mapcat #(list (symbol (str enum-type &quot;/&quot; (.name ^Enum %))) (keyword (java-name-&gt;clojure (.name ^Enum %))))
                         (eval (list '. enum-type 'values))))))
 (defmacro keyword-&gt;enum
   [enum-type x]
   `(when ~x
      (case ~x
-       ~@(mapcat #(list (keyword (java-name-&gt;clojure (.name %))) (symbol (str enum-type &quot;/&quot; (.name %))))
+       ~@(mapcat #(list (keyword (java-name-&gt;clojure (.name ^Enum %))) (symbol (str enum-type &quot;/&quot; (.name ^Enum %))))
                  (eval (list '. enum-type 'values))))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.lazyseq" name="co.paralleluniverse.pulsar.lazyseq"><h1 class="project-name">co.paralleluniverse.pulsar.lazyseq</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>This program and the accompanying materials are dual-licensed under
 either the terms of the Eclipse Public License v1.0 as published by
 the Eclipse Foundation</p>
@@ -5619,7 +5622,8 @@ as published by the Free Software Foundation.</p>
                        (sel outs)))))
     cs))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(facts &quot;select&quot;
-       (fact &quot;basic sel test&quot;
+       #_(Debug/dumpAfter 10000 &quot;sel.log&quot;)
+       (fact :selected &quot;basic sel test&quot;
              (let [cout (channel 0) ;;
                    cin (fan-in (fan-out cout (repeatedly 3 channel)) 0)
                    f (spawn-fiber #(loop [n (int 0)
