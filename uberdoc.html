@@ -3337,7 +3337,7 @@ as published by the Free Software Foundation.</p>
   ([actor arg &amp; args]
    `(co.paralleluniverse.actors.PulsarActor/sendSync (get-actor ~actor) (clojure-&gt;java-msg [~arg ~@args]))))</pre></td></tr><tr><td class="docs"><p>Waits (and returns) for a message for up to timeout ms. If time elapses -- returns nil.</p>
 </td><td class="codes"><pre class="brush: clojure">(ann receive-timed [AnyInteger -&gt; (Option Any)])
-(defsusfn receive-timed
+(defsfn receive-timed
   [^Integer timeout]
   (co.paralleluniverse.actors.PulsarActor/selfReceive timeout))</pre></td></tr><tr><td class="docs"><p>For examples of this macro's expansions, try:
 (pprint (macroexpand-1 '(receive)))
@@ -3575,10 +3575,10 @@ as published by the Free Software Foundation.</p>
                          (if (instance? ActorBuilder (first args))
                            (first args)
                            (actor-builder #(apply create-actor args)))))</pre></td></tr><tr><td class="docs"><p>Adds an actor to a supervisor</p>
-</td><td class="codes"><pre class="brush: clojure">(defsusfn add-child!
+</td><td class="codes"><pre class="brush: clojure">(defsfn add-child!
   [^Supervisor supervisor id mode max-restarts duration unit shutdown-deadline-millis &amp; args]
   (.addChild supervisor (apply-variadic child-spec id mode max-restarts duration unit shutdown-deadline-millis args)))</pre></td></tr><tr><td class="docs"><p>Removes an actor from a supervisor</p>
-</td><td class="codes"><pre class="brush: clojure">(defsusfn remove-child!
+</td><td class="codes"><pre class="brush: clojure">(defsfn remove-child!
   [^Supervisor supervisor id]
   (.removeChild supervisor id false))</pre></td></tr><tr><td class="docs"><p>Removes an actor from a supervisor and terminates the actor</p>
 </td><td class="codes"><pre class="brush: clojure">(defn remove-and-terminate-child!
@@ -3777,7 +3777,7 @@ It gives no performance benefits over using go >!</p>
                         (range) exprs))))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn- f-&gt;chan
   [c f]
-  (p/susfn []
+  (p/sfn []
     (let [ret (try (f)
                 (catch Throwable t
                   nil))]
@@ -4049,20 +4049,20 @@ while running in a fiber.</p>
   [f]
   (ClojureHelper/asSuspendableCallable f))</pre></td></tr><tr><td class="docs"><p>Creates a suspendable function that can be used by a fiber or actor.
   Used exactly like <code>fn</code></p>
-</td><td class="codes"><pre class="brush: clojure">(defmacro susfn
+</td><td class="codes"><pre class="brush: clojure">(defmacro sfn
   [&amp; expr]
   `(suspendable! (fn ~@expr)))</pre></td></tr><tr><td class="docs"><p>Defines a suspendable function that can be used by a fiber or actor.
   Used exactly like <code>defn</code></p>
-</td><td class="codes"><pre class="brush: clojure">(defmacro defsusfn
+</td><td class="codes"><pre class="brush: clojure">(defmacro defsfn
   [&amp; expr]
   `(do
      (defn ~@expr)
      (def ~(first expr) (suspendable! ~(first expr)))))</pre></td></tr><tr><td class="docs"><p>Defines a local suspendable function that can be used by a fiber or actor.
   Used exactly like <code>letfn</code></p>
-</td><td class="codes"><pre class="brush: clojure">(defmacro letsusfn
+</td><td class="codes"><pre class="brush: clojure">(defmacro letsfn
 [fnspecs &amp; body] 
 `(let ~(vec (interleave (map first fnspecs) 
-                        (map #(cons `susfn %) fnspecs)))
+                        (map #(cons `sfn %) fnspecs)))
    ~@body))</pre></td></tr><tr><td class="docs"><p>A suspendable version of trampoline. Should be used to implement
   finite-state-machine actors.</p>
 
@@ -4077,7 +4077,7 @@ while running in a fiber.</p>
                                 (Fn
                                  [(Fn [v1 v2 ... v2 -&gt; Any]) v1 v2 ... v2 -&gt; Any]
                                  [[-&gt; Any] -&gt; Any])))
-(defsusfn strampoline
+(defsfn strampoline
   ([f]
      (let [ret (f)]
        (if (fn? ret)
@@ -4314,7 +4314,7 @@ while running in a fiber.</p>
   Otherwise, the message is returned.</p>
 </td><td class="codes"><pre class="brush: clojure">(ann rcv (Fn [Channel -&gt; Any]
              [Channel Long (U TimeUnit Keyword) -&gt; (Option Any)]))
-(defsusfn rcv
+(defsfn rcv
   ([^ReceivePort channel]
    (.receive channel))
   ([^ReceivePort channel timeout unit]
@@ -4674,7 +4674,7 @@ Here, lazy-seq is defined without the :once tag.</p>
   element in the seq do not occur until the seq is consumed. dorun can
   be used to force any effects. Walks through the successive nexts of
   the seq, does not retain the head and returns nil.</p>
-</td><td class="codes"><pre class="brush: clojure">(defsusfn dorun
+</td><td class="codes"><pre class="brush: clojure">(defsfn dorun
   {:added &quot;1.0&quot;
    :static true}
   ([coll]
@@ -4692,7 +4692,7 @@ Here, lazy-seq is defined without the :once tag.</p>
   be used to force any effects. Walks through the successive nexts of
   the seq, retains the head and returns it, thus causing the entire
   seq to reside in memory at one time.</p>
-</td><td class="codes"><pre class="brush: clojure">(defsusfn doall
+</td><td class="codes"><pre class="brush: clojure">(defsfn doall
   {:added &quot;1.0&quot;
    :static true}
   ([coll]
@@ -4703,7 +4703,7 @@ Here, lazy-seq is defined without the :once tag.</p>
    coll))</pre></td></tr><tr><td class="docs"><p>Returns the nth next of coll, (seq coll) when n is 0.</p>
 </td><td class="codes"><pre class="brush: clojure">(ann nthnext (All [x]
                   [(Option (Seqable x)) AnyInteger -&gt; (Option (I (Seqable x) (CountRange 1)))]))
-(defsusfn nthnext
+(defsfn nthnext
   {:added &quot;1.0&quot;
    :static true}
   [coll n]
@@ -4713,7 +4713,7 @@ Here, lazy-seq is defined without the :once tag.</p>
       xs)))</pre></td></tr><tr><td class="docs"><p>Returns the nth rest of coll, coll when n is 0.</p>
 </td><td class="codes"><pre class="brush: clojure">(ann nthrest (All [x]
                   [(Option (Seqable x)) AnyInteger -&gt; (Option (I (Seqable x)))]))
-(defsusfn nthrest
+(defsfn nthrest
   {:added &quot;1.3&quot;
    :static true}
   [coll n]
@@ -4749,7 +4749,7 @@ Here, lazy-seq is defined without the :once tag.</p>
   {:added &quot;1.0&quot;
    :static true}
   [n coll]
-  (let [step (susfn [n coll]
+  (let [step (sfn [n coll]
                     (let [s (seq coll)]
                       (if (and (pos? n) s)
                         (recur (dec n) (rest s))
@@ -4963,9 +4963,9 @@ as published by the Free Software Foundation.</p>
                (! actor 13)
                (! actor 12)
                (join actor)) =&gt; 25))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defsusfn f1 []
+</td><td class="codes"><pre class="brush: clojure">(defsfn f1 []
   (inc (receive)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defsusfn f2 [x]
+</td><td class="codes"><pre class="brush: clojure">(defsfn f2 [x]
   (+ x (receive)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defactor a1 []
   (inc (receive)))</pre></td></tr><tr><td class="docs">
@@ -5012,10 +5012,10 @@ as published by the Free Software Foundation.</p>
                (join actor)) =&gt; '(0 2 4)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(fact &quot;strampoline-test&quot;
       (fact &quot;Test trampolining actor&quot;
-            (let [state2 (susfn []
+            (let [state2 (sfn []
                                 (receive
                                   :bar :foobar))
-                  state1 (susfn []
+                  state1 (sfn []
                                 (receive
                                   :foo state2))
                   actor (spawn (fn []
@@ -5025,10 +5025,10 @@ as published by the Free Software Foundation.</p>
               (! actor :bar)
               (join actor)) =&gt; :foobar)
       (fact &quot;Test trampolining actor with selctive receive&quot;
-            (let [state2 (susfn []
+            (let [state2 (sfn []
                                 (receive
                                   :bar :foobar))
-                  state1 (susfn []
+                  state1 (sfn []
                                 (receive
                                   :foo state2))
                   actor (spawn (fn []
@@ -5224,12 +5224,12 @@ manually add a known actor to a supervisor, so this ugly function is only useful
         (do
           (Thread/sleep 10)
           (recur sup id (- timeout 10)))))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defsusfn actor1 []
+</td><td class="codes"><pre class="brush: clojure">(defsfn actor1 []
   (loop [i (int 0)]
     (receive
       [:shutdown a] i
       :else (recur (inc i)))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defsusfn bad-actor1 []
+</td><td class="codes"><pre class="brush: clojure">(defsfn bad-actor1 []
   (receive)
   (throw (RuntimeException. &quot;Ha!&quot;)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(fact &quot;child-modes&quot;
@@ -5315,7 +5315,7 @@ manually add a known actor to a supervisor, so this ugly function is only useful
             (fact
               (join a) =&gt; throws Exception)))
         (join sup)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defsusfn actor3
+</td><td class="codes"><pre class="brush: clojure">(defsfn actor3
   [sup started terminated]
   (let [adder
         (add-child! sup nil :temporary 5 1 :sec 10
@@ -5580,7 +5580,7 @@ as published by the Free Software Foundation.</p>
   #(or (&gt; % y)  (checking/as-data-laden-falsehood {:notes [(str &quot;actual &quot; % &quot; required &gt; &quot; y)]})))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(fact &quot;When multiple consumers receive from ticker-channel then each consumer's messages are monotonic&quot;
       (let [ch (channel 10 :displace)
-            task (susfn [] 
+            task (sfn [] 
                         (let [ch (ticker-consumer ch)]
                           (loop [prev -1]
                             (let [m (rcv ch)]
@@ -5718,7 +5718,7 @@ as published by the Free Software Foundation.</p>
         [gloss core io]))</pre></td></tr><tr><td class="docs"><p>This is an example of sending, receiving and matching binary data buffers</p>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>This is the layout of our binary buffer:</p>
 </td><td class="codes"><pre class="brush: clojure">(def fr (compile-frame {:a :int16, :b :float32}))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defsusfn receiver []
+</td><td class="codes"><pre class="brush: clojure">(defsfn receiver []
   (receive [buffer #(decode fr %)]
            {:a 1 :b b} (println &quot;Got buffer (a=1) b: &quot; b)
            {:a a :b b} (println &quot;Got unexpected buffer&quot; buffer &quot;a: &quot; a &quot;b: &quot; b)
@@ -5814,7 +5814,7 @@ as published by the Free Software Foundation.</p>
 Erlang <a href="http://www.erlang.org/doc/getting_started/conc_prog.html#id67006">ping-pong example</a>,
 so it is not written in idiomatic Clojure.</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defsusfn ping [n pong]
+</td><td class="codes"><pre class="brush: clojure">(defsfn ping [n pong]
   (if (== n 0)
     (do
       (! pong :finished)
@@ -5824,7 +5824,7 @@ so it is not written in idiomatic Clojure.</p>
       (receive
         :pong (println &quot;Ping received pong&quot;))
       (recur (dec n) pong))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defsusfn pong []
+</td><td class="codes"><pre class="brush: clojure">(defsfn pong []
   (receive
     :finished (println &quot;Pong finished&quot;)
     [:ping ping] (do
@@ -5840,7 +5840,7 @@ so it is not written in idiomatic Clojure.</p>
 Erlang <a href="http://www.erlang.org/doc/getting_started/conc_prog.html#id67347">ping-pong example</a>,
 so it is not written in idiomatic Clojure.</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defsusfn ping [n]
+</td><td class="codes"><pre class="brush: clojure">(defsfn ping [n]
   (if (== n 0)
     (do
       (! :pong :finished)
@@ -5850,7 +5850,7 @@ so it is not written in idiomatic Clojure.</p>
       (receive
         :pong (println &quot;Ping received pong&quot;))
       (recur (dec n)))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defsusfn pong []
+</td><td class="codes"><pre class="brush: clojure">(defsfn pong []
   (receive
     :finished (println &quot;Pong finished&quot;)
     [:ping ping] (do
@@ -5900,11 +5900,11 @@ so it is not written in idiomatic Clojure.</p>
 so it is not written in idiomatic Clojure</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(declare normal)</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defsusfn important []
+</td><td class="codes"><pre class="brush: clojure">(defsfn important []
   (receive
    [(priority :guard #(&gt; % 10)) msg] (cons msg (important))
    :after 0 (normal)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defsusfn normal []
+</td><td class="codes"><pre class="brush: clojure">(defsfn normal []
   (receive
    [_ msg] (cons msg (normal))
    :after 0 ()))</pre></td></tr><tr><td class="docs">
@@ -5949,12 +5949,12 @@ so it is not written in idiomatic Clojure</p>
         (println i &quot;: Messages &quot; num-messages)))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.examples.selective" name="co.paralleluniverse.pulsar.examples.selective"><h1 class="project-name">co.paralleluniverse.pulsar.examples.selective</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>A very simple selective-receive example</p>
 </td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar.examples.selective
   (:use [co.paralleluniverse.pulsar core actors]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defsusfn adder []
+</td><td class="codes"><pre class="brush: clojure">(defsfn adder []
   (loop []
     (receive
       [from tag [:add a b]] (! from tag [:sum (+ a b)]))
     (recur)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defsusfn computer [adder]
+</td><td class="codes"><pre class="brush: clojure">(defsfn computer [adder]
   (loop []
     (receive [m]
              [from tag [:compute a b c d]] (let [tag1 (maketag)]
@@ -5964,7 +5964,7 @@ so it is not written in idiomatic Clojure</p>
                                                :after 10          (! from tag [:error &quot;timeout!&quot;])))
              :else (println &quot;Unknown message: &quot; m))
     (recur)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defsusfn curious [nums computer]
+</td><td class="codes"><pre class="brush: clojure">(defsfn curious [nums computer]
   (when (seq nums)
     (let [[a b c d] (take 4 nums)
           tag       (maketag)]
@@ -5996,7 +5996,7 @@ so it is not written in idiomatic Clojure</p>
                 (handle-call [_ from id [command a b c d]]
                              (case command
                                :compute (call-timed! adder 10 :ms :add (* a b) (* c d)))))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defsusfn curious [nums computer]
+</td><td class="codes"><pre class="brush: clojure">(defsfn curious [nums computer]
   (when (seq nums)
     (let [[a b c d] (take 4 nums)
           res (call! computer :compute a b c d)]

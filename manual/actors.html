@@ -57,6 +57,13 @@
           
           
           
+        
+          
+          
+            
+          
+          
+          
             <li>
               <a  href="/pulsar/getting-started.html">
                 Getting Started
@@ -100,22 +107,8 @@
             </li>
           
         
-          
-          
-            
-          
-          
-          
-        
       
         <li class="nav-header">User Manual</li>
-        
-          
-          
-            
-          
-          
-          
         
           
           
@@ -129,6 +122,13 @@
               </a>
               
             </li>
+          
+        
+          
+          
+            
+          
+          
           
         
           
@@ -167,19 +167,19 @@
           
           
           
-        
-          
-          
-            
-          
-          
-          
             <li>
               <a  href="/pulsar/manual/examples.html">
                 Examples
               </a>
               
             </li>
+          
+        
+          
+          
+            
+          
+          
           
         
       
@@ -345,7 +345,7 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
 <p>Here’s the adder actor:</p>
 
 <div><div class="CodeRay">
-  <div class="code"><pre>(defsusfn adder []
+  <div class="code"><pre>(defsfn adder []
   (<span class="keyword">loop</span> []
     (receive
      [from tag [<span class="symbol">:add</span> a b]] (! from tag [<span class="symbol">:sum</span> (<span class="keyword">+</span> a b)]))
@@ -427,13 +427,13 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
 <p>Selective receive is also very useful when communicating with other actors. Here’s an excerpt from <a href="/selective.clj">this example</a>:</p>
 
 <div><div class="CodeRay">
-  <div class="code"><pre>(defsusfn adder []
+  <div class="code"><pre>(defsfn adder []
   (<span class="keyword">loop</span> []
     (receive
       [from tag [<span class="symbol">:add</span> a b]] (! from tag [<span class="symbol">:sum</span> (<span class="keyword">+</span> a b)]))
     (<span class="keyword">recur</span>)))
 
-(defsusfn computer [adder]
+(defsfn computer [adder]
   (<span class="keyword">loop</span> []
     (receive [m]
              [from tag [<span class="symbol">:compute</span> a b c d]] (<span class="keyword">let</span> [tag1 (maketag)]
@@ -444,7 +444,7 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
              <span class="symbol">:else</span> (<span class="keyword">println</span> <span class="string"><span class="delimiter">&quot;</span><span class="content">Unknown message: </span><span class="delimiter">&quot;</span></span> m))
     (<span class="keyword">recur</span>)))
 
-(defsusfn curious [nums computer]
+(defsfn curious [nums computer]
   (<span class="keyword">when</span> (<span class="keyword">seq</span> nums)
     (<span class="keyword">let</span> [[a b c d] (<span class="keyword">take</span> <span class="integer">4</span> nums)
           tag       (maketag)]
@@ -526,17 +526,17 @@ Pulsar supports this as an experimental feature (implemented internally with <co
 
 <h2 id="state-machines-with-strampoline">State Machines with strampoline</h2>
 
-<p>As we’ve seen, the <code>receive</code> form defines which messages the actor is willing to accept and process. You can nest <code>receive</code> statements, or place them in other functions that the actor calls (in which case the must be defined with <code>defsusfn</code>). It is often useful to treat the actor as a state machine, going from one state to another, executing a different <code>receive</code> at each state (to define the acceptable transitions from the state). To change state, all we would have to do is call a different function, each with its own receive, but here we face a technical limitation of Clojure. As Clojure (due to JVM limitations) does not perform true tail-call optimization, every state transition (i.e. every function call), would add a frame to the stack, eventually throwing a stack overflow. Clojure solves it with the <code>clojure.core/trampoline</code> function. It takes a function and calls it. When the function returns, if the returned value is a function, <code>trampoline</code> calls it.</p>
+<p>As we’ve seen, the <code>receive</code> form defines which messages the actor is willing to accept and process. You can nest <code>receive</code> statements, or place them in other functions that the actor calls (in which case the must be defined with <code>defsfn</code>). It is often useful to treat the actor as a state machine, going from one state to another, executing a different <code>receive</code> at each state (to define the acceptable transitions from the state). To change state, all we would have to do is call a different function, each with its own receive, but here we face a technical limitation of Clojure. As Clojure (due to JVM limitations) does not perform true tail-call optimization, every state transition (i.e. every function call), would add a frame to the stack, eventually throwing a stack overflow. Clojure solves it with the <code>clojure.core/trampoline</code> function. It takes a function and calls it. When the function returns, if the returned value is a function, <code>trampoline</code> calls it.</p>
 
 <p>Pulsar comes with a version of <code>trampoline</code> for suspendable functions called <code>strampoline</code> (with the exact same API as <code>trampoline</code>).</p>
 
 <p>Consider this example:</p>
 
 <div><div class="CodeRay">
-  <div class="code"><pre>(<span class="keyword">let</span> [state2 (susfn []
+  <div class="code"><pre>(<span class="keyword">let</span> [state2 (sfn []
                     (receive
                       <span class="symbol">:bar</span> <span class="symbol">:foobar</span>))
-      state1 (susfn []
+      state1 (sfn []
                     (receive
                       <span class="symbol">:foo</span> state2))
       actor (spawn (<span class="keyword">fn</span> []
@@ -554,10 +554,10 @@ Pulsar supports this as an experimental feature (implemented internally with <co
 <p>What happens if the messages <code>:foo</code> and <code>:bar</code> arrive in reverse order? Thanks to selective receive the result will be exactly the same! <code>state1</code> will skip the <code>:bar</code> message, and transition to <code>state2</code> when <code>:foo</code> arrives; the <code>receive</code> statement in <code>state2</code> will then find the <code>:bar</code> message waiting in the mailbox:</p>
 
 <div><div class="CodeRay">
-  <div class="code"><pre>(<span class="keyword">let</span> [state2 (susfn []
+  <div class="code"><pre>(<span class="keyword">let</span> [state2 (sfn []
                     (receive
                       <span class="symbol">:bar</span> <span class="symbol">:foobar</span>))
-      state1 (susfn []
+      state1 (sfn []
                     (receive
                       <span class="symbol">:foo</span> state2))
       actor (spawn (<span class="keyword">fn</span> []

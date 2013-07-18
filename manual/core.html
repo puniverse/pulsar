@@ -57,6 +57,13 @@
           
           
           
+        
+          
+          
+            
+          
+          
+          
             <li>
               <a  href="/pulsar/getting-started.html">
                 Getting Started
@@ -100,22 +107,8 @@
             </li>
           
         
-          
-          
-            
-          
-          
-          
-        
       
         <li class="nav-header">User Manual</li>
-        
-          
-          
-            
-          
-          
-          
         
           
           
@@ -131,6 +124,13 @@
               <ul class="nav nav-list"><li><a href="#quasar-and-pulsar">Quasar and Pulsar</a></li><li><a href="#fibers">Fibers</a></li><li><a href="#promises-promises">Promises, Promises</a></li><li><a href="#channels">Channels</a></li></ul>
               
             </li>
+          
+        
+          
+          
+            
+          
+          
           
         
           
@@ -167,19 +167,19 @@
           
           
           
-        
-          
-          
-            
-          
-          
-          
             <li>
               <a  href="/pulsar/manual/examples.html">
                 Examples
               </a>
               
             </li>
+          
+        
+          
+          
+            
+          
+          
           
         
       
@@ -215,9 +215,9 @@
 <p>One significant difference between Fibers and Threads is that Fibers are not preempted; i.e. a fiber is (permanently or temporarily) unscheduled by the scheduler only if it terminates, or if it calls one of a few specific Java methods that cause the fiber to become suspended. A function that calls a suspending operation is called a <em>suspendable</em> function, and a function that calls another suspendable function is itself suspendable. </p>
 
 <p>Suspendable functions require special bytecode instrumentation (performed by an instrumentation agent), so they must be explicitly designated as such.
-The function <code>suspendable!</code> marks a given function as a suspendable function (this operation cannot be undone). The <code>defsusfn</code> macro, with the same syntax as <code>defn</code> defines a suspendable function.</p>
+The function <code>suspendable!</code> marks a given function as a suspendable function (this operation cannot be undone). The <code>defsfn</code> macro, with the same syntax as <code>defn</code> defines a suspendable function.</p>
 
-<p class="alert alert-info"><strong>Note</strong>: All functions (i.e. <code>fn</code>s) passed to any of the Pulsar API functions and macros are automatically made suspendable, so in most simple cases you will never need to use <code>susfn</code>, <code>defsusfn</code> or <code>suspendable!</code>.</p>
+<p class="alert alert-info"><strong>Note</strong>: All functions (i.e. <code>fn</code>s) passed to any of the Pulsar API functions and macros are automatically made suspendable, so in most simple cases you will never need to use <code>sfn</code>, <code>defsfn</code> or <code>suspendable!</code>.</p>
 
 <h3 id="spawning-fibers">Spawning Fibers</h3>
 
