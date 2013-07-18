@@ -16,12 +16,18 @@ Add the following dependency to [Leiningen](http://github.com/technomancy/leinin
 [co.paralleluniverse/pulsar "0.2"]
 ~~~
 
-Then, the following must be added to the `java` command line or to project.clj's `:jvm-opts`
-section:
+Then, the following must be added to the project.clj file:
+
+~~~ clojure
+:java-agents [[co.paralleluniverse/quasar-core "0.2-SNAPSHOT"]]
+~~~
+
+or, add the following to the java command line:
 
 ~~~ sh
 -javaagent:path-to-quasar-jar.jar
 ~~~
+
 
 [Leiningen]: http://github.com/technomancy/leiningen/
 
