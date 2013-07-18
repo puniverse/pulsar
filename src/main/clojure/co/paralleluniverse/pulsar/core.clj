@@ -161,7 +161,6 @@
   Otherwise, x *must* be a keyword, in which case the following conversion
   is performed:
   
-  <pre>
   :nanoseconds | :nanos | :ns   -> TimeUnit/NANOSECONDS
   :microseconds | :us           -> TimeUnit/MICROSECONDS
   :milliseconds | :millis | :ms -> TimeUnit/MILLISECONDS
@@ -169,7 +168,6 @@
   :minutes | :mins              -> TimeUnit/MINUTES
   :hours | :hrs                 -> TimeUnit/HOURS
   :days                         -> TimeUnit/DAYS
-  </pre>
   "
   [x]
   (if (instance? TimeUnit x)

@@ -388,7 +388,46 @@
 ;; (pprint (macroexpand-1 '(receive [:a x] [:hi x] [:b x] [:bye x] :after 30 :foo)))
 
 (defmacro receive
-  "Receives a message in the current actor and processes it"
+  "Receives a message in the current actor and processes it.
+  
+  Receive performs pattern matching (with free var binding) on the message.
+  Example:
+    (let [actor (spawn
+                 #(receive
+                     :abc \"yes!\"
+                     [:why? answer] answer
+                     :else \"oy\"))]
+       (! actor [:why? \"because!\"])
+       (join actor)) ; => \"because!\"
+  
+  `receive` performs a *selective receive*. If the next message in the mailbox does
+  not match any of the patterns (and an `:else` clause is not present), it is skipped, 
+  and the next message will be attempted.
+  `receive` will block until a matching message arrives, and will return the value of
+  the matching clause.
+  
+  Skipped messages are not discarded, but are left in the mailbox. Every call to `receive` 
+  will attempt to match any message in the mailbox, starting with the oldest. 
+  (Skipped messages migh accumulate in the mailbox if not matched, so it's good practice
+  to at least occasionally call a `receive` that has an `:else` clause.)
+  
+  If the first element of the `receive` expression is a vector, it is used for binding:
+  The vector's first element is the name assigned to the entire message, and the second,
+  if it exists, is a transformation function, of one argument, that will be applied to 
+  the message before binding and before pattern-matching:
+
+     (receive [m transform]
+       [:foo val] (println \"got foo:\" val)
+       :else      (println \"got\" m))
+
+   Now `m` – and the value we're matching – is the the transformed value.
+
+  A timeout in milliseconds, may be specified in an `:after` clause, which must appear last:
+
+    (receive [m transform]
+       [:foo val] (println \"got foo:\" val)
+       :else      (println \"got\" m)
+       :after 30  (println \"nothing...\"))"
   {:arglists '([]
                [patterns* <:after ms action>?]
                [[binding transformation?] patterns* <:after ms action>?])}
