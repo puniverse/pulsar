@@ -235,6 +235,7 @@ To create and start an actor of a function <code>f</code> that takes arguments <
       <li><code>:block</code>, in which case the sender will block until there’s room in the mailbox.</li>
     </ul>
   </li>
+  <li><code>:trap</code> - If set to <code>true</code>, linked actors’ death will send an exit message rather than throw an exception (see below).</li>
   <li><code>:lifecycle-handle</code> - A function that will be called to handle special messages sent to the actor. If set to <code>nil</code> (the default), the default handler is used, which is what you want in all circumstances, except for some actors that are meant to do some special tricks.</li>
   <li><code>:fj-pool</code> - The <code>ForkJoinPool</code> in which the fiber will run.
 If <code>:fj-pool</code> is not specified, then the pool used will be either 1) the pool of the fiber calling <code>spawn-fiber</code>, or, if <code>spawn-fiber</code> is not called from within a fiber, a default pool.</li>
