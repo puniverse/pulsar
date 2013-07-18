@@ -101,19 +101,19 @@
           
           
           
-        
-          
-          
-            
-          
-          
-          
             <li>
               <a  href="/pulsar/news.html">
                 News
               </a>
               
             </li>
+          
+        
+          
+          
+            
+          
+          
           
         
       
@@ -188,19 +188,19 @@
           
           
           
-            <li>
-              <a  href="/pulsar/manual/examples.html">
-                Examples
-              </a>
-              
-            </li>
-          
         
           
           
             
           
           
+          
+            <li>
+              <a  href="/pulsar/manual/examples.html">
+                Examples
+              </a>
+              
+            </li>
           
         
       
@@ -233,13 +233,20 @@
 <p>Add the following dependency to <a href="http://github.com/technomancy/leiningen/">Leiningen</a>’s project.clj:</p>
 
 <div><div class="CodeRay">
-  <div class="code"><pre>[co.paralleluniverse/pulsar <span class="string"><span class="delimiter">&quot;</span><span class="content">0.1.1</span><span class="delimiter">&quot;</span></span>]
+  <div class="code"><pre>[co.paralleluniverse/pulsar <span class="string"><span class="delimiter">&quot;</span><span class="content">0.2</span><span class="delimiter">&quot;</span></span>]
 </pre></div>
 </div>
 </div>
 
-<p>Then, the following must be added to the <code>java</code> command line or to project.clj’s <code>:jvm-opts</code>
-section:</p>
+<p>Then, the following must be added to the project.clj file:</p>
+
+<div><div class="CodeRay">
+  <div class="code"><pre><span class="symbol">:java-agents</span> [[co.paralleluniverse/quasar-core <span class="string"><span class="delimiter">&quot;</span><span class="content">0.2-SNAPSHOT</span><span class="delimiter">&quot;</span></span>]]
+</pre></div>
+</div>
+</div>
+
+<p>or, add the following to the java command line:</p>
 
 <div><div class="CodeRay">
   <div class="code"><pre>-javaagent:path-to-quasar-jar.jar
