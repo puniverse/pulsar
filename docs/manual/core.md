@@ -37,7 +37,7 @@ To create a fiber of a function `f` that takes arguments `arg1` and `arg2`, run
 
 * `:name` - The fiber's name.
 * `:fj-pool` - The `ForkJoinPool` in which the fiber will run.
-  If `:fj-pool` is not specified, then the pool used will be either 1) the pool of the fiber calling `spawn-fiber`, or, if `spawn-fiber` is not called from within a fiber, a default pool.
+  If `:fj-pool` is not specified, then the pool used will be either the pool of the fiber calling `spawn-fiber`, or, if `spawn-fiber` is not called from within a fiber, a default pool.
 * `:stack-size` - The initial fiber data stack size.
 
 The fiber will terminate when `f` completes execution. 
