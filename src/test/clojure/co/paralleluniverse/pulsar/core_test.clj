@@ -266,8 +266,8 @@
 
 (defn fan-out [in cs-or-n]
   (let [cs (if (number? cs-or-n)
-             (repeatedly cs-or-n channel)
-             cs-or-n)]
+             (doall (repeatedly cs-or-n channel))
+             (doall cs-or-n))]
     (spawn-fiber (fn []
                    (while true
                      (let [x (rcv in)
@@ -279,7 +279,7 @@
        #_(Debug/dumpAfter 5000 "sel.log")
        (fact "basic sel test"
              (let [cout (channel 0) ;;
-                   cin (fan-in (fan-out cout (doall (repeatedly 3 channel))) 0)
+                   cin (fan-in (fan-out cout (repeatedly 3 channel)) 0)
                    f (spawn-fiber #(loop [n (int 0)
                                           res []]
                                      (if (< n 10)
@@ -291,7 +291,7 @@
        (fact :selected "another sel test"
              (let [n 20
                    cout (channel 1) ;;
-                   cin (fan-in (fan-out cout (doall (repeatedly n #(channel 1)))) 1)]
+                   cin (fan-in (fan-out cout (repeatedly n #(channel 1))) 1)]
                (dotimes [i n]
                  (snd cout i))
                (sort (repeatedly n #(rcv cin))) => (range n)))

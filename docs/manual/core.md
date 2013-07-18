@@ -25,6 +25,9 @@ The function `suspendable!` marks a given function as a suspendable function (th
 {:.alert .alert-info}
 **Note**: All functions (i.e. `fn`s) passed to any of the Pulsar API functions and macros are automatically made suspendable, so in most simple cases you will never need to use `sfn`, `defsfn` or `suspendable!`.
 
+{:.alert .alert-warn}
+**Note**: One thing to watch out for in suspendable functions is lazy-seqs. If the function consumes a seq, it's probably a good idea to force it with `doall` before passing it to the function.
+
 ### Spawning Fibers
 
 To create a fiber of a function `f` that takes arguments `arg1` and `arg2`, run
