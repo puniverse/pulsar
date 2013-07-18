@@ -46,6 +46,26 @@
                          "-DLog4jContextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector"
                          ]
               :global-vars {*warn-on-reflection* true}}
+             
+             :cluster
+             {:repositories {"oracle" "http://download.oracle.com/maven/"}
+              :dependencies [[co.paralleluniverse/quasar-galaxy "0.2-SNAPSHOT"]]
+              :jvm-opts [;; Debugging
+                         "-ea"
+                         ;"-Dco.paralleluniverse.lwthreads.verifyInstrumentation=true"
+                         ;; Logging
+                         "-Djgroups.bind_addr=127.0.0.1"
+                         ; "-Dgalaxy.nodeId=1"
+                         ; "-Dgalaxy.port=7051"
+                         ; "-Dgalaxy.slave_port=8051"
+                         "-Dgalaxy.multicast.address=255.0.0.1"
+                         "-Dgalaxy.multicast.port=7050"
+                         "-Dco.paralleluniverse.galaxy.configFile=src/test/clojure/co/paralleluniverse/pulsar/examples/distributed/config/peer.xml"
+                         "-Dco.paralleluniverse.galaxy.autoGoOnline=true"
+                         "-Dlog4j.configurationFile=log4j.xml"
+                         "-DLog4jContextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector"
+                         ]}
+             
              :doc
              {:plugins [[lein-midje "3.0.0"]
                         [codox "0.6.4"]
