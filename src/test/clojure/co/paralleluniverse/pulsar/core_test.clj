@@ -261,7 +261,6 @@
   (let [c (channel size)]
     (spawn-fiber #(while true
                     (let [[x] (sel ins)]
-                      (Strand/sleep 50)
                       (snd c x))))
     c))
 
@@ -271,7 +270,6 @@
              cs-or-n)]
     (spawn-fiber (fn []
                    (while true
-                     (Strand/sleep 70)
                      (let [x (rcv in)
                            outs (map #(vector % x) cs)]
                        (sel outs)))))
