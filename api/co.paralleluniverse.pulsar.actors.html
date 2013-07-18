@@ -19,7 +19,10 @@ See: `!`</pre></div><div class="public" id="var--%3EPulsarEventHandler"><h3>-&gt
 </pre></div><div class="public" id="var-gen-event"><h3>gen-event</h3><div class="usage"><code>(gen-event :name? :timeout? :mailbox-size? :overflow-policy? server &amp; args)</code></div><pre class="doc">Creates (but doesn't start) a new gen-event
 </pre></div><div class="public" id="var-gen-server"><h3>gen-server</h3><h4 class="macro">macro</h4><div class="usage"><code>(gen-server :name? :timeout? :mailbox-size? :overflow-policy? server &amp; args)</code></div><pre class="doc">Creates (but doesn't start) a new gen-server
 </pre></div><div class="public" id="var-get-actor"><h3>get-actor</h3><div class="usage"><code>(get-actor a)</code></div><pre class="doc">If the argument is an actor -- returns it. If not, looks up a registered 
-actor with the argument as its name.</pre></div><div class="public" id="var-get-child"><h3>get-child</h3><div class="usage"><code>(get-child sup id)</code></div><pre class="doc">Returns a supervisor's child by id
+actor with the argument as its name.
+
+The name can be a string or a keyword, in which case it's identical to the keyword's name 
+(i.e. a name of `&quot;foo&quot;` is the same as `:foo`).</pre></div><div class="public" id="var-get-child"><h3>get-child</h3><div class="usage"><code>(get-child sup id)</code></div><pre class="doc">Returns a supervisor's child by id
 </pre></div><div class="public" id="var-link%21"><h3>link!</h3><div class="usage"><code>(link! actor2)</code><code>(link! actor1 actor2)</code></div><pre class="doc">Links two actors. If only one actor is specified, links the current actor with the
 specified actor.
 
@@ -73,8 +76,10 @@ A timeout in milliseconds, may be specified in an `:after` clause, which must ap
   (receive [m transform]
      [:foo val] (println &quot;got foo:&quot; val)
      :else      (println &quot;got&quot; m)
-     :after 30  (println &quot;nothing...&quot;))</pre></div><div class="public" id="var-register%21"><h3>register!</h3><div class="usage"><code>(register! name actor)</code><code>(register! actor)</code></div><pre class="doc">Registers an actor in the actor registry.
-</pre></div><div class="public" id="var-remove-and-terminate-child%21"><h3>remove-and-terminate-child!</h3><div class="usage"><code>(remove-and-terminate-child! supervisor id)</code></div><pre class="doc">Removes an actor from a supervisor and terminates the actor
+     :after 30  (println &quot;nothing...&quot;))</pre></div><div class="public" id="var-register%21"><h3>register!</h3><div class="usage"><code>(register! actor-name actor)</code><code>(register! actor)</code></div><pre class="doc">Registers an actor in the actor registry.
+The actor is registered by its name, or, if it doesn't have a name, one must be supplied
+to this function. The name can be a string or a keyword, in which case it's identical to the 
+keyword's name (i.e. a name of `&quot;foo&quot;` is the same as `:foo`).</pre></div><div class="public" id="var-remove-and-terminate-child%21"><h3>remove-and-terminate-child!</h3><div class="usage"><code>(remove-and-terminate-child! supervisor id)</code></div><pre class="doc">Removes an actor from a supervisor and terminates the actor
 </pre></div><div class="public" id="var-reply%21"><h3>reply!</h3><div class="usage"><code>(reply! to id res)</code></div><pre class="doc">Replies to a message sent to the current gen-server
 </pre></div><div class="public" id="var-reply-error%21"><h3>reply-error!</h3><div class="usage"><code>(reply-error! to id error)</code></div><pre class="doc">Replies with an error to a message sent to the current gen-server
 </pre></div><div class="public" id="var-self"><h3>self</h3><div class="usage"></div><pre class="doc">@self is the currently running actor
@@ -87,7 +92,8 @@ f - the actor function.
 args - (optional) arguments to for the function.
 
 Options:
-* `:name` - The actor's name (that's also given to the fiber running the actor).
+* `:name` - The actor's name (that's also given to the fiber running the actor). The name can be a string
+            or a keyword, in which case it's identical to the keyword's name (i.e. a name of `&quot;foo&quot;` is the same as `:foo`).
 * `:mailbox-size` - The number of messages that can wait in the mailbox, 
                     or -1 (the default) for an unbounded mailbox.
 * `:overflow-policy` - What to do if a bounded mailbox overflows. Can be on of:
@@ -131,5 +137,5 @@ The message is a vector of 4 elements, of the following structure:
 `cause` - the dead actor's cause of death: `nil` for a normal termination; a Throwable for
           an exceptional termination.
 
-See: `unwatch!`, `link!`</pre></div><div class="public" id="var-whereis"><h3>whereis</h3><div class="usage"><code>(whereis name)</code></div><pre class="doc">Returns a registered actor by name.
+See: `unwatch!`, `link!`</pre></div><div class="public" id="var-whereis"><h3>whereis</h3><div class="usage"><code>(whereis actor-name)</code></div><pre class="doc">Returns a registered actor by name.
 </pre></div></div></body></html>
