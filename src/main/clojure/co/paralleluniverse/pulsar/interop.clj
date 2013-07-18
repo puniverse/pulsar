@@ -60,19 +60,19 @@
   [enum-type x]
   `(when ~x
      (case (.ordinal ^Enum ~x) ; see http://stackoverflow.com/questions/16777814/is-it-possible-to-use-clojures-case-form-with-a-java-enum/16778119
-       ~@(mapcat #(list (.ordinal %) (keyword (java-name->clojure (.name %))))
+       ~@(mapcat #(list (.ordinal ^Enum %) (keyword (java-name->clojure (.name ^Enum %))))
                  (eval (list '. enum-type 'values))))))
 
 #_(defmacro enum->keyword
     [enum-type x]
     `(when ~x
        (case+ ~x
-              ~@(mapcat #(list (symbol (str enum-type "/" (.name %))) (keyword (java-name->clojure (.name %))))
+              ~@(mapcat #(list (symbol (str enum-type "/" (.name ^Enum %))) (keyword (java-name->clojure (.name ^Enum %))))
                         (eval (list '. enum-type 'values))))))
 
 (defmacro keyword->enum
   [enum-type x]
   `(when ~x
      (case ~x
-       ~@(mapcat #(list (keyword (java-name->clojure (.name %))) (symbol (str enum-type "/" (.name %))))
+       ~@(mapcat #(list (keyword (java-name->clojure (.name ^Enum %))) (symbol (str enum-type "/" (.name ^Enum %))))
                  (eval (list '. enum-type 'values))))))
