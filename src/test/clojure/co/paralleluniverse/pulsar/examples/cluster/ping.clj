@@ -1,4 +1,4 @@
-(ns co.paralleluniverse.pulsar.examples.distributed.ping
+(ns co.paralleluniverse.pulsar.examples.cluster.ping
   "A distributed version of the classic ping-pong example"
   (:use [co.paralleluniverse.pulsar core actors]))
 

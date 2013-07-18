@@ -61,7 +61,7 @@
                          ; "-Dgalaxy.slave_port=8051"
                          "-Dgalaxy.multicast.address=225.0.0.1"
                          "-Dgalaxy.multicast.port=7050"
-                         "-Dco.paralleluniverse.galaxy.configFile=src/test/clojure/co/paralleluniverse/pulsar/examples/distributed/config/peer.xml"
+                         "-Dco.paralleluniverse.galaxy.configFile=src/test/clojure/co/paralleluniverse/pulsar/examples/cluster/config/peer.xml"
                          "-Dco.paralleluniverse.galaxy.autoGoOnline=true"
                          ;; Logging
                          "-Dlog4j.configurationFile=log4j.xml"
