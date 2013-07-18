@@ -22,7 +22,7 @@
     [java.util.concurrent TimeUnit ThreadLocalRandom Executors Executor ScheduledExecutorService]
     [com.google.common.util.concurrent ThreadFactoryBuilder])
   (:require
-    [co.paralleluniverse.pulsar.core :as p]))
+    [co.paralleluniverse.pulsar.core :as p :refer [defsfn]]))
 
 (defn buffer
   "Returns a fixed buffer of size n. When full, puts will block/park."
@@ -52,7 +52,7 @@
      (number? buf-or-n) (chan (buffer buf-or-n))
      :else              (QueueObjectChannel. (first buf-or-n) (second buf-or-n) false))))
 
-(defn <!
+(defsfn <!
   "takes a val from port. Must be called inside a (go ...) block. Will
   return nil if closed. Will park if nothing is available.
   
@@ -73,7 +73,7 @@
    (fn1 v)
    (p/spawn-fiber #(fn1 (p/rcv port))))))
 
-(defn >!
+(defsfn >!
   "puts a val into port. nil values are not allowed. Must be called
   inside a (go ...) block. Will park if no buffer space is available.
   
@@ -259,17 +259,19 @@
 
 ;; The following defs are redundant in this implementation, but are provided for compatibility with core.async
 
-(defn <!!
+(def <!!
   "takes a val from port. Will return nil if closed. Will block 
-  if nothing is available."
-  [port]
-  (<! port))
+  if nothing is available.
+  
+  Pulsar implementation: Identical to <!. May be used outside go blocks as well."
+  <!)
 
-(defn >!!
+(def >!!
   "puts a val into port. nil values are not allowed. Will block if no 
-  buffer space is available. Returns nil."
-  [port val]
-  (>! port val))
+  buffer space is available. Returns nil.
+  
+  Pulsar implementation: Identical to <!!. May be used outside go blocks as well."
+  >!)
 
 (defmacro alts!!
  "Like alts!, except takes will be made as if by <!!, and puts will

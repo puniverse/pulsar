@@ -539,7 +539,7 @@
     :else                            (Channels/newTickerConsumerFor ticker)))
 
 (ann snd (All [x] [Channel x -> x]))
-(defn snd
+(defsfn snd
   "Sends a message to a channel.
   If the channel's overflow policy is `:block` than this function will block
   if the channels' capacity is exceeded."
