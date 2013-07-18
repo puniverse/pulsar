@@ -276,7 +276,8 @@
     cs))
 
 (facts "select"
-       (fact "basic sel test"
+       #_(Debug/dumpAfter 10000 "sel.log")
+       (fact :selected "basic sel test"
              (let [cout (channel 0) ;;
                    cin (fan-in (fan-out cout (repeatedly 3 channel)) 0)
                    f (spawn-fiber #(loop [n (int 0)

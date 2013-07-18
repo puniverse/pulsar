@@ -623,19 +623,20 @@
   [^Topic topic ^SendPort channel]
   (.unsubscribe topic channel))
 
-(defn ^SelectAction do-sel
+(defsfn ^SelectAction do-sel
   {:no-doc true}
   [ports priority millis]
   (let [^TimeUnit unit (when millis TimeUnit/MILLISECONDS)
         millis (long (or millis 0))]
-    (Selector/select ^boolean (if priority true false)
-                     millis unit
-                     ^java.util.List (map #(if (vector? %)
-                                             (Selector/send ^SendPort (first %) (second %))
-                                             (Selector/receive ^ReceivePort %))
-                                          ports))))
+    (Selector/select 
+      ^boolean (if priority true false)
+      millis unit
+      ^java.util.List (doall (map #(if (vector? %)
+                                     (Selector/send ^SendPort (first %) (second %))
+                                     (Selector/receive ^ReceivePort %))
+                                  ports)))))
 
-(defn sel
+(defsfn sel
   "Performs up to one of several given channel operations.
   sel takes a collection containing *channel operation descriptors*. A descriptor is 
   either a channel or a pair (vector) of a channel and a message. 
