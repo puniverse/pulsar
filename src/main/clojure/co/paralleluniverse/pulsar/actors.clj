@@ -129,7 +129,8 @@
   args - (optional) arguments to for the function.
   
   Options:
-  * `:name` - The actor's name (that's also given to the fiber running the actor).
+  * `:name` - The actor's name (that's also given to the fiber running the actor). The name can be a string
+              or a keyword, in which case it's identical to the keyword's name (i.e. a name of `\"foo\"` is the same as `:foo`).
   * `:mailbox-size` - The number of messages that can wait in the mailbox, 
                       or -1 (the default) for an unbounded mailbox.
   * `:overflow-policy` - What to do if a bounded mailbox overflows. Can be on of:
@@ -149,12 +150,13 @@
   [& args]
   (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size overflow-policy ^IFn lifecycle-handler ^Integer stack-size ^ForkJoinPool pool], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)]
     `(let [b#     (first ~body) ; eval body
+           nme#   (when ~name (clojure.core/name ~name))
            f#     (when (not (instance? LocalActor b#))
                     (suspendable! ~(if (== (count body) 1) (first body) `(fn [] (apply ~(first body) (list ~@(rest body)))))))
            ^LocalActor actor# (if (instance? LocalActor b#)
                                 b#
-                                (co.paralleluniverse.actors.PulsarActor. ~name ~trap (->MailboxConfig ~mailbox-size ~overflow-policy) ~lifecycle-handler f#))
-           fiber# (co.paralleluniverse.fibers.Fiber. ~name (get-pool ~pool) (int ~stack-size) actor#)]
+                                (co.paralleluniverse.actors.PulsarActor. nme# ~trap (->MailboxConfig ~mailbox-size ~overflow-policy) ~lifecycle-handler f#))
+           fiber# (co.paralleluniverse.fibers.Fiber. nme# (get-pool ~pool) (int ~stack-size) actor#)]
        (.start fiber#)
        actor#)))
 
@@ -210,12 +212,15 @@
 (ann get-actor [Any -> Actor])
 (defn ^Actor get-actor
   "If the argument is an actor -- returns it. If not, looks up a registered 
-  actor with the argument as its name."
+  actor with the argument as its name.
+  
+  The name can be a string or a keyword, in which case it's identical to the keyword's name 
+  (i.e. a name of `\"foo\"` is the same as `:foo`)."
   [a]
   (when a
     (if (instance? Actor a)
       a
-      (LocalActor/getActor a))))
+      (ActorImpl/getActor (name a)))))
 
 (ann trap! [-> nil])
 (defn trap!
@@ -295,9 +300,12 @@
 (ann register (Fn [String LocalActor -> LocalActor]
                   [LocalActor -> LocalActor]))
 (defn register!
-  "Registers an actor in the actor registry."
-  ([name ^LocalActor actor]
-   (.register actor name))
+  "Registers an actor in the actor registry.
+  The actor is registered by its name, or, if it doesn't have a name, one must be supplied
+  to this function. The name can be a string or a keyword, in which case it's identical to the 
+  keyword's name (i.e. a name of `\"foo\"` is the same as `:foo`)."
+  ([actor-name ^LocalActor actor]
+   (.register actor (name actor-name)))
   ([^LocalActor actor]
    (.register actor)))
 
@@ -317,8 +325,8 @@
 (ann whereis [Any -> Actor])
 (defn ^Actor whereis
   "Returns a registered actor by name."
-  [name]
-  (ActorImpl/getActor name))
+  [actor-name]
+  (ActorImpl/getActor (name actor-name)))
 
 (ann maketag [-> Number])
 (defn maketag
