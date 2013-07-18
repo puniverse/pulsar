@@ -261,6 +261,7 @@
   (let [c (channel size)]
     (spawn-fiber #(while true
                     (let [[x] (sel ins)]
+                      (Strand/sleep 50)
                       (snd c x))))
     c))
 
@@ -270,16 +271,17 @@
              cs-or-n)]
     (spawn-fiber (fn []
                    (while true
+                     (Strand/sleep 70)
                      (let [x (rcv in)
                            outs (map #(vector % x) cs)]
                        (sel outs)))))
     cs))
 
-(facts "select"
-       #_(Debug/dumpAfter 10000 "sel.log")
-       (fact :selected "basic sel test"
+(facts :selected "select"
+       #_(Debug/dumpAfter 5000 "sel.log")
+       (fact "basic sel test"
              (let [cout (channel 0) ;;
-                   cin (fan-in (fan-out cout (repeatedly 3 channel)) 0)
+                   cin (fan-in (fan-out cout (doall (repeatedly 3 channel))) 0)
                    f (spawn-fiber #(loop [n (int 0)
                                           res []]
                                      (if (< n 10)
@@ -288,10 +290,10 @@
                                           (recur (inc n) (conj res (rcv cin))))
                                         res)))]
                (join f) => (vec (range 10))))
-       (fact "another sel test"
+       (fact :selected "another sel test"
              (let [n 20
                    cout (channel 1) ;;
-                   cin (fan-in (fan-out cout (repeatedly n #(channel 1))) 1)]
+                   cin (fan-in (fan-out cout (doall (repeatedly n #(channel 1)))) 1)]
                (dotimes [i n]
                  (snd cout i))
                (sort (repeatedly n #(rcv cin))) => (range n)))
