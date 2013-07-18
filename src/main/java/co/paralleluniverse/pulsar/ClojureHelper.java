@@ -15,6 +15,7 @@ package co.paralleluniverse.pulsar;
 
 import clojure.lang.IFn;
 import clojure.lang.Var;
+import co.paralleluniverse.actors.ActorRegistry;
 import co.paralleluniverse.fibers.Fiber;
 import co.paralleluniverse.fibers.Instrumented;
 import co.paralleluniverse.fibers.SuspendExecution;
@@ -40,7 +41,6 @@ import org.objectweb.asm.Type;
  */
 public class ClojureHelper {
     private static final ScheduledExecutorService fiberTimeoutService;
-    
     // This whole mess with lastInstrumented is a heuristic to save us from calling clazz.isAnnotationPresent(Instrumented.class)),
     // which turns out to be *slow*.
     private static final int NUM_LAST_INSTRUMENTED = 3;
@@ -77,6 +77,14 @@ public class ClojureHelper {
             fiberTimeoutService = (ScheduledExecutorService) f.get(null);
         } catch (Exception e) {
             throw new AssertionError(e);
+        }
+
+        if (ActorRegistry.hasGlobalRegistry()) {
+            try {
+                Class.forName("co.paralleluniverse.pulsar.galaxy.ClojureKryoSerializers");
+            } catch (ClassNotFoundException e) {
+                throw new AssertionError(e);
+            }
         }
     }
 
@@ -185,7 +193,7 @@ public class ClojureHelper {
     }
 
     public static void schedule(IFn fn, long delay, TimeUnit unit) {
-        fiberTimeoutService.schedule((Runnable)fn, delay, unit);
+        fiberTimeoutService.schedule((Runnable) fn, delay, unit);
     }
 
     static public RuntimeException sneakyThrow(Throwable t) {
