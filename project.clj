@@ -29,8 +29,7 @@
              "-XX:+UseCondCardMark"]
   :java-agents [[co.paralleluniverse/quasar-core "0.2-SNAPSHOT"]] ; :options "v"
   :pedantic :warn
-  :profiles {
-             ;; ----------- dev --------------------------------------
+  :profiles {;; ----------- dev --------------------------------------
              :dev
              {:plugins [[lein-midje "3.0.0"]]
               :dependencies [[midje "1.5.1" :exclusions [org.clojure/tools.namespace]]]
@@ -66,7 +65,7 @@
                          "-Dco.paralleluniverse.galaxy.autoGoOnline=true"
                          ;; Logging
                          "-Dlog4j.configurationFile=log4j.xml"
-                         "-DLog4jContextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector"
+                         ;"-DLog4jContextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector"
                          ]}
              
              ;; ----------- doc --------------------------------------
@@ -74,9 +73,8 @@
              {:plugins [[lein-midje "3.0.0"]
                         [codox "0.6.4"]
                         [lein-marginalia "0.7.1"]]
-              :dependencies [[midje "1.5.1" :exclusions [org.clojure/tools.namespace]]
-                             [codox/codox.core "0.6.4" :exclusions [org.clojure/tools.namespace]] ; here just for the exclusions
-                             [marginalia "0.7.1" :exclusions [org.clojure/tools.namespace]]]      ; here just for the exclusions
+              :dependencies [[midje "1.5.1"]]
+              :exclusions [org.clojure/tools.namespace]
               :injections [(require 'clojure.test)
                            (alter-var-root #'clojure.test/*load-tests* (constantly false))]
               :codox {:include [co.paralleluniverse.pulsar.core 
