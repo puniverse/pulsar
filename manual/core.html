@@ -240,6 +240,8 @@ The function <code>suspendable!</code> marks a given function as a suspendable f
 
 <p class="alert alert-info"><strong>Note</strong>: All functions (i.e. <code>fn</code>s) passed to any of the Pulsar API functions and macros are automatically made suspendable, so in most simple cases you will never need to use <code>sfn</code>, <code>defsfn</code> or <code>suspendable!</code>.</p>
 
+<p class="alert alert-warn"><strong>Note</strong>: One thing to watch out for in suspendable functions is lazy-seqs. If the function consumes a seq, it’s probably a good idea to force it with <code>doall</code> before passing it to the function.</p>
+
 <h3 id="spawning-fibers">Spawning Fibers</h3>
 
 <p>To create a fiber of a function <code>f</code> that takes arguments <code>arg1</code> and <code>arg2</code>, run</p>
