@@ -33,7 +33,7 @@ Clone the repository:
 
 and run:
 
-    lein test
+    lein midje
 
 To build the documentation, you need to have [Jekyll] installed. Then run:
 
@@ -42,6 +42,19 @@ To build the documentation, you need to have [Jekyll] installed. Then run:
 To generate the API documentation run
 
     lein doc
+
+
+You can run the examples like this:
+
+
+    lein -o run -m co.paralleluniverse.pulsar.examples.pingpong
+
+
+For benchmarks, you should use `lein trampoline`, like so:
+
+
+    lein trampoline run -m co.paralleluniverse.pulsar.examples.ring-benchmark 1000 1000
+
 
 [Jekyll]: http://jekyllrb.com/
 
