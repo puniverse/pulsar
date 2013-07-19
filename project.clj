@@ -8,7 +8,8 @@
   :resource-paths ["src/main/resources"]
   :java-source-paths ["src/main/java"]
   :javac-options     ["-target" "1.7" "-source" "1.7"]
-  :repositories {"snapshots" "https://oss.sonatype.org/content/repositories/snapshots"}
+  :repositories {"snapshots" "https://oss.sonatype.org/content/repositories/snapshots"
+                 "releases" "https://oss.sonatype.org/content/repositories/releases"}
   :test-selectors {:selected :selected}
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [co.paralleluniverse/quasar-core "0.2.0"]
