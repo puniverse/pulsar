@@ -16,5 +16,11 @@
       (recur (dec n)))))
 
 (defn -main []
+  (when (nil? (whereis :pong))
+    (println "Waiting for pong to register...")
+    (loop []
+      (when (nil? (whereis :pong))
+        (Thread/sleep 500)
+        (recur))))
   (spawn ping 3)
   :ok)
