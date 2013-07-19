@@ -19,7 +19,7 @@ Add the following dependency to [Leiningen](http://github.com/technomancy/leinin
 Then, the following must be added to the project.clj file:
 
 ~~~ clojure
-:java-agents [[co.paralleluniverse/quasar-core "0.2-SNAPSHOT"]]
+:java-agents [[co.paralleluniverse/quasar-core "0.2.0"]]
 ~~~
 
 or, add the following to the java command line:
