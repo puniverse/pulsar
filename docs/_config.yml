@@ -1,12 +1,13 @@
-markdown: kramdown
-pygments: false
+markdown: enhanced_kramdown
+pygments: true
 lsi: false
 safe: false
 baseurl: /pulsar
 
 kramdown:
-  use_coderay: true
+  use_coderay: false
   coderay:
+    enable_coderay: false
     coderay_line_numbers: nil
     coderay_css: class
 
