@@ -15,19 +15,18 @@ Pulsar and Quasar are developed by [Parallel Universe] and released as free soft
 
 ## License
 
-~~~ txt
-Pulsar
-Copyright © 2013 Parallel Universe
 
-This program and the accompanying materials are dual-licensed under
-either the terms of the Eclipse Public License v1.0 as published by
-the Eclipse Foundation
-
-  or (per the licensee's choosing)  
-
-under the terms of the GNU Lesser General Public License version 3.0
-as published by the Free Software Foundation. 
-~~~
+    Pulsar
+    Copyright © 2013 Parallel Universe
+    
+    This program and the accompanying materials are dual-licensed under
+    either the terms of the Eclipse Public License v1.0 as published by
+    the Eclipse Foundation
+    
+      or (per the licensee's choosing)  
+    
+    under the terms of the GNU Lesser General Public License version 3.0
+    as published by the Free Software Foundation. 
 
 
 ## Dependencies

@@ -32,7 +32,9 @@ The function `suspendable!` marks a given function as a suspendable function (th
 
 To create a fiber of a function `f` that takes arguments `arg1` and `arg2`, run
 
-    (spawn-fiber f arg1 arg2)
+~~~ clojure
+(spawn-fiber f arg1 arg2)
+~~~
 
 `spawn-fiber` automatically marks `f` as suspendable, so there's no need to do so explicitly.
 
@@ -52,13 +54,17 @@ The fiber will terminate when `f` completes execution.
 
 To wait for the fiber's termination, use
 
-    (join fiber)
+~~~ clojure
+(join fiber)
+~~~
 
 If `f` returns a value, `join` will return that value. If `f` throws an exception, `join` will throw that exception.
 
 You can also wait for a fiber's termination for a given duration. The following will wait for half a second for the fiber to terminate:
 
-    (join 500 java.util.concurrent.TimeUnit/MILLISECONDS fiber)
+~~~ clojure
+(join 500 java.util.concurrent.TimeUnit/MILLISECONDS fiber)
+~~~
 
 The following will have the same effect:
 
@@ -124,7 +130,9 @@ Promises are defined in `clojure.core`, but `...pulsar.core` provides its own, f
 
 A promise is created simply like this:
 
-    (promise)
+~~~ clojure
+(promise)
+~~~
 
 And is set with `deliver`. It can be read by dereferencing it with `@`, and you can test whether it's been set with `realized?` (other than the `promise` function itself, all other functions, like `deliver` and `realized` are those defined in `clojure.core`)
 
@@ -197,11 +205,15 @@ Use of the `:displace` policy places an additional restriction on the channel: i
 
 Sending a message to a channel is simple:
 
-    (snd channel message)
+~~~ clojure
+(snd channel message)
+~~~
 
 `message` can be any object, but not `nil`. Receiving a message from a channel is equaly easy:
 
-    (rcv channel)
+~~~ clojure
+(rcv channel)
+~~~
 
 The `rcv` function returns the first message in the channel (the one that has waited there the longest), if there is one. If the channel is empty, the function will block until a message is sent to the channel, and will then return it.
 

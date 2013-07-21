@@ -19,7 +19,9 @@ Actors can run in any strand – fiber or thread - but for now, Pulsar only supp
 An actor is basically a function that -- if the actor is to do anything interesting -- receives messages from the mailbox.
 To create and start an actor of a function `f` that takes arguments `arg1` and `arg2`, run
 
-    (spawn f arg1 arg2)
+~~~ clojure
+(spawn f arg1 arg2)
+~~~
 
 This will create a new actor, and start running it in a new fiber.
 
