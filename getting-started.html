@@ -13,7 +13,9 @@
 </title>
 <!--<link rel="shortcut icon" href="/images/icons/loading_icon.png">-->
 <link href="/pulsar/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
-<link href="/pulsar/css/coderay.css" rel="stylesheet" type="text/css">
+<link href="/pulsar/css/pygments/jekyll-github.css"  rel="stylesheet" type="text/css">
+<link href="/pulsar/css/pygments/linenos.css"        rel="stylesheet" type="text/css">
+<!-- <link href="/pulsar/css/coderay.css" rel="stylesheet" type="text/css"> -->
 <!-- <link href="/pulsar/css/prettify/sunburst.css" rel="stylesheet" type="text/css"> -->
 <!-- <link href="/css/pygments/default.css" rel="stylesheet" type="text/css"> -->
 <link href="/pulsar/css/site.css?now" rel="stylesheet" type="text/css">
@@ -57,21 +59,21 @@
           
           
           
+            <li>
+              <a class="active" href="/pulsar/getting-started.html">
+                Getting Started
+              </a>
+              
+              <ul class="nav nav-list"><li><a href="#system-requirements">System&nbsp;requirements</a></li><li><a href="#lein">Using&nbsp;Leiningen</a></li><li><a href="#build">Building&nbsp;Pulsar</a></li></ul>
+              
+            </li>
+          
         
           
           
             
           
           
-          
-            <li>
-              <a class="active" href="/pulsar/getting-started.html">
-                Getting Started
-              </a>
-              
-              <ul class="nav nav-list"><li><a href="#system-requirements">System requirements</a></li><li><a href="#lein">Using Leiningen</a></li><li><a href="#build">Building Pulsar</a></li></ul>
-              
-            </li>
           
         
           
@@ -125,19 +127,19 @@
           
           
           
-            <li>
-              <a  href="/pulsar/manual/core.html">
-                Pulsar Core
-              </a>
-              
-            </li>
-          
         
           
           
             
           
           
+          
+            <li>
+              <a  href="/pulsar/manual/core.html">
+                Pulsar Core
+              </a>
+              
+            </li>
           
         
           
@@ -224,68 +226,50 @@
       </div>
       
 
-      <div id="content"><h2 id="system-requirements">System requirements</h2>
+      <div id="content"><h2 id="system-requirements">System&nbsp;requirements</h2>
 
-<p>Java 7 and Clojure 1.5 are required to run Pulsar.</p>
+<p>Java 7 and Clojure <span class="caps">1.5</span> are required to run&nbsp;Pulsar.</p>
 
-<h2 id="lein">Using Leiningen</h2>
+<h2 id="lein">Using&nbsp;Leiningen</h2>
 
-<p>Add the following dependency to <a href="http://github.com/technomancy/leiningen/">Leiningen</a>’s project.clj:</p>
+<p>Add the following dependency to <a href="http://github.com/technomancy/leiningen/">Leiningen</a>’s&nbsp;project.clj:</p>
 
-<div><div class="CodeRay">
-  <div class="code"><pre>[co.paralleluniverse/pulsar <span class="string"><span class="delimiter">&quot;</span><span class="content">0.2.0</span><span class="delimiter">&quot;</span></span>]
-</pre></div>
-</div>
-</div>
+<div class="highlight"><pre><code><span id="line-1"><span class="p">[</span><span class="nv">co.paralleluniverse/pulsar</span> <span class="s">&quot;0.2.0&quot;</span><span class="p">]</span>
+</span></code></pre></div>
+<p>Then, the following must be added to the project.clj&nbsp;file:</p>
 
-<p>Then, the following must be added to the project.clj file:</p>
+<div class="highlight"><pre><code><span id="line-1"><span class="ss">:java-agents</span> <span class="p">[[</span><span class="nv">co.paralleluniverse/quasar-core</span> <span class="s">&quot;0.2.0&quot;</span><span class="p">]]</span>
+</span></code></pre></div>
+<p>or, add the following to the java command&nbsp;line:</p>
 
-<div><div class="CodeRay">
-  <div class="code"><pre><span class="symbol">:java-agents</span> [[co.paralleluniverse/quasar-core <span class="string"><span class="delimiter">&quot;</span><span class="content">0.2.0</span><span class="delimiter">&quot;</span></span>]]
-</pre></div>
-</div>
-</div>
+<div class="highlight"><pre><code><span id="line-1">-javaagent:path-to-quasar-jar.jar
+</span></code></pre></div>
+<h2 id="build">Building&nbsp;Pulsar</h2>
 
-<p>or, add the following to the java command line:</p>
-
-<div><div class="CodeRay">
-  <div class="code"><pre>-javaagent:path-to-quasar-jar.jar
-</pre></div>
-</div>
-</div>
-
-<h2 id="build">Building Pulsar</h2>
-
-<p>Clone the repository:</p>
+<p>Clone the&nbsp;repository:</p>
 
 <pre><code>git clone git://github.com/puniverse/pulsar.git pulsar
 </code></pre>
-
-<p>and run:</p>
+<p>and&nbsp;run:</p>
 
 <pre><code>lein midje
 </code></pre>
-
-<p>To build the documentation, you need to have <a href="http://jekyllrb.com/">Jekyll</a> installed. Then run:</p>
+<p>To build the documentation, you need to have <a href="http://jekyllrb.com/">Jekyll</a> installed. Then&nbsp;run:</p>
 
 <pre><code>jekyll build
 </code></pre>
-
-<p>To generate the API documentation run</p>
+<p>To generate the <span class="caps">API</span> documentation&nbsp;run</p>
 
 <pre><code>lein doc
 </code></pre>
-
-<p>You can run the examples like this:</p>
+<p>You can run the examples like&nbsp;this:</p>
 
 <pre><code>lein -o run -m co.paralleluniverse.pulsar.examples.pingpong
 </code></pre>
-
-<p>For benchmarks, you should use <code>lein trampoline</code>, like so:</p>
+<p>For benchmarks, you should use <code>lein trampoline</code>, like&nbsp;so:</p>
 
 <pre><code>lein trampoline run -m co.paralleluniverse.pulsar.examples.ring-benchmark 1000 1000
 </code></pre>
-
 </div>
 
       <hr>

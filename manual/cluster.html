@@ -13,7 +13,9 @@
 </title>
 <!--<link rel="shortcut icon" href="/images/icons/loading_icon.png">-->
 <link href="/pulsar/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
-<link href="/pulsar/css/coderay.css" rel="stylesheet" type="text/css">
+<link href="/pulsar/css/pygments/jekyll-github.css"  rel="stylesheet" type="text/css">
+<link href="/pulsar/css/pygments/linenos.css"        rel="stylesheet" type="text/css">
+<!-- <link href="/pulsar/css/coderay.css" rel="stylesheet" type="text/css"> -->
 <!-- <link href="/pulsar/css/prettify/sunburst.css" rel="stylesheet" type="text/css"> -->
 <!-- <link href="/css/pygments/default.css" rel="stylesheet" type="text/css"> -->
 <link href="/pulsar/css/site.css?now" rel="stylesheet" type="text/css">
@@ -57,19 +59,19 @@
           
           
           
-        
-          
-          
-            
-          
-          
-          
             <li>
               <a  href="/pulsar/getting-started.html">
                 Getting Started
               </a>
               
             </li>
+          
+        
+          
+          
+            
+          
+          
           
         
           
@@ -123,19 +125,19 @@
           
           
           
-            <li>
-              <a  href="/pulsar/manual/core.html">
-                Pulsar Core
-              </a>
-              
-            </li>
-          
         
           
           
             
           
           
+          
+            <li>
+              <a  href="/pulsar/manual/core.html">
+                Pulsar Core
+              </a>
+              
+            </li>
           
         
           
@@ -177,7 +179,7 @@
                 Clustering
               </a>
               
-              <ul class="nav nav-list"><li><a href="#enabling-clustering">Enabling Clustering</a></li><li><a href="#example">Example</a></li><li><a href="#cluster-configuration">Cluster Configuration</a></li></ul>
+              <ul class="nav nav-list"><li><a href="#enabling-clustering">Enabling&nbsp;Clustering</a></li><li><a href="#example">Example</a></li><li><a href="#cluster-configuration">Cluster&nbsp;Configuration</a></li></ul>
               
             </li>
           
@@ -225,69 +227,45 @@
       
 
       <div id="content">
-<p>Pulsar is able to run on a cluster, thereby letting actors and channels communicate across machines. The Pulsar/Quasar cluster runs on top of <a href="http://puniverse.github.io/galaxy/">Galaxy</a>, Parallel Universe&#8217;s in-memory data grid. </p>
+<p>Pulsar is able to run on a cluster, thereby letting actors and channels communicate across machines. The Pulsar/Quasar cluster runs on top of <a href="http://puniverse.github.io/galaxy/">Galaxy</a>, Parallel Universe&#8217;s in-memory data&nbsp;grid. </p>
 
-<p>In this version, clustering is pretty rudimentary, but essential features should work: actors can be made discoverable on the network, messages can be passed among actors on different nodes, and an actor on a failing node will behave as expected of a dying actor with respect to exit messages sent to other, remote, <em>watching</em> it or <em>linked</em> to it.</p>
+<p>In this version, clustering is pretty rudimentary, but essential features should work: actors can be made discoverable on the network, messages can be passed among actors on different nodes, and an actor on a failing node will behave as expected of a dying actor with respect to exit messages sent to other, remote, <em>watching</em> it or <em>linked</em> to&nbsp;it.</p>
 
-<h2 id="enabling-clustering">Enabling Clustering</h2>
+<h2 id="enabling-clustering">Enabling&nbsp;Clustering</h2>
 
-<p>First, you will need to add <code>quasar-galaxy</code> as a dependency to your project:</p>
+<p>First, you will need to add <code>quasar-galaxy</code> as a dependency to your&nbsp;project:</p>
 
-<div><div class="CodeRay">
-  <div class="code"><pre>[co.paralleluniverse/quasar-galaxy <span class="string"><span class="delimiter">&quot;</span><span class="content">0.2</span><span class="delimiter">&quot;</span></span>]
-</pre></div>
-</div>
-</div>
+<div class="highlight"><pre><code><span id="line-1"><span class="p">[</span><span class="nv">co.paralleluniverse/quasar-galaxy</span> <span class="s">&quot;0.2&quot;</span><span class="p">]</span>
+</span></code></pre></div>
+<p>To make an actor discoverable, all you need to do is register&nbsp;it:</p>
 
-<p>To make an actor discoverable, all you need to do is register it:</p>
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">register</span> <span class="nv">actor</span> <span class="ss">:global-actor1</span><span class="p">)</span>
+</span></code></pre></div>
+<p>or, if the actor already has a name (set in <code>spawn</code>), simply&nbsp;call:</p>
 
-<div><div class="CodeRay">
-  <div class="code"><pre>(register actor <span class="symbol">:global-actor1</span>)
-</pre></div>
-</div>
-</div>
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">register</span><span class="p">)</span>
+</span></code></pre></div>
+<p>That&#8217;s it. The actor is now known throughout the cluster. If you want to send a message to it,&nbsp;call</p>
 
-<p>or, if the actor already has a name (set in <code>spawn</code>), simply call:</p>
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">!</span> <span class="ss">:global-actor1</span> <span class="p">[</span><span class="ss">:hi-from</span> <span class="o">@</span><span class="nv">self</span><span class="p">])</span>
+</span></code></pre></div>
+<p>Though this call looks up the actor in the registry every time it&#8217;s called. A better way might&nbsp;be:</p>
 
-<div><div class="CodeRay">
-  <div class="code"><pre>(register)
-</pre></div>
-</div>
-</div>
-
-<p>That&#8217;s it. The actor is now known throughout the cluster. If you want to send a message to it, call</p>
-
-<div><div class="CodeRay">
-  <div class="code"><pre>(! <span class="symbol">:global-actor1</span> [<span class="symbol">:hi-from</span> @self])
-</pre></div>
-</div>
-</div>
-
-<p>Though this call looks up the actor in the registry every time it&#8217;s called. A better way might be:</p>
-
-<div><div class="CodeRay">
-  <div class="code"><pre>(<span class="keyword">let</span> [a (whereis <span class="symbol">:global-actor1</span>)]
-   (! a [<span class="symbol">:hi-from</span> @self]))
-</pre></div>
-</div>
-</div>
-
-<p>An actor doesn&#8217;t have to be registered in order to be reachable on the network. Registering it simply makes it <em>discoverable</em>. If we pass a local actor in a message to a remote actor, the remote actor will be able to send messages to the local actor as well. In the simple example above, we are sending @self to :global-actor1; :global-actor1 will be able to send messages back to us.</p>
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">a</span> <span class="p">(</span><span class="nf">whereis</span> <span class="ss">:global-actor1</span><span class="p">)]</span>
+</span><span id="line-2">   <span class="p">(</span><span class="nf">!</span> <span class="nv">a</span> <span class="p">[</span><span class="ss">:hi-from</span> <span class="o">@</span><span class="nv">self</span><span class="p">]))</span>
+</span></code></pre></div>
+<p>An actor doesn&#8217;t have to be registered in order to be reachable on the network. Registering it simply makes it <em>discoverable</em>. If we pass a local actor in a message to a remote actor, the remote actor will be able to send messages to the local actor as well. In the simple example above, we are sending @self to :global-actor1; :global-actor1 will be able to send messages back to&nbsp;us.</p>
 
 <h2 id="example">Example</h2>
 
-<p>The best way to get started is by running the distributed pingpong example.</p>
+<p>The best way to get started is by running the distributed pingpong&nbsp;example.</p>
 
-<p>Here&#8217;s the code for <a href="(https://github.com/puniverse/pulsar/tree/master/src/test/clojure/co/paralleluniverse/pulsar/examples/cluster/ping.clj)">ping</a> and for <a href="(https://github.com/puniverse/pulsar/tree/master/src/test/clojure/co/paralleluniverse/pulsar/examples/cluster/pong.clj)">pong</a>. You run them like this:</p>
+<p>Here&#8217;s the code for <a href="(https://github.com/puniverse/pulsar/tree/master/src/test/clojure/co/paralleluniverse/pulsar/examples/cluster/ping.clj)">ping</a> and for <a href="(https://github.com/puniverse/pulsar/tree/master/src/test/clojure/co/paralleluniverse/pulsar/examples/cluster/pong.clj)">pong</a>. You run them like&nbsp;this:</p>
 
-<div><div class="CodeRay">
-  <div class="code"><pre>lein with-profile cluster update-in :jvm-opts conj '&quot;-Dgalaxy.nodeId=2&quot;' '&quot;-Dgalaxy.port=7052&quot;' '&quot;-Dgalaxy.slave_port=8052&quot;' -- run -m co.paralleluniverse.pulsar.examples.cluster.ping
-lein with-profile cluster update-in :jvm-opts conj '&quot;-Dgalaxy.nodeId=1&quot;' '&quot;-Dgalaxy.port=7051&quot;' '&quot;-Dgalaxy.slave_port=8051&quot;' -- run -m co.paralleluniverse.pulsar.examples.cluster.pong
-</pre></div>
-</div>
-</div>
-
-<h2 id="cluster-configuration">Cluster Configuration</h2>
+<div class="highlight"><pre><code><span id="line-1">lein with-profile cluster update-in :jvm-opts conj <span class="s1">&#39;&quot;-Dgalaxy.nodeId=2&quot;&#39;</span> <span class="s1">&#39;&quot;-Dgalaxy.port=7052&quot;&#39;</span> <span class="s1">&#39;&quot;-Dgalaxy.slave_port=8052&quot;&#39;</span> -- run -m co.paralleluniverse.pulsar.examples.cluster.ping
+</span><span id="line-2">lein with-profile cluster update-in :jvm-opts conj <span class="s1">&#39;&quot;-Dgalaxy.nodeId=1&quot;&#39;</span> <span class="s1">&#39;&quot;-Dgalaxy.port=7051&quot;&#39;</span> <span class="s1">&#39;&quot;-Dgalaxy.slave_port=8051&quot;&#39;</span> -- run -m co.paralleluniverse.pulsar.examples.cluster.pong
+</span></code></pre></div>
+<h2 id="cluster-configuration">Cluster&nbsp;Configuration</h2>
 
 <p>For instructions on how to configure the Galaxy cluster, please refere to Galaxy&#8217;s <a href="http://puniverse.github.io/galaxy/start/getting-started.html">getting started guide</a>.</p>
 
