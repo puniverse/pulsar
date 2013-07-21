@@ -273,36 +273,36 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
 
 <p>An actor’s mailbox is a channel, that can be obtained with the <code>mailbox-of</code> function. You can therefore send a message to an actor like&nbsp;so:</p>
 
-<pre><code>(snd (mailbox-of actor) msg)
-</code></pre>
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">snd</span> <span class="p">(</span><span class="nf">mailbox-of</span> <span class="nv">actor</span><span class="p">)</span> <span class="nv">msg</span><span class="p">)</span>
+</span></code></pre></div>
 <p>But there’s an easier way. Actors implement the <code>SendPort</code> interface, and so, are treated like a channel by the <code>snd</code> function. So we can simple&nbsp;call:</p>
 
-<pre><code>(snd actor msg)
-</code></pre>
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">snd</span> <span class="nv">actor</span> <span class="nv">msg</span><span class="p">)</span>
+</span></code></pre></div>
 <p>While the above is a perfectly valid way of sending a message to an actor, this is not how it’s normally done. Instead of <code>snd</code> we normally use the <code>!</code> (bang) function to send a message to an actor, like&nbsp;so:</p>
 
-<pre><code>(! actor msg)
-</code></pre>
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">!</span> <span class="nv">actor</span> <span class="nv">msg</span><span class="p">)</span>
+</span></code></pre></div>
 <p>The bang operator has a slightly different semantic than <code>snd</code>. While <code>snd</code> will always place the message in the mailbox, <code>!</code> will only do it if the actor is alive. It will not place a message in the mailbox if there is no one to receive it on the other end (and never will be, as mailboxes, like all channels, cannot change&nbsp;ownership).</p>
 
 <p>In many circumstances, an actor sends a message to another actor, and expects a reply. In those circumstances, using <code>!!</code> instead of <code>!</code> might offer reduced latency (but with the same semantics; both <code>!</code> and <code>!!</code> always return&nbsp;<code>nil</code>)</p>
 
 <p>The value <code>@self</code>, when evaluated in an actor, returns the actor. So, as you may guess, an actor can receive messages&nbsp;with:</p>
 
-<pre><code>(rcv (mailbox-of @self))
-</code></pre>
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">rcv</span> <span class="p">(</span><span class="nf">mailbox-of</span> <span class="o">@</span><span class="nv">self</span><span class="p">))</span>
+</span></code></pre></div>
 <p><code>@mailbox</code> returns the actor’s own mailbox channel, so the above may be written&nbsp;as:</p>
 
-<pre><code>(rcv @mailbox)
-</code></pre>
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">rcv</span> <span class="o">@</span><span class="nv">mailbox</span><span class="p">)</span>
+</span></code></pre></div>
 <p>… and because actors also implement the <code>ReceivePort</code> interface required by <code>rcv</code>, the following will also&nbsp;work:</p>
 
-<pre><code>(rcv @self)
-</code></pre>
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">rcv</span> <span class="o">@</span><span class="nv">self</span><span class="p">)</span>
+</span></code></pre></div>
 <p>But, again, while an actor can be treated as a fiber with a channel, it has some extra features that give it a super-extra punch. Actors normally receive messages with the <code>receive</code> function, like&nbsp;so:</p>
 
-<pre><code>(receive)
-</code></pre>
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">receive</span><span class="p">)</span>
+</span></code></pre></div>
 <p><code>receive</code> has some features that make it very suitable for handling messages in actors. Its most visible feature is pattern matching. When an actor receives a message, it usually takes different action based on the type and content of the message. Making the decision with pattern matching is easy and&nbsp;elegant:</p>
 
 <div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">actor</span> <span class="p">(</span><span class="nf">spawn</span>
