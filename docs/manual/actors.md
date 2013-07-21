@@ -52,15 +52,21 @@ An actor can be `join`ed, just like a fiber.
 
 An actor's mailbox is a channel, that can be obtained with the `mailbox-of` function. You can therefore send a message to an actor like so:
 
-    (snd (mailbox-of actor) msg)
+~~~ clojure
+(snd (mailbox-of actor) msg)
+~~~
 
 But there's an easier way. Actors implement the `SendPort` interface, and so, are treated like a channel by the `snd` function. So we can simple call:
 
-    (snd actor msg)
+~~~ clojure
+(snd actor msg)
+~~~
 
 While the above is a perfectly valid way of sending a message to an actor, this is not how it's normally done. Instead of `snd` we normally use the `!` (bang) function to send a message to an actor, like so:
 
-    (! actor msg)
+~~~ clojure
+(! actor msg)
+~~~
 
 The bang operator has a slightly different semantic than `snd`. While `snd` will always place the message in the mailbox, `!` will only do it if the actor is alive. It will not place a message in the mailbox if there is no one to receive it on the other end (and never will be, as mailboxes, like all channels, cannot change ownership).
 
@@ -68,19 +74,27 @@ In many circumstances, an actor sends a message to another actor, and expects a 
 
 The value `@self`, when evaluated in an actor, returns the actor. So, as you may guess, an actor can receive messages with:
 
-    (rcv (mailbox-of @self))
+~~~ clojure
+(rcv (mailbox-of @self))
+~~~
 
 `@mailbox` returns the actor's own mailbox channel, so the above may be written as:
 
-    (rcv @mailbox)
+~~~ clojure
+(rcv @mailbox)
+~~~
 
 ... and because actors also implement the `ReceivePort` interface required by `rcv`, the following will also work:
 
-    (rcv @self)
+~~~ clojure
+(rcv @self)
+~~~
 
 But, again, while an actor can be treated as a fiber with a channel, it has some extra features that give it a super-extra punch. Actors normally receive messages with the `receive` function, like so:
 
-    (receive)
+~~~ clojure
+(receive)
+~~~
 
 `receive` has some features that make it very suitable for handling messages in actors. Its most visible feature is pattern matching. When an actor receives a message, it usually takes different action based on the type and content of the message. Making the decision with pattern matching is easy and elegant:
 
