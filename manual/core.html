@@ -58,19 +58,19 @@
           
           
           
-        
-          
-          
-            
-          
-          
-          
             <li>
               <a  href="/pulsar/getting-started.html">
                 Getting Started
               </a>
               
             </li>
+          
+        
+          
+          
+            
+          
+          
           
         
           
@@ -124,6 +124,13 @@
           
           
           
+        
+          
+          
+            
+          
+          
+          
             <li>
               <a class="active" href="/pulsar/manual/core.html">
                 Pulsar Core
@@ -132,13 +139,6 @@
               <ul class="nav nav-list"><li><a href="#quasar-and-pulsar">Quasar and&nbsp;Pulsar</a></li><li><a href="#fibers">Fibers</a></li><li><a href="#promises-promises">Promises,&nbsp;Promises</a></li><li><a href="#channels">Channels</a></li></ul>
               
             </li>
-          
-        
-          
-          
-            
-          
-          
           
         
           
@@ -574,7 +574,7 @@ It takes an even number of expressions, ordered as (ops1, action1, ops2, action2
 </span><span id="line-23">                   <span class="nv">fiber</span> <span class="p">(</span><span class="nf">spawn-fiber</span>
 </span><span id="line-24">                          <span class="o">#</span><span class="p">(</span><span class="nf">s/doall</span> <span class="p">(</span><span class="nf">s/filter</span> <span class="nv">odd?</span> <span class="p">(</span><span class="nf">s/take</span> <span class="mi">5</span> <span class="p">(</span><span class="nf">channel-&gt;lazy-seq</span> <span class="nv">ch</span><span class="p">)))))]</span>
 </span><span id="line-25">               <span class="p">(</span><span class="nb">dotimes </span><span class="p">[</span><span class="nv">m</span> <span class="mi">10</span><span class="p">]</span>
-</span><span id="line-26">                 <span class="p">(</span><span class="nf">Thread/sleep</span> <span class="mi">20</span><span class="p">)</span><span class="nv">null</span>
+</span><span id="line-26">                 <span class="p">(</span><span class="nf">Thread/sleep</span> <span class="mi">20</span><span class="p">)</span>
 </span><span id="line-27">                 <span class="p">(</span><span class="nf">snd</span> <span class="nv">ch</span> <span class="nv">m</span><span class="p">))</span>
 </span><span id="line-28">               <span class="p">(</span><span class="nb">join </span><span class="nv">fiber</span><span class="p">))</span> <span class="nv">=&gt;</span> <span class="p">(</span><span class="nb">list </span><span class="mi">1</span> <span class="mi">3</span><span class="p">))</span>
 </span><span id="line-29">       <span class="p">(</span><span class="nf">fact</span> <span class="s">&quot;Filter and map received sequence with sleep (even)&quot;</span>

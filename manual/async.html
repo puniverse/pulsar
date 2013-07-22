@@ -58,19 +58,19 @@
           
           
           
-        
-          
-          
-            
-          
-          
-          
             <li>
               <a  href="/pulsar/getting-started.html">
                 Getting Started
               </a>
               
             </li>
+          
+        
+          
+          
+            
+          
+          
           
         
           
@@ -124,19 +124,19 @@
           
           
           
-            <li>
-              <a  href="/pulsar/manual/core.html">
-                Pulsar Core
-              </a>
-              
-            </li>
-          
         
           
           
             
           
           
+          
+            <li>
+              <a  href="/pulsar/manual/core.html">
+                Pulsar Core
+              </a>
+              
+            </li>
           
         
           
@@ -225,15 +225,15 @@
       </div>
       
 
-      <div id="content"><p>core.async is a new <a href="https://github.com/clojure/core.async/">asynchronous programming library</a> for Clojure built by Rich Hickey and other contributors. It provides something akin to fibers (though more limited than Pulsar fibers) and channels, and is also available in ClojureScript. Because core.async provides a subset of Pulsar’s capability, Pulsar provides an optional <span class="caps">API</span> that’s compatible with core.async which some people may&nbsp;prefer.</p>
+      <div id="content"><p>core.async is a new <a href="https://github.com/clojure/core.async/">asynchronous programming library</a> for Clojure built by Rich Hickey and other contributors. It provides something akin to fibers (though more limited than fibers) and channels, and is also available in ClojureScript. Because core.async provides a subset of Pulsar’s capability, Pulsar provides an optional <span class="caps">API</span> that’s compatible with core.async which some people may&nbsp;prefer.</p>
 
-<p>The core.async implementation is found in the <code>co.paralleluniverse.pulsar.async</code> namespace. It defines the following names: <code>chan</code>, <code>buffer</code>, <code>dropping-buffer</code>, <code>sliding-buffer</code>, <code>go</code>, <code>thread-call</code>, <code>thread</code>, <code>close!</code>, <code>take!</code>, <code>put!</code>, <code>&gt;!</code>, <code>&gt;!!</code>, <code>&lt;!</code>, <code>&lt;!!</code>, <code>alts!</code>, <code>alts!!</code>, <code>alt!</code>, <code>alt!!</code> and&nbsp;<code>timeout</code>.</p>
+<p>The core.async implementation is found in the <code>co.paralleluniverse.pulsar.async</code> namespace. It defines the following vars: <code>chan</code>, <code>buffer</code>, <code>dropping-buffer</code>, <code>sliding-buffer</code>, <code>go</code>, <code>thread-call</code>, <code>thread</code>, <code>close!</code>, <code>take!</code>, <code>put!</code>, <code>&gt;!</code>, <code>&gt;!!</code>, <code>&lt;!</code>, <code>&lt;!!</code>, <code>alts!</code>, <code>alts!!</code>, <code>alt!</code>, <code>alt!!</code> and&nbsp;<code>timeout</code>.</p>
 
 <p>These definitions are no more than thin wrappers around Pulsar functions and&nbsp;macros:</p>
 
 <ul>
   <li><code>(chan)</code> is the same as calling&nbsp;<code>(channel)</code>.</li>
-  <li><code>(chan (buffer n))</code> or <code>(chan n)</code> are the same as <code>(channel n :block)</code> and&nbsp;<code>(channel n)</code>.</li>
+  <li><code>(chan (buffer n))</code> or <code>(chan n)</code> are the same as <code>(channel n :block)</code> or&nbsp;<code>(channel n)</code>.</li>
   <li><code>(chan (dropping-buffer n))</code> is the same as&nbsp;<code>(channel n :drop)</code></li>
   <li><code>(chan (sliding-buffer n))</code> is the same as&nbsp;<code>(channel n :displace)</code></li>
   <li><code>close!</code> is the same as&nbsp;<code>close!</code></li>
@@ -241,11 +241,11 @@
   <li><code>&lt;!</code> and <code>&lt;!!</code> are the same as&nbsp;<code>rcv</code></li>
 </ul>
 
-<p>The core.async <span class="caps">API</span> and the Pulsar <span class="caps">API</span> may be used interchangably, so you can call ‘&gt;!’ on a channel created with <code>channel</code> or <code>snd</code> on a channel created with <code>chan</code>. They are one and the&nbsp;same.</p>
+<p>The core.async <span class="caps">API</span> and the Pulsar <span class="caps">API</span> may be used interchangably, so you can call <code>&gt;!</code> on a channel created with <code>channel</code> or <code>snd</code> on a channel created with <code>chan</code>. They are one and the&nbsp;same.</p>
 
 <p><code>go</code> simply performs its body within a newly spawned&nbsp;fiber.</p>
 
-<p>These are the differences between the Pulsar implementation of the core.async <span class="caps">API</span>, and the orgiginal&nbsp;implementation:</p>
+<p>These are the differences between the Pulsar implementation of the core.async <span class="caps">API</span>, and the original&nbsp;implementation:</p>
 
 <ul>
   <li>Channels created with <code>(chan (sliding-buffer n))</code> are&nbsp;single-consumer.</li>
