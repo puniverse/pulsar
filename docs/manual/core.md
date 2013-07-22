@@ -376,7 +376,9 @@ Nevertheless, it's still possible to work with channels as you would with lazy-s
 
 To create a lazy-seq from a channel, simply call:
 
-    (channel->lazy-seq ch)
+~~~ clojure
+(channel->lazy-seq ch)
+~~~
 
 Then, manipulating messages with sequence functions is easy. Here are some examples from the tests:
 
