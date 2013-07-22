@@ -58,19 +58,19 @@
           
           
           
-            <li>
-              <a  href="/pulsar/getting-started.html">
-                Getting Started
-              </a>
-              
-            </li>
-          
         
           
           
             
           
           
+          
+            <li>
+              <a  href="/pulsar/getting-started.html">
+                Getting Started
+              </a>
+              
+            </li>
           
         
           
@@ -124,13 +124,6 @@
           
           
           
-        
-          
-          
-            
-          
-          
-          
             <li>
               <a class="active" href="/pulsar/manual/core.html">
                 Pulsar Core
@@ -139,6 +132,13 @@
               <ul class="nav nav-list"><li><a href="#quasar-and-pulsar">Quasar and&nbsp;Pulsar</a></li><li><a href="#fibers">Fibers</a></li><li><a href="#promises-promises">Promises,&nbsp;Promises</a></li><li><a href="#channels">Channels</a></li></ul>
               
             </li>
+          
+        
+          
+          
+            
+          
+          
           
         
           
@@ -545,8 +545,8 @@ It takes an even number of expressions, ordered as (ops1, action1, ops2, action2
 
 <p>To create a lazy-seq from a channel, simply&nbsp;call:</p>
 
-<pre><code>(channel->lazy-seq ch)
-</code></pre>
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">channel-&gt;lazy-seq</span> <span class="nv">ch</span><span class="p">)</span>
+</span></code></pre></div>
 <p>Then, manipulating messages with sequence functions is easy. Here are some examples from the&nbsp;tests:</p>
 
 <div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">require</span> <span class="p">[</span><span class="nv">co.paralleluniverse.pulsar.lazyseq</span> <span class="ss">:as</span> <span class="nv">s</span> <span class="ss">:refer</span> <span class="p">[</span><span class="nv">channel-&gt;lazy-seq</span> <span class="nv">snd-seq</span><span class="p">]])</span>
