@@ -35,7 +35,6 @@ Aside from Pulsar's dependency on Quasar and its dependent libraries, Pulsar mak
 
 * [core.match](https://github.com/clojure/core.match) - A pattern matching library for Clojure.
 * [Gloss](https://github.com/ztellman/gloss), by Zach Tellman - a byte-format DSL
-* [core.typed](https://github.com/clojure/core.typed) - gradual typing in Clojure.
 
 ## Acknowledgments
 

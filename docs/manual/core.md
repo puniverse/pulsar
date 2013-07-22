@@ -408,7 +408,7 @@ Then, manipulating messages with sequence functions is easy. Here are some examp
                    fiber (spawn-fiber
                           #(s/doall (s/filter odd? (s/take 5 (channel->lazy-seq ch)))))]
                (dotimes [m 10]
-                 (Thread/sleep 20)null
+                 (Thread/sleep 20)
                  (snd ch m))
                (join fiber)) => (list 1 3))
        (fact "Filter and map received sequence with sleep (even)"
