@@ -11,14 +11,15 @@
 ;; lein with-profile cluster update-in :jvm-opts conj '"-Dgalaxy.nodeId=2"' '"-Dgalaxy.port=7052"' '"-Dgalaxy.slave_port=8052"' -- run -m co.paralleluniverse.pulsar.examples.cluster.ping
 
 (defsfn pong []
-  (receive
-    :finished (println "Pong finished")
-    [:ping ping] (do
-                   (println "Pong received ping")
-                   (! ping :pong)
-                   (recur))))
+  (register! :pong @self)
+  (loop []
+    (receive
+      :finished (println "Pong finished")
+      [:ping ping] (do
+                     (println "Pong received ping")
+                     (! ping :pong)
+                     (recur)))))
 
 (defn -main []
-    (let [a1 (register! :pong (spawn pong))]
-      (join a1)
-      (System/exit 0)))
+  (join (spawn pong))
+  :ok)
