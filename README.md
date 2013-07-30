@@ -88,4 +88,5 @@ under the terms of the GNU Lesser General Public License version 3.0
 as published by the Free Software Foundation.
 ```
 
-[![githalytics.com alpha](https://cruel-carlota.gopagoda.com/6f172ebdf11f5b084127c9470cc7c887 "githalytics.com")](http://githalytics.com/puniverse/pulsar) [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/puniverse/pulsar/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/puniverse/pulsar/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+[![githalytics.com alpha](https://cruel-carlota.gopagoda.com/6f172ebdf11f5b084127c9470cc7c887 "githalytics.com")](http://githalytics.com/puniverse/pulsar)
