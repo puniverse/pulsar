@@ -16,7 +16,7 @@
                  [org.clojure/core.match "0.2.0-beta4"]
                  [useful "0.8.8"]
                  [gloss "0.2.2-rc1" :exclusions [com.yammer.metrics/metrics-core useful]]
-                 [org.clojure/core.typed "0.1.14" :exclusions [org.apache.ant/ant org.clojure/core.unify]]]
+                 [org.clojure/core.typed "0.1.18" :exclusions [org.apache.ant/ant org.clojure/core.unify]]]
   :manifest {"Premain-Class" "co.paralleluniverse.fibers.instrument.JavaAgent"
              "Can-Retransform-Classes" "true"}
   :jvm-opts ["-server"
@@ -27,7 +27,7 @@
   :pedantic :warn
   :profiles {;; ----------- dev --------------------------------------
              :dev
-             {:plugins [[lein-midje "3.0.0"]]
+             {:plugins [[lein-midje "3.1.1"]]
               :dependencies [[midje "1.5.1" :exclusions [org.clojure/tools.namespace]]]
               :jvm-opts [;; Debugging
                          "-ea"
@@ -66,7 +66,7 @@
              
              ;; ----------- doc --------------------------------------
              :doc
-             {:plugins [[lein-midje "3.0.0"]
+             {:plugins [[lein-midje "3.1.1"]
                         [codox "0.6.4"]
                         [lein-marginalia "0.7.1"]]
               :dependencies [[midje "1.5.1"]]
