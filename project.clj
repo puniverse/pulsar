@@ -1,4 +1,4 @@
-(defproject co.paralleluniverse/pulsar "0.2.1-SNAPSHOT"
+(defproject co.paralleluniverse/pulsar "0.3.0-SNAPSHOT"
   :description "A Clojure lightweight thread, asynchronous programming, and actor library"
   :url "http://github.com/puniverse/pulsar"
   :license {:name "Eclipse Public License - v 1.0" :url "http://www.eclipse.org/legal/epl-v10.html"}
@@ -12,7 +12,7 @@
                  "releases" "https://oss.sonatype.org/content/repositories/releases"}
   :test-selectors {:selected :selected}
   :dependencies [[org.clojure/clojure "1.5.1"]
-                 [co.paralleluniverse/quasar-core "0.2.0"]
+                 [co.paralleluniverse/quasar-core "0.3.0-SNAPSHOT"]
                  [org.clojure/core.match "0.2.0-beta4"]
                  [useful "0.8.8"]
                  [gloss "0.2.2-rc1" :exclusions [com.yammer.metrics/metrics-core useful]]
@@ -23,7 +23,7 @@
              ;; ForkJoin wants these:
              "-XX:-UseBiasedLocking"
              "-XX:+UseCondCardMark"]
-  :java-agents [[co.paralleluniverse/quasar-core "0.2.0"]] ; :options "v"
+  :java-agents [[co.paralleluniverse/quasar-core "0.3.0-SNAPSHOT"]] ; :options "v"
   :pedantic :warn
   :profiles {;; ----------- dev --------------------------------------
              :dev
@@ -46,7 +46,7 @@
              ;; ----------- cluster --------------------------------------
              :cluster
              {:repositories {"oracle" "http://download.oracle.com/maven/"}
-              :dependencies [[co.paralleluniverse/quasar-galaxy "0.2.0"]]
+              :dependencies [[co.paralleluniverse/quasar-galaxy "0.3.0-SNAPSHOT"]]
               :java-source-paths ["src/cluster/java"]
               :jvm-opts [;; Debugging
                          "-ea"

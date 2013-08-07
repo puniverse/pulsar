@@ -19,6 +19,7 @@ import co.paralleluniverse.actors.ActorRegistry;
 import co.paralleluniverse.fibers.Fiber;
 import co.paralleluniverse.fibers.Instrumented;
 import co.paralleluniverse.fibers.SuspendExecution;
+import co.paralleluniverse.fibers.instrument.MethodDatabase;
 import co.paralleluniverse.fibers.instrument.MethodDatabase.ClassEntry;
 import co.paralleluniverse.fibers.instrument.Retransform;
 import co.paralleluniverse.strands.SuspendableCallable;
@@ -69,7 +70,7 @@ public class ClojureHelper {
         Retransform.addWaiver("co.paralleluniverse.actors.behaviors.EventHandler", "handleEvent");
 
         // mark all IFn methods as suspendable
-        Retransform.getMethodDB().getClassEntry(Type.getInternalName(IFn.class)).setAll(true);
+        Retransform.getMethodDB().getClassEntry(Type.getInternalName(IFn.class)).setAll(MethodDatabase.SuspendableType.SUSPENDABLE_ABSTRACT);
 
         try {
             Field f = Fiber.class.getDeclaredField("timeoutService");
@@ -113,7 +114,7 @@ public class ClojureHelper {
         }
 
         if (!isIFn && clazz.isInterface()) {
-            Retransform.getMethodDB().getClassEntry(Type.getInternalName(clazz)).setAll(true);
+            Retransform.getMethodDB().getClassEntry(Type.getInternalName(clazz)).setAll(MethodDatabase.SuspendableType.SUSPENDABLE_ABSTRACT);
             return thing;
         }
 
@@ -143,11 +144,10 @@ public class ClojureHelper {
                 ce.setRequiresInstrumentation(true);
                 Method[] methods = cls.getMethods();
 
-
                 for (Method method : methods) {
                     if ((isIFn && (method.getName().equals("invoke") || method.getName().equals("doInvoke")))
                             || (!isIFn && protocolMethods.contains(method.getName()))) { // method.getDeclaringClass().equals(clazz))) {
-                        ce.set(method.getName(), Type.getMethodDescriptor(method), true);
+                        ce.set(method.getName(), Type.getMethodDescriptor(method), MethodDatabase.SuspendableType.SUSPENDABLE);
                     }
                 }
                 Retransform.retransform(cls);
@@ -195,19 +195,6 @@ public class ClojureHelper {
 
     public static void schedule(IFn fn, long delay, TimeUnit unit) {
         fiberTimeoutService.schedule((Runnable) fn, delay, unit);
-    }
-
-    static public RuntimeException sneakyThrow(Throwable t) {
-        // http://www.mail-archive.com/javaposse@googlegroups.com/msg05984.html
-        if (t == null)
-            throw new NullPointerException();
-        ClojureHelper.<RuntimeException>sneakyThrow0(t);
-        return null;
-    }
-
-    @SuppressWarnings("unchecked")
-    static private <T extends Throwable> T sneakyThrow0(Throwable t) throws T {
-        throw (T) t;
     }
 
     private static boolean isInLastInstrumented(Class cls) {
