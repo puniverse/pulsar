@@ -550,7 +550,7 @@
 
 (defmacro log
   [level message & args]
-  `(let [^org.slf4j.Logger log# (.log ^GenBehaviorActor @self)]
+  `(let [^org.slf4j.Logger log# (.log ^GenBehaviorActor (Actor/currentActor))]
      (if (. log# ~(symbol (str "is" (capitalize (name level)) "Enabled")))
        (. log# ~(symbol (name level)) ~message (to-array (vector ~@args))))))
 
@@ -678,12 +678,12 @@
 (defn- ^Actor create-actor
   [& args]
   (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size overflow-policy ^IFn lifecycle-handler ^Integer stack-size ^ForkJoinPool pool], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)
-        f  (when (not (instance? Actor body))
+        f  (when (not (instance? Actor (first body)))
              (suspendable! (if (== (count body) 1)
                              (first body)
                              (fn [] (apply (first body) (rest body))))))]
-    (if (instance? Actor body)
-      body
+    (if (nil? f)
+      (first body)
       (PulsarActor. name trap (->MailboxConfig mailbox-size overflow-policy) lifecycle-handler f))))
 
 (defn- child-spec
