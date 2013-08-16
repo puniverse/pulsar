@@ -12,7 +12,8 @@
                  "releases" "https://oss.sonatype.org/content/repositories/releases"}
   :test-selectors {:selected :selected}
   :dependencies [[org.clojure/clojure "1.5.1"]
-                 [co.paralleluniverse/quasar-core "0.3.0-SNAPSHOT"]
+                 [co.paralleluniverse/quasar-core   "0.3.0-SNAPSHOT"]
+                 [co.paralleluniverse/quasar-actors "0.3.0-SNAPSHOT"]
                  [org.clojure/core.match "0.2.0-beta4"]
                  [useful "0.8.8"]
                  [gloss "0.2.2-rc1" :exclusions [com.yammer.metrics/metrics-core useful]]

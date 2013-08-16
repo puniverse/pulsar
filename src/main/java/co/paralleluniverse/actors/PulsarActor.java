@@ -26,43 +26,40 @@ import java.util.concurrent.TimeoutException;
 /**
  * @author pron
  */
-public class PulsarActor extends LocalActor<Object, Object> {
-    public static void send(Actor actor, Object m) throws SuspendExecution {
+public class PulsarActor extends Actor<Object, Object> {
+    public static void send(ActorRef actor, Object m) throws SuspendExecution {
         actor.send(m);
     }
 
-    public static void sendSync(Actor actor, Object m) throws SuspendExecution {
+    public static void sendSync(ActorRef actor, Object m) throws SuspendExecution {
         actor.sendSync(m);
     }
 
-    public static PulsarActor self() {
-        final PulsarActor self = (PulsarActor) LocalActor.self();
-        if (self == null)
+    public static PulsarActor currentActor() {
+        final PulsarActor ca = (PulsarActor)Actor.currentActor();
+        if (ca == null)
             throw new RuntimeException("Not running within an actor");
-        return self;
+        return ca;
     }
 
     public static Mailbox selfMailbox() {
-        final PulsarActor self = (PulsarActor) LocalActor.self();
-        if (self == null)
-            throw new RuntimeException("Not running within an actor");
-        return self.mailbox();
+        return currentActor().mailbox();
     }
 
     public static Object selfReceive() throws SuspendExecution, InterruptedException {
-        return self().receive();
+        return currentActor().receive();
     }
 
     public static Object selfReceive(long timeout) throws SuspendExecution, InterruptedException {
-        return self().receive(timeout);
+        return currentActor().receive(timeout);
     }
 
     public static Object selfGetState() {
-        return LocalActor.self().getAux();
+        return currentActor().getAux();
     }
 
     public static Object selfSetState(Object newState) {
-        LocalActor.self().setAux(newState);
+        currentActor().setAux(newState);
         return newState;
     }
     ///////////////////////////////////////////////////////////////
@@ -120,11 +117,6 @@ public class PulsarActor extends LocalActor<Object, Object> {
             lifecycleMessageHandler.invoke(lifecycleMessageToClojure(m));
         else
             super.handleLifecycleMessage(m);
-    }
-
-    @Override
-    public Mailbox<Object> mailbox() {
-        return super.mailbox();
     }
     
     public static Object convert(Object m) {

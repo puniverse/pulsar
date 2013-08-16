@@ -15,13 +15,14 @@
   (:import [java.util.concurrent TimeUnit ExecutionException TimeoutException]
            [co.paralleluniverse.strands Strand]
            [co.paralleluniverse.strands.channels Channel]
-           [co.paralleluniverse.actors ActorRegistry Actor LocalActor ActorImpl MailboxConfig PulsarActor ActorBuilder 
+           [co.paralleluniverse.actors Actor ActorRef ActorRegistry PulsarActor ActorBuilder MailboxConfig
+            ActorUtil LocalActorUtil
             LifecycleListener ShutdownMessage]
            [co.paralleluniverse.pulsar ClojureHelper]
-           [co.paralleluniverse.actors.behaviors GenBehavior Initializer BasicGenBehavior
-            GenServer LocalGenServer 
-            GenEvent LocalGenEvent EventHandler
-            Supervisor Supervisor$ChildSpec Supervisor$ChildMode LocalSupervisor LocalSupervisor$RestartStrategy]
+           [co.paralleluniverse.actors.behaviors GenBehavior GenBehaviorActor Initializer
+            GenServer GenServerActor
+            GenEvent GenEventActor EventHandler
+            Supervisor Supervisor$ChildSpec Supervisor$ChildMode SupervisorActor SupervisorActor$RestartStrategy]
            ; for types:
            [clojure.lang Keyword IObj IFn IMeta IDeref ISeq IPersistentCollection IPersistentVector IPersistentMap])
   (:require [co.paralleluniverse.pulsar.core :refer :all]
@@ -151,14 +152,14 @@
   (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size overflow-policy ^IFn lifecycle-handler ^Integer stack-size ^ForkJoinPool pool], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)]
     `(let [b#     (first ~body) ; eval body
            nme#   (when ~name (clojure.core/name ~name))
-           f#     (when (not (instance? LocalActor b#))
+           f#     (when (not (instance? Actor b#))
                     (suspendable! ~(if (== (count body) 1) (first body) `(fn [] (apply ~(first body) (list ~@(rest body)))))))
-           ^LocalActor actor# (if (instance? LocalActor b#)
+           ^Actor actor# (if (instance? Actor b#)
                                 b#
                                 (co.paralleluniverse.actors.PulsarActor. nme# ~trap (->MailboxConfig ~mailbox-size ~overflow-policy) ~lifecycle-handler f#))
            fiber# (co.paralleluniverse.fibers.Fiber. nme# (get-pool ~pool) (int ~stack-size) actor#)]
        (.start fiber#)
-       actor#)))
+       (.ref actor#))))
 
 (defmacro spawn-link
   "Creates and starts, as by `spawn`, a new actor, and links it to @self.
@@ -170,21 +171,19 @@
      (link! actor#)
      actor#))
 
-(ann done? [LocalActor -> Boolean])
 (defn done?
   "Tests whether or not an actor has terminated."
-  [^LocalActor a]
-  (.isDone a))
+  [^ActorRef a]
+  (LocalActorUtil/isDone a))
 
 ;(ann-protocol IUnifyWithLVar
 ;              unify-with-lvar [Term LVar ISubstitutions -> (U ISubstitutions Fail)])
 
-(ann self (IDeref LocalActor))
 (def self
   "@self is the currently running actor"
   (reify
     clojure.lang.IDeref
-    (deref [_] (LocalActor/self))))
+    (deref [_] (ActorRef/self))))
 
 (ann state (IDeref Any))
 (def state
@@ -210,7 +209,7 @@
 
 
 (ann get-actor [Any -> Actor])
-(defn ^Actor get-actor
+(defn ^ActorRef get-actor
   "If the argument is an actor -- returns it. If not, looks up a registered 
   actor with the argument as its name.
   
@@ -218,9 +217,9 @@
   (i.e. a name of `\"foo\"` is the same as `:foo`)."
   [a]
   (when a
-    (if (instance? Actor a)
+    (if (instance? ActorRef a)
       a
-      (ActorImpl/getActor (name a)))))
+      (ActorRegistry/getActor (name a)))))
 
 (ann trap! [-> nil])
 (defn trap!
@@ -231,8 +230,8 @@
   (.setTrap ^PulsarActor @self true))
 
 
-(ann link! (Fn [Actor -> Actor]
-               [Actor Actor -> Actor]))
+(ann link! (Fn [ActorRef -> ActorRef]
+               [ActorRef ActorRef -> ActorRef]))
 (defn link!
   "Links two actors. If only one actor is specified, links the current actor with the
   specified actor.
@@ -247,9 +246,9 @@
   
   See: `unlink!`, `watch!`"
   ([actor2]
-   (.link ^LocalActor @self actor2))
+   (.link ^Actor (Actor/currentActor) actor2))
   ([actor1 actor2]
-   (.link ^LocalActor (cast LocalActor (get-actor actor1)) (get-actor actor2))))
+   (LocalActorUtil/link (get-actor actor1) (get-actor actor2))))
 
 (ann unlink! (Fn [Actor -> Actor]
                  [Actor Actor -> Actor]))
@@ -259,9 +258,9 @@
   
   See: `link!`"
   ([actor2]
-   (.unlink ^LocalActor @self actor2))
+   (.unlink ^Actor (Actor/currentActor) actor2))
   ([actor1 actor2]
-   (.unlink ^LocalActor (cast LocalActor (get-actor actor1)) (get-actor actor2))))
+   (LocalActorUtil/unlink (get-actor actor1) (get-actor actor2))))
 
 (ann watch! (Fn [Actor Actor -> LifecycleListener]
                  [Actor -> LifecycleListener]))
@@ -286,16 +285,14 @@
 
   See: `unwatch!`, `link!`"
   [actor]
-   (.watch ^LocalActor @self actor))
+   (.watch (Actor/currentActor) actor))
 
 (ann unwatch! (Fn [Actor Actor LifecycleListener -> nil]
                  [Actor LifecycleListener -> nil]))
 (defn unwatch!
   "Makes an actor stop watching another actor"
   ([actor2 monitor]
-   (.unwatch ^LocalActor @self actor2 monitor))
-  ([actor1 actor2 monitor]
-   (.unwatch ^LocalActor (cast LocalActor (get-actor actor1)) (get-actor actor2) monitor)))
+   (.unwatch ^Actor (Actor/currentActor) actor2 monitor)))
 
 (ann register (Fn [String LocalActor -> LocalActor]
                   [LocalActor -> LocalActor]))
@@ -304,17 +301,24 @@
   The actor is registered by its name, or, if it doesn't have a name, one must be supplied
   to this function. The name can be a string or a keyword, in which case it's identical to the 
   keyword's name (i.e. a name of `\"foo\"` is the same as `:foo`)."
-  ([actor-name ^LocalActor actor]
-   (.register actor (name actor-name)))
-  ([^LocalActor actor]
-   (.register actor)))
+  ([actor-name ^ActorRef actor]
+   (LocalActorUtil/register actor (name actor-name)))
+  ([actor-or-name]
+   (if (instance? ActorRef actor-or-name)
+     (LocalActorUtil/register actor-or-name)
+     (.register (Actor/currentActor) actor-or-name)))
+  ([]
+   (.register (Actor/currentActor))))
 
-(ann unregister [LocalActor -> LocalActor])
 (defn unregister!
-  "Unregisters an actor."
-  [x]
-  (let [^LocalActor actor x]
-    (.unregister actor)))
+  "Unregisters an actor.
+  
+  If no argument is supplied, unregisters the current actor."
+([x]
+ (let [^ActorRef actor x]
+   (LocalActorUtil/unregister actor)))
+([]
+ (.unregister (Actor/currentActor))))
 
 (ann mailbox-of [PulsarActor -> Channel])
 (defn ^Channel mailbox-of
@@ -323,17 +327,17 @@
   (.mailbox actor))
 
 (ann whereis [Any -> Actor])
-(defn ^Actor whereis
+(defn ^ActorRef whereis
   "Returns a registered actor by name."
   [actor-name]
-  (ActorImpl/getActor (name actor-name)))
+  (ActorRegistry/getActor (name actor-name)))
 
 (ann maketag [-> Number])
 (defn maketag
   "Returns a random, probably unique, identifier.
   (this is similar to Erlang's makeref)."
   []
-  (ActorImpl/randtag))
+  (ActorUtil/randtag))
 
 (ann tagged-tuple? [Any -> Boolean])
 (defn tagged-tuple?
@@ -464,7 +468,7 @@
        (let [pbody   (partition 2 body)
              mailbox (gensym "mailbox") n (gensym "n") m2 (gensym "m2") mtc (gensym "mtc") exp (gensym "exp")] ; symbols
          `(let [[~mtc ~m]
-                (let ~(into [] (concat `[^co.paralleluniverse.actors.PulsarActor ~mailbox (co.paralleluniverse.actors.PulsarActor/self)]
+                (let ~(into [] (concat `[^co.paralleluniverse.actors.PulsarActor ~mailbox (co.paralleluniverse.actors.PulsarActor/currentActor)]
                                        (if after-clause `[~timeout ~(second after-clause)
                                                           ~exp (if (pos? ~timeout) (long (+ (long (System/nanoTime)) (long (* 1000000 ~timeout)))) 0)] [])))
                   (.maybeSetCurrentStrandAsOwner ~mailbox)
@@ -570,9 +574,9 @@
     co.paralleluniverse.actors.behaviors.Server
     (^void init [this]
            (init server))
-    (handleCall [this ^Actor from id message]
+    (handleCall [this ^ActorRef from id message]
                 (handle-call server from id message))
-    (^void handleCast [this ^Actor from id message]
+    (^void handleCast [this ^ActorRef from id message]
            (handle-cast server from id message))
     (^void handleInfo [this message]
            (handle-info server message))
@@ -586,7 +590,7 @@
   {:arglists '([:name? :timeout? :mailbox-size? :overflow-policy? server & args])}
   [& args]
   (let [[{:keys [^String name ^Integer timeout ^Integer mailbox-size overflow-policy], :or {timeout -1 mailbox-size -1}} body] (kps-args args)]
-    `(co.paralleluniverse.actors.behaviors.LocalGenServer. ~name
+    `(co.paralleluniverse.actors.behaviors.GenServerActor. ~name
                                                            ^co.paralleluniverse.actors.behaviors.Server (Server->java ~(first body))
                                                            (long ~timeout) java.util.concurrent.TimeUnit/MILLISECONDS
                                                            nil (->MailboxConfig ~mailbox-size ~overflow-policy))))
@@ -619,17 +623,17 @@
 (defn set-timeout!
   "Sets the timeout for the current gen-server"
   [timeout unit]
-  (.setTimeout (LocalGenServer/currentGenServer) timeout (->timeunit unit)))
+  (.setTimeout (GenServerActor/currentGenServer) timeout (->timeunit unit)))
 
 (defn reply!
   "Replies to a message sent to the current gen-server"
   [^Actor to id res]
-  (.reply (LocalGenServer/currentGenServer) to id res))
+  (.reply (GenServerActor/currentGenServer) to id res))
 
 (defn reply-error!
   "Replies with an error to a message sent to the current gen-server"
   [^Actor to id ^Throwable error]
-  (.replyError (LocalGenServer/currentGenServer) to id error))
+  (.replyError (GenServerActor/currentGenServer) to id error))
 
 ;; ## gen-event
 
@@ -638,7 +642,7 @@
   {:arglists '([:name? :timeout? :mailbox-size? :overflow-policy? server & args])}
   [& args]
   (let [[{:keys [^String name ^Integer mailbox-size overflow-policy], :or {mailbox-size -1}} body] (kps-args args)]
-    (LocalGenEvent. name
+    (GenEventActor. name
                     (->Initializer (first body) (second body))
                     nil (->MailboxConfig mailbox-size overflow-policy))))
 
@@ -671,14 +675,14 @@
     (build [this]
            (f))))
 
-(defn- ^LocalActor create-actor
+(defn- ^Actor create-actor
   [& args]
   (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size overflow-policy ^IFn lifecycle-handler ^Integer stack-size ^ForkJoinPool pool], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)
-        f  (when (not (instance? LocalActor body))
+        f  (when (not (instance? Actor body))
              (suspendable! (if (== (count body) 1)
                              (first body)
                              (fn [] (apply (first body) (rest body))))))]
-    (if (instance? LocalActor body)
+    (if (instance? Actor body)
       body
       (PulsarActor. name trap (->MailboxConfig mailbox-size overflow-policy) lifecycle-handler f))))
 
@@ -708,7 +712,7 @@
   [^Supervisor supervisor id]
   (.removeChild supervisor id true))
 
-(defn ^LocalActor get-child
+(defn ^ActorRef get-child
   "Returns a supervisor's child by id"
   [^Supervisor sup id]
   (.getChild sup id))
@@ -716,8 +720,8 @@
 (defn supervisor
   "Creates (but doesn't start) a new supervisor"
   ([^String name restart-strategy init]
-   (LocalSupervisor. nil name nil
-                     ^LocalSupervisor$RestartStrategy (keyword->enum LocalSupervisor$RestartStrategy restart-strategy)
+   (SupervisorActor. nil name nil
+                     ^SupervisorActor$RestartStrategy (keyword->enum SupervisorActor$RestartStrategy restart-strategy)
                      (->Initializer
                        (fn [] (doseq [child (seq ((suspendable! init)))]
                                 (apply add-child! (cons @self child)))))))

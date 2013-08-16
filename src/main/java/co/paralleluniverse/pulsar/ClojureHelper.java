@@ -70,7 +70,7 @@ public class ClojureHelper {
         Retransform.addWaiver("co.paralleluniverse.actors.behaviors.EventHandler", "handleEvent");
 
         // mark all IFn methods as suspendable
-        Retransform.getMethodDB().getClassEntry(Type.getInternalName(IFn.class)).setAll(MethodDatabase.SuspendableType.SUSPENDABLE_ABSTRACT);
+        Retransform.getMethodDB().getClassEntry(Type.getInternalName(IFn.class)).setAll(MethodDatabase.SuspendableType.SUSPENDABLE_SUPER);
 
         try {
             Field f = Fiber.class.getDeclaredField("timeoutService");
@@ -114,7 +114,7 @@ public class ClojureHelper {
         }
 
         if (!isIFn && clazz.isInterface()) {
-            Retransform.getMethodDB().getClassEntry(Type.getInternalName(clazz)).setAll(MethodDatabase.SuspendableType.SUSPENDABLE_ABSTRACT);
+            Retransform.getMethodDB().getClassEntry(Type.getInternalName(clazz)).setAll(MethodDatabase.SuspendableType.SUSPENDABLE_SUPER);
             return thing;
         }
 
