@@ -76,7 +76,7 @@ A timeout in milliseconds, may be specified in an `:after` clause, which must ap
   (receive [m transform]
      [:foo val] (println &quot;got foo:&quot; val)
      :else      (println &quot;got&quot; m)
-     :after 30  (println &quot;nothing...&quot;))</pre></div><div class="public" id="var-register%21"><h3>register!</h3><div class="usage"><code>(register! actor-name actor)</code><code>(register! actor)</code></div><pre class="doc">Registers an actor in the actor registry.
+     :after 30  (println &quot;nothing...&quot;))</pre></div><div class="public" id="var-register%21"><h3>register!</h3><div class="usage"><code>(register! actor-name actor)</code><code>(register! actor-or-name)</code><code>(register!)</code></div><pre class="doc">Registers an actor in the actor registry.
 The actor is registered by its name, or, if it doesn't have a name, one must be supplied
 to this function. The name can be a string or a keyword, in which case it's identical to the 
 keyword's name (i.e. a name of `&quot;foo&quot;` is the same as `:foo`).</pre></div><div class="public" id="var-remove-and-terminate-child%21"><h3>remove-and-terminate-child!</h3><div class="usage"><code>(remove-and-terminate-child! supervisor id)</code></div><pre class="doc">Removes an actor from a supervisor and terminates the actor
@@ -117,8 +117,9 @@ and turn them into exit messages.
 Same as adding `:trap true` to `spawn`.</pre></div><div class="public" id="var-unlink%21"><h3>unlink!</h3><div class="usage"><code>(unlink! actor2)</code><code>(unlink! actor1 actor2)</code></div><pre class="doc">Unlinks two actors. If only one actor is specified, unlinks the current actor from the
 specified actor.
 
-See: `link!`</pre></div><div class="public" id="var-unregister%21"><h3>unregister!</h3><div class="usage"><code>(unregister! x)</code></div><pre class="doc">Unregisters an actor.
-</pre></div><div class="public" id="var-unwatch%21"><h3>unwatch!</h3><div class="usage"><code>(unwatch! actor2 monitor)</code><code>(unwatch! actor1 actor2 monitor)</code></div><pre class="doc">Makes an actor stop watching another actor
+See: `link!`</pre></div><div class="public" id="var-unregister%21"><h3>unregister!</h3><div class="usage"><code>(unregister! x)</code><code>(unregister!)</code></div><pre class="doc">Unregisters an actor.
+
+If no argument is supplied, unregisters the current actor.</pre></div><div class="public" id="var-unwatch%21"><h3>unwatch!</h3><div class="usage"><code>(unwatch! actor2 monitor)</code></div><pre class="doc">Makes an actor stop watching another actor
 </pre></div><div class="public" id="var-watch%21"><h3>watch!</h3><div class="usage"><code>(watch! actor)</code></div><pre class="doc">Makes the current actor watch another actor. Returns a watch object which is then
 used in all relevant exit messages, and should also be used when calling `unwatch!`.
 
