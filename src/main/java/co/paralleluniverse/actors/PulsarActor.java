@@ -43,11 +43,11 @@ public class PulsarActor extends Actor<Object, Object> {
     }
 
     public static Mailbox selfMailbox() {
-        return currentActor().mailbox();
+        return Actor.currentActor().mailbox();
     }
 
     public static Object selfReceive() throws SuspendExecution, InterruptedException {
-        return currentActor().receive();
+        return Actor.currentActor().receive();
     }
 
     public static Object selfReceive(long timeout) throws SuspendExecution, InterruptedException {
@@ -55,11 +55,11 @@ public class PulsarActor extends Actor<Object, Object> {
     }
 
     public static Object selfGetState() {
-        return currentActor().getAux();
+        return Actor.currentActor().getAux();
     }
 
     public static Object selfSetState(Object newState) {
-        currentActor().setAux(newState);
+        Actor.currentActor().setAux(newState);
         return newState;
     }
     ///////////////////////////////////////////////////////////////

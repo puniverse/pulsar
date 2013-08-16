@@ -225,7 +225,7 @@
                (! actor 38.6)
                (join actor)) => 42.0))
 
-(facts :selected "mailbox-seq"
+(facts "mailbox-seq"
        (fact :selected "Send and receive sequence (via @mailbox)"
              (let [actor (spawn #(s/doall (s/take 5 (channel->lazy-seq @mailbox))))]
                (snd-seq (mailbox-of actor) (take 10 (range)))

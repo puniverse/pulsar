@@ -14,7 +14,7 @@
   "Defines actors and behaviors like gen-server and supervisor"
   (:import [java.util.concurrent TimeUnit ExecutionException TimeoutException]
            [co.paralleluniverse.strands Strand]
-           [co.paralleluniverse.strands.channels Channel]
+           [co.paralleluniverse.strands.channels Channel SendPort]
            [co.paralleluniverse.actors Actor ActorRef ActorRegistry PulsarActor ActorBuilder MailboxConfig
             ActorUtil LocalActorUtil
             LifecycleListener ShutdownMessage]
@@ -321,10 +321,10 @@
  (.unregister (Actor/currentActor))))
 
 (ann mailbox-of [PulsarActor -> Channel])
-(defn ^Channel mailbox-of
+(defn ^SendPort mailbox-of
   "Returns the mailbox of the given actor."
-  [^PulsarActor actor]
-  (.mailbox actor))
+  [^ActorRef actor]
+  actor)
 
 (ann whereis [Any -> Actor])
 (defn ^ActorRef whereis
@@ -550,7 +550,7 @@
 
 (defmacro log
   [level message & args]
-  `(let [^org.slf4j.Logger log# (.log ^BasicGenBehavior @self)]
+  `(let [^org.slf4j.Logger log# (.log ^GenBehaviorActor @self)]
      (if (. log# ~(symbol (str "is" (capitalize (name level)) "Enabled")))
        (. log# ~(symbol (name level)) ~message (to-array (vector ~@args))))))
 
