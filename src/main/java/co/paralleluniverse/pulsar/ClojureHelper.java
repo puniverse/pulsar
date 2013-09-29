@@ -16,7 +16,6 @@ package co.paralleluniverse.pulsar;
 import clojure.lang.IFn;
 import clojure.lang.Var;
 import co.paralleluniverse.actors.ActorRegistry;
-import co.paralleluniverse.fibers.Fiber;
 import co.paralleluniverse.fibers.Instrumented;
 import co.paralleluniverse.fibers.SuspendExecution;
 import co.paralleluniverse.fibers.instrument.MethodDatabase;
@@ -24,16 +23,12 @@ import co.paralleluniverse.fibers.instrument.MethodDatabase.ClassEntry;
 import co.paralleluniverse.fibers.instrument.Retransform;
 import co.paralleluniverse.strands.SuspendableCallable;
 import java.lang.instrument.UnmodifiableClassException;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import org.objectweb.asm.Type;
 
 /**
@@ -41,7 +36,6 @@ import org.objectweb.asm.Type;
  * @author pron
  */
 public class ClojureHelper {
-    private static final ScheduledExecutorService fiberTimeoutService;
     // This whole mess with lastInstrumented is a heuristic to save us from calling clazz.isAnnotationPresent(Instrumented.class)),
     // which turns out to be *slow*.
     private static final int NUM_LAST_INSTRUMENTED = 3;
@@ -71,14 +65,6 @@ public class ClojureHelper {
 
         // mark all IFn methods as suspendable
         Retransform.getMethodDB().getClassEntry(Type.getInternalName(IFn.class)).setAll(MethodDatabase.SuspendableType.SUSPENDABLE_SUPER);
-
-        try {
-            Field f = Fiber.class.getDeclaredField("timeoutService");
-            f.setAccessible(true);
-            fiberTimeoutService = (ScheduledExecutorService) f.get(null);
-        } catch (Exception e) {
-            throw new AssertionError(e);
-        }
         
         // register kryo serializers for clojure types
         if (ActorRegistry.hasGlobalRegistry()) {
@@ -191,10 +177,6 @@ public class ClojureHelper {
 
     public static boolean isInstrumented(Class clazz) {
         return clazz.isAnnotationPresent(Instrumented.class);
-    }
-
-    public static void schedule(IFn fn, long delay, TimeUnit unit) {
-        fiberTimeoutService.schedule((Runnable) fn, delay, unit);
     }
 
     private static boolean isInLastInstrumented(Class cls) {
