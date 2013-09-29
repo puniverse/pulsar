@@ -389,6 +389,13 @@
   [^Strand a]
   (.isAlive a))
 
+(defsfn sleep
+  "Suspends the current strand."
+  ([^long ms]
+   (Strand/sleep ms))
+  ([^long timeout unit]
+   (Strand/sleep (->timeunit unit))))
+
 (defn spawn-thread
   "Creates and starts a new thread.
   

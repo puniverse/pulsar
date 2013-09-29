@@ -44,11 +44,11 @@
 (fact "When fiber interrupted while sleeping then InterruptedException thrown"
       (let [fib (spawn-fiber
                   #(try
-                     (Fiber/sleep 100)
+                     (sleep 100)
                      false
                      (catch InterruptedException e
                        true)))]
-        (Thread/sleep 20)
+        (sleep 20)
         (.interrupt fib)
         (join fib)) => true)
 
@@ -60,7 +60,7 @@
                    (binding [*foo* 20]
                      (spawn-fiber
                        #(let [v1 *foo*]
-                          (Fiber/sleep 200)
+                          (sleep 200)
                           (let [v2 *foo*]
                             (+ v1 v2)))))]
                (join fiber))
@@ -70,7 +70,7 @@
                    (spawn-fiber
                      #(binding [*foo* 15]
                         (let [v1 *foo*]
-                          (Fiber/sleep 200)
+                          (sleep 200)
                           (let [v2 *foo*]
                             (+ v1 v2)))))]
                (join fiber))
@@ -79,7 +79,7 @@
 (fact "Fiber can be used turned into a future"
       (let [fiber (spawn-fiber
                     (fn []
-                      (Strand/sleep 20)
+                      (sleep 20)
                       42))
             fut (fiber->future fiber)]
         (fact @fut => 42)
@@ -98,11 +98,11 @@
                         (fact
                           (closed? ch) => true)
                         (list m1 m2 m3 m4))))]
-        (Thread/sleep 20)
+        (sleep 20)
         (snd ch "m1")
-        (Thread/sleep 20)
+        (sleep 20)
         (snd ch "m2")
-        (Thread/sleep 20)
+        (sleep 20)
         (snd ch "m3")
         (close! ch)
         (snd ch "m4")
@@ -122,7 +122,7 @@
                    f1 (spawn-fiber  #(deliver v2 (+ @v1 1)))
                    t1 (spawn-thread #(deliver v3 (+ @v1 @v2)))
                    f2 (spawn-fiber  #(deliver v4 (+ @v3 @v2)))]
-               (Strand/sleep 50)
+               (sleep 50)
                (deliver v1 1)
                (join [f1 f2 t1])
                (fact
@@ -134,7 +134,7 @@
                    v2 (promise #(+ @v1 1))
                    v3 (promise #(+ @v1 @v2))
                    v4 (promise #(* (+ @v3 @v2) @v0))]
-               (Strand/sleep 50)
+               (sleep 50)
                (deliver v1 1)
                (fact @v3 => 3)
                (fact
@@ -155,11 +155,11 @@
                                    m3 (rcv grp)]
                                (list m1 m2 m3))))]
                
-               (Thread/sleep 20)
+               (sleep 20)
                (snd ch1 "hello")
-               (Thread/sleep 20)
+               (sleep 20)
                (snd ch2 "world!")
-               (Thread/sleep 20)
+               (sleep 20)
                (snd ch3 "foo")
                (join fiber))  => '("hello" "world!" "foo"))
        (fact "Receive from channel group with timeout"
@@ -173,9 +173,9 @@
                                    m2 (rcv grp 10 :ms)
                                    m3 (rcv grp 100 :ms)]
                                (list m1 m2 m3))))]
-               (Thread/sleep 20)
+               (sleep 20)
                (snd ch1 "hello")
-               (Thread/sleep 100)
+               (sleep 100)
                (snd ch3 "world!")
                (join fiber))  => '("hello" nil "world!")))
 
@@ -191,11 +191,11 @@
                (subscribe! topic ch1)
                (subscribe! topic ch2)
                (subscribe! topic ch3)
-               (Thread/sleep 20)
+               (sleep 20)
                (snd topic "m1")
-               (Thread/sleep 20)
+               (sleep 20)
                (snd topic "m2")
-               (Thread/sleep 20)
+               (sleep 20)
                (snd topic "m3")
                (fact 
                  (join f1) => '("m1" "m2" "m3"))
@@ -214,12 +214,12 @@
                (subscribe! topic ch1)
                (subscribe! topic ch2)
                (subscribe! topic ch3)
-               ;(Thread/sleep 5)
+               ;(sleep 5)
                (snd topic "m1")
-               (Thread/sleep 5)
+               (sleep 5)
                (snd topic "m2")
                (unsubscribe! topic ch2)
-               (Thread/sleep 5)
+               (sleep 5)
                (snd topic "m3")
                (fact 
                  (join f1) => '("m1" "m2" "m3"))
@@ -248,9 +248,9 @@
             t3 (spawn-thread task)
             f4 (spawn-fiber task)
             t4 (spawn-thread task)]
-        (Thread/sleep 100)
+        (sleep 100)
         (dotimes [i 1000]
-          (Thread/sleep 1)
+          (sleep 1)
           (snd ch i))
         (close! ch)
         (join (list f1 t1 f2 t2 f3 t3 f4 t4))
@@ -319,14 +319,14 @@
                            #(let [s (s/take 5 (channel->lazy-seq ch))]
                                (s/doall s)))]
                (dotimes [m 10]
-                 (Thread/sleep 20)
+                 (sleep 20)
                  (snd ch m))
                (join fiber))  => '(0 1 2 3 4))
        (fact "Map received sequence with sleep"
              (let [ch (channel -1)
                    fiber (spawn-fiber (fn [] (s/doall (s/map #(* % %) (s/take 5 (channel->lazy-seq ch))))))]
                (dotimes [m 10]
-                 (Thread/sleep 20)
+                 (sleep 20)
                  (snd ch m))
                (join fiber)) => '(0 1 4 9 16))
        (fact "Filter received sequence with sleep (odd)"
@@ -334,7 +334,7 @@
                    fiber (spawn-fiber
                            #(s/doall (s/filter odd? (s/take 5 (channel->lazy-seq ch)))))]
                (dotimes [m 10]
-                 (Thread/sleep 20)
+                 (sleep 20)
                  (snd ch m))
                (join fiber)) => '(1 3))
        (fact "Filter received sequence with sleep (even)"
@@ -342,7 +342,7 @@
                    fiber (spawn-fiber
                            #(s/doall (s/filter even? (s/take 5 (channel->lazy-seq ch)))))]
                (dotimes [m 10]
-                 (Thread/sleep 20)
+                 (sleep 20)
                  (snd ch m))
                (join fiber)) => '(0 2 4))
        (fact "Filter and map received sequence with sleep (even)"
@@ -354,7 +354,7 @@
                                                      (s/filter even?
                                                                (s/take 5 (channel->lazy-seq ch))))))))]
                (dotimes [m 10]
-                 (Thread/sleep 20)
+                 (sleep 20)
                  (snd ch m))
                (join fiber)) => '(16))
        (fact "Send and receive sequence"
