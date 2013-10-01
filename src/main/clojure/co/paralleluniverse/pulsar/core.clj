@@ -23,7 +23,7 @@
          [jsr166e ForkJoinPool ForkJoinTask]
          [co.paralleluniverse.strands Strand Stranded]
          [co.paralleluniverse.strands SuspendableCallable]
-         [co.paralleluniverse.fibers DefaultFiberPool Fiber Joinable FiberUtil]
+         [co.paralleluniverse.fibers DefaultFiberScheduler FiberScheduler Fiber Joinable FiberUtil]
          [co.paralleluniverse.fibers.instrument]
          [co.paralleluniverse.strands.channels Channel Channels Channels$OverflowPolicy ReceivePort SendPort 
           Selectable Selector SelectAction
@@ -208,22 +208,11 @@
   []
   (ForkJoinTask/inForkJoinPool))
 
-(ann current-fj-pool [-> ForkJoinPool])
-(defn- ^ForkJoinPool current-fj-pool
-  "Returns the fork/join pool we're running in; nil if we're not in a fork/join pool."
-  []
-  (ForkJoinTask/getPool))
-
 (ann make-fj-pool [AnyInteger Boolean -> ForkJoinPool])
 (defn ^ForkJoinPool make-fj-pool
   "Creates a new ForkJoinPool with the given parallelism and with the given async mode"
   [^Integer parallelism ^Boolean async]
   (ForkJoinPool. parallelism jsr166e.ForkJoinPool/defaultForkJoinWorkerThreadFactory nil async))
-
-(ann fj-pool ForkJoinPool)
-(def fj-pool
-  "A global fork/join pool. The pool uses all available processors and runs in the async mode."
-  (DefaultFiberPool/getInstance))
 
 ;; ## Suspendable functions
 ;; Only functions that have been especially instrumented can perform blocking actions
@@ -300,20 +289,36 @@
 
 ;; ## Fibers
 
-(ann get-pool [-> ForkJoinPool])
-(defn ^ForkJoinPool get-pool
-  {:no-doc true}
-  [^ForkJoinPool pool]
-  (or pool (current-fj-pool) fj-pool))
 
-(ann fiber [String ForkJoinPool AnyInteger [Any -> Any] -> Fiber])
+(ann current-fiber [-> Fiber])
+(defn current-fiber
+  "Returns the currently running lightweight-thread or `nil` if none."
+  []
+  (Fiber/currentFiber))
+
+(defn- current-scheduler []
+  (when-let [f (current-fiber)]
+    (.getScheduler f)))
+
+(ann default-fiber-scheduler FiberScheduler)
+(def ^FiberScheduler default-fiber-scheduler
+  "A global fiber scheduler. The scheduler uses all available processor cores."
+  (DefaultFiberScheduler/getInstance))
+
+(ann get-scheduler [-> FiberScheduler])
+(defn ^FiberScheduler get-scheduler
+  {:no-doc true}
+  [^FiberScheduler scheduler]
+  (or scheduler (current-scheduler) default-fiber-scheduler))
+
+(ann fiber [String FiberScheduler AnyInteger [Any -> Any] -> Fiber])
 (defn ^Fiber fiber
   "Creates, but does not start a new fiber (a lightweight thread) running in a fork/join pool.
   
   It is much preferable to use `spawn-fiber`."
   [& args]
-  (let [[^String name ^ForkJoinPool pool ^Integer stacksize f] (ops-args [[string? nil] [#(instance? ForkJoinPool %) fj-pool] [integer? -1]] args)]
-    (Fiber. name (get-pool pool) (int stacksize) (->suspendable-callable f))))
+  (let [[^String name ^FiberScheduler scheduler ^Integer stacksize f] (ops-args [[string? nil] [#(instance? FiberScheduler %) default-fiber-scheduler] [integer? -1]] args)]
+    (Fiber. name (get-scheduler scheduler) (int stacksize) (->suspendable-callable f))))
 
 (ann start [Fiber -> Fiber])
 (defn start
@@ -330,20 +335,14 @@
   Options:
   :name str     - the fiber's name
   :stack-size n - the fiber's initial stack size
-  :fj-pool      - the fork-join pool in which the fiber will run
+  :scheduler    - the fiber schdeuler in which the fiber will run
   "
-  {:arglists '([:name? :stack-size? :fj-pool? f & args])}
+  {:arglists '([:name? :stack-size? :scheduler? f & args])}
   [& args]
-  (let [[{:keys [^String name ^Integer stack-size ^ForkJoinPool pool] :or {stack-size -1}} body] (kps-args args)]
+  (let [[{:keys [^String name ^Integer stack-size ^FiberScheduler scheduler] :or {stack-size -1}} body] (kps-args args)]
     `(let [f#     (suspendable! ~(if (== (count body) 1) (first body) `(fn [] (apply ~@body))))
-           fiber# (co.paralleluniverse.fibers.Fiber. ~name (get-pool ~pool) (int ~stack-size) (->suspendable-callable f#))]
+           fiber# (co.paralleluniverse.fibers.Fiber. ~name (get-scheduler ~scheduler) (int ~stack-size) (->suspendable-callable f#))]
        (.start fiber#))))
-
-(ann current-fiber [-> Fiber])
-(defn current-fiber
-  "Returns the currently running lightweight-thread or `nil` if none."
-  []
-  (Fiber/currentFiber))
 
 (ann current-fiber [-> Fiber])
 (defn fiber->future

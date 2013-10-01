@@ -13,6 +13,7 @@
 (ns co.paralleluniverse.pulsar.actors
   "Defines actors and behaviors like gen-server and supervisor"
   (:import [java.util.concurrent TimeUnit ExecutionException TimeoutException]
+           [co.paralleluniverse.fibers FiberScheduler]
            [co.paralleluniverse.strands Strand]
            [co.paralleluniverse.strands.channels Channel SendPort]
            [co.paralleluniverse.actors Actor ActorRef ActorRegistry PulsarActor ActorBuilder MailboxConfig
@@ -143,13 +144,13 @@
                           If set to `nil` (the default), the default handler is used, which is what you 
                           want in all circumstances, except for some actors that are meant to do some 
                           special tricks.
-  * `:fj-pool` - The `ForkJoinPool` in which the fiber will run.
+  * `:scheduler` - The `FiberScheduler` in which the fiber will run.
                  If `:fj-pool` is not specified, then the pool used will be either the pool of the fiber calling 
                  `spawn-fiber`, or, if `spawn-fiber` is not called from within a fiber, a default pool.
   * `:stack-size` - The initial fiber stack size."
   {:arglists '([:name? :mailbox-size? :overflow-policy? :lifecycle-handler? :stack-size? :pool? f & args])}
   [& args]
-  (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size overflow-policy ^IFn lifecycle-handler ^Integer stack-size ^ForkJoinPool pool], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)]
+  (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size overflow-policy ^IFn lifecycle-handler ^Integer stack-size ^FiberScheduler scheduler], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)]
     `(let [b#     (first ~body) ; eval body
            nme#   (when ~name (clojure.core/name ~name))
            f#     (when (not (instance? Actor b#))
@@ -157,7 +158,7 @@
            ^Actor actor# (if (instance? Actor b#)
                                 b#
                                 (co.paralleluniverse.actors.PulsarActor. nme# ~trap (->MailboxConfig ~mailbox-size ~overflow-policy) ~lifecycle-handler f#))
-           fiber# (co.paralleluniverse.fibers.Fiber. nme# (get-pool ~pool) (int ~stack-size) actor#)]
+           fiber# (co.paralleluniverse.fibers.Fiber. nme# (get-scheduler ~scheduler) (int ~stack-size) actor#)]
        (.start fiber#)
        (.ref actor#))))
 
@@ -677,7 +678,7 @@
 
 (defn- ^Actor create-actor
   [& args]
-  (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size overflow-policy ^IFn lifecycle-handler ^Integer stack-size ^ForkJoinPool pool], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)
+  (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size overflow-policy ^IFn lifecycle-handler ^Integer stack-size], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)
         f  (when (not (instance? Actor (first body)))
              (suspendable! (if (== (count body) 1)
                              (first body)
