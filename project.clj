@@ -1,4 +1,4 @@
-(defproject co.paralleluniverse/pulsar "0.3.0"
+(defproject co.paralleluniverse/pulsar "0.4.0-SNAPSHOT"
   :description "A Clojure lightweight thread, asynchronous programming, and actor library"
   :url "http://github.com/puniverse/pulsar"
   :licenses [{:name "Eclipse Public License - v 1.0" :url "http://www.eclipse.org/legal/epl-v10.html"}
