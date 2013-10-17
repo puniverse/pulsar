@@ -14,6 +14,7 @@ function error_exit
 
 if [ "$TRAVIS_BRANCH" == "master" ]; then
 	echo -e "Installing Jekyll...\n"
+	gem install kramdown
 	gem install jekyll
 	gem install typogruby
 

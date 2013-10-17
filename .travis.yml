@@ -8,7 +8,7 @@ branches:
     - gh-pages
 env:
   global:
-    - secure: "eRpg/alQ+1OTdhr1lcVSJyVU4eJ66ShffLDpnLV7+YZq9J29jwhgXdUHWALS\nsGQCNnty61Y1BvtRVQ46PCWHdXsk5pwgQidFPzVLQrcmnboEdKoM1fQzvery\ns2wYndL62jMhm3FachXTfHzpoNUcwU3dxr/To+U5E+q7r2Ua/Wk="
+    - secure: "awdH1k9QfkxoeiS29nqnSEOMcY7tCvilNIM1pEtp3XkoPRxFzSqmCHNfDQnaqOVLr40dcDId08JP7CUWFZCkKPeQko+yTgHbr29R2+vAHlmSIiZiRrSP7I4yX+MN4ePrFjI+ltEx1cr5JWTGhtFPbILimKvpl4vCpmL5Kixqi30="
     - GEN_APIDOCS="lein2 with-profile doc do doc, marg src/test/clojure/co/paralleluniverse/pulsar/*.clj src/test/clojure/co/paralleluniverse/pulsar/examples/*.clj"
 
 after_success:

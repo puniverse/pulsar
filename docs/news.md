@@ -4,6 +4,10 @@ title: News
 weight: 10
 ---
 
+## October 15, 2013
+
+Pulsar 0.3.0 has been released.
+
 ## July 19, 2013
 
 Quasar/Pulsar 0.2.0 [has been released](http://blog.paralleluniverse.co/post/55876031297/quasar-pulsar-0-2-0-distributed-actors-supervisors).
