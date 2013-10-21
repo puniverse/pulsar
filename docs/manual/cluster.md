@@ -49,7 +49,7 @@ An actor doesn't have to be registered in order to be reachable on the network. 
 
 The best way to get started is by running the distributed pingpong example.
 
-Here's the code for [ping](({{examples}}/cluster/ping.clj)) and for [pong](({{examples}}/cluster/pong.clj)). You run them like this:
+Here's the code for [ping]({{examples}}/cluster/ping.clj) and for [pong]({{examples}}/cluster/pong.clj). You run them like this:
 
 ~~~ sh
 lein with-profile cluster update-in :jvm-opts conj '"-Dgalaxy.nodeId=2"' '"-Dgalaxy.port=7052"' '"-Dgalaxy.slave_port=8052"' -- run -m co.paralleluniverse.pulsar.examples.cluster.ping
