@@ -58,19 +58,19 @@
           
           
           
-            <li>
-              <a  href="/pulsar/getting-started.html">
-                Getting Started
-              </a>
-              
-            </li>
-          
         
           
           
             
           
           
+          
+            <li>
+              <a  href="/pulsar/getting-started.html">
+                Getting Started
+              </a>
+              
+            </li>
           
         
           
@@ -124,19 +124,19 @@
           
           
           
-        
-          
-          
-            
-          
-          
-          
             <li>
               <a  href="/pulsar/manual/core.html">
                 Pulsar Core
               </a>
               
             </li>
+          
+        
+          
+          
+            
+          
+          
           
         
           
@@ -259,7 +259,7 @@
 
 <p>The best way to get started is by running the distributed pingpong&nbsp;example.</p>
 
-<p>Here&#8217;s the code for <a href="(https://github.com/puniverse/pulsar/tree/master/src/test/clojure/co/paralleluniverse/pulsar/examples/cluster/ping.clj)">ping</a> and for <a href="(https://github.com/puniverse/pulsar/tree/master/src/test/clojure/co/paralleluniverse/pulsar/examples/cluster/pong.clj)">pong</a>. You run them like&nbsp;this:</p>
+<p>Here&#8217;s the code for <a href="https://github.com/puniverse/pulsar/tree/master/src/test/clojure/co/paralleluniverse/pulsar/examples/cluster/ping.clj">ping</a> and for <a href="https://github.com/puniverse/pulsar/tree/master/src/test/clojure/co/paralleluniverse/pulsar/examples/cluster/pong.clj">pong</a>. You run them like&nbsp;this:</p>
 
 <div class="highlight"><pre><code><span id="line-1">lein with-profile cluster update-in :jvm-opts conj <span class="s1">&#39;&quot;-Dgalaxy.nodeId=2&quot;&#39;</span> <span class="s1">&#39;&quot;-Dgalaxy.port=7052&quot;&#39;</span> <span class="s1">&#39;&quot;-Dgalaxy.slave_port=8052&quot;&#39;</span> -- run -m co.paralleluniverse.pulsar.examples.cluster.ping
 </span><span id="line-2">lein with-profile cluster update-in :jvm-opts conj <span class="s1">&#39;&quot;-Dgalaxy.nodeId=1&quot;&#39;</span> <span class="s1">&#39;&quot;-Dgalaxy.port=7051&quot;&#39;</span> <span class="s1">&#39;&quot;-Dgalaxy.slave_port=8051&quot;&#39;</span> -- run -m co.paralleluniverse.pulsar.examples.cluster.pong
