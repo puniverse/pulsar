@@ -3,6 +3,7 @@
   :url "http://github.com/puniverse/pulsar"
   :licenses [{:name "Eclipse Public License - v 1.0" :url "http://www.eclipse.org/legal/epl-v10.html"}
              {:name "GNU Lesser General Public License - v 3" :url "http://www.gnu.org/licenses/lgpl.html"}]
+  :min-lein-version "2.2.0"
   :distribution :repo
   :source-paths      ["src/main/clojure"]
   :test-paths        ["src/test/clojure"]
