@@ -12,6 +12,7 @@
 
 (ns co.paralleluniverse.pulsar.actors
   "Defines actors and behaviors like gen-server and supervisor"
+  (:refer-clojure :exclude [promise])
   (:import [java.util.concurrent TimeUnit ExecutionException TimeoutException]
            [co.paralleluniverse.fibers FiberScheduler]
            [co.paralleluniverse.strands Strand]
