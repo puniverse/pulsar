@@ -1,4 +1,4 @@
-# Pulsar [![Build Status](https://travis-ci.org/puniverse/pulsar.png?branch=master)](https://travis-ci.org/puniverse/pulsar)<br/>Lightweight threads, Go-like channels, and Erlang-like actors for Clojure
+# Pulsar [![Build Status](https://travis-ci.org/puniverse/pulsar.png?branch=master)](https://travis-ci.org/puniverse/pulsar) [![Dependency Status](http://www.versioneye.com/user/projects/526692ea632bac3a0f000110/badge.png)](http://www.versioneye.com/user/projects/526692ea632bac3a0f000110)<br/>Lightweight threads, Go-like channels, and Erlang-like actors for Clojure
 
 **NOTE: This is alpha software**
 
