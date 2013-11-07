@@ -112,11 +112,12 @@ public class PulsarActor extends Actor<Object, Object> {
     }
 
     @Override
-    public void handleLifecycleMessage(LifecycleMessage m) {
+    public Object handleLifecycleMessage(LifecycleMessage m) {
         if (lifecycleMessageHandler != null)
-            lifecycleMessageHandler.invoke(lifecycleMessageToClojure(m));
+            return lifecycleMessageHandler.invoke(lifecycleMessageToClojure(m));
         else
             super.handleLifecycleMessage(m);
+        return null;
     }
     
     public static Object convert(Object m) {
