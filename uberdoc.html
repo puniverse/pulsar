@@ -3889,7 +3889,7 @@ as published by the Free Software Foundation.</p>
                (select :timeout 100 
                        c ([v] v) 
                        :else &quot;timeout!&quot;)) =&gt; &quot;timeout!&quot;)
-       (fact &quot;test select with timeout2&quot;
+       (fact &quot;test select with timeout3&quot;
              (let [c (channel)
                    f (spawn-fiber #(snd c 10))]
                (select :timeout 100 
