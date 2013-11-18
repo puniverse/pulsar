@@ -305,7 +305,7 @@
                (select :timeout 100 
                        c ([v] v) 
                        :else "timeout!")) => "timeout!")
-       (fact "test select with timeout2"
+       (fact "test select with timeout3"
              (let [c (channel)
                    f (spawn-fiber #(snd c 10))]
                (select :timeout 100 

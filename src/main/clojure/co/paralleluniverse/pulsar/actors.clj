@@ -351,7 +351,7 @@
 (defn clojure->java-msg
   {:no-doc true}
   [x]
-  (if (not (tagged-tuple? x))
+  (if-not (tagged-tuple? x)
     x
     (case (first x)
       :shutdown (ShutdownMessage. (second x))
@@ -452,7 +452,7 @@
      (or (even? (count body)) (vector? (first body))) "a vector for its binding")
    (let [[body after-clause] (if (= :after (nth-from-last body 2 nil)) (split-at-from-last 2 body) [body nil])
          odd-forms   (odd? (count body))
-         bind-clause (if odd-forms (first body) nil)
+         bind-clause (when odd-forms (first body))
          transform   (second bind-clause)
          body        (if odd-forms (next body) body)
          m           (if bind-clause (first bind-clause) (gensym "m"))
