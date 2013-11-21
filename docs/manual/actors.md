@@ -424,7 +424,7 @@ from within `actor1`.
 
 ### Watching actors
 
-A more robust way than linking of being notified of actor death is with a *watch* (called *monitor* in Erlang; this is one of the very few occasions we have abandoned the Erlang function names):
+A more robust way of being notified of actor death than linking is with a *watch* (called *monitor* in Erlang; this is one of the very few occasions we have abandoned the Erlang function names):
 
 ~~~ clojure
 (let [actor1 (spawn #(Fiber/sleep 200))
