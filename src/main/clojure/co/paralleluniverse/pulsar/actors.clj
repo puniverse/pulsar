@@ -21,9 +21,9 @@
             ActorUtil LocalActorUtil
             LifecycleListener ShutdownMessage]
            [co.paralleluniverse.pulsar ClojureHelper]
-           [co.paralleluniverse.actors.behaviors GenBehavior GenBehaviorActor Initializer
-            GenServer GenServerActor
-            GenEvent GenEventActor EventHandler
+           [co.paralleluniverse.actors.behaviors Behavior BehaviorActor Initializer
+            ServerActor
+            EventSource EventSourceActor EventHandler
             Supervisor Supervisor$ChildSpec Supervisor$ChildMode SupervisorActor SupervisorActor$RestartStrategy]
            ; for types:
            [clojure.lang Keyword IObj IFn IMeta IDeref ISeq IPersistentCollection IPersistentVector IPersistentMap])
@@ -516,10 +516,10 @@
 
 (defn shutdown!
   "Asks a gen-server or a supervisor to shut down"
-  ([^GenBehavior gs]
+  ([^Behavior gs]
    (.shutdown gs))
   ([]
-   (.shutdown ^GenBehavior @self)))
+   (.shutdown ^Behavior @self)))
 
 (defn ^Initializer ->Initializer 
   ([init terminate]
@@ -552,7 +552,7 @@
 
 (defmacro log
   [level message & args]
-  `(let [^org.slf4j.Logger log# (.log ^GenBehaviorActor (Actor/currentActor))]
+  `(let [^org.slf4j.Logger log# (.log ^BehaviorActor (Actor/currentActor))]
      (if (. log# ~(symbol (str "is" (capitalize (name level)) "Enabled")))
        (. log# ~(symbol (name level)) ~message (to-array (vector ~@args))))))
 
@@ -573,7 +573,7 @@
   [server]
   (suspendable! server [co.paralleluniverse.pulsar.actors.Server])
   (reify
-    co.paralleluniverse.actors.behaviors.Server
+    co.paralleluniverse.actors.behaviors.ServerHandler
     (^void init [this]
            (init server))
     (handleCall [this ^ActorRef from id message]
@@ -592,50 +592,50 @@
   {:arglists '([:name? :timeout? :mailbox-size? :overflow-policy? server & args])}
   [& args]
   (let [[{:keys [^String name ^Integer timeout ^Integer mailbox-size overflow-policy], :or {timeout -1 mailbox-size -1}} body] (kps-args args)]
-    `(co.paralleluniverse.actors.behaviors.GenServerActor. ~name
-                                                           ^co.paralleluniverse.actors.behaviors.Server (Server->java ~(first body))
-                                                           (long ~timeout) java.util.concurrent.TimeUnit/MILLISECONDS
-                                                           nil (->MailboxConfig ~mailbox-size ~overflow-policy))))
+    `(co.paralleluniverse.actors.behaviors.ServerActor. ~name
+                                                        ^co.paralleluniverse.actors.behaviors.Server (Server->java ~(first body))
+                                                        (long ~timeout) java.util.concurrent.TimeUnit/MILLISECONDS
+                                                        nil (->MailboxConfig ~mailbox-size ~overflow-policy))))
 
 (defn call!
   "Makes a synchronous call to a gen-server and returns the response"
-  ([^GenServer gs m]
+  ([^co.paralleluniverse.actors.behaviors.Server gs m]
    (unwrap-exception
      (.call gs m)))
-  ([^GenServer gs m & args]
+  ([^co.paralleluniverse.actors.behaviors.Server gs m & args]
    (unwrap-exception
      (.call gs (vec (cons m args))))))
 
 (defn call-timed!
   "Makes a synchronous call to a gen-server and returns the response"
-  ([^GenServer gs timeout unit m]
+  ([^co.paralleluniverse.actors.behaviors.Server gs timeout unit m]
    (unwrap-exception
      (.call gs m (long timeout) (->timeunit unit))))
-  ([^GenServer gs timeout unit m & args]
+  ([^co.paralleluniverse.actors.behaviors.Server gs timeout unit m & args]
    (unwrap-exception
      (.call gs (vec (cons m args)) (long timeout) (->timeunit unit)))))
 
 (defn cast!
   "Makes an asynchronous call to a gen-server"
-  ([^GenServer gs m]
+  ([^co.paralleluniverse.actors.behaviors.Server gs m]
    (.cast gs m))
-  ([^GenServer gs m & args]
+  ([^co.paralleluniverse.actors.behaviors.Server gs m & args]
    (.cast gs (vec (cons m args)))))
 
 (defn set-timeout!
   "Sets the timeout for the current gen-server"
   [timeout unit]
-  (.setTimeout (GenServerActor/currentGenServer) timeout (->timeunit unit)))
+  (.setTimeout (ServerActor/currentServerActor) timeout (->timeunit unit)))
 
 (defn reply!
   "Replies to a message sent to the current gen-server"
   [^Actor to id res]
-  (.reply (GenServerActor/currentGenServer) to id res))
+  (.reply (ServerActor/currentServerActor) to id res))
 
 (defn reply-error!
   "Replies with an error to a message sent to the current gen-server"
   [^Actor to id ^Throwable error]
-  (.replyError (GenServerActor/currentGenServer) to id error))
+  (.replyError (ServerActor/currentServerActor) to id error))
 
 ;; ## gen-event
 
@@ -644,9 +644,9 @@
   {:arglists '([:name? :timeout? :mailbox-size? :overflow-policy? server & args])}
   [& args]
   (let [[{:keys [^String name ^Integer mailbox-size overflow-policy], :or {mailbox-size -1}} body] (kps-args args)]
-    (GenEventActor. name
-                    (->Initializer (first body) (second body))
-                    nil (->MailboxConfig mailbox-size overflow-policy))))
+    (EventSourceActor. name
+                       (->Initializer (first body) (second body))
+                       nil (->MailboxConfig mailbox-size overflow-policy))))
 
 (deftype PulsarEventHandler
   [handler]
@@ -658,15 +658,15 @@
           (and (instance? PulsarEventHandler other) (= handler (.handler ^PulsarEventHandler other)))))
 
 (defn notify!
-  [^GenEvent ge event]
+  [^EventSource ge event]
   (.notify ge event))
 
 (defn add-handler!
-  [^GenEvent ge handler]
+  [^EventSource ge handler]
   (.addHandler ge (->PulsarEventHandler (suspendable! handler))))
 
 (defn remove-handler!
-  [^GenEvent ge handler]
+  [^EventSource ge handler]
   (.removeHandler ge (->PulsarEventHandler (suspendable! handler))))
 
 ;; ## supervisor
