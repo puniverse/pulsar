@@ -589,7 +589,7 @@ Pulsar supports this as an experimental feature (implemented internally with <co
 
 <h3 id="watching-actors">Watching&nbsp;actors</h3>
 
-<p>A more robust way than linking of being notified of actor death is with a <em>watch</em> (called <em>monitor</em> in Erlang; this is one of the very few occasions we have abandoned the Erlang function&nbsp;names):</p>
+<p>A more robust way of being notified of actor death than linking is with a <em>watch</em> (called <em>monitor</em> in Erlang; this is one of the very few occasions we have abandoned the Erlang function&nbsp;names):</p>
 
 <div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">actor1</span> <span class="p">(</span><span class="nf">spawn</span> <span class="o">#</span><span class="p">(</span><span class="nf">Fiber/sleep</span> <span class="mi">200</span><span class="p">))</span>
 </span><span id="line-2">      <span class="nv">actor2</span> <span class="p">(</span><span class="nf">spawn</span>
