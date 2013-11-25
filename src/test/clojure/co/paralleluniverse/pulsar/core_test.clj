@@ -85,6 +85,17 @@
         (fact @fut => 42)
         (fact (realized? fut) => true)))
 
+(fact "async blocks the fiber and returns the value passed to the callback"
+      (let [exec (java.util.concurrent.Executors/newSingleThreadExecutor)
+            service (fn [a b clbk]
+                      (.execute exec ^Runnable (fn []
+                                                 (sleep 50)
+                                                 (clbk (+ a b)))))
+            fiber (spawn-fiber
+                    (fn []
+                      (await service 2 5)))]
+        (join fiber) => 7))
+
 ;; ## channels
 
 (fact "Test channel close"

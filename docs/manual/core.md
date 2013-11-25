@@ -114,6 +114,23 @@ Running a `dosync` block inside a fiber is discouraged as it uses locks internal
 
 Promises are supported and encouraged, but you should not make use of `clojure.core/promise` to create a promise that's to be dereferenced in a fiber. Pulsar provides a different -- yet completely compatible -- form of promises, as you'll see soon.
 
+## Transforming any Asynchronous Callback to A Fiber-Blocking Operation
+
+Fibers are great as a replacement for callbacks. The `await` macro helps us easily turn any callback-based asynchronous operation to as simple fiber-blocking call. `await` assumes that an asynchronous function takes a callback of a single argument as its last parameter; `await` then blocks the current fiber until the callback is called, and the returns the value passed to the callback.
+
+Here's an example from the tests:
+
+~~~ clojure
+(let [exec (java.util.concurrent.Executors/newSingleThreadExecutor)
+      service (fn [a b clbk] ; an asynchronous service
+                  (.execute exec ^Runnable (fn []
+                                              (sleep 50)
+                                              (clbk (+ a b)))))]
+  (spawn-fiber
+      (fn []
+          (await service 2 5)))) ; => 7
+~~~
+
 ### Strands
 
 Before we continue, one more bit of nomenclature: a single flow of execution in Quasar/Pulsar is called a *strand*. To put it more simply, a strand is either a normal JVM thread, or a fiber.

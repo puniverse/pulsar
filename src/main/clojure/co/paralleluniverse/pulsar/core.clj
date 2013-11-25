@@ -32,7 +32,7 @@
           IntSendPort LongSendPort FloatSendPort DoubleSendPort
           IntReceivePort LongReceivePort FloatReceivePort DoubleReceivePort
           DelayedVal]
-         [co.paralleluniverse.pulsar ClojureHelper ChannelsHelper]
+         [co.paralleluniverse.pulsar ClojureHelper ChannelsHelper ClojureFiberAsync]
          ; for types:
          [clojure.lang Keyword Sequential IObj IFn IMeta IDeref ISeq IPersistentCollection IPersistentVector IPersistentMap])
 (:require [co.paralleluniverse.pulsar.interop :refer :all]
@@ -370,6 +370,18 @@
       (isCancelled [_] (.isCancelled fut))
       (isDone [_] (.isDone fut))
       (cancel [_ interrupt?] (.cancel fut interrupt?)))))
+
+(defmacro await
+  "Calls f, which takes a callback of a single argument as its last parameter,
+  with arguments args, and blocks the current fiber until the callback is called,
+  then returns the value passed to the callback."
+  [f & args]
+  `(let [^co.paralleluniverse.pulsar.ClojureFiberAsync fa#
+         (co.paralleluniverse.pulsar.ClojureFiberAsync.
+           (fn [^co.paralleluniverse.pulsar.ClojureFiberAsync fa1#]
+             (~f ~@args #(.complete fa1# %))))]
+     (.run fa#)))
+
 
 ;; ## Strands
 ;; A strand is either a thread or a fiber.
