@@ -3680,7 +3680,7 @@ as published by the Free Software Foundation.</p>
             fut (fiber-&gt;future fiber)]
         (fact @fut =&gt; 42)
         (fact (realized? fut) =&gt; true)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(fact &quot;async blocks the fiber and returns the value passed to the callback&quot;
+</td><td class="codes"><pre class="brush: clojure">(fact &quot;await blocks the fiber and returns the value passed to the callback&quot;
       (let [exec (java.util.concurrent.Executors/newSingleThreadExecutor)
             service (fn [a b clbk]
                       (.execute exec ^Runnable (fn []
