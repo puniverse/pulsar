@@ -58,19 +58,19 @@
           
           
           
-        
-          
-          
-            
-          
-          
-          
             <li>
               <a  href="/pulsar/getting-started.html">
                 Getting Started
               </a>
               
             </li>
+          
+        
+          
+          
+            
+          
+          
           
         
           
@@ -124,21 +124,21 @@
           
           
           
-            <li>
-              <a class="active" href="/pulsar/manual/core.html">
-                Pulsar Core
-              </a>
-              
-              <ul class="nav nav-list"><li><a href="#quasar-and-pulsar">Quasar and&nbsp;Pulsar</a></li><li><a href="#fibers">Fibers</a></li><li><a href="#promises-promises">Promises,&nbsp;Promises</a></li><li><a href="#channels">Channels</a></li></ul>
-              
-            </li>
-          
         
           
           
             
           
           
+          
+            <li>
+              <a class="active" href="/pulsar/manual/core.html">
+                Pulsar Core
+              </a>
+              
+              <ul class="nav nav-list"><li><a href="#quasar-and-pulsar">Quasar and&nbsp;Pulsar</a></li><li><a href="#fibers">Fibers</a></li><li><a href="#transforming-any-asynchronous-callback-to-a-fiber-blocking-operation">Transforming any Asynchronous Callback to A Fiber-Blocking&nbsp;Operation</a></li><li><a href="#promises-promises">Promises,&nbsp;Promises</a></li><li><a href="#channels">Channels</a></li></ul>
+              
+            </li>
           
         
           
@@ -320,6 +320,21 @@ from the Pulsar test&nbsp;suite:</p>
 
 <p>Promises are supported and encouraged, but you should not make use of <code>clojure.core/promise</code> to create a promise that’s to be dereferenced in a fiber. Pulsar provides a different – yet completely compatible – form of promises, as you’ll see&nbsp;soon.</p>
 
+<h2 id="transforming-any-asynchronous-callback-to-a-fiber-blocking-operation">Transforming any Asynchronous Callback to A Fiber-Blocking&nbsp;Operation</h2>
+
+<p>Fibers are great as a replacement for callbacks. The <code>await</code> macro helps us easily turn any callback-based asynchronous operation to as simple fiber-blocking call. <code>await</code> assumes that an asynchronous function takes a callback of a single argument as its last parameter; <code>await</code> then blocks the current fiber until the callback is called, and the returns the value passed to the&nbsp;callback.</p>
+
+<p>Here’s an example from the&nbsp;tests:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">exec</span> <span class="p">(</span><span class="nf">java.util.concurrent.Executors/newSingleThreadExecutor</span><span class="p">)</span>
+</span><span id="line-2">      <span class="nv">service</span> <span class="p">(</span><span class="k">fn </span><span class="p">[</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">clbk</span><span class="p">]</span> <span class="c1">; an asynchronous service</span>
+</span><span id="line-3">                  <span class="p">(</span><span class="nf">.execute</span> <span class="nv">exec</span> <span class="o">^</span><span class="nv">Runnable</span> <span class="p">(</span><span class="k">fn </span><span class="p">[]</span>
+</span><span id="line-4">                                              <span class="p">(</span><span class="nf">sleep</span> <span class="mi">50</span><span class="p">)</span>
+</span><span id="line-5">                                              <span class="p">(</span><span class="nf">clbk</span> <span class="p">(</span><span class="nb">+ </span><span class="nv">a</span> <span class="nv">b</span><span class="p">)))))]</span>
+</span><span id="line-6">  <span class="p">(</span><span class="nf">spawn-fiber</span>
+</span><span id="line-7">      <span class="p">(</span><span class="k">fn </span><span class="p">[]</span>
+</span><span id="line-8">          <span class="p">(</span><span class="nb">await </span><span class="nv">service</span> <span class="mi">2</span> <span class="mi">5</span><span class="p">))))</span> <span class="c1">; =&gt; 7</span>
+</span></code></pre></div>
 <h3 id="strands">Strands</h3>
 
 <p>Before we continue, one more bit of nomenclature: a single flow of execution in Quasar/Pulsar is called a <em>strand</em>. To put it more simply, a strand is either a normal <span class="caps">JVM</span> thread, or a&nbsp;fiber.</p>
