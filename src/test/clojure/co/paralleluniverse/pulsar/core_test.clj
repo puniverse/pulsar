@@ -85,7 +85,7 @@
         (fact @fut => 42)
         (fact (realized? fut) => true)))
 
-(fact "async blocks the fiber and returns the value passed to the callback"
+(fact "await blocks the fiber and returns the value passed to the callback"
       (let [exec (java.util.concurrent.Executors/newSingleThreadExecutor)
             service (fn [a b clbk]
                       (.execute exec ^Runnable (fn []
