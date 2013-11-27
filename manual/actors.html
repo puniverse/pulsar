@@ -58,19 +58,19 @@
           
           
           
-        
-          
-          
-            
-          
-          
-          
             <li>
               <a  href="/pulsar/getting-started.html">
                 Getting Started
               </a>
               
             </li>
+          
+        
+          
+          
+            
+          
+          
           
         
           
@@ -124,19 +124,19 @@
           
           
           
-            <li>
-              <a  href="/pulsar/manual/core.html">
-                Pulsar Core
-              </a>
-              
-            </li>
-          
         
           
           
             
           
           
+          
+            <li>
+              <a  href="/pulsar/manual/core.html">
+                Pulsar Core
+              </a>
+              
+            </li>
           
         
           
@@ -819,7 +819,7 @@ Pulsar supports this as an experimental feature (implemented internally with <co
 
 <p>The general idea is that actors performing business logic, “worker actors”, are supervised by a supervisor actor that detects when they die and takes one of several pre-configured actions. Supervisors may, in turn, be supervised by other supervisors, thus forming a supervision hierarchy that compartmentalizes failure and&nbsp;recovery. </p>
 
-<p>A supervisors work as follows: it has a number of <em>children</em>, worker actors or other supervisors that are registered to be supervised wither at the supervisor’s construction time or at a later time. Each child has a mode, <code>:permanent</code>, <code>:transient</code> or <code>:temporary</code> that determines whether its death will trigger the supervisor’s <em>recovery event</em>. When the recovery event is triggered, the supervisor takes action specified by its <em>restart strategy</em>, or it will give up and fail, depending on predefined failure&nbsp;modes. </p>
+<p>A supervisors works as follows: it has a number of <em>children</em>, worker actors or other supervisors that are registered to be supervised wither at the supervisor’s construction time or at a later time. Each child has a mode, <code>:permanent</code>, <code>:transient</code> or <code>:temporary</code> that determines whether its death will trigger the supervisor’s <em>recovery event</em>. When the recovery event is triggered, the supervisor takes action specified by its <em>restart strategy</em>, or it will give up and fail, depending on predefined failure&nbsp;modes. </p>
 
 <p>When a child actor in the <code>:permanent</code> mode dies, it will always trigger its supervisor’s recovery event. When a child in the <code>:transient</code> mode dies, it will trigger a recovery event only if it has died as a result of an exception, but not if it has simply finished its operation. A <code>:temporary</code> child never triggers it supervisor’s recovery&nbsp;event.</p>
 
