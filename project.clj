@@ -19,7 +19,7 @@
                  [org.clojure/core.match "0.2.0"]
                  [useful "0.8.8"]
                  [gloss "0.2.2" :exclusions [com.yammer.metrics/metrics-core useful]]
-                 [org.clojure/core.typed "0.2.17" :exclusions [org.apache.ant/ant org.clojure/core.unify]]]
+                 [org.clojure/core.typed "0.2.20" :exclusions [org.apache.ant/ant org.clojure/core.unify]]]
   :manifest {"Premain-Class" "co.paralleluniverse.fibers.instrument.JavaAgent"
              "Can-Retransform-Classes" "true"}
   :jvm-opts ["-server"
@@ -31,7 +31,7 @@
   :profiles {;; ----------- dev --------------------------------------
              :dev
              {:plugins [[lein-midje "3.1.1"]]
-              :dependencies [[midje "1.5.1" :exclusions [org.clojure/tools.namespace]]]
+              :dependencies [[midje "1.6.0" :exclusions [org.clojure/tools.namespace]]]
               :jvm-opts [;; Debugging
                          "-ea"
                          ;"-Dco.paralleluniverse.lwthreads.verifyInstrumentation=true"
@@ -72,7 +72,7 @@
              {:plugins [[lein-midje "3.1.1"]
                         [codox "0.6.4"]
                         [lein-marginalia "0.7.1"]]
-              :dependencies [[midje "1.5.1"]]
+              :dependencies [[midje "1.6.0"]]
               :exclusions [org.clojure/tools.namespace]
               :injections [(require 'clojure.test)
                            (alter-var-root #'clojure.test/*load-tests* (constantly false))]
