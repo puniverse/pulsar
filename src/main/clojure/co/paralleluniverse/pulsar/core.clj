@@ -105,12 +105,12 @@
 
 (ann ops-args [(ISeq (Vector* (Fn [Any -> Boolean]) Any)) (ISeq Any) -> (ISeq Any)])
 (defn- ops-args
-  {:no-doc true}
-  [pds xs]
   "Used to simplify optional parameters in functions.
   Takes a sequence of [predicate? default] pairs, and a sequence of arguments. Tests the first predicate against
   the first argument. If the predicate succeeds, emits the argument's value; if not - the default, and tries the
   next pair with the argument. Any remaining arguments are copied to the output as-is."
+  {:no-doc true}
+  [pds xs]
   (if (seq pds)
     (let [[p? d] (first pds)
           x      (first xs)]
@@ -297,7 +297,7 @@
   (Fiber/currentFiber))
 
 (defn- current-scheduler []
-  (when-let [f (current-fiber)]
+  (when-let [^Fiber f (current-fiber)]
     (.getScheduler f)))
 
 (ann default-fiber-scheduler FiberScheduler)

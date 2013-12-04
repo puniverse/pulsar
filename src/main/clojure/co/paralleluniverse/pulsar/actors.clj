@@ -537,14 +537,14 @@
 (defmacro request!
   [actor & message]
   `(join (spawn (fn [] 
-                  (! actor ~@message)
+                  (! ~actor ~@message)
                   (receive)))))
 
 (defmacro request-timed!
   [timeout actor & message]
   `(join (spawn (fn [] 
-                  (! actor ~@message)
-                  (receive-timed timeout)))))
+                  (! ~actor ~@message)
+                  (receive-timed ~timeout)))))
 
 (defn capitalize [s]
   {:no-doc true}
@@ -689,15 +689,15 @@
       (PulsarActor. name trap (->MailboxConfig mailbox-size overflow-policy) lifecycle-handler f))))
 
 (defn- child-spec
-  [id mode max-restarts duration unit shutdown-deadline-millis & args]
+  [^String id mode max-restarts duration unit shutdown-deadline-millis & args]
   (Supervisor$ChildSpec. id
                          (keyword->enum Supervisor$ChildMode mode)
                          (int max-restarts)
                          (long duration) (->timeunit unit)
                          (long shutdown-deadline-millis)
-                         (if (instance? ActorBuilder (first args))
-                           (first args)
-                           (actor-builder #(apply create-actor args)))))
+                         ^ActorBuilder (if (instance? ActorBuilder (first args))
+                                         (first args)
+                                         (actor-builder #(apply create-actor args)))))
 
 (defsfn add-child!
   "Adds an actor to a supervisor"
