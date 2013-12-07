@@ -384,7 +384,7 @@
 (defsfn receive-timed
   "Waits (and returns) for a message for up to timeout ms. If time elapses -- returns nil."
   [^Integer timeout]
-  (co.paralleluniverse.actors.PulsarActor/selfReceive timeout))
+  (co.paralleluniverse.actors.PulsarActor/selfReceive timeout TimeUnit/MILLISECONDS))
 
 ;; For examples of this macro's expansions, try:
 ;; (pprint (macroexpand-1 '(receive)))
@@ -462,7 +462,7 @@
        ; if we have an :else then every message is processed and our job is easy
        `(let ~(into [] (concat
                          (if after-clause `[~timeout ~(second after-clause)] [])
-                         `[~m ~(concat `(co.paralleluniverse.actors.PulsarActor/selfReceive) (if after-clause `(~timeout) ()))]
+                         `[~m ~(concat `(co.paralleluniverse.actors.PulsarActor/selfReceive) (if after-clause `(~timeout java.util.concurrent.TimeUnit/MILLISECONDS) ()))]
                          (if transform `[~m (~transform ~m)] [])))
           ~@(surround-with (when after-clause `(if (nil? ~m) ~(nth after-clause 2)))
                            `(match ~m ~@body)))

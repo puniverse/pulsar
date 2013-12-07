@@ -50,8 +50,8 @@ public class PulsarActor extends Actor<Object, Object> {
         return Actor.currentActor().receive();
     }
 
-    public static Object selfReceive(long timeout) throws SuspendExecution, InterruptedException {
-        return currentActor().receive(timeout);
+    public static Object selfReceive(long timeout, TimeUnit unit) throws SuspendExecution, InterruptedException {
+        return currentActor().receive(timeout, unit);
     }
 
     public static Object selfGetState() {
@@ -95,22 +95,6 @@ public class PulsarActor extends Actor<Object, Object> {
         return convert(m);
     }
 
-    public Object receive(long timeout) throws SuspendExecution, InterruptedException {
-        return receive(timeout, TimeUnit.MILLISECONDS);
-    }
-
-    public void processed(Object n) {
-        monitorAddMessage();
-        mailbox().del(n);
-    }
-
-    public void skipped(Object n) {
-        monitorSkippedMessage();
-        final Object m = mailbox().value(n);
-        if (m instanceof LifecycleMessage)
-            handleLifecycleMessage((LifecycleMessage) m);
-    }
-
     @Override
     public Object handleLifecycleMessage(LifecycleMessage m) {
         if (lifecycleMessageHandler != null)
@@ -129,15 +113,13 @@ public class PulsarActor extends Actor<Object, Object> {
             return m;
     }
 
-    public static IObj lifecycleMessageToClojure(LifecycleMessage msg) {
+    private static IObj lifecycleMessageToClojure(LifecycleMessage msg) {
         if (msg instanceof ExitMessage) {
             final ExitMessage m = (ExitMessage) msg;
-            final IObj v = PersistentVector.create(keyword("exit"), m.watch, m.actor, m.cause);
-            return v;
+            return PersistentVector.create(keyword("exit"), m.watch, m.actor, m.cause);
         } else if(msg instanceof ShutdownMessage) {
             final ShutdownMessage m = (ShutdownMessage) msg;
-            final IObj v = PersistentVector.create(keyword("shutdown"), m.requester);
-            return v;
+            return PersistentVector.create(keyword("shutdown"), m.requester);
         }
         throw new RuntimeException("Unknown lifecycle message: " + msg);
     }
@@ -147,6 +129,19 @@ public class PulsarActor extends Actor<Object, Object> {
     }
     
     ///////////////// Simple delegates ////////////////////////////
+
+
+    public void processed(Object n) {
+        monitorAddMessage();
+        mailbox().del(n);
+    }
+
+    public void skipped(Object n) {
+        monitorSkippedMessage();
+        final Object m = mailbox().value(n);
+        if (m instanceof LifecycleMessage)
+            handleLifecycleMessage((LifecycleMessage) m);
+    }
 
     public Object succ(Object n) {
         if (n == null)
