@@ -75,6 +75,13 @@
                              :else "oy"))]
               (! actor [:why? "because!"])
               (join actor)) => "because!")
+      (fact "Test actor matching receive 3"
+            (let [res (atom [])
+                  actor (spawn
+                          #(receive
+                            [x y] (+ x y)))]
+              (! actor [2 3])
+              (join actor)) => 5)
       (fact "When matching receive and timeout then run :after clause"
             (let [actor
                   (spawn
@@ -87,7 +94,7 @@
               (join actor)) => :timeout))
 
 (fact "selective-receive"
-      (fact "Test selective receive"
+      (fact "Test selective receive1"
             (let [res (atom [])
                   actor (spawn
                           #(dotimes [i 2]
@@ -102,7 +109,18 @@
               (! actor [:bar 2])
               (! actor [:baz 3])
               (join actor)
-              @res) => [1 3 2]))
+              @res) => [1 3 2])
+      (fact "Test selective ping pong"
+            (let [actor1 (spawn
+                           #(receive
+                             [from m] (! from @self (str m "!!!")))) ; same as (! from [@self (str m "!!!")])
+                  actor2 (spawn
+                           (fn []
+                             (! actor1 @self (receive)) ; same as (! actor1 [@self (receive)])
+                             (receive
+                               [actor1 res] res)))]
+              (! actor2 "hi")
+              (join actor2)) => "hi!!!"))
 
 (facts "actor-link"
        (fact "When an actor dies, its link gets an exception"
