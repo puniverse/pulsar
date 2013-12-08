@@ -3098,6 +3098,13 @@ as published by the Free Software Foundation.</p>
                              :else &quot;oy&quot;))]
               (! actor [:why? &quot;because!&quot;])
               (join actor)) =&gt; &quot;because!&quot;)
+      (fact &quot;Test actor matching receive 3&quot;
+            (let [res (atom [])
+                  actor (spawn
+                          #(receive
+                            [x y] (+ x y)))]
+              (! actor [2 3])
+              (join actor)) =&gt; 5)
       (fact &quot;When matching receive and timeout then run :after clause&quot;
             (let [actor
                   (spawn
@@ -3109,7 +3116,7 @@ as published by the Free Software Foundation.</p>
               (! actor 1)
               (join actor)) =&gt; :timeout))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(fact &quot;selective-receive&quot;
-      (fact &quot;Test selective receive&quot;
+      (fact &quot;Test selective receive1&quot;
             (let [res (atom [])
                   actor (spawn
                           #(dotimes [i 2]
@@ -3124,7 +3131,18 @@ as published by the Free Software Foundation.</p>
               (! actor [:bar 2])
               (! actor [:baz 3])
               (join actor)
-              @res) =&gt; [1 3 2]))</pre></td></tr><tr><td class="docs">
+              @res) =&gt; [1 3 2])
+      (fact &quot;Test selective ping pong&quot;
+            (let [actor1 (spawn
+                           #(receive
+                             [from m] (! from @self (str m &quot;!!!&quot;)))) ; same as (! from [@self (str m &quot;!!!&quot;)])
+                  actor2 (spawn
+                           (fn []
+                             (! actor1 @self (receive)) ; same as (! actor1 [@self (receive)])
+                             (receive
+                               [actor1 res] res)))]
+              (! actor2 &quot;hi&quot;)
+              (join actor2)) =&gt; &quot;hi!!!&quot;))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(facts &quot;actor-link&quot;
        (fact &quot;When an actor dies, its link gets an exception&quot;
              (let [actor1 (spawn #(Fiber/sleep 100))
@@ -3239,7 +3257,7 @@ as published by the Free Software Foundation.</p>
                (! actor 38.6)
                (join actor)) =&gt; 42.0))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(facts &quot;mailbox-seq&quot;
-       (fact :selected &quot;Send and receive sequence (via @mailbox)&quot;
+       (fact &quot;Send and receive sequence (via @mailbox)&quot;
              (let [actor (spawn #(s/doall (s/take 5 (channel-&gt;lazy-seq @mailbox))))]
                (snd-seq (mailbox-of actor) (take 10 (range)))
                (join actor)) =&gt; '(0 1 2 3 4))
@@ -3428,7 +3446,22 @@ as published by the Free Software Foundation.</p>
                                (handle-info [_ m]
                                             (throw (Exception. &quot;oops!&quot;))))))]
         (! gs :hi)
-        (join gs)) =&gt; (throws Exception &quot;oops!&quot;))</pre></td></tr><tr><td class="docs"><h2>gen-event</h2>
+        (join gs)) =&gt; (throws Exception &quot;oops!&quot;))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(fact :selected &quot;Test receive in handle-call&quot;
+      (co.paralleluniverse.common.util.Debug/dumpAfter 5000 &quot;foo.log&quot;)
+      (let [actor (spawn #(receive
+                           [from m] (do (println &quot;receive&quot; [from m])
+                                        (println &quot;sending&quot; [@self (str m &quot;!!!&quot;)])
+                                        (! from @self (str m &quot;!!!&quot;)))))
+            gs (spawn
+                 (gen-server (reify Server
+                               (init [_])
+                               (terminate [_ cause])
+                               (handle-call [_ from id [a b]]
+                                 (! actor @self (+ a b))
+                                 (receive
+                                   [x m] m)))))]
+        (call! gs 3 4)) =&gt; &quot;7!!!&quot;)</pre></td></tr><tr><td class="docs"><h2>gen-event</h2>
 </td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(unfinished handler1 handler2)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(fact &quot;When notify gen-event then call handlers&quot;
