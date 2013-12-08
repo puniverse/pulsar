@@ -35,8 +35,8 @@ public class PulsarActor extends Actor<Object, Object> {
         actor.sendSync(m);
     }
 
-    public static PulsarActor currentActor() {
-        final PulsarActor ca = (PulsarActor)Actor.currentActor();
+    public static Actor currentActor() {
+        final Actor ca = Actor.currentActor();
         if (ca == null)
             throw new RuntimeException("Not running within an actor");
         return ca;
@@ -131,55 +131,59 @@ public class PulsarActor extends Actor<Object, Object> {
     ///////////////// Simple delegates ////////////////////////////
 
 
-    public void processed(Object n) {
-        monitorAddMessage();
-        mailbox().del(n);
+    public static void processed(Actor a, Object n) {
+        a.monitorAddMessage();
+        a.mailbox().del(n);
     }
 
-    public void skipped(Object n) {
-        monitorSkippedMessage();
-        final Object m = mailbox().value(n);
+    public static void skipped(Actor a, Object n) {
+        a.monitorSkippedMessage();
+        final Object m = a.mailbox().value(n);
         if (m instanceof LifecycleMessage)
-            handleLifecycleMessage((LifecycleMessage) m);
+            handleLifecycleMessage(a, (LifecycleMessage) m);
     }
 
-    public Object succ(Object n) {
+    public static void handleLifecycleMessage(Actor a, LifecycleMessage m) {
+        a.handleLifecycleMessage(m);
+    }
+
+    public static Object succ(Actor a, Object n) {
         if (n == null)
-            monitorResetSkippedMessages();
-        return mailbox().succ(n);
+            a.monitorResetSkippedMessages();
+        return a.mailbox().succ(n);
     }
 
-    public Object value(Object n) {
-        final Object m = mailbox().value(n);
-        record(1, "PulsarActor", "receive", "Received %s <- %s", this, m);
+    public static Object value(Actor a, Object n) {
+        final Object m = a.mailbox().value(n);
+        a.record(1, "PulsarActor", "receive", "Received %s <- %s", a, m);
         return m;
     }
 
-    public void maybeSetCurrentStrandAsOwner() {
-        mailbox().maybeSetCurrentStrandAsOwner();
+    public static void maybeSetCurrentStrandAsOwner(Actor a) {
+        a.mailbox().maybeSetCurrentStrandAsOwner();
     }
 
-    public void lock() {
-        mailbox().lock();
+    public static void lock(Actor a) {
+        a.mailbox().lock();
     }
 
-    public void unlock() {
-        mailbox().unlock();
+    public static void unlock(Actor a) {
+        a.mailbox().unlock();
     }
 
-    public void await(int iter) throws SuspendExecution, InterruptedException {
-        record(1, "PulsarActor", "receive", "%s waiting for a message", this);
-        mailbox().await(iter);
+    public static void await(Actor a, int iter) throws SuspendExecution, InterruptedException {
+        a.record(1, "PulsarActor", "receive", "%s waiting for a message", a);
+        a.mailbox().await(iter);
     }
 
-    public void await(int iter, long timeout, TimeUnit unit) throws SuspendExecution, InterruptedException {
-        if (flightRecorder != null)
-            record(1, "PulsarActor", "receive", "%s waiting for a message.Millis left: %s ", this, TimeUnit.MILLISECONDS.convert(timeout, unit));
-        mailbox().await(iter, timeout, unit);
+    public static void await(Actor a, int iter, long timeout, TimeUnit unit) throws SuspendExecution, InterruptedException {
+        if (a.flightRecorder != null)
+            a.record(1, "PulsarActor", "receive", "%s waiting for a message.Millis left: %s ", a, TimeUnit.MILLISECONDS.convert(timeout, unit));
+        a.mailbox().await(iter, timeout, unit);
     }
 
-    public void timeout() throws TimeoutException {
-        record(1, "PulsarActor", "receive", "%s timed out", this);
+    public static void timeout(Actor a) throws TimeoutException {
+        a.record(1, "PulsarActor", "receive", "%s timed out", a);
         throw new TimeoutException();
     }
 }

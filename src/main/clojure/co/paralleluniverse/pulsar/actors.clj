@@ -322,7 +322,6 @@
 ([]
  (.unregister (Actor/currentActor))))
 
-(ann mailbox-of [PulsarActor -> Channel])
 (defn ^SendPort mailbox-of
   "Returns the mailbox of the given actor."
   [^ActorRef actor]
@@ -470,22 +469,24 @@
        (let [pbody   (partition 2 body)
              mailbox (gensym "mailbox") n (gensym "n") m2 (gensym "m2") mtc (gensym "mtc") exp (gensym "exp")] ; symbols
          `(let [[~mtc ~m]
-                (let ~(into [] (concat `[^co.paralleluniverse.actors.PulsarActor ~mailbox (co.paralleluniverse.actors.PulsarActor/currentActor)]
+                (let ~(into [] (concat `[^co.paralleluniverse.actors.Actor ~mailbox (co.paralleluniverse.actors.PulsarActor/currentActor)]
                                        (if after-clause `[~timeout ~(second after-clause)
                                                           ~exp (if (pos? ~timeout) (long (+ (long (System/nanoTime)) (long (* 1000000 ~timeout)))) 0)] [])))
-                  (.maybeSetCurrentStrandAsOwner ~mailbox)
+                  (co.paralleluniverse.actors.PulsarActor/maybeSetCurrentStrandAsOwner ~mailbox)
                   (loop [prev# nil ~iter 0]
-                    (.lock ~mailbox)
-                    (let [~n (.succ ~mailbox prev#)]
-                      ~(let [quick-match (concat ; ((pat1 act1) (pat2 act2)...) => (pat1 (do (.processed mailbox# n#) 0) pat2 (do (del mailbox# n#) 1)... :else -1)
-                                           (mapcat #(list (first %1) `(do (.processed ~mailbox ~n) ~%2)) pbody (range)); for each match pattern, call processed and return an ordinal
-                                           `(:else (do (.skipped ~mailbox ~n) -1)))]
+                    (co.paralleluniverse.actors.PulsarActor/lock ~mailbox)
+                    (let [~n (co.paralleluniverse.actors.PulsarActor/succ ~mailbox prev#)]
+                      ~(let [quick-match (concat ; ((pat1 act1) (pat2 act2)...) => (pat1 (do (co.paralleluniverse.actors.PulsarActor/processed mailbox# n#) 0) pat2 (do (del mailbox# n#) 1)... :else -1)
+                                           (mapcat #(list (first %1) `(do (co.paralleluniverse.actors.PulsarActor/processed ~mailbox ~n) ~%2)) pbody (range)); for each match pattern, call processed and return an ordinal
+                                           `(:else (do (co.paralleluniverse.actors.PulsarActor/skipped ~mailbox ~n) -1)))]
                          `(if ~n
                             (do
-                              (.unlock ~mailbox)
-                              (let [m1# (.value ~mailbox ~n)]
-                                (when (and (not (.isTrap ~mailbox)) (instance? co.paralleluniverse.actors.LifecycleMessage m1#))
-                                  (.handleLifecycleMessage ~mailbox m1#))
+                              (co.paralleluniverse.actors.PulsarActor/unlock ~mailbox)
+                              (let [m1# (co.paralleluniverse.actors.PulsarActor/value ~mailbox ~n)]
+                                (when (and (instance? co.paralleluniverse.actors.LifecycleMessage m1#)
+                                           (or (not (instance? co.paralleluniverse.actors.PulsarActor ~mailbox))
+                                               (not (.isTrap ^co.paralleluniverse.actors.PulsarActor (cast co.paralleluniverse.actors.PulsarActor ~mailbox)))))
+                                  (co.paralleluniverse.actors.PulsarActor/handleLifecycleMessage ~mailbox m1#))
                                 (let [~m2 (co.paralleluniverse.actors.PulsarActor/convert m1#)
                                       ~m ~(if transform `(~transform ~m2) `~m2)
                                       act# (int (match ~m ~@quick-match))]
@@ -497,16 +498,16 @@
                                `(when-not (== ~timeout 0)
                                   (do ; timeout != 0 and ~n == nil
                                     (try
-                                      (.await ~mailbox ~iter (- ~exp (long (System/nanoTime))) java.util.concurrent.TimeUnit/NANOSECONDS)
+                                      (co.paralleluniverse.actors.PulsarActor/await ~mailbox ~iter (- ~exp (long (System/nanoTime))) java.util.concurrent.TimeUnit/NANOSECONDS)
                                       (finally
-                                        (.unlock ~mailbox)))
+                                        (co.paralleluniverse.actors.PulsarActor/unlock ~mailbox)))
                                     (when-not (> (long (System/nanoTime)) ~exp)
                                       (recur ~n (inc ~iter)))))
                                `(do
                                   (try
-                                    (.await ~mailbox ~iter)
+                                    (co.paralleluniverse.actors.PulsarActor/await ~mailbox ~iter)
                                     (finally
-                                      (.unlock ~mailbox)))
+                                      (co.paralleluniverse.actors.PulsarActor/unlock ~mailbox)))
                                   (recur ~n (inc ~iter)))))))))]
             ~@(surround-with (when after-clause `(if (nil? ~mtc) ~(nth after-clause 2)))
                              ; now, mtc# is the number of the matching clause and m# is the message.

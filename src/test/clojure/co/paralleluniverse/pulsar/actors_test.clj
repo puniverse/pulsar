@@ -244,7 +244,7 @@
                (join actor)) => 42.0))
 
 (facts "mailbox-seq"
-       (fact :selected "Send and receive sequence (via @mailbox)"
+       (fact "Send and receive sequence (via @mailbox)"
              (let [actor (spawn #(s/doall (s/take 5 (channel->lazy-seq @mailbox))))]
                (snd-seq (mailbox-of actor) (take 10 (range)))
                (join actor)) => '(0 1 2 3 4))
@@ -447,6 +447,22 @@
                                             (throw (Exception. "oops!"))))))]
         (! gs :hi)
         (join gs)) => (throws Exception "oops!"))
+
+(fact :selected "Test receive in handle-call"
+      (co.paralleluniverse.common.util.Debug/dumpAfter 5000 "foo.log")
+      (let [actor (spawn #(receive
+                           [from m] (do (println "receive" [from m])
+                                        (println "sending" [@self (str m "!!!")])
+                                        (! from @self (str m "!!!")))))
+            gs (spawn
+                 (gen-server (reify Server
+                               (init [_])
+                               (terminate [_ cause])
+                               (handle-call [_ from id [a b]]
+                                 (! actor @self (+ a b))
+                                 (receive
+                                   [x m] m)))))]
+        (call! gs 3 4)) => "7!!!")
 
 ;; ## gen-event
 
