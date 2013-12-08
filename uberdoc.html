@@ -3458,7 +3458,7 @@ as published by the Free Software Foundation.</p>
                                (handle-call [_ from id [a b]]
                                  (! actor @self (+ a b))
                                  (receive
-                                   [x m] m)))))]
+                                   [actor m] m)))))]
         (call! gs 3 4)) =&gt; &quot;7!!!&quot;)</pre></td></tr><tr><td class="docs"><h2>gen-event</h2>
 </td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(unfinished handler1 handler2)</pre></td></tr><tr><td class="docs">
