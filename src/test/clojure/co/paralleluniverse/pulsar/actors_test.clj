@@ -451,9 +451,7 @@
 (fact "Test receive in handle-call"
       (co.paralleluniverse.common.util.Debug/dumpAfter 5000 "foo.log")
       (let [actor (spawn #(receive
-                           [from m] (do (println "receive" [from m])
-                                        (println "sending" [@self (str m "!!!")])
-                                        (! from @self (str m "!!!")))))
+                           [from m] (! from @self (str m "!!!"))))
             gs (spawn
                  (gen-server (reify Server
                                (init [_])
