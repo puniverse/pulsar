@@ -26,7 +26,7 @@
              ;; ForkJoin wants these:
              "-XX:-UseBiasedLocking"
              "-XX:+UseCondCardMark"]
-  :java-agents [[co.paralleluniverse/quasar-core "0.3.0"]] ; :options "v"
+  :java-agents [[co.paralleluniverse/quasar-core "0.3.0"]] ; :options "vd"
   :pedantic :warn
   :profiles {;; ----------- dev --------------------------------------
              :dev
@@ -36,10 +36,10 @@
                          "-ea"
                          ;"-Dco.paralleluniverse.lwthreads.verifyInstrumentation=true"
                          ;; Recording
-                         ; "-Dco.paralleluniverse.debugMode=true"
-                         ; "-Dco.paralleluniverse.globalFlightRecorder=true"
-                         ; "-Dco.paralleluniverse.monitoring.flightRecorderLevel=2"
-                         ; "-Dco.paralleluniverse.flightRecorderDumpFile=pulsar.log"
+                         ;"-Dco.paralleluniverse.debugMode=true"
+                         ;"-Dco.paralleluniverse.globalFlightRecorder=true"
+                         ;"-Dco.paralleluniverse.monitoring.flightRecorderLevel=2"
+                         ;"-Dco.paralleluniverse.flightRecorderDumpFile=pulsar.log"
                          ;; Logging
                          "-Dlog4j.configurationFile=log4j.xml"
                          "-DLog4jContextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector"
