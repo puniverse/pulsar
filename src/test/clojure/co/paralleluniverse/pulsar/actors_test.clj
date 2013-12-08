@@ -459,7 +459,7 @@
                                (handle-call [_ from id [a b]]
                                  (! actor @self (+ a b))
                                  (receive
-                                   [x m] m)))))]
+                                   [actor m] m)))))]
         (call! gs 3 4)) => "7!!!")
 
 ;; ## gen-event
