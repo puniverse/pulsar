@@ -3447,12 +3447,10 @@ as published by the Free Software Foundation.</p>
                                             (throw (Exception. &quot;oops!&quot;))))))]
         (! gs :hi)
         (join gs)) =&gt; (throws Exception &quot;oops!&quot;))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(fact :selected &quot;Test receive in handle-call&quot;
+</td><td class="codes"><pre class="brush: clojure">(fact &quot;Test receive in handle-call&quot;
       (co.paralleluniverse.common.util.Debug/dumpAfter 5000 &quot;foo.log&quot;)
       (let [actor (spawn #(receive
-                           [from m] (do (println &quot;receive&quot; [from m])
-                                        (println &quot;sending&quot; [@self (str m &quot;!!!&quot;)])
-                                        (! from @self (str m &quot;!!!&quot;)))))
+                           [from m] (! from @self (str m &quot;!!!&quot;))))
             gs (spawn
                  (gen-server (reify Server
                                (init [_])
