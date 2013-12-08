@@ -18,7 +18,7 @@
 (ns co.paralleluniverse.pulsar.core
   "Pulsar is an implementation of lightweight threads (fibers),
   Go-like channles and Erlang-like actors for the JVM"
-(:refer-clojure :exclude [promise])
+(:refer-clojure :exclude [promise await])
 (:import [java.util.concurrent TimeUnit ExecutionException TimeoutException Future]
          [jsr166e ForkJoinPool ForkJoinTask]
          [co.paralleluniverse.strands Strand Stranded]
