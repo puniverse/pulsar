@@ -448,7 +448,7 @@
         (! gs :hi)
         (join gs)) => (throws Exception "oops!"))
 
-(fact :selected "Test receive in handle-call"
+(fact "Test receive in handle-call"
       (co.paralleluniverse.common.util.Debug/dumpAfter 5000 "foo.log")
       (let [actor (spawn #(receive
                            [from m] (do (println "receive" [from m])
