@@ -574,7 +574,7 @@
 (ann rcv (Fn [Channel -> Any]
              [Channel Long (U TimeUnit Keyword) -> (Option Any)]))
 (defsfn rcv
-  "Receives a message from a channel or a channel group.
+  "Receives a message from a channel.
   This function will block until a message is available or until the timeout,
   if specified, expires.
   If a timeout is given, and it expires, rcv returns nil.
@@ -606,17 +606,6 @@
   can be received."
 [^ReceivePort channel]
 (.isClosed channel))
-
-(defn ^ReceivePort rcv-group
-  "Creates a receive-port (a read-only channel) from a group of channels.
-  Receiving a message from the group will return the next message available from
-  any of the channels in the group.
-  A message received from the group is consumed (removed) from the original member
-  channel to which it has been sent."
-  ([ports]
-   (ReceivePortGroup. ^java.util.Collection ports))
-  ([port & ports]
-   (ReceivePortGroup. ^java.util.Collection (cons port ports))))
 
 (defn topic
   "Creates a new topic.

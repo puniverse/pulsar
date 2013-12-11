@@ -153,43 +153,6 @@
                (deliver v0 2)
                @v4) => 10))
 
-(facts "rcv-group"
-       (fact "Receive from channel group"
-             (let [ch1 (channel)
-                   ch2 (channel)
-                   ch3 (channel)
-                   grp (rcv-group ch1 ch2 ch3)
-                   fiber (spawn-fiber
-                           (fn []
-                             (let [m1 (rcv grp)
-                                   m2 (rcv ch2)
-                                   m3 (rcv grp)]
-                               (list m1 m2 m3))))]
-               
-               (sleep 20)
-               (snd ch1 "hello")
-               (sleep 20)
-               (snd ch2 "world!")
-               (sleep 20)
-               (snd ch3 "foo")
-               (join fiber))  => '("hello" "world!" "foo"))
-       (fact "Receive from channel group with timeout"
-             (let [ch1 (channel)
-                   ch2 (channel)
-                   ch3 (channel)
-                   grp (rcv-group ch1 ch2 ch3)
-                   fiber (spawn-fiber
-                           (fn []
-                             (let [m1 (rcv grp)
-                                   m2 (rcv grp 10 :ms)
-                                   m3 (rcv grp 100 :ms)]
-                               (list m1 m2 m3))))]
-               (sleep 20)
-               (snd ch1 "hello")
-               (sleep 100)
-               (snd ch3 "world!")
-               (join fiber))  => '("hello" nil "world!")))
-
 (facts "topics"
        (fact "When channel subscribes to topic then it receives its messages"
              (let [ch1 (channel)

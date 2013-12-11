@@ -76,7 +76,8 @@
               :exclusions [org.clojure/tools.namespace]
               :injections [(require 'clojure.test)
                            (alter-var-root #'clojure.test/*load-tests* (constantly false))]
-              :codox {:include [co.paralleluniverse.pulsar.core 
+              :codox {:include [co.paralleluniverse.pulsar.core
+                                co.paralleluniverse.pulsar.rx
                                 co.paralleluniverse.pulsar.actors
                                 co.paralleluniverse.pulsar.lazyseq
                                 co.paralleluniverse.pulsar.async]
