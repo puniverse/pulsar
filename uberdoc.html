@@ -3029,7 +3029,7 @@ net.brehaut.ClojureTools = (function (SH) {
   };
 })(SyntaxHighlighter);
 </script><title>co.paralleluniverse/pulsar -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">co.paralleluniverse/pulsar</h1><h2 class="project-version">0.4.0-SNAPSHOT</h2><br /><p>A Clojure lightweight thread, asynchronous programming, and actor library</p>
-</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.5.1</td></tr><tr><td class="dep-name">co.paralleluniverse/quasar-core</td><td class="dotted"><hr /></td><td class="dep-version">0.4.0-SNAPSHOT</td></tr><tr><td class="dep-name">co.paralleluniverse/quasar-actors</td><td class="dotted"><hr /></td><td class="dep-version">0.4.0-SNAPSHOT</td></tr><tr><td class="dep-name">org.clojure/core.match</td><td class="dotted"><hr /></td><td class="dep-version">0.2.0</td></tr><tr><td class="dep-name">useful</td><td class="dotted"><hr /></td><td class="dep-version">0.8.8</td></tr><tr><td class="dep-name">gloss</td><td class="dotted"><hr /></td><td class="dep-version">0.2.2</td></tr><tr><td class="dep-name">org.clojure/core.typed</td><td class="dotted"><hr /></td><td class="dep-version">0.2.20</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#co.paralleluniverse.pulsar.actors-test">co.paralleluniverse.pulsar.actors-test</a></li><li><a href="#co.paralleluniverse.pulsar.core-test">co.paralleluniverse.pulsar.core-test</a></li><li><a href="#co.paralleluniverse.pulsar.examples.binary">co.paralleluniverse.pulsar.examples.binary</a></li><li><a href="#co.paralleluniverse.pulsar.examples.graph">co.paralleluniverse.pulsar.examples.graph</a></li><li><a href="#co.paralleluniverse.pulsar.examples.io">co.paralleluniverse.pulsar.examples.io</a></li><li><a href="#co.paralleluniverse.pulsar.examples.pingpong">co.paralleluniverse.pulsar.examples.pingpong</a></li><li><a href="#co.paralleluniverse.pulsar.examples.pingpong-register">co.paralleluniverse.pulsar.examples.pingpong-register</a></li><li><a href="#co.paralleluniverse.pulsar.examples.primitive-ring-benchmark">co.paralleluniverse.pulsar.examples.primitive-ring-benchmark</a></li><li><a href="#co.paralleluniverse.pulsar.examples.priority">co.paralleluniverse.pulsar.examples.priority</a></li><li><a href="#co.paralleluniverse.pulsar.examples.ring-benchmark">co.paralleluniverse.pulsar.examples.ring-benchmark</a></li><li><a href="#co.paralleluniverse.pulsar.examples.selective">co.paralleluniverse.pulsar.examples.selective</a></li><li><a href="#co.paralleluniverse.pulsar.examples.selective-gen-server">co.paralleluniverse.pulsar.examples.selective-gen-server</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.actors-test" name="co.paralleluniverse.pulsar.actors-test"><h1 class="project-name">co.paralleluniverse.pulsar.actors-test</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>This program and the accompanying materials are dual-licensed under
+</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.5.1</td></tr><tr><td class="dep-name">co.paralleluniverse/quasar-core</td><td class="dotted"><hr /></td><td class="dep-version">0.4.0-SNAPSHOT</td></tr><tr><td class="dep-name">co.paralleluniverse/quasar-actors</td><td class="dotted"><hr /></td><td class="dep-version">0.4.0-SNAPSHOT</td></tr><tr><td class="dep-name">org.clojure/core.match</td><td class="dotted"><hr /></td><td class="dep-version">0.2.0</td></tr><tr><td class="dep-name">useful</td><td class="dotted"><hr /></td><td class="dep-version">0.8.8</td></tr><tr><td class="dep-name">gloss</td><td class="dotted"><hr /></td><td class="dep-version">0.2.2</td></tr><tr><td class="dep-name">org.clojure/core.typed</td><td class="dotted"><hr /></td><td class="dep-version">0.2.20</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#co.paralleluniverse.pulsar.actors-test">co.paralleluniverse.pulsar.actors-test</a></li><li><a href="#co.paralleluniverse.pulsar.core-test">co.paralleluniverse.pulsar.core-test</a></li><li><a href="#co.paralleluniverse.pulsar.rx-test">co.paralleluniverse.pulsar.rx-test</a></li><li><a href="#co.paralleluniverse.pulsar.examples.binary">co.paralleluniverse.pulsar.examples.binary</a></li><li><a href="#co.paralleluniverse.pulsar.examples.graph">co.paralleluniverse.pulsar.examples.graph</a></li><li><a href="#co.paralleluniverse.pulsar.examples.io">co.paralleluniverse.pulsar.examples.io</a></li><li><a href="#co.paralleluniverse.pulsar.examples.pingpong">co.paralleluniverse.pulsar.examples.pingpong</a></li><li><a href="#co.paralleluniverse.pulsar.examples.pingpong-register">co.paralleluniverse.pulsar.examples.pingpong-register</a></li><li><a href="#co.paralleluniverse.pulsar.examples.primitive-ring-benchmark">co.paralleluniverse.pulsar.examples.primitive-ring-benchmark</a></li><li><a href="#co.paralleluniverse.pulsar.examples.priority">co.paralleluniverse.pulsar.examples.priority</a></li><li><a href="#co.paralleluniverse.pulsar.examples.ring-benchmark">co.paralleluniverse.pulsar.examples.ring-benchmark</a></li><li><a href="#co.paralleluniverse.pulsar.examples.selective">co.paralleluniverse.pulsar.examples.selective</a></li><li><a href="#co.paralleluniverse.pulsar.examples.selective-gen-server">co.paralleluniverse.pulsar.examples.selective-gen-server</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.actors-test" name="co.paralleluniverse.pulsar.actors-test"><h1 class="project-name">co.paralleluniverse.pulsar.actors-test</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>This program and the accompanying materials are dual-licensed under
 either the terms of the Eclipse Public License v1.0 as published by
 the Eclipse Foundation</p>
 
@@ -3043,6 +3043,7 @@ as published by the Free Software Foundation.</p>
         co.paralleluniverse.pulsar.core
         co.paralleluniverse.pulsar.actors)
   (:require [co.paralleluniverse.pulsar.lazyseq :as s :refer [channel-&gt;lazy-seq snd-seq]])
+  (:refer-clojure :exclude [promise await])
   (:import [java.util.concurrent TimeUnit TimeoutException ExecutionException]
            [co.paralleluniverse.common.util Debug]
            [co.paralleluniverse.strands Strand]
@@ -3442,7 +3443,7 @@ as published by the Free Software Foundation.</p>
                  (gen-server (reify Server
                                (init [_])
                                (terminate [_ cause]
-                                          (fact cause =&gt; (every-checker #(instance? Exception %) #(= (.getMessage %) &quot;oops!&quot;))))
+                                          (fact cause =&gt; (every-checker #(instance? Exception %) #(= (.getMessage ^Exception %) &quot;oops!&quot;))))
                                (handle-info [_ m]
                                             (throw (Exception. &quot;oops!&quot;))))))]
         (! gs :hi)
@@ -3650,6 +3651,7 @@ as published by the Free Software Foundation.</p>
         co.paralleluniverse.pulsar.core)
   (:require [co.paralleluniverse.pulsar.lazyseq :as s :refer [channel-&gt;lazy-seq snd-seq]]
             [midje.checking.core :as checking])
+  (:refer-clojure :exclude [promise await])
   (:import [java.util.concurrent TimeUnit TimeoutException ExecutionException]
            [co.paralleluniverse.common.util Debug]
            [co.paralleluniverse.strands Strand]
@@ -3774,42 +3776,6 @@ as published by the Free Software Foundation.</p>
                  (mapv realized? [v0 v1 v2 v3 v4]) =&gt; [false true true true false])
                (deliver v0 2)
                @v4) =&gt; 10))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(facts &quot;rcv-group&quot;
-       (fact &quot;Receive from channel group&quot;
-             (let [ch1 (channel)
-                   ch2 (channel)
-                   ch3 (channel)
-                   grp (rcv-group ch1 ch2 ch3)
-                   fiber (spawn-fiber
-                           (fn []
-                             (let [m1 (rcv grp)
-                                   m2 (rcv ch2)
-                                   m3 (rcv grp)]
-                               (list m1 m2 m3))))]
-               
-               (sleep 20)
-               (snd ch1 &quot;hello&quot;)
-               (sleep 20)
-               (snd ch2 &quot;world!&quot;)
-               (sleep 20)
-               (snd ch3 &quot;foo&quot;)
-               (join fiber))  =&gt; '(&quot;hello&quot; &quot;world!&quot; &quot;foo&quot;))
-       (fact &quot;Receive from channel group with timeout&quot;
-             (let [ch1 (channel)
-                   ch2 (channel)
-                   ch3 (channel)
-                   grp (rcv-group ch1 ch2 ch3)
-                   fiber (spawn-fiber
-                           (fn []
-                             (let [m1 (rcv grp)
-                                   m2 (rcv grp 10 :ms)
-                                   m3 (rcv grp 100 :ms)]
-                               (list m1 m2 m3))))]
-               (sleep 20)
-               (snd ch1 &quot;hello&quot;)
-               (sleep 100)
-               (snd ch3 &quot;world!&quot;)
-               (join fiber))  =&gt; '(&quot;hello&quot; nil &quot;world!&quot;)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(facts &quot;topics&quot;
        (fact &quot;When channel subscribes to topic then it receives its messages&quot;
              (let [ch1 (channel)
@@ -3995,10 +3961,196 @@ as published by the Free Software Foundation.</p>
              (let [ch (channel -1)
                    fiber (spawn-fiber #(s/doall (s/filter even? (s/take 5 (channel-&gt;lazy-seq ch)))))]
                (snd-seq ch (take 10 (range)))
-               (join fiber)) =&gt; '(0 2 4)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.examples.binary" name="co.paralleluniverse.pulsar.examples.binary"><h1 class="project-name">co.paralleluniverse.pulsar.examples.binary</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>A binary-data buffer message example</p>
+               (join fiber)) =&gt; '(0 2 4)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.rx-test" name="co.paralleluniverse.pulsar.rx-test"><h1 class="project-name">co.paralleluniverse.pulsar.rx-test</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>This program and the accompanying materials are dual-licensed under
+either the terms of the Eclipse Public License v1.0 as published by
+the Eclipse Foundation</p>
+
+<p>  or (per the licensee's choosing)</p>
+
+<p>under the terms of the GNU Lesser General Public License version 3.0
+as published by the Free Software Foundation.</p>
+</td><td class="codes"></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar.rx-test
+  (:use midje.sweet
+        co.paralleluniverse.pulsar.core)
+  (:refer-clojure :exclude [promise await])
+  (:require [co.paralleluniverse.pulsar.rx :as rx]
+            [midje.checking.core :as checking]))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(facts &quot;test map and filter&quot;
+       (fact &quot;test filter&quot;
+             (let [ch (channel)
+                   fiber (spawn-fiber
+                           (fn []
+                             (let [ch1 (rx/filter even? ch)
+                                   m1 (rcv ch1)
+                                   m2 (rcv ch1)
+                                   m3 (rcv ch1)]
+                               (list m1 m2 m3))))]
+               (sleep 20)
+               (snd ch 1)
+               (snd ch 2)
+               (sleep 20)
+               (snd ch 3)
+               (snd ch 4)
+               (sleep 20)
+               (snd ch 5)
+               (close! ch)
+               (join fiber))  =&gt; '(2 4 nil))
+       (fact &quot;test map&quot;
+             (let [ch (channel)
+                   fiber (spawn-fiber
+                           (fn []
+                             (let [ch1 (rx/map #(+ 10 %) ch)
+                                   m1 (rcv ch1)
+                                   m2 (rcv ch1)
+                                   m3 (rcv ch1)
+                                   m4 (rcv ch1)]
+                               (list m1 m2 m3 m4))))]
+               (sleep 20)
+               (snd ch 1)
+               (snd ch 2)
+               (sleep 20)
+               (snd ch 3)
+               (close! ch)
+               (join fiber))  =&gt; '(11 12 13 nil))
+       (fact &quot;test filter then map&quot;
+             (let [ch (channel)
+                   fiber (spawn-fiber
+                           (fn []
+                             (let [ch1 (rx/map #(+ 10 %) (rx/filter even? ch))
+                                   m1 (rcv ch1)
+                                   m2 (rcv ch1)
+                                   m3 (rcv ch1)]
+                               (list m1 m2 m3))))]
+               (sleep 20)
+               (snd ch 1)
+               (snd ch 2)
+               (sleep 20)
+               (snd ch 3)
+               (snd ch 4)
+               (sleep 20)
+               (snd ch 5)
+               (close! ch)
+               (join fiber))  =&gt; '(12 14 nil)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(facts &quot;test send- map and filter&quot;
+       (fact &quot;test filter&quot;
+             (let [ch (channel)
+                   fiber (spawn-fiber
+                           (fn []
+                             (let [m1 (rcv ch)
+                                   m2 (rcv ch)
+                                   m3 (rcv ch)]
+                               (list m1 m2 m3))))
+                   ch1 (rx/send-filter even? ch)]
+               (sleep 20)
+               (snd ch1 1)
+               (snd ch1 2)
+               (sleep 20)
+               (snd ch1 3)
+               (snd ch1 4)
+               (sleep 20)
+               (snd ch1 5)
+               (close! ch1)
+               (join fiber))  =&gt; '(2 4 nil))
+       (fact &quot;test map&quot;
+             (let [ch (channel)
+                   fiber (spawn-fiber
+                           (fn []
+                             (let [m1 (rcv ch)
+                                   m2 (rcv ch)
+                                   m3 (rcv ch)
+                                   m4 (rcv ch)]
+                               (list m1 m2 m3 m4))))
+                   ch1 (rx/send-map #(+ 10 %) ch)]
+               (sleep 20)
+               (snd ch1 1)
+               (snd ch1 2)
+               (sleep 20)
+               (snd ch1 3)
+               (close! ch1)
+               (join fiber))  =&gt; '(11 12 13 nil))
+       (fact &quot;test filter then map&quot;
+             (let [ch (channel)
+                   fiber (spawn-fiber
+                           (fn []
+                             (let [m1 (rcv ch)
+                                   m2 (rcv ch)
+                                   m3 (rcv ch)]
+                               (list m1 m2 m3))))
+                   ch1 (rx/send-map #(+ 10 %) (rx/send-filter even? ch))]
+               (sleep 20)
+               (snd ch1 1)
+               (snd ch1 2)
+               (sleep 20)
+               (snd ch1 3)
+               (snd ch1 4)
+               (sleep 20)
+               (snd ch1 5)
+               (close! ch1)
+               (join fiber))  =&gt; '(12 14 nil)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(facts &quot;test group&quot;
+       (fact &quot;Receive from channel group&quot;
+             (let [ch1 (channel)
+                   ch2 (channel)
+                   ch3 (channel)
+                   grp (rx/group ch1 ch2 ch3)
+                   fiber (spawn-fiber
+                           (fn []
+                             (let [m1 (rcv grp)
+                                   m2 (rcv ch2)
+                                   m3 (rcv grp)]
+                               (list m1 m2 m3))))]
+
+               (sleep 20)
+               (snd ch1 &quot;hello&quot;)
+               (sleep 20)
+               (snd ch2 &quot;world!&quot;)
+               (sleep 20)
+               (snd ch3 &quot;foo&quot;)
+               (join fiber))  =&gt; '(&quot;hello&quot; &quot;world!&quot; &quot;foo&quot;))
+       (fact &quot;Receive from channel group with timeout&quot;
+             (let [ch1 (channel)
+                   ch2 (channel)
+                   ch3 (channel)
+                   grp (rx/group ch1 ch2 ch3)
+                   fiber (spawn-fiber
+                           (fn []
+                             (let [m1 (rcv grp)
+                                   m2 (rcv grp 10 :ms)
+                                   m3 (rcv grp 100 :ms)]
+                               (list m1 m2 m3))))]
+               (sleep 20)
+               (snd ch1 &quot;hello&quot;)
+               (sleep 100)
+               (snd ch3 &quot;world!&quot;)
+               (join fiber))  =&gt; '(&quot;hello&quot; nil &quot;world!&quot;)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(fact &quot;test zip&quot;
+      (let [ch1 (channel 10)
+            ch2 (channel 10)
+            fiber (spawn-fiber
+                    (fn []
+                      (let [ch (rx/zip ch1 ch2)
+                            m1 (rcv ch)
+                            m2 (rcv ch)
+                            m3 (rcv ch)]
+                        (list m1 m2 m3))))]
+        (sleep 20)
+        (snd ch1 &quot;a&quot;)
+        (snd ch1 &quot;b&quot;)
+        (sleep 20)
+        (snd ch2 1)
+        (sleep 20)
+        (snd ch2 2)
+        (snd ch2 3)
+        (sleep 20)
+        (snd ch1 &quot;c&quot;)
+        (close! ch1)
+        (close! ch2)
+        (join fiber))  =&gt; '([&quot;a&quot; 1] [&quot;b&quot; 2] [&quot;c&quot; 3]))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.examples.binary" name="co.paralleluniverse.pulsar.examples.binary"><h1 class="project-name">co.paralleluniverse.pulsar.examples.binary</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>A binary-data buffer message example</p>
 </td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar.examples.binary
   (:use [co.paralleluniverse.pulsar core actors]
-        [gloss core io]))</pre></td></tr><tr><td class="docs"><p>This is an example of sending, receiving and matching binary data buffers</p>
+        [gloss core io])
+  (:refer-clojure :exclude [promise await]))</pre></td></tr><tr><td class="docs"><p>This is an example of sending, receiving and matching binary data buffers</p>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>This is the layout of our binary buffer:</p>
 </td><td class="codes"><pre class="brush: clojure">(def fr (compile-frame {:a :int16, :b :float32}))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defsfn receiver []
@@ -4012,7 +4164,8 @@ as published by the Free Software Foundation.</p>
     (! r buffer)
     (join r)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.examples.graph" name="co.paralleluniverse.pulsar.examples.graph"><h1 class="project-name">co.paralleluniverse.pulsar.examples.graph</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar.examples.graph
-  (:use [co.paralleluniverse.pulsar core actors]))</pre></td></tr><tr><td class="docs">
+  (:use [co.paralleluniverse.pulsar core actors])
+  (:refer-clojure :exclude [promise await]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn- actors-in-a-ring
   [n]
   (let [actor (fn [] (spawn
@@ -4054,11 +4207,12 @@ the Eclipse Foundation</p>
 as published by the Free Software Foundation.</p>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>Uses Pulsar's fiber-blocking IO</p>
 </td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar.examples.io
+  (:use [co.paralleluniverse.pulsar core])
+  (:refer-clojure :exclude [promise await])
   (:import [co.paralleluniverse.fibers.io FiberSocketChannel FiberServerSocketChannel]
            [java.nio ByteBuffer CharBuffer]
            [java.nio.charset Charset]
-           [java.net InetSocketAddress])
-  (:use [co.paralleluniverse.pulsar core]))</pre></td></tr><tr><td class="docs">
+           [java.net InetSocketAddress]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def port 1234)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn buffer-&gt;string
   ([byte-buffer]
@@ -4093,7 +4247,8 @@ as published by the Free Software Foundation.</p>
     (join server)
     (join client)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.examples.pingpong" name="co.paralleluniverse.pulsar.examples.pingpong"><h1 class="project-name">co.paralleluniverse.pulsar.examples.pingpong</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>The classic ping-pong example from the Erlang tutorial</p>
 </td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar.examples.pingpong
-  (:use [co.paralleluniverse.pulsar core actors]))</pre></td></tr><tr><td class="docs"><p>This example is intended to be a line-by-line translation of the canonical
+  (:use [co.paralleluniverse.pulsar core actors])
+  (:refer-clojure :exclude [promise await]))</pre></td></tr><tr><td class="docs"><p>This example is intended to be a line-by-line translation of the canonical
 Erlang <a href="http://www.erlang.org/doc/getting_started/conc_prog.html#id67006">ping-pong example</a>,
 so it is not written in idiomatic Clojure.</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
@@ -4119,7 +4274,8 @@ so it is not written in idiomatic Clojure.</p>
         b1 (spawn ping 3 a1)]
     :ok))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.examples.pingpong-register" name="co.paralleluniverse.pulsar.examples.pingpong-register"><h1 class="project-name">co.paralleluniverse.pulsar.examples.pingpong-register</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>The classic ping-pong example from the Erlang tutorial</p>
 </td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar.examples.pingpong-register
-  (:use [co.paralleluniverse.pulsar core actors]))</pre></td></tr><tr><td class="docs"><p>This example is intended to be a line-by-line translation of the canonical
+  (:use [co.paralleluniverse.pulsar core actors])
+  (:refer-clojure :exclude [promise await]))</pre></td></tr><tr><td class="docs"><p>This example is intended to be a line-by-line translation of the canonical
 Erlang <a href="http://www.erlang.org/doc/getting_started/conc_prog.html#id67347">ping-pong example</a>,
 so it is not written in idiomatic Clojure.</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
@@ -4145,7 +4301,8 @@ so it is not written in idiomatic Clojure.</p>
   (spawn ping 3)
   :ok)</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.examples.primitive-ring-benchmark" name="co.paralleluniverse.pulsar.examples.primitive-ring-benchmark"><h1 class="project-name">co.paralleluniverse.pulsar.examples.primitive-ring-benchmark</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>An implementation of the ring benchmark using fibers and primitive (int) channels</p>
 </td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar.examples.primitive-ring-benchmark
-  (:use co.paralleluniverse.pulsar.core))</pre></td></tr><tr><td class="docs">
+  (:use co.paralleluniverse.pulsar.core)
+  (:refer-clojure :exclude [promise await]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn spawn-relay [prev n]
   (if (== n 0)
     prev
@@ -4178,7 +4335,8 @@ so it is not written in idiomatic Clojure.</p>
                 (join manager)))]
         (println i &quot;: Messages &quot; num-messages)))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.examples.priority" name="co.paralleluniverse.pulsar.examples.priority"><h1 class="project-name">co.paralleluniverse.pulsar.examples.priority</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>A selective receive example</p>
 </td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar.examples.priority
-  (:use [co.paralleluniverse.pulsar core actors]))</pre></td></tr><tr><td class="docs"><p>This example is intended to be a line-by-line translation of
+  (:use [co.paralleluniverse.pulsar core actors])
+  (:refer-clojure :exclude [promise await]))</pre></td></tr><tr><td class="docs"><p>This example is intended to be a line-by-line translation of
 <a href="http://learnyousomeerlang.com/more-on-multiprocessing#selective-receives">this example</a> from the book <em>Learn You Some Erlang for great good!</em>,
 so it is not written in idiomatic Clojure</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
@@ -4201,6 +4359,7 @@ so it is not written in idiomatic Clojure</p>
            (important)))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.examples.ring-benchmark" name="co.paralleluniverse.pulsar.examples.ring-benchmark"><h1 class="project-name">co.paralleluniverse.pulsar.examples.ring-benchmark</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>An implementation of the ring benchmark using actors</p>
 </td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar.examples.ring-benchmark
   (:use [co.paralleluniverse.pulsar core actors])
+  (:refer-clojure :exclude [promise await])
   (:import [co.paralleluniverse.actors Actor]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn spawn-relay-actor [^Actor prev n]
   (if (== n 0)
@@ -4231,7 +4390,8 @@ so it is not written in idiomatic Clojure</p>
                (join manager)))]
         (println i &quot;: Messages &quot; num-messages)))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.examples.selective" name="co.paralleluniverse.pulsar.examples.selective"><h1 class="project-name">co.paralleluniverse.pulsar.examples.selective</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>A very simple selective-receive example</p>
 </td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar.examples.selective
-  (:use [co.paralleluniverse.pulsar core actors]))</pre></td></tr><tr><td class="docs">
+  (:use [co.paralleluniverse.pulsar core actors])
+  (:refer-clojure :exclude [promise await]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defsfn adder []
   (loop []
     (receive
@@ -4265,6 +4425,7 @@ so it is not written in idiomatic Clojure</p>
     :ok))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.examples.selective-gen-server" name="co.paralleluniverse.pulsar.examples.selective-gen-server"><h1 class="project-name">co.paralleluniverse.pulsar.examples.selective-gen-server</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>An implementation of the selctive example using gen-server</p>
 </td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar.examples.selective-gen-server
   (:use [co.paralleluniverse.pulsar core actors])
+  (:refer-clojure :exclude [promise await])
   (:import [co.paralleluniverse.strands Strand]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def adder (gen-server (reify Server
                          (init [_])
