@@ -1,6 +1,7 @@
 (ns co.paralleluniverse.pulsar.examples.primitive-ring-benchmark
   "An implementation of the ring benchmark using fibers and primitive (int) channels"
-  (:use co.paralleluniverse.pulsar.core))
+  (:use co.paralleluniverse.pulsar.core)
+  (:refer-clojure :exclude [promise await]))
 
 
 (defn spawn-relay [prev n]

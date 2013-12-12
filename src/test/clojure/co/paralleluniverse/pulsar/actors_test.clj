@@ -15,6 +15,7 @@
         co.paralleluniverse.pulsar.core
         co.paralleluniverse.pulsar.actors)
   (:require [co.paralleluniverse.pulsar.lazyseq :as s :refer [channel->lazy-seq snd-seq]])
+  (:refer-clojure :exclude [promise await])
   (:import [java.util.concurrent TimeUnit TimeoutException ExecutionException]
            [co.paralleluniverse.common.util Debug]
            [co.paralleluniverse.strands Strand]
@@ -442,7 +443,7 @@
                  (gen-server (reify Server
                                (init [_])
                                (terminate [_ cause]
-                                          (fact cause => (every-checker #(instance? Exception %) #(= (.getMessage %) "oops!"))))
+                                          (fact cause => (every-checker #(instance? Exception %) #(= (.getMessage ^Exception %) "oops!"))))
                                (handle-info [_ m]
                                             (throw (Exception. "oops!"))))))]
         (! gs :hi)

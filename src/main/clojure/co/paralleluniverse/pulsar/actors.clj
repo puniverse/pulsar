@@ -12,7 +12,12 @@
 
 (ns co.paralleluniverse.pulsar.actors
   "Defines actors and behaviors like gen-server and supervisor"
-  (:refer-clojure :exclude [promise])
+  (:require [co.paralleluniverse.pulsar.core :refer :all]
+            [co.paralleluniverse.pulsar.interop :refer :all]
+            [clojure.string :as str]
+            [clojure.core.match :refer [match]]
+            [clojure.core.typed :refer [ann def-alias Option AnyInteger]])
+  (:refer-clojure :exclude [promise await])
   (:import [java.util.concurrent TimeUnit ExecutionException TimeoutException]
            [co.paralleluniverse.fibers FiberScheduler]
            [co.paralleluniverse.strands Strand]
@@ -26,12 +31,7 @@
             EventSource EventSourceActor EventHandler
             Supervisor Supervisor$ChildSpec Supervisor$ChildMode SupervisorActor SupervisorActor$RestartStrategy]
            ; for types:
-           [clojure.lang Keyword IObj IFn IMeta IDeref ISeq IPersistentCollection IPersistentVector IPersistentMap])
-  (:require [co.paralleluniverse.pulsar.core :refer :all]
-            [co.paralleluniverse.pulsar.interop :refer :all]
-            [clojure.string :as str]
-            [clojure.core.match :refer [match]]
-            [clojure.core.typed :refer [ann def-alias Option AnyInteger]]))
+           [clojure.lang Keyword IObj IFn IMeta IDeref ISeq IPersistentCollection IPersistentVector IPersistentMap]))
 
 ;; ## Private util functions
 ;; These are internal functions aided to assist other functions in handling variadic arguments and the like.

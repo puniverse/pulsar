@@ -13,6 +13,7 @@
 (ns co.paralleluniverse.pulsar.rx-test
   (:use midje.sweet
         co.paralleluniverse.pulsar.core)
+  (:refer-clojure :exclude [promise await])
   (:require [co.paralleluniverse.pulsar.rx :as rx]
             [midje.checking.core :as checking]))
 

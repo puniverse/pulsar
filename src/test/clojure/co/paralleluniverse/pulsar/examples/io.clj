@@ -12,11 +12,12 @@
 
 (ns co.paralleluniverse.pulsar.examples.io
   "Uses Pulsar's fiber-blocking IO"
+  (:use [co.paralleluniverse.pulsar core])
+  (:refer-clojure :exclude [promise await])
   (:import [co.paralleluniverse.fibers.io FiberSocketChannel FiberServerSocketChannel]
            [java.nio ByteBuffer CharBuffer]
            [java.nio.charset Charset]
-           [java.net InetSocketAddress])
-  (:use [co.paralleluniverse.pulsar core]))
+           [java.net InetSocketAddress]))
 
 (def port 1234)
 

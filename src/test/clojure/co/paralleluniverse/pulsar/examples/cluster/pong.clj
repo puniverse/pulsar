@@ -1,6 +1,7 @@
 (ns co.paralleluniverse.pulsar.examples.cluster.pong
   "A distributed version of the classic ping-pong example"
-  (:use [co.paralleluniverse.pulsar core actors]))
+  (:use [co.paralleluniverse.pulsar core actors])
+  (:refer-clojure :exclude [promise await]))
 
 ;; This example is intended to be a line-by-line translation of the canonical
 ;; Erlang [ping-pong example](http://www.erlang.org/doc/getting_started/conc_prog.html#id67347),

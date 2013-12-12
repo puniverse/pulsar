@@ -1,6 +1,7 @@
 (ns co.paralleluniverse.pulsar.examples.priority
   "A selective receive example"
-  (:use [co.paralleluniverse.pulsar core actors]))
+  (:use [co.paralleluniverse.pulsar core actors])
+  (:refer-clojure :exclude [promise await]))
 
 ;; This example is intended to be a line-by-line translation of
 ;; [this example](http://learnyousomeerlang.com/more-on-multiprocessing#selective-receives) from the book *Learn You Some Erlang for great good!*,

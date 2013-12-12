@@ -1,6 +1,7 @@
 (ns co.paralleluniverse.pulsar.examples.selective
   "A very simple selective-receive example"
-  (:use [co.paralleluniverse.pulsar core actors]))
+  (:use [co.paralleluniverse.pulsar core actors])
+  (:refer-clojure :exclude [promise await]))
 
 
 (defsfn adder []
