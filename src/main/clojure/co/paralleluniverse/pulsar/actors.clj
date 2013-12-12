@@ -691,10 +691,10 @@
 
 (defn- child-spec
   [^String id mode max-restarts duration unit shutdown-deadline-millis & args]
-  (Supervisor$ChildSpec. id
-                         (keyword->enum Supervisor$ChildMode mode)
+  (Supervisor$ChildSpec. ^String id
+                         ^Supervisor$ChildMode (keyword->enum Supervisor$ChildMode mode)
                          (int max-restarts)
-                         (long duration) (->timeunit unit)
+                         (long duration) ^TimeUnit (->timeunit unit)
                          (long shutdown-deadline-millis)
                          ^ActorBuilder (if (instance? ActorBuilder (first args))
                                          (first args)

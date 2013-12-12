@@ -96,7 +96,7 @@
 ;;     (deep-surround-with '(1 2 3) 4 5 6) -> (1 2 3 4 5 6)
 ;;     (deep-surround-with '(1 2 (3)) 4 5 6) -> (1 2 (3 4 5 6))
 ;;     (deep-surround-with '(1 2 (3 (4))) 5 6 7) -> (1 2 (3 (4 5 6 7)))
-(ann ^:nocheck deep-surround-with [(ISeq Any) Any * -> (ISeq Any)])
+(ann ^:no-check deep-surround-with [(ISeq Any) Any * -> (ISeq Any)])
 (defn- deep-surround-with
   [expr & exprs]
   (if (not (coll? (last expr)))
@@ -119,7 +119,7 @@
         (cons d (ops-args (rest pds) xs))))
     (seq xs)))
 
-(ann ^:nocheck kps-args [(ISeq Any) -> (Vector* (ISeq Any) (ISeq Any))])
+(ann ^:no-check kps-args [(ISeq Any) -> (Vector* (ISeq Any) (ISeq Any))])
 (defn kps-args
   {:no-doc true}
   [args]
@@ -264,7 +264,7 @@
                         (map #(cons `sfn %) fnspecs)))
    ~@body))
 
-(ann ^:nocheck strampoline (All [v1 v2 ...]
+(ann ^:no-check strampoline (All [v1 v2 ...]
                                 (Fn
                                  [(Fn [v1 v2 ... v2 -> Any]) v1 v2 ... v2 -> Any]
                                  [[-> Any] -> Any])))
