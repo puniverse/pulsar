@@ -13,7 +13,7 @@ import clojure.lang.ISeq;
  * @author pron
  */
 public class InstrumentedIFn implements IFn, Fn, IInstrumented {
-    private final IFn fn;
+    public final IFn fn;
 
     public InstrumentedIFn(IFn fn) {
         this.fn = fn;

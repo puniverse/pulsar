@@ -16,6 +16,7 @@ package co.paralleluniverse.actors;
 import clojure.lang.*;
 import co.paralleluniverse.fibers.SuspendExecution;
 import co.paralleluniverse.pulsar.ClojureHelper;
+import co.paralleluniverse.pulsar.InstrumentedIFn;
 import co.paralleluniverse.strands.SuspendableCallable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -70,7 +71,7 @@ public class PulsarActor extends Actor<Object, Object> {
     public PulsarActor(String name, IFn targetFn, boolean trap, MailboxConfig mailboxConfig, IFn lifecycleMessageHandler, IFn target) {
         super(name, mailboxConfig);
         //this.var = var;
-        this.targetFn = targetFn;
+        this.targetFn = targetFn instanceof InstrumentedIFn ? ((InstrumentedIFn)targetFn).fn : targetFn;
         this.target = ClojureHelper.asSuspendableCallable(target);
         this.trap = trap;
         this.lifecycleMessageHandler = lifecycleMessageHandler;
@@ -106,10 +107,12 @@ public class PulsarActor extends Actor<Object, Object> {
     }
 
     public boolean isTargetChanged(IFn targetFn) {
-        return this.targetFn != target;
+        targetFn = targetFn instanceof InstrumentedIFn ? ((InstrumentedIFn)targetFn).fn : targetFn;
+        return this.targetFn != targetFn;
     }
 
     public void recurCodeSwap(IFn targetFn, IFn target) {
+        targetFn = targetFn instanceof InstrumentedIFn ? ((InstrumentedIFn)targetFn).fn : targetFn;
         if(this.targetFn != targetFn) {
             this.targetFn = targetFn;
             this.target = ClojureHelper.asSuspendableCallable(target);
