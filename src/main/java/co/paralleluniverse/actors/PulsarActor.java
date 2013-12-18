@@ -13,10 +13,7 @@
  */
 package co.paralleluniverse.actors;
 
-import clojure.lang.IFn;
-import clojure.lang.IObj;
-import clojure.lang.Keyword;
-import clojure.lang.PersistentVector;
+import clojure.lang.*;
 import co.paralleluniverse.fibers.SuspendExecution;
 import co.paralleluniverse.pulsar.ClojureHelper;
 import co.paralleluniverse.strands.SuspendableCallable;
@@ -63,13 +60,17 @@ public class PulsarActor extends Actor<Object, Object> {
         return newState;
     }
     ///////////////////////////////////////////////////////////////
-    private final SuspendableCallable<Object> target;
+    //private final Var var;
+    private IFn targetFn;
+    private SuspendableCallable<Object> target;
     private final IFn lifecycleMessageHandler;
     private boolean trap;
 
     @SuppressWarnings("LeakingThisInConstructor")
-    public PulsarActor(String name, boolean trap, MailboxConfig mailboxConfig, IFn lifecycleMessageHandler, IFn target) {
+    public PulsarActor(String name, IFn targetFn, boolean trap, MailboxConfig mailboxConfig, IFn lifecycleMessageHandler, IFn target) {
         super(name, mailboxConfig);
+        //this.var = var;
+        this.targetFn = targetFn;
         this.target = ClojureHelper.asSuspendableCallable(target);
         this.trap = trap;
         this.lifecycleMessageHandler = lifecycleMessageHandler;
@@ -103,7 +104,18 @@ public class PulsarActor extends Actor<Object, Object> {
             super.handleLifecycleMessage(m);
         return null;
     }
-    
+
+    public boolean isTargetChanged(IFn targetFn) {
+        return this.targetFn != target;
+    }
+
+    public void recurCodeSwap(IFn targetFn, IFn target) {
+        if(this.targetFn != targetFn) {
+            this.targetFn = targetFn;
+            this.target = ClojureHelper.asSuspendableCallable(target);
+            throw CodeSwap.CODE_SWAP;
+        }
+    }
     public static Object convert(Object m) {
         if (m == null)
             return null;

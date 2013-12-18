@@ -125,6 +125,11 @@
   [size overflow-policy]
   `(co.paralleluniverse.actors.MailboxConfig. (int ~size) (keyword->enum co.paralleluniverse.strands.channels.Channels$OverflowPolicy ~overflow-policy)))
 
+(defn- var-of [x]
+  "Returns the var of x if x is a symbol; otherwise nil."
+  (when (symbol? x)
+    `(resolve (quote ~x))))
+
 (defmacro spawn
   "Creates and starts a new actor running in its own, newly-spawned fiber.
   
@@ -158,10 +163,24 @@
                     (suspendable! ~(if (== (count body) 1) (first body) `(fn [] (apply ~(first body) (list ~@(rest body)))))))
            ^Actor actor# (if (instance? Actor b#)
                                 b#
-                                (co.paralleluniverse.actors.PulsarActor. nme# ~trap (->MailboxConfig ~mailbox-size ~overflow-policy) ~lifecycle-handler f#))
+                                (co.paralleluniverse.actors.PulsarActor. nme#
+                                                                         b#
+                                                                         ~trap
+                                                                         (->MailboxConfig ~mailbox-size ~overflow-policy)
+                                                                         ~lifecycle-handler f#))
            fiber# (co.paralleluniverse.fibers.Fiber. nme# (get-scheduler ~scheduler) (int ~stack-size) actor#)]
        (.start fiber#)
        (.ref actor#))))
+
+(defmacro recur-swap
+  "Recurs to `f` (which is the actor function), checking for possible hot code swaps
+  and applying them."
+  [f & args]
+  `(if  (.isTargetChanged ^PulsarActor (co.paralleluniverse.actors.PulsarActor/currentActor) ~f)
+     (.recurCodeSwap ^PulsarActor (co.paralleluniverse.actors.PulsarActor/currentActor)
+                     ~f
+                     (suspendable! ~(if (== (count args) 0) f `(fn [] (apply ~f ~@args)))))
+       (recur ~@(cons f args))))
 
 (defmacro spawn-link
   "Creates and starts, as by `spawn`, a new actor, and links it to @self.
@@ -178,9 +197,9 @@
   [^ActorRef a]
   (LocalActorUtil/isDone a))
 
+
 ;(ann-protocol IUnifyWithLVar
 ;              unify-with-lvar [Term LVar ISubstitutions -> (U ISubstitutions Fail)])
-
 (def self
   "@self is the currently running actor"
   (reify
@@ -687,7 +706,7 @@
                              (fn [] (apply (first body) (rest body))))))]
     (if (nil? f)
       (first body)
-      (PulsarActor. name trap (->MailboxConfig mailbox-size overflow-policy) lifecycle-handler f))))
+      (PulsarActor. name (first body) trap (->MailboxConfig mailbox-size overflow-policy) lifecycle-handler f))))
 
 (defn- child-spec
   [^String id mode max-restarts duration unit shutdown-deadline-millis & args]
