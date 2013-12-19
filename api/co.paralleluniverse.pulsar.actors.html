@@ -76,7 +76,11 @@ A timeout in milliseconds, may be specified in an `:after` clause, which must ap
   (receive [m transform]
      [:foo val] (println &quot;got foo:&quot; val)
      :else      (println &quot;got&quot; m)
-     :after 30  (println &quot;nothing...&quot;))</pre></div><div class="public" id="var-recur-swap"><h3>recur-swap</h3><h4 class="macro">macro</h4><div class="usage"><code>(recur-swap f &amp; args)</code></div><pre class="doc">Recurs to `f` (which is the actor function), checking for possible hot code swaps
+     :after 30  (println &quot;nothing...&quot;))
+
+`receive` may be called without parameters, in which case it will indefinitely wait for
+the next (without any selection) message and return it. For a non-selective receive with
+a timeout, use `timed-receive`.</pre></div><div class="public" id="var-recur-swap"><h3>recur-swap</h3><h4 class="macro">macro</h4><div class="usage"><code>(recur-swap f &amp; args)</code></div><pre class="doc">Recurs to `f` (which is the actor function), checking for possible hot code swaps
 and applying them.</pre></div><div class="public" id="var-register%21"><h3>register!</h3><div class="usage"><code>(register! actor-name actor)</code><code>(register! actor-or-name)</code><code>(register!)</code></div><pre class="doc">Registers an actor in the actor registry.
 The actor is registered by its name, or, if it doesn't have a name, one must be supplied
 to this function. The name can be a string or a keyword, in which case it's identical to the 
