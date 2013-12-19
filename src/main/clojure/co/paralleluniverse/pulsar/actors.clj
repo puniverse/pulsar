@@ -459,7 +459,11 @@
     (receive [m transform]
        [:foo val] (println \"got foo:\" val)
        :else      (println \"got\" m)
-       :after 30  (println \"nothing...\"))"
+       :after 30  (println \"nothing...\"))
+
+  `receive` may be called without parameters, in which case it will indefinitely wait for
+  the next (without any selection) message and return it. For a non-selective receive with
+  a timeout, use `timed-receive`."
   {:arglists '([]
                [patterns* <:after ms action>?]
                [[binding transformation?] patterns* <:after ms action>?])}
