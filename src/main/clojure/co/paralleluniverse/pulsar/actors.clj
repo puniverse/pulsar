@@ -179,8 +179,8 @@
   `(if  (.isTargetChanged ^PulsarActor (co.paralleluniverse.actors.PulsarActor/currentActor) ~f)
      (.recurCodeSwap ^PulsarActor (co.paralleluniverse.actors.PulsarActor/currentActor)
                      ~f
-                     (suspendable! ~(if (== (count args) 0) f `(fn [] (apply ~f ~@args)))))
-       (recur ~@(cons f args))))
+                     (suspendable! ~(if-not (seq args) f `(fn [] (apply ~f (list ~@args))))))
+       (recur ~@args)))
 
 (defmacro spawn-link
   "Creates and starts, as by `spawn`, a new actor, and links it to @self.

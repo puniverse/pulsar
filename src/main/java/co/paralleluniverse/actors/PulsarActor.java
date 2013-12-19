@@ -90,6 +90,20 @@ public class PulsarActor extends Actor<Object, Object> {
         return target.run();
     }
 
+    public boolean isTargetChanged(IFn targetFn) {
+        targetFn = targetFn instanceof InstrumentedIFn ? ((InstrumentedIFn)targetFn).fn : targetFn;
+        return this.targetFn != targetFn;
+    }
+
+    public void recurCodeSwap(IFn targetFn, IFn target) {
+        targetFn = targetFn instanceof InstrumentedIFn ? ((InstrumentedIFn)targetFn).fn : targetFn;
+        if(this.targetFn != targetFn) {
+            this.targetFn = targetFn;
+            this.target = ClojureHelper.asSuspendableCallable(target);
+            throw CodeSwap.CODE_SWAP;
+        }
+    }
+
     @Override
     protected Object filterMessage(Object m) {
         if(!trap && !(m instanceof ShutdownMessage))
@@ -106,19 +120,6 @@ public class PulsarActor extends Actor<Object, Object> {
         return null;
     }
 
-    public boolean isTargetChanged(IFn targetFn) {
-        targetFn = targetFn instanceof InstrumentedIFn ? ((InstrumentedIFn)targetFn).fn : targetFn;
-        return this.targetFn != targetFn;
-    }
-
-    public void recurCodeSwap(IFn targetFn, IFn target) {
-        targetFn = targetFn instanceof InstrumentedIFn ? ((InstrumentedIFn)targetFn).fn : targetFn;
-        if(this.targetFn != targetFn) {
-            this.targetFn = targetFn;
-            this.target = ClojureHelper.asSuspendableCallable(target);
-            throw CodeSwap.CODE_SWAP;
-        }
-    }
     public static Object convert(Object m) {
         if (m == null)
             return null;
