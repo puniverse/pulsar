@@ -405,7 +405,7 @@
   ([^long ms]
    (Strand/sleep ms))
   ([^long timeout unit]
-   (Strand/sleep (->timeunit unit))))
+   (Strand/sleep timeout (->timeunit unit))))
 
 (defn spawn-thread
   "Creates and starts a new thread.
