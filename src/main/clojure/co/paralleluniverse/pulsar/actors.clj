@@ -23,7 +23,7 @@
            [co.paralleluniverse.strands Strand]
            [co.paralleluniverse.strands.channels Channel SendPort]
            [co.paralleluniverse.actors Actor ActorRef ActorRegistry PulsarActor ActorBuilder MailboxConfig
-            ActorUtil LocalActorUtil
+            ActorUtil LocalActor
             LifecycleListener ShutdownMessage]
            [co.paralleluniverse.pulsar ClojureHelper]
            [co.paralleluniverse.actors.behaviors Behavior BehaviorActor Initializer
@@ -195,7 +195,7 @@
 (defn done?
   "Tests whether or not an actor has terminated."
   [^ActorRef a]
-  (LocalActorUtil/isDone a))
+  (LocalActor/isDone a))
 
 
 ;(ann-protocol IUnifyWithLVar
@@ -204,7 +204,7 @@
   "@self is the currently running actor"
   (reify
     clojure.lang.IDeref
-    (deref [_] (ActorRef/self))))
+    (deref [_] (LocalActor/self))))
 
 (ann state (IDeref Any))
 (def state
@@ -269,7 +269,7 @@
   ([actor2]
    (.link ^Actor (Actor/currentActor) actor2))
   ([actor1 actor2]
-   (LocalActorUtil/link (get-actor actor1) (get-actor actor2))))
+   (LocalActor/link (get-actor actor1) (get-actor actor2))))
 
 (ann unlink! (Fn [Actor -> Actor]
                  [Actor Actor -> Actor]))
@@ -281,7 +281,7 @@
   ([actor2]
    (.unlink ^Actor (Actor/currentActor) actor2))
   ([actor1 actor2]
-   (LocalActorUtil/unlink (get-actor actor1) (get-actor actor2))))
+   (LocalActor/unlink (get-actor actor1) (get-actor actor2))))
 
 (ann watch! (Fn [Actor Actor -> LifecycleListener]
                  [Actor -> LifecycleListener]))
@@ -323,10 +323,10 @@
   to this function. The name can be a string or a keyword, in which case it's identical to the 
   keyword's name (i.e. a name of `\"foo\"` is the same as `:foo`)."
   ([actor-name ^ActorRef actor]
-   (LocalActorUtil/register actor (name actor-name)))
+   (LocalActor/register actor (name actor-name)))
   ([actor-or-name]
    (if (instance? ActorRef actor-or-name)
-     (LocalActorUtil/register actor-or-name)
+     (LocalActor/register actor-or-name)
      (.register (Actor/currentActor) actor-or-name)))
   ([]
    (.register (Actor/currentActor))))
@@ -337,7 +337,7 @@
   If no argument is supplied, unregisters the current actor."
 ([x]
  (let [^ActorRef actor x]
-   (LocalActorUtil/unregister actor)))
+   (LocalActor/unregister actor)))
 ([]
  (.unregister (Actor/currentActor))))
 
