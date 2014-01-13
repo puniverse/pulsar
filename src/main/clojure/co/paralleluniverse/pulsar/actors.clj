@@ -61,6 +61,18 @@
   [index coll]
   (split-at (- (dec (count coll)) index) coll))
 
+(defn- var-of [x]
+  "Returns the var of x if x is a symbol; otherwise nil."
+  (when (symbol? x)
+    `(resolve (quote ~x))))
+
+(defn vref
+  "Turns a value into an IDeref (makes it deref-able)"
+  [x]
+  (reify
+    IDeref
+    (deref [_] x)))
+
 ;; ## Actors
 
 (defmacro actor
@@ -124,11 +136,6 @@
 (defmacro ->MailboxConfig 
   [size overflow-policy]
   `(co.paralleluniverse.actors.MailboxConfig. (int ~size) (keyword->enum co.paralleluniverse.strands.channels.Channels$OverflowPolicy ~overflow-policy)))
-
-(defn- var-of [x]
-  "Returns the var of x if x is a symbol; otherwise nil."
-  (when (symbol? x)
-    `(resolve (quote ~x))))
 
 (defmacro spawn
   "Creates and starts a new actor running in its own, newly-spawned fiber.
@@ -595,29 +602,31 @@
 (defn ^co.paralleluniverse.actors.behaviors.Server Server->java
   {:no-doc true}
   [server]
-  (suspendable! server [co.paralleluniverse.pulsar.actors.Server])
+  (suspendable! @server [co.paralleluniverse.pulsar.actors.Server])
   (reify
-    co.paralleluniverse.actors.behaviors.ServerHandler
+    ServerHandler
     (^void init [this]
-           (init server))
+      (init @server))
     (handleCall [this ^ActorRef from id message]
-                (handle-call server from id message))
+      (handle-call @server from id message))
     (^void handleCast [this ^ActorRef from id message]
-           (handle-cast server from id message))
+      (handle-cast @server from id message))
     (^void handleInfo [this message]
-           (handle-info server message))
+      (handle-info @server message))
     (^void handleTimeout [this]
-           (handle-timeout server))
+      (handle-timeout @server))
     (^void terminate  [this ^Throwable cause]
-           (terminate server cause))))
+      (terminate @server cause))))
+
 
 (defmacro gen-server
   "Creates (but doesn't start) a new gen-server"
   {:arglists '([:name? :timeout? :mailbox-size? :overflow-policy? server & args])}
   [& args]
-  (let [[{:keys [^String name ^Integer timeout ^Integer mailbox-size overflow-policy], :or {timeout -1 mailbox-size -1}} body] (kps-args args)]
+  (let [[{:keys [^String name ^Integer timeout ^Integer mailbox-size overflow-policy], :or {timeout -1 mailbox-size -1}} body] (kps-args args)
+        s (first body)]
     `(co.paralleluniverse.actors.behaviors.ServerActor. ~name
-                                                        ^co.paralleluniverse.actors.behaviors.Server (Server->java ~(first body))
+                                                        ^co.paralleluniverse.actors.behaviors.Server (Server->java ~(if (symbol? s) `(var ~s) `(vref ~s)))
                                                         (long ~timeout) java.util.concurrent.TimeUnit/MILLISECONDS
                                                         nil (->MailboxConfig ~mailbox-size ~overflow-policy))))
 
