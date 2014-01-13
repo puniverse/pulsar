@@ -18,6 +18,7 @@ import clojure.lang.Var;
 import co.paralleluniverse.actors.ActorRegistry;
 import co.paralleluniverse.fibers.Instrumented;
 import co.paralleluniverse.fibers.SuspendExecution;
+import co.paralleluniverse.fibers.instrument.JavaAgent;
 import co.paralleluniverse.fibers.instrument.MethodDatabase;
 import co.paralleluniverse.fibers.instrument.MethodDatabase.ClassEntry;
 import co.paralleluniverse.fibers.instrument.Retransform;
@@ -55,6 +56,9 @@ public class ClojureHelper {
     };
 
     static {
+        if(!JavaAgent.isActive())
+            throw new RuntimeException("Java agent not running");
+
         // These methods need not be instrumented. we mark them so that verifyInstrumentation doesn't fail when they're on the call-stack
         Retransform.addWaiver("clojure.lang.AFn", "applyToHelper");
         Retransform.addWaiver("clojure.lang.AFn", "applyTo");
@@ -67,7 +71,7 @@ public class ClojureHelper {
 
         // mark all IFn methods as suspendable
         Retransform.getMethodDB().getClassEntry(Type.getInternalName(IFn.class)).setAll(MethodDatabase.SuspendableType.SUSPENDABLE_SUPER);
-        
+
         // register kryo serializers for clojure types
         if (ActorRegistry.hasGlobalRegistry()) {
             try {
