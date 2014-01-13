@@ -256,6 +256,14 @@
      (defn ~@expr)
      (def ~(first expr) (suspendable! ~(first expr)))))
 
+(defmacro sreify
+  "Creates a suspendable implementation of a protocol or interface.
+  sreify is to reify what sfn is to fn."
+  [& expr]
+  `(suspendable! (reify ~@expr)
+                 ~(vec (map (fn [x] (if-let [iface (:on-interface x)] iface x))
+                            (map eval (filter symbol? expr))))))
+
 (defmacro letsfn
   "Defines a local suspendable function that can be used by a fiber or actor.
   Used exactly like `letfn`"
