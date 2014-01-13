@@ -4171,11 +4171,19 @@ as published by the Free Software Foundation.</p>
         (when-let [m (receive-timed 1000)]
           (println &quot;message:&quot; m))
         (recur-swap a (inc n)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def s (sreify Server
+         (init [_])
+         (terminate [_ cause])
+         (handle-call [_ from id [a b]]
+           (sleep 50)
+           (+ a b))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn -main []
   (println &quot;starting&quot;)
   (let [actor (spawn a 1)
+        server (spawn (gen-server s))
         sender (spawn (fn [i]
                         (! actor i)
+                        (println &quot;server responded:&quot; (call! server i 10))
                         (sleep 1500)
                         (recur (inc i)))
                       0)]
@@ -4186,6 +4194,12 @@ as published by the Free Software Foundation.</p>
             (when-let [m (receive-timed 1000)]
               (println &quot;message!&quot; m))
             (recur-swap a (inc n)))
+    (def s (sreify Server
+             (init [_])
+             (terminate [_ cause])
+             (handle-call [_ from id [a b]]
+               (sleep 50)
+               (* a 1000))))
     (sleep 8 :sec)
     ;(join actor)
     (println &quot;done&quot;)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.examples.graph" name="co.paralleluniverse.pulsar.examples.graph"><h1 class="project-name">co.paralleluniverse.pulsar.examples.graph</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
