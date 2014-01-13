@@ -212,7 +212,7 @@
 (defn ^ForkJoinPool make-fj-pool
   "Creates a new ForkJoinPool with the given parallelism and with the given async mode"
   [^Integer parallelism ^Boolean async]
-  (ForkJoinPool. parallelism jsr166e.ForkJoinPool/defaultForkJoinWorkerThreadFactory nil async))
+  (ForkJoinPool. parallelism ForkJoinPool/defaultForkJoinWorkerThreadFactory nil async))
 
 ;; ## Suspendable functions
 ;; Only functions that have been especially instrumented can perform blocking actions

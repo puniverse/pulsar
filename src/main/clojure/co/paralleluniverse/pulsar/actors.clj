@@ -27,7 +27,7 @@
             LifecycleListener ShutdownMessage]
            [co.paralleluniverse.pulsar ClojureHelper]
            [co.paralleluniverse.actors.behaviors Behavior BehaviorActor Initializer
-            ServerActor
+            ServerActor ServerHandler
             EventSource EventSourceActor EventHandler
             Supervisor Supervisor$ChildSpec Supervisor$ChildMode SupervisorActor SupervisorActor$RestartStrategy]
            ; for types:
