@@ -5,15 +5,11 @@ safe: false
 baseurl: /pulsar
 
 kramdown:
-  toc_levels: [1,2,3]
   use_coderay: false
-  coderay:
-    enable_coderay: false
-    coderay_line_numbers: nil
-    coderay_css: class
 
 # Site globals used throughout docs.
 project: Pulsar
+version: 0.4.0
 github: puniverse/pulsar
 google_group: "https://groups.google.com/forum/#!forum/quasar-pulsar-user"
 ga_tracking_id: UA-25007319-2
