@@ -1269,7 +1269,7 @@ where:
 * `shutdown-deadline-millis` is the maximal amount of time, in milliseconds that the child is allowed to spend from the time it's requested to shut down until the time it is terminated. Whenever a the supervisor shuts down a child, it does so by sending it the message `[:shutdown sup]`, with `sup` being the supervisor. If the shutdown deadline elapses, the supervisor will forcefully shut it down by interrupting the child's strand.
 * `actor-fn & actor-args` are the (suspendable) function (with optional arguments) that's to serve as the child actor's body.
 
-It is often useful to pass the supervisor to a child (so it could later dynamically add other children to the supervisor, for example). This is easily done because the `init` function is called inside the supervisor; therefore, any reference to `@self` insode the init function returns the supervisor. If you pass `@self`, then, as an argument to a child actor, it will receive the supervisor.
+It is often useful to pass the supervisor to a child (so it could later dynamically add other children to the supervisor, for example). This is easily done because the `init` function is called inside the supervisor; therefore, any reference to `@self` inside the init function returns the supervisor. If you pass `@self`, then, as an argument to a child actor, it will receive the supervisor.
 
 Other than returning a sequence of child specs from the `init` function, you can also dynamically add a child to a supervisor by simply calling
 
@@ -1303,7 +1303,7 @@ These definitions are no more than thin wrappers around Pulsar functions and mac
 * `>!` and `>!!` are the same as `snd`
 * `<!` and `<!!` are the same as `rcv`
 
-The core.async API and the Pulsar API may be used interchangably, so you can call `>!` on a channel created with `channel` or `snd` on a channel created with `chan`. They are one and the same.
+The core.async API and the Pulsar API may be used interchangeably, so you can call `>!` on a channel created with `channel` or `snd` on a channel created with `chan`. They are one and the same.
 
 `go` simply performs its body within a newly spawned fiber.
 
