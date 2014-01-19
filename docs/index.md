@@ -1287,6 +1287,40 @@ A supervised actor may be removed from the supervisor by calling
 
 with `id` being the one given to the actor in the child spec or the arguments to `add-child`.
 
+### Hot Code Swapping
+
+Hot code swapping is the ability to change your program's code while it is running, with no need for a restart. Pulsar actors support a limited form of hot code swapping. Hot code swapping in Pulsar generally entails rebinding or redefining vars.
+
+An example of hot code swapping is found in the [codeswap.clj](https://github.com/puniverse/pulsar/blob/master/src/test/clojure/co/paralleluniverse/pulsar/examples/codeswap.clj) program.
+
+#### Swapping plain actors
+
+In the actor's main loop, using the `recur-swap` macro rather than `recur`, would use the new definition of the actor function, if one is found. The only difference in syntax between `recur-swap` and `recur` is that `recur-swap` takes the name of the function is the first parameter.
+
+In the following example (taken from [codeswap.clj](https://github.com/puniverse/pulsar/blob/master/src/test/clojure/co/paralleluniverse/pulsar/examples/codeswap.clj)) if `a` is redefined, its new definition will be used in the next iteration.
+
+~~~ clojure
+(defsfn a [n]
+    (when-let [m (receive-timed 1000)]
+        (println "message:" m))
+    (recur-swap a (inc n)))
+~~~
+
+#### Swapping gen-server
+
+`gen-server`s don't need any special action to support hot code swapping. If the implementation of the `Server` protocol passed to `gen-server` is a var and that var is redefined, the new definition will be used when processing the next request. This is an example (taken from [codeswap.clj](https://github.com/puniverse/pulsar/blob/master/src/test/clojure/co/paralleluniverse/pulsar/examples/codeswap.clj)) of a `gen-server` that supports hot code swapping when `s` is redefined:
+
+~~~ clojure
+(def s (sreify Server
+         (init [_])
+         (terminate [_ cause])
+         (handle-call [_ from id [a b]]
+           (sleep 50)
+           (+ a b))))
+
+(spawn (gen-server s))
+~~~
+
 ## core.async
 
 core.async is a new [asynchronous programming library](https://github.com/clojure/core.async/) for Clojure built by Rich Hickey and other contributors. It provides something akin to fibers (though more limited than fibers) and channels, and is also available in ClojureScript. Because core.async provides a subset of Pulsar's capability, Pulsar provides an optional API that's compatible with core.async which some people may prefer.
