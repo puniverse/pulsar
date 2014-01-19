@@ -414,20 +414,9 @@ In the example, if a message is received from channel `c1`, then it will be prin
 
 Finally, just like `sel`, you can pass `:priority true` to `select`, in which case if more than one operation is available, the first one among them as listed in the `select` statement will be performed.
 
-#### Channel Groups
-
-It is common for a function to always wait to receive from the same set of channels. An alternative to `sel` can be to create a `rcv-group`, on which you can call `rcv` as if it were a simple channel:
-
-~~~ clojure
-(let [group (rcv-group ch1 ch2 ch3)]
-   (rcv group))
-~~~
-
-You can also use a timeout when receiving from a channel group.
-
 #### Topics
 
-Topics are, in a sense, the opposite of rcv-groups. A topic is a send-port (a channel you can send to but not receive from), that broadcasts any message written to it to a number of *subscriber* channels.
+A topic is a send-port (a channel you can send to but not receive from), that broadcasts any message written to it to a number of *subscriber* channels.
 
 A topic is created simply with:
 
@@ -538,6 +527,17 @@ Then, manipulating messages with sequence functions is easy. Here are some examp
                  (snd ch m))
                (join fiber)) => (list 16)))
 ~~~
+
+### Channel Transformation (AKA Reactive Extensions)
+
+The `co.paralleluniverse.pulsar.rx` namespace contains functions for transforming and combining channels. Known as "reactive extensions", these transformations let you model your computation as a flow of data. These are the supported transformations:
+
+* map - returns a channel that transforms messages by applying a given mapping function. There are two versions of this operation: `map` which transforms messages as they are received from the channel, and `snd-map` which transforms the messages right before they are sent to the channel.
+* filter - returns a channel that only lets messages that satisfy a predicate through. Like map, there are two versions of this operation: `filter`, which filters messages as they are received from the channel, and `snd-filter`, which filters them right before they are sent. Either operation drops the messages that do not satisfy the predicate, and they are lost.
+* `zip` - returns a channel that combines messages from a collection of channels into a combined vector message.
+* `group` - returns a channel that funnels messages from a set of given channels into one group channel.
+
+Examples of using all channel transformations can be found in the [rx test suite](https://github.com/puniverse/pulsar/blob/master/src/test/clojure/co/paralleluniverse/pulsar/rx_test.clj).
 
 ## Pulsar's Actor System
 
@@ -723,6 +723,9 @@ But while the `receive` syntax is nice and all (it mirrors Erlang's syntax), we 
 ~~~
 
 Pretty syntax is not the main goal of the `receive` function. The reason `receive` is much more powerful than `rcv`, is mostly because of a feature we will now introduce.
+
+{:.alert .alert-info}
+**Note**: Because actors implement the `SendPort` interface, the `snd-map` and `snd-filter` functions (in the `rx` namespace) can be applied to actors as well.
 
 ### Selective Receive
 
