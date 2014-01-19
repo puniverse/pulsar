@@ -16,7 +16,7 @@
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [co.paralleluniverse/quasar-core   "0.4.0-SNAPSHOT"]
                  [co.paralleluniverse/quasar-actors "0.4.0-SNAPSHOT"]
-                 [org.clojure/core.match "0.2.0"]
+                 [org.clojure/core.match "0.2.1"]
                  [useful "0.8.8"]
                  [gloss "0.2.2" :exclusions [com.yammer.metrics/metrics-core useful]]
                  [org.clojure/core.typed "0.2.21" :exclusions [org.apache.ant/ant org.clojure/core.unify]]]
