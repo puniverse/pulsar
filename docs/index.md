@@ -582,7 +582,7 @@ Of all the optional arguments, you'll usually only use `:name` and `:mailbox-siz
 An actor can be `join`ed, just like a fiber.
 
 {:.alert .alert-info}
-**Note**: Just like fibers, spawning an actor is a very cheap operation in both computation and memory. Do not fear creating many (thousands, tens-of-thousands or even hundereds-of-thousands) actors.
+**Note**: Just like fibers, spawning an actor is a very cheap operation in both computation and memory. Do not fear creating many (thousands, tens-of-thousands or even hundreds-of-thousands) actors.
 
 ### Sending and Receiving Messages
 
