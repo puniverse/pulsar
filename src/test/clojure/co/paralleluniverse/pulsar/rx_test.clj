@@ -74,7 +74,7 @@
                (close! ch)
                (join fiber))  => '(12 14 nil)))
 
-(facts "test send- map and filter"
+(facts "test snd- map and filter"
        (fact "test filter"
              (let [ch (channel)
                    fiber (spawn-fiber
@@ -83,7 +83,7 @@
                                    m2 (rcv ch)
                                    m3 (rcv ch)]
                                (list m1 m2 m3))))
-                   ch1 (rx/send-filter even? ch)]
+                   ch1 (rx/snd-filter even? ch)]
                (sleep 20)
                (snd ch1 1)
                (snd ch1 2)
@@ -103,7 +103,7 @@
                                    m3 (rcv ch)
                                    m4 (rcv ch)]
                                (list m1 m2 m3 m4))))
-                   ch1 (rx/send-map #(+ 10 %) ch)]
+                   ch1 (rx/snd-map #(+ 10 %) ch)]
                (sleep 20)
                (snd ch1 1)
                (snd ch1 2)
@@ -119,7 +119,7 @@
                                    m2 (rcv ch)
                                    m3 (rcv ch)]
                                (list m1 m2 m3))))
-                   ch1 (rx/send-map #(+ 10 %) (rx/send-filter even? ch))]
+                   ch1 (rx/snd-map #(+ 10 %) (rx/snd-filter even? ch))]
                (sleep 20)
                (snd ch1 1)
                (snd ch1 2)
@@ -167,7 +167,6 @@
                (sleep 100)
                (snd ch3 "world!")
                (join fiber))  => '("hello" nil "world!")))
-
 
 (fact "test zip"
       (let [ch1 (channel 10)

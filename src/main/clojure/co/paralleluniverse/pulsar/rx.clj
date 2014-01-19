@@ -42,7 +42,7 @@
   [f ^ReceivePort ch]
   (Channels/map ^ReceivePort ch (fn->guava-fn f)))
 
-(defn ^SendPort send-map
+(defn ^SendPort snd-map
   "Returns a channel that transforms messages by applying th given mapping function f
   before sending them to the given channel ch."
   [f ^SendPort ch]
@@ -56,7 +56,7 @@
   [pred ^ReceivePort ch]
   (Channels/filter ^ReceivePort ch (fn->guava-pred pred)))
 
-(defn ^SendPort send-filter
+(defn ^SendPort snd-filter
   "Returns a channel that filters messages that satisfy the predicate pred before sending to the given channel ch.
    Messages that don't satisfy the predicate will be silently discarded when sent."
   [pred ^SendPort ch]
