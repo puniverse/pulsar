@@ -23,6 +23,10 @@ Aside from Pulsar's dependency on Quasar and its dependent libraries, Pulsar mak
 
 ## News 
 
+### January 22, 2014
+
+Quasar 0.4.0 has been released.
+
 ### July 26, 2013
 
 [Distributed actors](http://blog.paralleluniverse.co/post/56519815799/distributed-actors-in-java-and-clojure) in Pulsar.
@@ -1352,7 +1356,7 @@ In addition, there are performance differences, mostly resulting from the fact t
 
 {% capture examples %}https://github.com/{{site.github}}/tree/master/src/test/clojure/co/paralleluniverse/pulsar/examples{% endcapture %}
 
-Pulsar is able to run on a cluster, thereby letting actors and channels communicate across machines. The Pulsar/Quasar cluster runs on top of [Galaxy](http://puniverse.github.io/galaxy/), Parallel Universe's in-memory data grid. 
+Pulsar is able to run on a cluster, thereby letting actors and channels communicate across machines. The Pulsar/Quasar cluster runs on top of [Galaxy](http://docs.paralleluniverse.co/galaxy/), Parallel Universe's in-memory data grid.
 
 In this version, clustering is pretty rudimentary, but essential features should work: actors can be made discoverable on the network, messages can be passed among actors on different nodes, and an actor on a failing node will behave as expected of a dying actor with respect to exit messages sent to other, remote, *watching* it or *linked* to it.
 
@@ -1404,7 +1408,7 @@ lein with-profile cluster update-in :jvm-opts conj '"-Dgalaxy.nodeId=1"' '"-Dgal
 
 ### Cluster Configuration
 
-For instructions on how to configure the Galaxy cluster, please refere to Galaxy's [getting started guide](http://puniverse.github.io/galaxy/start/getting-started.html).
+For instructions on how to configure the Galaxy cluster, please refere to Galaxy's [getting started guide](http://docs.paralleluniverse.co/galaxy/start/getting-started.html).
 
 ## Examples
 
