@@ -46,7 +46,7 @@ lein trampoline run -m co.paralleluniverse.pulsar.examples.ring-benchmark 1000 1
 
 ## Usage
 
-Documentation and examples can be found [here](http://puniverse.github.io/pulsar/).
+Documentation and examples can be found [here](http://docs.paralleluniverse.co/pulsar/).
 
 You can also read the introductory [blog post](http://blog.paralleluniverse.co/post/49445260575/quasar-pulsar).
 
@@ -60,9 +60,9 @@ or to the `:jvm-opts` section in project.clj:
 
 ## Documentation
 
-* [User Guide](http://puniverse.github.io/pulsar/)
-* [API](http://puniverse.github.io/pulsar/api/)
-* [Marginalia](http://puniverse.github.io/pulsar/uberdoc.html) (of tests and examples)
+* [User Guide](http://docs.paralleluniverse.co/pulsar/)
+* [API](http://docs.paralleluniverse.co/pulsar/api/)
+* [Marginalia](http://docs.paralleluniverse.co/uberdoc.html) (of tests and examples)
 
 ## Community
 
