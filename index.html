@@ -1,250 +1,143 @@
 <!DOCTYPE html>
 <html itemscope itemtype="http://schema.org/Organization">
 <head>
-<meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="chrome=1" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta itemprop="name" content="Pulsar">
-<meta itemprop="description" content="Erlang-like actors for Clojure">
-<title>
-  
-    Welcome - 
-   Pulsar
-</title>
-<!--<link rel="shortcut icon" href="/images/icons/loading_icon.png">-->
-<link href="/pulsar/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
-<link href="/pulsar/css/pygments/jekyll-github.css"  rel="stylesheet" type="text/css">
-<!-- comment out the next line to disable line numbers -->
-<link href="/pulsar/css/pygments/linenos.css"        rel="stylesheet" type="text/css">
-<!-- <link href="/pulsar/css/prettify/sunburst.css" rel="stylesheet" type="text/css"> -->
-<link href="/pulsar/css/site.css?now" rel="stylesheet" type="text/css">
+	<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+<head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>Parallel Universe</title>
+        <meta name="description" content="">
+        <meta name="format-detection" content="telephone=no">
+        <meta name="viewport" content="width=1100">
+        <script type="text/javascript" src="//use.typekit.net/pfn0abv.js"></script>
+        <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
+        <link href='http://fonts.googleapis.com/css?family=Arimo:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+        <link rel="stylesheet" type="text/css" href="/pulsar/css/screen.css">
+        <script src="/pulsar/js/vendor/modernizr-2.6.2.min.js"></script>
 
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script>window.jQuery || document.write('<script src="/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+        <script src="/pulsar/js/plugins.js"></script>
+        <script src="/pulsar/js/main.js"></script>
 
-
+        <script>
+            var _gaq=[['_setAccount','UA-25007319-2'],['_trackPageview']];
+            (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+            g.src='//www.google-analytics.com/ga.js';
+            s.parentNode.insertBefore(g,s)}(document,'script'));
+        </script>
+    <!--[if lt IE 9]>
+        <script src="js/vendor/html5shiv.js"></script>
+    <![endif]-->
+     <!--[if lt IE 8]>
+            <p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
+        <![endif]-->
 </head>
-<body>
-
-<div class="navbar navbar-fixed-top">
-  <div class="navbar-inner">
-    <div class="container-fluid">
-      <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-      </a>
-      <a class="brand" href="/pulsar/">Pulsar</a>
-      <div class="nav-collapse collapse">
-        <ul class="nav">
-          <li class="icon github"><a href="https://github.com/puniverse/pulsar"><img src="/pulsar/images/icons/github.png">View on Github</a></li>
-          <li><a href="/pulsar/api/index.html">API</a> </li>
-          <li class="icon bug"><a href="https://github.com/puniverse/pulsar/issues/new"><img src="/pulsar/images/icons/bug.png">File a bug</a></li>
-          <!-- <li class="icon source"><a href="https://github.com/puniverse/pulsar/blob/master/CONTRIBUTING.md"><img src="/images/icons/source.png">Contribute</a> </li> -->
-          <li class="icon talk"><a href="https://groups.google.com/forum/#!forum/quasar-pulsar-user"><img src="/pulsar/images/icons/talk.png">Discuss</a></li>
+</head>
+<body class="fixed-documentation">
+	ֿ
+<header>
+    <div class="container">
+        <a href="/pulsar" id="logo">Parallel Universe</a>
+        <ul id="nav">
+            <li class="sub">
+                <a>Products</a>
+                <ul>
+                    <li class="li1"><a href="http://paralleluniverse.co/comsat/">Comsat</a></li>
+                    <li class="li2"><a href="http://paralleluniverse.co/quasar/">Quasar</a></li>
+                    <li class="li3"><a href="http://paralleluniverse.co/spacebase/">Spacebase</a></li>
+                    <li class="li4"><a href="http://paralleluniverse.co/galaxy/">Galaxy</a></li>
+                </ul>
+            </li>
+            <li><a href="http://paralleluniverse.co/support/">Support</a></li>
+            <li><a href="http://docs.paralleluniverse.co">Documentation</a></li>
+            <li><a href="http://paralleluniverse.co/about/">Company</a></li>
+            <li><a href="http://blog.paralleluniverse.co">Blog</a></li>
         </ul>
-      </div>
     </div>
-  </div>
-</div>
+</header>
+ 
 
+	<section id="main">
+		<div class="container">
+			<div id="docs-cont" class="clearfix">
+				<div class="sidebar">
+					<ul id="docs-sidemenu">
+<li class="li1">
+<a href="#overview">Overview</a><ul>
+<li><ul><li><a href="#dependencies">Dependencies</a></li></ul></li>
+<li>
+<a href="#news" class="cat-link">News</a><ul>
+<li><a href="#january-22-2014">January 22, 2014</a></li>
+<li><a href="#july-26-2013">July 26, 2013</a></li>
+<li><a href="#july-19-2013">July 19, 2013</a></li>
+<li><a href="#may-2-2013">May 2, 2013</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="li1">
+<a href="#getting-started">Getting Started</a><ul><li><ul>
+<li><a href="#system-requirements">System Requirements</a></li>
+<li><a href="#lein">Using Leiningen</a></li>
+<li><a href="#build">Building Pulsar</a></li>
+</ul></li></ul>
+</li>
+<li class="li1">
+<a href="#user-manual">User Manual</a><ul>
+<li>
+<a href="#pulsar-core" class="cat-link">Pulsar Core</a><ul>
+<li><a href="#quasar-and-pulsar">Quasar and Pulsar</a></li>
+<li><a href="#fibers">Fibers</a></li>
+<li><a href="#transforming-any-asynchronous-callback-to-a-fiber-blocking-operation">Transforming any Asynchronous Callback to A Fiber-Blocking Operation</a></li>
+<li><a href="#promises-promises">Promises, Promises</a></li>
+<li><a href="#channels">Channels</a></li>
+<li><a href="#channel-transformation-aka-reactive-extensions">Channel Transformation (AKA Reactive Extensions)</a></li>
+</ul>
+</li>
+<li>
+<a href="#pulsars-actor-system" class="cat-link">Pulsar’s Actor System</a><ul>
+<li><a href="#sending-and-receiving-messages-1">Sending and Receiving Messages</a></li>
+<li><a href="#actors-vs-channels">Actors vs. Channels</a></li>
+<li><a href="#selective-receive">Selective Receive</a></li>
+<li><a href="#actor-state">Actor State</a></li>
+<li><a href="#state-machines-with-strampoline">State Machines with Strampoline</a></li>
+<li><a href="#error-handling">Error Handling</a></li>
+<li><a href="#actor-registration">Actor Registration</a></li>
+<li><a href="#behaviors">Behaviors</a></li>
+<li><a href="#supervisors">Supervisors</a></li>
+<li><a href="#hot-code-swapping">Hot Code Swapping</a></li>
+</ul>
+</li>
+<li><a href="#coreasync" class="cat-link">core.async</a></li>
+<li>
+<a href="#clustering" class="cat-link">Clustering</a><ul>
+<li><a href="#enabling-clustering">Enabling Clustering</a></li>
+<li><a href="#example">Example</a></li>
+<li><a href="#cluster-configuration">Cluster Configuration</a></li>
+</ul>
+</li>
+<li><a href="#examples" class="cat-link">Examples</a></li>
+</ul>
+</li>
+</ul>
+				</div>
 
-<div class="container-fluid">
-  <div class="row-fluid">
-    <div class="span3">
-  <div class="well well-small sidebar-nav">
-    <ul class="nav nav-list">
-      
-        <li class="nav-header">Getting Started</li>
-        
-          
-          
-            
-          
-          
-          
-        
-          
-          
-            
-          
-          
-          
-            <li>
-              <a  href="/pulsar/getting-started.html">
-                Getting Started
-              </a>
-              
-            </li>
-          
-        
-          
-          
-            
-          
-          
-          
-        
-          
-          
-            
-          
-          
-          
-        
-          
-          
-            
-          
-          
-          
-        
-          
-          
-            
-          
-          
-          
-        
-          
-          
-            
-          
-          
-          
-            <li>
-              <a  href="/pulsar/news.html">
-                News
-              </a>
-              
-            </li>
-          
-        
-      
-        <li class="nav-header">User Manual</li>
-        
-          
-          
-            
-          
-          
-          
-            <li>
-              <a  href="/pulsar/manual/core.html">
-                Pulsar Core
-              </a>
-              
-            </li>
-          
-        
-          
-          
-            
-          
-          
-          
-        
-          
-          
-            
-          
-          
-          
-            <li>
-              <a  href="/pulsar/manual/actors.html">
-                Pulsar's Actor System
-              </a>
-              
-            </li>
-          
-        
-          
-          
-            
-          
-          
-          
-            <li>
-              <a  href="/pulsar/manual/async.html">
-                core.async
-              </a>
-              
-            </li>
-          
-        
-          
-          
-            
-          
-          
-          
-            <li>
-              <a  href="/pulsar/manual/cluster.html">
-                Clustering
-              </a>
-              
-            </li>
-          
-        
-          
-          
-            
-          
-          
-          
-            <li>
-              <a  href="/pulsar/manual/examples.html">
-                Examples
-              </a>
-              
-            </li>
-          
-        
-          
-          
-            
-          
-          
-          
-        
-      
-      <li class="divider"></li>
-    </ul>
-  </div>
-</div>
+				<div class="main">
+					<div class="doc-text">
+						<h1 id="overview">Overview</h1>
 
-    <div class="span8" id="content-container">
-
-      <span class="edit-on-github">
-  <a href="https://github.com/puniverse/pulsar/edit/master/docs/index.md">Edit on Github</a>
-</span>
-
-
-      
-      <div class="page-header">
-        <h1>Welcome
-          
-        </h1>
-      </div>
-      
-
-      <div id="content"><p>Pulsar is a Clojure library that provides high-performance lightweight threads and Erlang-like&nbsp;actors. 
+<p>Pulsar is a Clojure library that provides high-performance lightweight threads and Erlang-like&nbsp;actors. 
 It is a Clojure <span class="caps">API</span> for the <a href="https://github.com/puniverse/quasar">Quasar</a> Java library, with the addition of pattern matching and an Erlang-like&nbsp;syntax.</p>
 
 <p>A good introduction to Pulsar (and Quasar) can be found in the blog post <a href="http://blog.paralleluniverse.co/post/49445260575/quasar-pulsar">Erlang (and Go) in Clojure (and Java), Lightweight Threads, Channels and Actors for the <span class="caps">JVM</span></a>.</p>
 
 <p>Pulsar and Quasar are developed by <a href="http://paralleluniverse.co">Parallel Universe</a> and released as free software, dual-licensed under the Eclipse Public License and the <span class="caps">GNU</span> Lesser General Public&nbsp;License.</p>
 
-<h2 id="license">License</h2>
-
-<pre><code>Pulsar
-Copyright © 2013 Parallel Universe
-
-This program and the accompanying materials are dual-licensed under
-either the terms of the Eclipse Public License v1.0 as published by
-the Eclipse Foundation
-
-  or (per the licensee's choosing)  
-
-under the terms of the GNU Lesser General Public License version 3.0
-as published by the Free Software Foundation. 
-</code></pre>
-<h2 id="dependencies">Dependencies</h2>
+<h3 id="dependencies">Dependencies</h3>
 
 <p>Aside from Pulsar’s dependency on Quasar and its dependent libraries, Pulsar makes use of the following open-source&nbsp;projects:</p>
 
@@ -253,56 +146,1252 @@ as published by the Free Software Foundation.
   <li><a href="https://github.com/ztellman/gloss">Gloss</a>, by Zach Tellman - a byte-format&nbsp;<span class="caps">DSL</span></li>
 </ul>
 
-<h2 id="acknowledgments">Acknowledgments</h2>
+<h2 id="news">News</h2>
 
-<p>Parts of the documentation layout, icons and styles were taken from Google’s <a href="http://www.polymer-project.org/">Polymer Project</a>.</p>
+<h3 id="january-22-2014">January 22,&nbsp;2014</h3>
+
+<p>Quasar <span class="caps">0.4.0</span> has been&nbsp;released.</p>
+
+<h3 id="july-26-2013">July 26,&nbsp;2013</h3>
+
+<p><a href="http://blog.paralleluniverse.co/post/56519815799/distributed-actors-in-java-and-clojure">Distributed actors</a> in&nbsp;Pulsar.</p>
+
+<h3 id="july-19-2013">July 19,&nbsp;2013</h3>
+
+<p>Quasar/Pulsar <span class="caps">0.2.0</span> <a href="http://blog.paralleluniverse.co/post/55876031297/quasar-pulsar-0-2-0-distributed-actors-supervisors">has been released</a>.</p>
+
+<h3 id="may-2-2013">May 2,&nbsp;2013</h3>
+
+<p>Introductory blog post: <a href="http://blog.paralleluniverse.co/post/49445260575/quasar-pulsar">Erlang (and Go) in Clojure (and Java), Lightweight Threads, Channels and Actors for the <span class="caps">JVM</span></a>. </p>
+
+<h1 id="getting-started">Getting&nbsp;Started</h1>
+
+<h3 id="system-requirements">System&nbsp;Requirements</h3>
+
+<p>Java 7 and Clojure <span class="caps">1.5</span> are required to run&nbsp;Pulsar.</p>
+
+<h3 id="lein">Using&nbsp;Leiningen</h3>
+
+<p>Add the following dependency to <a href="http://github.com/technomancy/leiningen/">Leiningen</a>’s&nbsp;project.clj:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">[</span><span class="nv">co.paralleluniverse/pulsar</span> <span class="s">&quot;0.4.0&quot;</span><span class="p">]</span>
+</span></code></pre></div>
+<p>Then, the following must be added to the project.clj&nbsp;file:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="ss">:java-agents</span> <span class="p">[[</span><span class="nv">co.paralleluniverse/quasar-core</span> <span class="s">&quot;0.4.0&quot;</span><span class="p">]]</span>
+</span></code></pre></div>
+<p>or, add the following to the java command&nbsp;line:</p>
+
+<div class="highlight"><pre><code><span id="line-1">-javaagent:path-to-quasar-jar.jar
+</span></code></pre></div>
+<h3 id="build">Building&nbsp;Pulsar</h3>
+
+<p>Clone the&nbsp;repository:</p>
+
+<pre><code>git clone git://github.com/puniverse/pulsar.git pulsar
+</code></pre>
+<p>and&nbsp;run:</p>
+
+<pre><code>lein midje
+</code></pre>
+<p>To build the documentation, you need to have <a href="http://jekyllrb.com/">Jekyll</a> installed. Then&nbsp;run:</p>
+
+<pre><code>jekyll build
+</code></pre>
+<p>To generate the <span class="caps">API</span> documentation&nbsp;run</p>
+
+<pre><code>lein doc
+</code></pre>
+<p>You can run the examples like&nbsp;this:</p>
+
+<pre><code>lein -o run -m co.paralleluniverse.pulsar.examples.pingpong
+</code></pre>
+<p>For benchmarks, you should use <code>lein trampoline</code>, like&nbsp;so:</p>
+
+<pre><code>lein trampoline run -m co.paralleluniverse.pulsar.examples.ring-benchmark 1000 1000
+</code></pre>
+<h1 id="user-manual">User&nbsp;Manual</h1>
+
+<h2 id="pulsar-core">Pulsar&nbsp;Core</h2>
+
+<h3 id="quasar-and-pulsar">Quasar and&nbsp;Pulsar</h3>
+
+<p>Pulsar is a Clojure <span class="caps">API</span> to <a href="https://github.com/puniverse/quasar">Quasar</a>. Many of the concepts explained below are actually implemented in&nbsp;Quasar.</p>
+
+<h3 id="fibers">Fibers</h3>
+
+<p>Fibers are lightweight threads. They provide functionality similar to threads, and a similar <span class="caps">API</span>, but they’re not managed by the <span class="caps">OS.</span> They are lightweight (an idle fiber occupies ~400 bytes of <span class="caps">RAM</span>), and you can have millions of them in an application. If you are familiar with Go, fibers are like goroutines. Fibers in Pulsar (well, Quasar, actually) are scheduled by one or more <a href="http://docs.oracle.com/javase/7/docs/api/java/util/concurrent/ForkJoinPool.html">ForkJoinPool</a>s. </p>
+
+<p>One significant difference between Fibers and Threads is that Fibers are not preempted; i.e. a fiber is (permanently or temporarily) unscheduled by the scheduler only if it terminates, or if it calls one of a few specific Java methods that cause the fiber to become suspended. A function that calls a suspending operation is called a <em>suspendable</em> function, and a function that calls another suspendable function is itself&nbsp;suspendable. </p>
+
+<p>Suspendable functions require special bytecode instrumentation (performed by an instrumentation agent), so they must be explicitly designated as&nbsp;such.
+The function <code>suspendable!</code> marks a given function as a suspendable function (this operation cannot be undone). The <code>defsfn</code> macro, with the same syntax as <code>defn</code> defines a suspendable&nbsp;function.</p>
+
+<p class="alert alert-info"><strong>Note</strong>: All functions (i.e. <code>fn</code>s) passed to any of the Pulsar <span class="caps">API</span> functions and macros are automatically made suspendable, so in most simple cases you will never need to use <code>sfn</code>, <code>defsfn</code> or&nbsp;<code>suspendable!</code>.</p>
+
+<p class="alert alert-warn"><strong>Note</strong>: One thing to watch out for in suspendable functions is lazy-seqs. If the function consumes a seq, it’s probably a good idea to force it with <code>doall</code> before passing it to the&nbsp;function.</p>
+
+<h4 id="spawning-fibers">Spawning&nbsp;Fibers</h4>
+
+<p>To create a fiber of a function <code>f</code> that takes arguments <code>arg1</code> and <code>arg2</code>,&nbsp;run</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">spawn-fiber</span> <span class="nv">f</span> <span class="nv">arg1</span> <span class="nv">arg2</span><span class="p">)</span>
+</span></code></pre></div>
+<p><code>spawn-fiber</code> automatically marks <code>f</code> as suspendable, so there’s no need to do so&nbsp;explicitly.</p>
+
+<p><code>spawn-fiber</code> takes optional keyword&nbsp;arguments:</p>
+
+<ul>
+  <li><code>:name</code> - The fiber’s&nbsp;name.</li>
+  <li><code>:fj-pool</code> - The <code>ForkJoinPool</code> in which the fiber will&nbsp;run.
+If <code>:fj-pool</code> is not specified, then the pool used will be either the pool of the fiber calling <code>spawn-fiber</code>, or, if <code>spawn-fiber</code> is not called from within a fiber, a default&nbsp;pool.</li>
+  <li><code>:stack-size</code> - The initial fiber data stack&nbsp;size.</li>
+</ul>
+
+<p>The fiber will terminate when <code>f</code> completes&nbsp;execution. </p>
+
+<p class="alert alert-info"><strong>Note</strong>: Spawning a fiber is a very cheap operation in both computation and memory. Do not fear creating many (thousands, tens-of-thousands or even hundereds-of-thousands)&nbsp;fibers.</p>
+
+<h4 id="joining-fibers">Joining&nbsp;Fibers</h4>
+
+<p>To wait for the fiber’s termination,&nbsp;use</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nb">join </span><span class="nv">fiber</span><span class="p">)</span>
+</span></code></pre></div>
+<p>If <code>f</code> returns a value, <code>join</code> will return that value. If <code>f</code> throws an exception, <code>join</code> will throw that&nbsp;exception.</p>
+
+<p>You can also wait for a fiber’s termination for a given duration. The following will wait for half a second for the fiber to&nbsp;terminate:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nb">join </span><span class="mi">500</span> <span class="nv">java.util.concurrent.TimeUnit/MILLISECONDS</span> <span class="nv">fiber</span><span class="p">)</span>
+</span></code></pre></div>
+<p>The following will have the same&nbsp;effect:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nb">join </span><span class="mi">500</span> <span class="ss">:ms</span> <span class="nv">fiber</span><span class="p">)</span>
+</span></code></pre></div>
+<h4 id="bindings">Bindings</h4>
+
+<p>Fibers behave well with Clojure <code>bindings</code>. A newly spawned fiber inherits the bindings in effect at the time of&nbsp;spawning,
+and bindings decleared in a fiber last throughout the fiber’s lifetime. This is demonstrated in the following tests&nbsp;taken
+from the Pulsar test&nbsp;suite:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="k">def </span><span class="o">^</span><span class="ss">:dynamic</span> <span class="nv">*foo*</span> <span class="mi">40</span><span class="p">)</span>
+</span><span id="line-2">
+</span><span id="line-3"><span class="p">(</span><span class="nf">facts</span> <span class="s">&quot;fiber-bindings&quot;</span>
+</span><span id="line-4">      <span class="p">(</span><span class="nf">fact</span> <span class="s">&quot;Fiber inherits thread bindings&quot;</span>
+</span><span id="line-5">            <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">fiber</span>
+</span><span id="line-6">                  <span class="p">(</span><span class="nb">binding </span><span class="p">[</span><span class="nv">*foo*</span> <span class="mi">20</span><span class="p">]</span>
+</span><span id="line-7">                    <span class="p">(</span><span class="nf">spawn-fiber</span>
+</span><span id="line-8">                     <span class="o">#</span><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">v1</span> <span class="nv">*foo*</span><span class="p">]</span>
+</span><span id="line-9">                        <span class="p">(</span><span class="nf">Fiber/sleep</span> <span class="mi">200</span><span class="p">)</span>
+</span><span id="line-10">                        <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">v2</span> <span class="nv">*foo*</span><span class="p">]</span>
+</span><span id="line-11">                          <span class="p">(</span><span class="nb">+ </span><span class="nv">v1</span> <span class="nv">v2</span><span class="p">)))))]</span>
+</span><span id="line-12">              <span class="p">(</span><span class="nb">join </span><span class="nv">fiber</span><span class="p">))</span>
+</span><span id="line-13">            <span class="nv">=&gt;</span> <span class="mi">40</span><span class="p">)</span>
+</span><span id="line-14">      <span class="p">(</span><span class="nf">fact</span> <span class="s">&quot;Bindings declared in fiber last throughout fiber lifetime&quot;</span>
+</span><span id="line-15">            <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">fiber</span>
+</span><span id="line-16">                  <span class="p">(</span><span class="nf">spawn-fiber</span>
+</span><span id="line-17">                   <span class="o">#</span><span class="p">(</span><span class="nb">binding </span><span class="p">[</span><span class="nv">*foo*</span> <span class="mi">15</span><span class="p">]</span>
+</span><span id="line-18">                      <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">v1</span> <span class="nv">*foo*</span><span class="p">]</span>
+</span><span id="line-19">                        <span class="p">(</span><span class="nf">Fiber/sleep</span> <span class="mi">200</span><span class="p">)</span>
+</span><span id="line-20">                        <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">v2</span> <span class="nv">*foo*</span><span class="p">]</span>
+</span><span id="line-21">                          <span class="p">(</span><span class="nb">+ </span><span class="nv">v1</span> <span class="nv">v2</span><span class="p">)))))]</span>
+</span><span id="line-22">              <span class="p">(</span><span class="nb">join </span><span class="nv">fiber</span><span class="p">))</span>
+</span><span id="line-23">            <span class="nv">=&gt;</span> <span class="mi">30</span><span class="p">))</span>
+</span></code></pre></div>
+<h4 id="compatibility-with-clojure-concurrency-constructs">Compatibility with Clojure Concurrency&nbsp;Constructs</h4>
+
+<p>Code running in fibers may make free use of Clojure atoms and&nbsp;agents. </p>
+
+<p>Spawning or dereferencing a future created with <code>clojure.core/future</code> is ok, but there’s a better alternative: you can turn a spawned fiber into a future with <code>fiber-&gt;future</code> and can then dereference or call regular future functions on the returned value, like <code>realized?</code> (In fact, you don’t even have to call <code>fiber-&gt;future</code>; fibers already implement the <code>Future</code> interface and can be treated as futures directly, but this may change in the future, so, until the <span class="caps">API</span> is fully settled, we recommend using&nbsp;<code>fiber-&gt;future</code>).</p>
+
+<p>Running a <code>dosync</code> block inside a fiber is discouraged as it uses locks internally, but your mileage may&nbsp;vary.</p>
+
+<p>Promises are supported and encouraged, but you should not make use of <code>clojure.core/promise</code> to create a promise that’s to be dereferenced in a fiber. Pulsar provides a different – yet completely compatible – form of promises, as you’ll see&nbsp;soon.</p>
+
+<h3 id="transforming-any-asynchronous-callback-to-a-fiber-blocking-operation">Transforming any Asynchronous Callback to A Fiber-Blocking&nbsp;Operation</h3>
+
+<p>Fibers are great as a replacement for callbacks. The <code>await</code> macro helps us easily turn any callback-based asynchronous operation to as simple fiber-blocking call. <code>await</code> assumes that an asynchronous function takes a callback of a single argument as its last parameter; <code>await</code> then blocks the current fiber until the callback is called, and the returns the value passed to the&nbsp;callback.</p>
+
+<p>Here’s an example from the&nbsp;tests:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">exec</span> <span class="p">(</span><span class="nf">java.util.concurrent.Executors/newSingleThreadExecutor</span><span class="p">)</span>
+</span><span id="line-2">      <span class="nv">service</span> <span class="p">(</span><span class="k">fn </span><span class="p">[</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">clbk</span><span class="p">]</span> <span class="c1">; an asynchronous service</span>
+</span><span id="line-3">                  <span class="p">(</span><span class="nf">.execute</span> <span class="nv">exec</span> <span class="o">^</span><span class="nv">Runnable</span> <span class="p">(</span><span class="k">fn </span><span class="p">[]</span>
+</span><span id="line-4">                                              <span class="p">(</span><span class="nf">sleep</span> <span class="mi">50</span><span class="p">)</span>
+</span><span id="line-5">                                              <span class="p">(</span><span class="nf">clbk</span> <span class="p">(</span><span class="nb">+ </span><span class="nv">a</span> <span class="nv">b</span><span class="p">)))))]</span>
+</span><span id="line-6">  <span class="p">(</span><span class="nf">spawn-fiber</span>
+</span><span id="line-7">      <span class="p">(</span><span class="k">fn </span><span class="p">[]</span>
+</span><span id="line-8">          <span class="p">(</span><span class="nb">await </span><span class="nv">service</span> <span class="mi">2</span> <span class="mi">5</span><span class="p">))))</span> <span class="c1">; =&gt; 7</span>
+</span></code></pre></div>
+<h4 id="strands">Strands</h4>
+
+<p>Before we continue, one more bit of nomenclature: a single flow of execution in Quasar/Pulsar is called a <em>strand</em>. To put it more simply, a strand is either a normal <span class="caps">JVM</span> thread, or a&nbsp;fiber.</p>
+
+<p>The strand abstraction helps you write code that works whether it runs in a fiber or not. For example, <code>(Strand/currentStrand)</code> returns the current fiber, if called from a fiber, or the current thread, if not. <code>(Strand/sleep millis)</code> suspends the current strand for a given number of milliseconds whether it’s a fiber or a normal thread. Also, <code>join</code> works for both fibers and threads (although for threads <code>join</code> will always return&nbsp;<code>nil</code>).</p>
+
+<h3 id="promises-promises">Promises,&nbsp;Promises</h3>
+
+<p>Promises, also known as dataflow variables, are an especially effective, and simple, concurrency&nbsp;primitive.</p>
+
+<p>A promise is a value that may only be set once, but read multiple times. If the promise is read before the value is set, the reading strand will block until the promise has been set, and then return its&nbsp;value.</p>
+
+<p>Promises are defined in <code>clojure.core</code>, but <code>...pulsar.core</code> provides its own, fully compatible&nbsp;version.</p>
+
+<p>A promise is created simply like&nbsp;this:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">promise</span><span class="p">)</span>
+</span></code></pre></div>
+<p>And is set with <code>deliver</code>. It can be read by dereferencing it with <code>@</code>, and you can test whether it’s been set with <code>realized?</code> (other than the <code>promise</code> function itself, all other functions, like <code>deliver</code> and <code>realized</code> are those defined in&nbsp;<code>clojure.core</code>)</p>
+
+<p>The <code>promise</code> function defined in Pulsar creates a promise, that, when dereferenced within a fiber, simply blocks the fiber and not the entire <span class="caps">OS</span> thread it’s running&nbsp;in.</p>
+
+<p>Here’s an example of using promises from the&nbsp;tests:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">v1</span> <span class="p">(</span><span class="nf">promise</span><span class="p">)</span>
+</span><span id="line-2">     <span class="nv">v2</span> <span class="p">(</span><span class="nf">promise</span><span class="p">)</span>
+</span><span id="line-3">     <span class="nv">v3</span> <span class="p">(</span><span class="nf">promise</span><span class="p">)</span>
+</span><span id="line-4">     <span class="nv">v4</span> <span class="p">(</span><span class="nf">promise</span><span class="p">)</span>
+</span><span id="line-5">     <span class="nv">f1</span> <span class="p">(</span><span class="nf">spawn-fiber</span>  <span class="o">#</span><span class="p">(</span><span class="nf">deliver</span> <span class="nv">v2</span> <span class="p">(</span><span class="nb">+ </span><span class="o">@</span><span class="nv">v1</span> <span class="mi">1</span><span class="p">)))</span>
+</span><span id="line-6">     <span class="nv">t1</span> <span class="p">(</span><span class="nf">spawn-thread</span> <span class="o">#</span><span class="p">(</span><span class="nf">deliver</span> <span class="nv">v3</span> <span class="p">(</span><span class="nb">+ </span><span class="o">@</span><span class="nv">v1</span> <span class="o">@</span><span class="nv">v2</span><span class="p">)))</span>
+</span><span id="line-7">     <span class="nv">f2</span> <span class="p">(</span><span class="nf">spawn-fiber</span>  <span class="o">#</span><span class="p">(</span><span class="nf">deliver</span> <span class="nv">v4</span> <span class="p">(</span><span class="nb">+ </span><span class="o">@</span><span class="nv">v3</span> <span class="o">@</span><span class="nv">v2</span><span class="p">)))]</span>
+</span><span id="line-8"> <span class="p">(</span><span class="nf">Strand/sleep</span> <span class="mi">50</span><span class="p">)</span>
+</span><span id="line-9"> <span class="p">(</span><span class="nf">deliver</span> <span class="nv">v1</span> <span class="mi">1</span><span class="p">)</span>
+</span><span id="line-10"> <span class="o">@</span><span class="nv">v4</span><span class="p">)</span> <span class="c1">; =&gt; 5</span>
+</span></code></pre></div>
+<p>This example shows how promises are set, and read, by both fibers and regular&nbsp;threads.</p>
+
+<p>But Pulsar’s promises have one additional, quite nifty, feature. If you pass an optional function to <code>promise</code>, a new fiber running that function will be spawned, and the promise will receive the value returned from the function. Here’s another example from the&nbsp;tests:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">v0</span> <span class="p">(</span><span class="nf">promise</span><span class="p">)</span>
+</span><span id="line-2">     <span class="nv">v1</span> <span class="p">(</span><span class="nf">promise</span><span class="p">)</span>
+</span><span id="line-3">     <span class="nv">v2</span> <span class="p">(</span><span class="nf">promise</span> <span class="o">#</span><span class="p">(</span><span class="nb">+ </span><span class="o">@</span><span class="nv">v1</span> <span class="mi">1</span><span class="p">))</span>
+</span><span id="line-4">     <span class="nv">v3</span> <span class="p">(</span><span class="nf">promise</span> <span class="o">#</span><span class="p">(</span><span class="nb">+ </span><span class="o">@</span><span class="nv">v1</span> <span class="o">@</span><span class="nv">v2</span><span class="p">))</span>
+</span><span id="line-5">     <span class="nv">v4</span> <span class="p">(</span><span class="nf">promise</span> <span class="o">#</span><span class="p">(</span><span class="nb">* </span><span class="p">(</span><span class="nb">+ </span><span class="o">@</span><span class="nv">v3</span> <span class="o">@</span><span class="nv">v2</span><span class="p">)</span> <span class="o">@</span><span class="nv">v0</span><span class="p">))]</span>
+</span><span id="line-6"> <span class="p">(</span><span class="nf">Strand/sleep</span> <span class="mi">50</span><span class="p">)</span>
+</span><span id="line-7"> <span class="p">(</span><span class="nf">deliver</span> <span class="nv">v1</span> <span class="mi">1</span><span class="p">)</span>
+</span><span id="line-8"> <span class="p">(</span><span class="nf">mapv</span> <span class="nv">realized?</span> <span class="p">[</span><span class="nv">v0</span> <span class="nv">v1</span> <span class="nv">v2</span> <span class="nv">v3</span> <span class="nv">v4</span><span class="p">])</span> <span class="c1">; =&gt; [false true true true false]</span>
+</span><span id="line-9"> <span class="p">(</span><span class="nf">deliver</span> <span class="nv">v0</span> <span class="mi">2</span><span class="p">)</span>
+</span><span id="line-10"> <span class="o">@</span><span class="nv">v4</span><span class="p">)</span> <span class="c1">; =&gt; 10</span>
+</span></code></pre></div>
+<h3 id="channels">Channels</h3>
+
+<p>Channels are queues used to pass messages between strands (remember, strands are a general name for threads and fibers). If you are familiar with Go, Pulsar channels are like Go channels. The&nbsp;call</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">channel</span><span class="p">)</span>
+</span></code></pre></div>
+<p>creates and returns a new&nbsp;channel. </p>
+
+<p>A more general form of the <code>channel</code> function&nbsp;is:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">channel</span> <span class="nv">capacity</span> <span class="nv">overflow-policy</span><span class="p">)</span>
+</span></code></pre></div>
+<p>The channel’s <code>capacity</code> is the number of messages that can wait in the queue. A positive integer creates a bounded queue that can hold up to the given number of messages until they’re consumed. A capacity of -1 specifies an unbounded channel (unlimited number of pending messages), and a capacity of 0 specifies a <em>transfer channel</em>, one where the producer is blocked until a consumer requests a message and&nbsp;vice-versa.</p>
+
+<p><code>overflow-policy</code> specifies what happens to the producer (sender) of a message when the channel’s capacity is exhausted, and may be one&nbsp;of:</p>
+
+<ul>
+  <li><code>:throw</code> - throws an&nbsp;exception </li>
+  <li><code>:drop</code> - silently drops (discards) the&nbsp;message</li>
+  <li><code>:block</code> - blocks the sender until messages are consumed from the channel and it has remaining&nbsp;capacity</li>
+  <li><code>:displace</code> - removes the oldest message waiting in the channel to make room for the new&nbsp;message.</li>
+</ul>
+
+<p>If you leave out the <code>overflow-policy</code> argument, the default policy of <code>:block</code> is used. Leaving both out (and simply calling <code>(channel)</code> is the same as <code>(channel 0 :block)</code> (obviously, a transfer channel (a channel of capacity 0), would only work with a <code>:block</code>&nbsp;policy). </p>
+
+<p>Bounded channels are generally faster than unbounded&nbsp;channels. </p>
+
+<p>Use of the <code>:displace</code> policy places an additional restriction on the channel: its messages may be consumed by a single strand&nbsp;only.</p>
+
+<h4 id="sending-and-receiving-messages">Sending and receiving&nbsp;messages</h4>
+
+<p>Sending a message to a channel is&nbsp;simple:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">snd</span> <span class="nv">channel</span> <span class="nv">message</span><span class="p">)</span>
+</span></code></pre></div>
+<p><code>message</code> can be any object, but not <code>nil</code>. Receiving a message from a channel is equaly&nbsp;easy:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">rcv</span> <span class="nv">channel</span><span class="p">)</span>
+</span></code></pre></div>
+<p>The <code>rcv</code> function returns the first message in the channel (the one that has waited there the longest), if there is one. If the channel is empty, the function will block until a message is sent to the channel, and will then return&nbsp;it.</p>
+
+<p class="alert alert-info"><strong>Note</strong>: <code>rcv</code> is a suspendable function, so any function calling it must also be decalred suspendable. But remember, the function passed to <code>spawn-fiber</code> is automatically made&nbsp;suspendable.</p>
+
+<p>It is also possible to limit the amount of time <code>rcv</code> will wait for a&nbsp;message:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">rcv</span> <span class="nv">channel</span> <span class="mi">10</span> <span class="nv">java.util.concurrent.TimeUnit/MILLISECONDS</span><span class="p">)</span>
+</span></code></pre></div>
+<p>or,&nbsp;equivalently:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">rcv</span> <span class="nv">channel</span> <span class="mi">10</span> <span class="ss">:ms</span><span class="p">)</span>
+</span></code></pre></div>
+<p>These calls will wait for a message for 10 milliseconds before giving up and returning&nbsp;<code>nil</code>.</p>
+
+<h4 id="closing-the-channel">Closing the&nbsp;channel</h4>
+
+<p>After&nbsp;calling </p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">close!</span> <span class="nv">channel</span><span class="p">)</span>
+</span></code></pre></div>
+<p>any future messages sent to the channel will be ignored. Any messages already in the channel will be received. Once the last message has been received, another call to <code>rcv</code> will return&nbsp;<code>nil</code>. </p>
+
+<h4 id="channel-selection--sel-and-select">Channel Selection – <code>sel</code> and&nbsp;<code>select</code></h4>
+
+<p>A powerful tool when working with channels is the ability to wait on a message from several channels at&nbsp;once.</p>
+
+<p>The <code>sel</code> function takes a collection containing <em>channel operation descriptors</em>. A descriptor is either a channel or a pair (vector) of a channel and a message. Each channel in the sequence represents a <code>rcv</code> attempt, and each channel-message pair represents a <code>snd</code> attempt. The <code>sel</code> function performs at most one operation on the sequence, a <code>rcv</code> or a <code>snd</code>, which is determined by the first operation that can succeed. If no operation can be carried out immediately, <code>sel</code> will block until an operation can be&nbsp;performed.</p>
+
+<p>For example, in the following&nbsp;call,</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">sel</span> <span class="p">[</span><span class="nv">ch1</span> <span class="p">[</span><span class="nv">ch2</span> <span class="nv">msg1</span><span class="p">]</span> <span class="nv">ch3</span> <span class="p">[</span><span class="nv">ch4</span> <span class="nv">msg2</span><span class="p">]])</span>
+</span></code></pre></div>
+<p>a message will either be received from <code>ch1</code> or <code>ch2</code>, or one will be sent to eiter <code>ch2</code> or <code>ch4</code>. If, for instance, <code>ch2</code> will become available for reading (i.e. it has been sent a message) first, than only that operation, in this case a <code>rcv</code> will be performed on <code>ch1</code>. If <code>ch2</code> becomes available for writing before that happens, then only that operation, a <code>snd</code>, will be performed. If two operations are available at the same time, one will be chosen randomly (unless the <code>:priority</code> option is set, as we’ll see&nbsp;later).</p>
+
+<p>Note that if a channel’s overflow policy is anything by <code>:block</code>, then <code>snd</code> operations are always&nbsp;available.</p>
+
+<p>The general form of the <code>sel</code> function&nbsp;is</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">sel</span> <span class="nv">ports</span> <span class="o">&amp;</span> <span class="nv">opts</span><span class="p">)</span>
+</span></code></pre></div>
+<p><code>sel</code> returns a vector of two values describing the single operation that has been performed. The first is the message received if the operation is a <code>rcv</code>, or <code>nil</code> if it’s a <code>snd</code>; the second is the channel on which the operation has been&nbsp;performed.</p>
+
+<p>The <code>sel</code> function takes two options. If <code>:priority</code> is set to <code>true</code> (thus: <code>:priority true</code>), then if more than one operation becomes available at the same time, then the one that’s listed earlier in the channels collection will be&nbsp;performed.</p>
+
+<p>The second option is <code>:timeout</code>, which takes an integer argument specifying the timeout in milliseconds. If the timeout elapses without any of the operations succeeding, <code>sel</code> will return <code>nil</code>. If the timeout value is <code>0</code>, then <code>sel</code> will never block. It will attempt to perform any of the requested operations, but if none are <em>immediately</em> available, it will return&nbsp;<code>nil</code>.</p>
+
+<p>So, for example,&nbsp;calling</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">sel</span> <span class="p">[</span><span class="nv">ch1</span> <span class="nv">ch2</span> <span class="nv">ch3</span><span class="p">]</span> <span class="ss">:timeout</span> <span class="mi">0</span><span class="p">)</span>
+</span></code></pre></div>
+<p>Will return, <code>[msg ch]</code> if any of the channels was immediately available for a <code>rcv</code>, or <code>nil</code> if none of them&nbsp;were.</p>
+
+<p>The <code>select</code> macro performs a very similar operation as <code>sel</code>, but allows you to specify an action to perform depending on which operation has&nbsp;succeeded.
+It takes an even number of expressions, ordered as (ops1, action1, ops2, action2 …) with the ops being a channel operation descriptior (remember: a descriptor is either a channel for an <code>rcv</code> operation, or a vector of a channel and a message specifying a <code>snd</code> operation) or a collection of descriptors, and the actions are Clojure expressions. Like <code>sel</code>, <code>select</code> performs at most one operation, in which case it will run the operation’s respective action and return its&nbsp;result.</p>
+
+<p>An action expression can bind values to the operations results. The action expression may begin with a vector of one or two symbols. In that case, the first symbol will be bound to the message returned from the successful receive in the respective ops clause (or <code>nil</code> if the successful operation is a <code>snd</code>), and the second symbol, if present, will be bound to the successful operation’s&nbsp;channel.</p>
+
+<p>Like <code>sel</code>, <code>select</code> blocks until an operation succeeds, or, if a <code>:timeout</code> option is specified, until the timeout (in milliseconds) elapses. If a timeout is specfied and elapses, <code>select</code> will run the action in an optional <code>:else</code> clause and return its result, or, if an <code>:else</code> clause is not present, <code>select</code> will return&nbsp;<code>nil</code>.</p>
+
+<p>Here’s an&nbsp;example:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nb">select </span><span class="ss">:timeout</span> <span class="mi">100</span> 
+</span><span id="line-2">        <span class="nv">c1</span> <span class="p">([</span><span class="nv">v</span><span class="p">]</span> <span class="p">(</span><span class="nb">println </span><span class="s">&quot;received&quot;</span> <span class="nv">v</span><span class="p">))</span>
+</span><span id="line-3">        <span class="p">[[</span><span class="nv">c2</span> <span class="nv">m2</span><span class="p">]</span> <span class="p">[</span><span class="nv">c3</span> <span class="nv">m3</span><span class="p">]]</span> <span class="p">([</span><span class="nv">v</span> <span class="nv">c</span><span class="p">]</span> <span class="p">(</span><span class="nb">println </span><span class="s">&quot;sent to&quot;</span> <span class="nv">c</span><span class="p">))</span>
+</span><span id="line-4">        <span class="ss">:else</span> <span class="s">&quot;timeout!&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+<p>In the example, if a message is received from channel <code>c1</code>, then it will be printed. If a message is sent to either <code>c2</code> or <code>c3</code>, then the identity of the channel will be printed, and if the 100 ms timeout elapses then “timeout!” will be&nbsp;printed.</p>
+
+<p>Finally, just like <code>sel</code>, you can pass <code>:priority true</code> to <code>select</code>, in which case if more than one operation is available, the first one among them as listed in the <code>select</code> statement will be&nbsp;performed.</p>
+
+<h4 id="topics">Topics</h4>
+
+<p>A topic is a send-port (a channel you can send to but not receive from), that broadcasts any message written to it to a number of <em>subscriber</em>&nbsp;channels.</p>
+
+<p>A topic is created simply&nbsp;with:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">topic</span><span class="p">)</span>
+</span></code></pre></div>
+<p>When a channel <em>subscribes</em> to the topic, it will receive all messages sent to the&nbsp;topic:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">subscribe!</span> <span class="nv">tpc</span> <span class="nv">ch</span><span class="p">)</span>
+</span></code></pre></div>
+<p>You can also unsubscribe a&nbsp;channel:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">subscribe!</span> <span class="nv">tpc</span> <span class="nv">ch</span><span class="p">)</span>
+</span></code></pre></div>
+<p>Note that a messages sent to the topic is essentialy replicated to all subscribers, i.e. it will be received once in each&nbsp;channel.</p>
+
+<h4 id="ticker-channels">Ticker&nbsp;Channels</h4>
+
+<p>A channel created with the <code>:displace</code> policy is called a <em>ticker channel</em> because it provides guarantees similar to that of a digital stock-ticker: you can start watching at any time, the messages you read are always read in order, but because of the limited screen size, if you look away or read to slowly you may miss some&nbsp;messages.</p>
+
+<p>The ticker channel is useful when a program component continually broadcasts some information. The size channel’s circular buffer, its “screen” if you like, gives the subscribers some leeway if they occasionally fall behind&nbsp;reading.</p>
+
+<p>As mentioned earlier, a ticker channel is single-consumer, i.e. only one strand is allowed to consume messages from the channel. On the other hand, it is possible, and useful, to create several views of the channel, each used by a different consumer strand. A view is created&nbsp;thus:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">ticker-consumer</span> <span class="nv">ch</span><span class="p">)</span>
+</span></code></pre></div>
+<p><code>ch</code> must be a channel of bounded capacity with the <code>:displace</code> policy. <code>ticker-consumer</code> returns a <em>receive port</em> (a channel that can only receive messages, not send them) that can be used to receive messages from <code>ch</code>. Each ticker-consumer will yield monotonic messages, namely no message will be received more than once, and the messages will be received in the order they’re sent, but if the consumer is too slow, messages could be&nbsp;lost. </p>
+
+<p>Each consumer strand will use its own <code>ticker-consumer</code>, and each can consume messages at its own pace, and each <code>ticker-consumer</code> port will return the same messages (messages consumed from one will not be removed from the other views), subject possibly to different messages being missed by different consumers depending on their&nbsp;pace.</p>
+
+<h4 id="primitive-channels">Primitive&nbsp;channels</h4>
+
+<p>It is also possible to create channels that carry messages of primitive <span class="caps">JVM</span> types. The analogous primitive channel functions to <code>channel</code>, <code>snd</code> and <code>rcv</code>, are,&nbsp;respectively: </p>
+
+<ul>
+  <li><code>int</code> channels: <code>int-channel</code>, <code>snd-int</code>,&nbsp;<code>rcv-int</code></li>
+  <li><code>long</code> channels: <code>long-channel</code>, <code>snd-long</code>,&nbsp;<code>rcv-long</code></li>
+  <li><code>float</code> channels: <code>float-channel</code>, <code>snd-float</code>,&nbsp;<code>rcv-float</code></li>
+  <li><code>double</code> channels: <code>double-channel</code>, <code>snd-double</code>,&nbsp;<code>rcv-double</code></li>
+</ul>
+
+<p>Because they don’t require boxing (for this reason <code>snd-xxx</code> and <code>rcv-xxx</code> are actually macros), primitive channels can provide better performance than regular channels. Primitive channels, however, are single-consumer, namely, only a single strand may read messages from any given&nbsp;channel.</p>
+
+<p>Calling <code>rcv-xxx</code> on a closed channel will throw an&nbsp;exception.</p>
+
+<h4 id="channel-lazy-seqs">Channel&nbsp;lazy-seqs</h4>
+
+<p class="centered alert alert-warning"><strong>Note</strong>: Channel lazy-seqs are an experimental&nbsp;feature.</p>
+
+<p>Messages received through channels can be manipulted with Clojure’s sequence manipulation functions by transforming a channel into a <code>lazy-seq</code>. Unfortunately, Clojure implements <code>lazy-seq</code>s with the <code>clojure.lang.LazySeq</code> class, which <em>almost</em> allows a <code>lazy-seq</code> implementation by a channel - but not quite (a simple reordering of a couple of Java lines in the <code>LazySeq</code> class would have made it compatible with channels). The <code>lazy-seq</code> function in the <code>co.paralleluniverse.pulsar.lazyseq</code> namespace therefore creates a <code>lazy-seq</code> that works just like Clojure’s, but uses a slightly different underlying Java implementation. This is unfortunate, because it required a re-implementation of many sequence manipulation&nbsp;functions.</p>
+
+<p>Nevertheless, it’s still possible to work with channels as you would with lazy-seqs, you only need to mind calling the functions in the right&nbsp;namespace.</p>
+
+<p>To create a lazy-seq from a channel, simply&nbsp;call:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">channel-&gt;lazy-seq</span> <span class="nv">ch</span><span class="p">)</span>
+</span></code></pre></div>
+<p>Then, manipulating messages with sequence functions is easy. Here are some examples from the&nbsp;tests:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">require</span> <span class="p">[</span><span class="nv">co.paralleluniverse.pulsar.lazyseq</span> <span class="ss">:as</span> <span class="nv">s</span> <span class="ss">:refer</span> <span class="p">[</span><span class="nv">channel-&gt;lazy-seq</span> <span class="nv">snd-seq</span><span class="p">]])</span>
+</span><span id="line-2">
+</span><span id="line-3"><span class="p">(</span><span class="nf">facts</span> <span class="s">&quot;channels-seq&quot;</span>
+</span><span id="line-4">       <span class="p">(</span><span class="nf">fact</span> <span class="s">&quot;Receive sequence with sleep&quot;</span>
+</span><span id="line-5">             <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">ch</span> <span class="p">(</span><span class="nf">channel</span><span class="p">)</span>
+</span><span id="line-6">                   <span class="nv">fiber</span> <span class="p">(</span><span class="nf">spawn-fiber</span>
+</span><span id="line-7">                          <span class="p">(</span><span class="k">fn </span><span class="p">[]</span>
+</span><span id="line-8">                            <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">s</span> <span class="p">(</span><span class="nf">s/take</span> <span class="mi">5</span> <span class="p">(</span><span class="nf">channel-&gt;lazy-seq</span> <span class="nv">ch</span><span class="p">))]</span>
+</span><span id="line-9">                              <span class="p">(</span><span class="nf">s/doall</span> <span class="nv">s</span><span class="p">))))]</span>
+</span><span id="line-10">               <span class="p">(</span><span class="nb">dotimes </span><span class="p">[</span><span class="nv">m</span> <span class="mi">10</span><span class="p">]</span>
+</span><span id="line-11">                 <span class="p">(</span><span class="nf">Thread/sleep</span> <span class="mi">20</span><span class="p">)</span>
+</span><span id="line-12">                 <span class="p">(</span><span class="nf">snd</span> <span class="nv">ch</span> <span class="nv">m</span><span class="p">))</span>
+</span><span id="line-13">               <span class="p">(</span><span class="nb">join </span><span class="nv">fiber</span><span class="p">))</span>  <span class="nv">=&gt;</span> <span class="p">(</span><span class="nb">list </span><span class="mi">0</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span><span class="p">))</span>
+</span><span id="line-14">       <span class="p">(</span><span class="nf">fact</span> <span class="s">&quot;Map received sequence with sleep&quot;</span>
+</span><span id="line-15">             <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">ch</span> <span class="p">(</span><span class="nf">channel</span><span class="p">)</span>
+</span><span id="line-16">                   <span class="nv">fiber</span> <span class="p">(</span><span class="nf">spawn-fiber</span> <span class="p">(</span><span class="k">fn </span><span class="p">[]</span> <span class="p">(</span><span class="nf">s/doall</span> <span class="p">(</span><span class="nf">s/map</span> <span class="o">#</span><span class="p">(</span><span class="nb">* </span><span class="nv">%</span> <span class="nv">%</span><span class="p">)</span> <span class="p">(</span><span class="nf">s/take</span> <span class="mi">5</span> <span class="p">(</span><span class="nf">channel-&gt;lazy-seq</span> <span class="nv">ch</span><span class="p">))))))]</span>
+</span><span id="line-17">               <span class="p">(</span><span class="nb">dotimes </span><span class="p">[</span><span class="nv">m</span> <span class="mi">10</span><span class="p">]</span>
+</span><span id="line-18">                 <span class="p">(</span><span class="nf">Thread/sleep</span> <span class="mi">20</span><span class="p">)</span>
+</span><span id="line-19">                 <span class="p">(</span><span class="nf">snd</span> <span class="nv">ch</span> <span class="nv">m</span><span class="p">))</span>
+</span><span id="line-20">               <span class="p">(</span><span class="nb">join </span><span class="nv">fiber</span><span class="p">))</span> <span class="nv">=&gt;</span> <span class="p">(</span><span class="nb">list </span><span class="mi">0</span> <span class="mi">1</span> <span class="mi">4</span> <span class="mi">9</span> <span class="mi">16</span><span class="p">))</span>
+</span><span id="line-21">       <span class="p">(</span><span class="nf">fact</span> <span class="s">&quot;Filter received sequence with sleep (odd)&quot;</span>
+</span><span id="line-22">             <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">ch</span> <span class="p">(</span><span class="nf">channel</span><span class="p">)</span>
+</span><span id="line-23">                   <span class="nv">fiber</span> <span class="p">(</span><span class="nf">spawn-fiber</span>
+</span><span id="line-24">                          <span class="o">#</span><span class="p">(</span><span class="nf">s/doall</span> <span class="p">(</span><span class="nf">s/filter</span> <span class="nv">odd?</span> <span class="p">(</span><span class="nf">s/take</span> <span class="mi">5</span> <span class="p">(</span><span class="nf">channel-&gt;lazy-seq</span> <span class="nv">ch</span><span class="p">)))))]</span>
+</span><span id="line-25">               <span class="p">(</span><span class="nb">dotimes </span><span class="p">[</span><span class="nv">m</span> <span class="mi">10</span><span class="p">]</span>
+</span><span id="line-26">                 <span class="p">(</span><span class="nf">Thread/sleep</span> <span class="mi">20</span><span class="p">)</span>
+</span><span id="line-27">                 <span class="p">(</span><span class="nf">snd</span> <span class="nv">ch</span> <span class="nv">m</span><span class="p">))</span>
+</span><span id="line-28">               <span class="p">(</span><span class="nb">join </span><span class="nv">fiber</span><span class="p">))</span> <span class="nv">=&gt;</span> <span class="p">(</span><span class="nb">list </span><span class="mi">1</span> <span class="mi">3</span><span class="p">))</span>
+</span><span id="line-29">       <span class="p">(</span><span class="nf">fact</span> <span class="s">&quot;Filter and map received sequence with sleep (even)&quot;</span>
+</span><span id="line-30">             <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">ch</span> <span class="p">(</span><span class="nf">channel</span><span class="p">)</span>
+</span><span id="line-31">                   <span class="nv">fiber</span> <span class="p">(</span><span class="nf">spawn-fiber</span>
+</span><span id="line-32">                          <span class="p">(</span><span class="k">fn </span><span class="p">[]</span> <span class="p">(</span><span class="nf">s/doall</span>
+</span><span id="line-33">                                  <span class="p">(</span><span class="nf">s/filter</span> <span class="o">#</span><span class="p">(</span><span class="nb">&gt; </span><span class="nv">%</span> <span class="mi">10</span><span class="p">)</span>
+</span><span id="line-34">                                            <span class="p">(</span><span class="nf">s/map</span> <span class="o">#</span><span class="p">(</span><span class="nb">* </span><span class="nv">%</span> <span class="nv">%</span><span class="p">)</span>
+</span><span id="line-35">                                                   <span class="p">(</span><span class="nf">s/filter</span> <span class="nv">even?</span>
+</span><span id="line-36">                                                             <span class="p">(</span><span class="nf">s/take</span> <span class="mi">5</span> <span class="p">(</span><span class="nf">channel-&gt;lazy-seq</span> <span class="nv">ch</span><span class="p">))))))))]</span>
+</span><span id="line-37">               <span class="p">(</span><span class="nb">dotimes </span><span class="p">[</span><span class="nv">m</span> <span class="mi">10</span><span class="p">]</span>
+</span><span id="line-38">                 <span class="p">(</span><span class="nf">Thread/sleep</span> <span class="mi">20</span><span class="p">)</span>
+</span><span id="line-39">                 <span class="p">(</span><span class="nf">snd</span> <span class="nv">ch</span> <span class="nv">m</span><span class="p">))</span>
+</span><span id="line-40">               <span class="p">(</span><span class="nb">join </span><span class="nv">fiber</span><span class="p">))</span> <span class="nv">=&gt;</span> <span class="p">(</span><span class="nb">list </span><span class="mi">16</span><span class="p">)))</span>
+</span></code></pre></div>
+<h3 id="channel-transformation-aka-reactive-extensions">Channel Transformation (<span class="caps">AKA</span> Reactive&nbsp;Extensions)</h3>
+
+<p>The <code>co.paralleluniverse.pulsar.rx</code> namespace contains functions for transforming and combining channels. Known as “reactive extensions”, these transformations let you model your computation as a flow of data. These are the supported&nbsp;transformations:</p>
+
+<ul>
+  <li>map - returns a channel that transforms messages by applying a given mapping function. There are two versions of this operation: <code>map</code> which transforms messages as they are received from the channel, and <code>snd-map</code> which transforms the messages right before they are sent to the&nbsp;channel.</li>
+  <li>filter - returns a channel that only lets messages that satisfy a predicate through. Like map, there are two versions of this operation: <code>filter</code>, which filters messages as they are received from the channel, and <code>snd-filter</code>, which filters them right before they are sent. Either operation drops the messages that do not satisfy the predicate, and they are&nbsp;lost.</li>
+  <li><code>zip</code> - returns a channel that combines messages from a collection of channels into a combined vector&nbsp;message.</li>
+  <li><code>group</code> - returns a channel that funnels messages from a set of given channels into one group&nbsp;channel.</li>
+</ul>
+
+<p>Examples of using all channel transformations can be found in the <a href="https://github.com/puniverse/pulsar/blob/master/src/test/clojure/co/paralleluniverse/pulsar/rx_test.clj">rx test suite</a>.</p>
+
+<h2 id="pulsars-actor-system">Pulsar’s Actor&nbsp;System</h2>
+
+<p>To use the terms we’ve learned so far, an <em>actor</em> is a strand that owns a single channel with some added lifecycle management and error handling. But this reductionist view of actors does them little justice. Actors are fundamental building blocks that are combined to build a fault-tolerant application. If you are familiar with Erlang, Pulsar actors are just like Erlang&nbsp;processes.</p>
+
+<p>An actor is a self-contained execution unit with well-defined inputs and outputs. Actors communicate with other actors (as well as regular program threads and fibers) by passing&nbsp;messages.</p>
+
+<p class="alert alert-info"><strong>Note</strong>: Actors may write to and read from channels other than their own mailbox. In fact, actors can do whatever regular fibers&nbsp;can.</p>
+
+<h4 id="spawning-actors">Spawning&nbsp;actors</h4>
+
+<p>Actors can run in any strand – fiber or thread - but for now, Pulsar only supports actors running in fibers (Quasar, the Java library that Pulsar wraps, allows running actors in regular&nbsp;threads).</p>
+
+<p>An actor is basically a function that – if the actor is to do anything interesting – receives messages from the&nbsp;mailbox.
+To create and start an actor of a function <code>f</code> that takes arguments <code>arg1</code> and <code>arg2</code>,&nbsp;run</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">spawn</span> <span class="nv">f</span> <span class="nv">arg1</span> <span class="nv">arg2</span><span class="p">)</span>
+</span></code></pre></div>
+<p>This will create a new actor, and start running it in a new&nbsp;fiber.</p>
+
+<p><code>spawn</code> automatically marks <code>f</code> as suspendable, so there’s no need to do so&nbsp;explicitly.</p>
+
+<p><code>spawn</code> takes optional keyword&nbsp;arguments:</p>
+
+<ul>
+  <li><code>:name</code> - The actor’s name (that’s also given to the fiber running the&nbsp;actor).</li>
+  <li><code>:mailbox-size</code> - The number of messages that can wait in the mailbox, or -1 (the default) for an unbounded&nbsp;mailbox.</li>
+  <li><code>:overflow-policy</code> - What to do if a bounded mailbox overflows. Can be&nbsp;either:
+    <ul>
+      <li><code>:throw</code>, in which case an exception will be thrown <em>into the receiving&nbsp;actor</em></li>
+      <li><code>:drop</code>, in which case the message will be silently discarded,&nbsp;or </li>
+      <li><code>:block</code>, in which case the sender will block until there’s room in the&nbsp;mailbox.</li>
+    </ul>
+  </li>
+  <li><code>:trap</code> - If set to <code>true</code>, linked actors’ death will send an exit message rather than throw an exception (see&nbsp;below).</li>
+  <li><code>:lifecycle-handle</code> - A function that will be called to handle special messages sent to the actor. If set to <code>nil</code> (the default), the default handler is used, which is what you want in all circumstances, except for some actors that are meant to do some special&nbsp;tricks.</li>
+  <li><code>:fj-pool</code> - The <code>ForkJoinPool</code> in which the fiber will&nbsp;run.
+If <code>:fj-pool</code> is not specified, then the pool used will be either 1) the pool of the fiber calling <code>spawn-fiber</code>, or, if <code>spawn-fiber</code> is not called from within a fiber, a default&nbsp;pool.</li>
+  <li><code>:stack-size</code> - The initial fiber data stack&nbsp;size.</li>
+</ul>
+
+<p>Of all the optional arguments, you’ll usually only use <code>:name</code> and <code>:mailbox-size</code>+<code>:overflow-policy</code>. As mentioned, by default the mailbox is unbounded. Bounded mailboxes provide better performance and should be considered for actors that are expected to handle messages at a very high&nbsp;rate.</p>
+
+<p>An actor can be <code>join</code>ed, just like a&nbsp;fiber.</p>
+
+<p class="alert alert-info"><strong>Note</strong>: Just like fibers, spawning an actor is a very cheap operation in both computation and memory. Do not fear creating many (thousands, tens-of-thousands or even hundreds-of-thousands)&nbsp;actors.</p>
+
+<h3 id="sending-and-receiving-messages-1">Sending and Receiving&nbsp;Messages</h3>
+
+<p>An actor’s mailbox is a channel, that can be obtained with the <code>mailbox-of</code> function. You can therefore send a message to an actor like&nbsp;so:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">snd</span> <span class="p">(</span><span class="nf">mailbox-of</span> <span class="nv">actor</span><span class="p">)</span> <span class="nv">msg</span><span class="p">)</span>
+</span></code></pre></div>
+<p>But there’s an easier way. Actors implement the <code>SendPort</code> interface, and so, are treated like a channel by the <code>snd</code> function. So we can simple&nbsp;call:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">snd</span> <span class="nv">actor</span> <span class="nv">msg</span><span class="p">)</span>
+</span></code></pre></div>
+<p>While the above is a perfectly valid way of sending a message to an actor, this is not how it’s normally done. Instead of <code>snd</code> we normally use the <code>!</code> (bang) function to send a message to an actor, like&nbsp;so:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">!</span> <span class="nv">actor</span> <span class="nv">msg</span><span class="p">)</span>
+</span></code></pre></div>
+<p>The bang operator has a slightly different semantic than <code>snd</code>. While <code>snd</code> will always place the message in the mailbox, <code>!</code> will only do it if the actor is alive. It will not place a message in the mailbox if there is no one to receive it on the other end (and never will be, as mailboxes, like all channels, cannot change&nbsp;ownership).</p>
+
+<p>In many circumstances, an actor sends a message to another actor, and expects a reply. In those circumstances, using <code>!!</code> instead of <code>!</code> might offer reduced latency (but with the same semantics; both <code>!</code> and <code>!!</code> always return&nbsp;<code>nil</code>)</p>
+
+<p>The value <code>@self</code>, when evaluated in an actor, returns the actor. So, as you may guess, an actor can receive messages&nbsp;with:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">rcv</span> <span class="p">(</span><span class="nf">mailbox-of</span> <span class="o">@</span><span class="nv">self</span><span class="p">))</span>
+</span></code></pre></div>
+<p><code>@mailbox</code> returns the actor’s own mailbox channel, so the above may be written&nbsp;as:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">rcv</span> <span class="o">@</span><span class="nv">mailbox</span><span class="p">)</span>
+</span></code></pre></div>
+<p>… and because actors also implement the <code>ReceivePort</code> interface required by <code>rcv</code>, the following will also&nbsp;work:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">rcv</span> <span class="o">@</span><span class="nv">self</span><span class="p">)</span>
+</span></code></pre></div>
+<p>But, again, while an actor can be treated as a fiber with a channel, it has some extra features that give it a super-extra punch. Actors normally receive messages with the <code>receive</code> function, like&nbsp;so:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">receive</span><span class="p">)</span>
+</span></code></pre></div>
+<p><code>receive</code> has some features that make it very suitable for handling messages in actors. Its most visible feature is pattern matching. When an actor receives a message, it usually takes different action based on the type and content of the message. Making the decision with pattern matching is easy and&nbsp;elegant:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">actor</span> <span class="p">(</span><span class="nf">spawn</span>
+</span><span id="line-2">               <span class="o">#</span><span class="p">(</span><span class="nf">receive</span>
+</span><span id="line-3">                   <span class="ss">:abc</span> <span class="s">&quot;yes!&quot;</span>
+</span><span id="line-4">                   <span class="p">[</span><span class="ss">:why?</span> <span class="nv">answer</span><span class="p">]</span> <span class="nv">answer</span>
+</span><span id="line-5">                   <span class="ss">:else</span> <span class="s">&quot;oy&quot;</span><span class="p">))]</span>
+</span><span id="line-6">     <span class="p">(</span><span class="nf">!</span> <span class="nv">actor</span> <span class="p">[</span><span class="ss">:why?</span> <span class="s">&quot;because!&quot;</span><span class="p">])</span>
+</span><span id="line-7">     <span class="p">(</span><span class="nb">join </span><span class="nv">actor</span><span class="p">))</span> <span class="c1">; =&gt; &quot;because!&quot;</span>
+</span></code></pre></div>
+<p>As we can see in the example, <code>receive</code> not only picks the action based on the message, but also destructures the message and binds free variable, in our example – the <code>answer</code> variable. <code>receive</code> uses the <a href="https://github.com/clojure/core.match">core.match</a> library for pattern matching, and you can consult <a href="https://github.com/clojure/core.match/wiki/Overview">its documentation</a> to learn exactly how matching&nbsp;works.</p>
+
+<p>Sometimes, we would like to assign the whole message to a variable. We do it by creating a binding clause in&nbsp;<code>receive</code>:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">receive</span> <span class="p">[</span><span class="nv">m</span><span class="p">]</span>
+</span><span id="line-2">   <span class="p">[</span><span class="ss">:foo</span> <span class="nv">val</span><span class="p">]</span> <span class="p">(</span><span class="nb">println </span><span class="s">&quot;got foo:&quot;</span> <span class="nv">val</span><span class="p">)</span>
+</span><span id="line-3">   <span class="ss">:else</span>      <span class="p">(</span><span class="nb">println </span><span class="s">&quot;got&quot;</span> <span class="nv">m</span><span class="p">))</span>
+</span></code></pre></div>
+<p>We can also match not on the raw message as its been received, but transform it first, and then match on the transformed value, like so, assuming <code>transform</code> is a function that takes a single argument (the&nbsp;message):</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">receive</span> <span class="p">[</span><span class="nv">m</span> <span class="nv">transform</span><span class="p">]</span>
+</span><span id="line-2">   <span class="p">[</span><span class="ss">:foo</span> <span class="nv">val</span><span class="p">]</span> <span class="p">(</span><span class="nb">println </span><span class="s">&quot;got foo:&quot;</span> <span class="nv">val</span><span class="p">)</span>
+</span><span id="line-3">   <span class="ss">:else</span>      <span class="p">(</span><span class="nb">println </span><span class="s">&quot;got&quot;</span> <span class="nv">m</span><span class="p">))</span>
+</span></code></pre></div>
+<p>Now <code>m</code> – and the value we’re matching – is the the transformed&nbsp;value.</p>
+
+<p><code>receive</code> also deals with timeouts. Say we want to do something if a message has not been received within 30 milliseconds (all <code>receive</code> timeouts are specified in&nbsp;milliseconds):</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">receive</span> <span class="p">[</span><span class="nv">m</span> <span class="nv">transform</span><span class="p">]</span>
+</span><span id="line-2">   <span class="p">[</span><span class="ss">:foo</span> <span class="nv">val</span><span class="p">]</span> <span class="p">(</span><span class="nb">println </span><span class="s">&quot;got foo:&quot;</span> <span class="nv">val</span><span class="p">)</span>
+</span><span id="line-3">   <span class="ss">:else</span>      <span class="p">(</span><span class="nb">println </span><span class="s">&quot;got&quot;</span> <span class="nv">m</span><span class="p">)</span>
+</span><span id="line-4">   <span class="ss">:after</span> <span class="mi">30</span>  <span class="p">(</span><span class="nb">println </span><span class="s">&quot;nothing...&quot;</span><span class="p">))</span>
+</span></code></pre></div>
+<p class="alert alert-warn"><strong>Note</strong>: The <code>:after</code> clause in <code>receive</code> <em>must</em> be&nbsp;last.</p>
+
+<p>Before we move on, it’s time for a short example. In this example, we will define an actor, <code>adder</code>, that receives an <code>:add</code> message with two numbers, and reply to the sender with the sum of those two numbers. In order to reply to the sender, we need to know who the sender is. So the sender will add a reference to itself in the message. In this request-reply pattern, it is also good practice to attach a random unique tag to the request, because messages are asynchronous, and it is possible that the adder will not respond to the requests in the order they were received, and the requester might want to send two requests before waiting for a response, so a tag is a good way to match replies with their respective requests. We can generate a random tag with the <code>maketag</code>&nbsp;function.</p>
+
+<p>Here’s the adder&nbsp;actor:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">defsfn</span> <span class="nv">adder</span> <span class="p">[]</span>
+</span><span id="line-2">  <span class="p">(</span><span class="k">loop </span><span class="p">[]</span>
+</span><span id="line-3">    <span class="p">(</span><span class="nf">receive</span>
+</span><span id="line-4">     <span class="p">[</span><span class="nv">from</span> <span class="nv">tag</span> <span class="p">[</span><span class="ss">:add</span> <span class="nv">a</span> <span class="nv">b</span><span class="p">]]</span> <span class="p">(</span><span class="nf">!</span> <span class="nv">from</span> <span class="nv">tag</span> <span class="p">[</span><span class="ss">:sum</span> <span class="p">(</span><span class="nb">+ </span><span class="nv">a</span> <span class="nv">b</span><span class="p">)]))</span>
+</span><span id="line-5">    <span class="p">(</span><span class="nf">recur</span><span class="p">)))</span>
+</span></code></pre></div>
+<p>And this is how we’ll use it from within another&nbsp;actor:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="nv">...</span>
+</span><span id="line-2"><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">tag</span> <span class="p">(</span><span class="nf">maketag</span><span class="p">)</span>
+</span><span id="line-3">      <span class="nv">a</span> <span class="nv">...</span>
+</span><span id="line-4">      <span class="nv">b</span> <span class="nv">...</span><span class="p">]</span>
+</span><span id="line-5">   <span class="p">(</span><span class="nf">!</span> <span class="nv">adder-actor</span> <span class="o">@</span><span class="nv">self</span> <span class="nv">tag</span> <span class="p">[</span><span class="ss">:add</span> <span class="nv">a</span> <span class="nv">b</span><span class="p">])</span>
+</span><span id="line-6">   <span class="p">(</span><span class="nf">-&gt;&gt;</span>
+</span><span id="line-7">      <span class="p">(</span><span class="nf">receive</span> 
+</span><span id="line-8">         <span class="p">[</span><span class="nv">tag</span> <span class="p">[</span><span class="ss">:sum</span> <span class="nv">sum</span><span class="p">]]</span> <span class="nv">sum</span>
+</span><span id="line-9">         <span class="ss">:after</span> <span class="mi">10</span>        <span class="nv">nil</span><span class="p">)</span>
+</span><span id="line-10">      <span class="p">(</span><span class="nb">println </span><span class="s">&quot;sum:&quot;</span><span class="p">))</span>
+</span><span id="line-11"><span class="nv">...</span>
+</span></code></pre></div>
+<h3 id="actors-vs-channels">Actors vs.&nbsp;Channels</h3>
+
+<p>One of the reasons of providing a different <code>receive</code> function for actors is because programming with actors is conceptually different from just using fibers and channels. I think of channels as hoses  pumping data into a function, or as sort of like asynchronous parameters. A fiber may pull many different kinds of data from many different channels, and combine the data in some&nbsp;way. </p>
+
+<p>Actors are a different abstraction. They are more like objects in object-oriented languages, assigned to a single thread. The mailbox serves as the object’s dispatch mechanism; it’s not a hose but a switchboard. It’s for this reason that actors often need to pattern-match their mailbox messages, while regular channels – each usually serving as a conduit for a single kind of data –&nbsp;don’t.</p>
+
+<p>But while the <code>receive</code> syntax is nice and all (it mirrors Erlang’s syntax), we could have achieved the same with <code>rcv</code> almost as&nbsp;easily:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">m1</span> <span class="p">(</span><span class="nf">rcv</span> <span class="mi">30</span> <span class="ss">:ms</span><span class="p">)]</span>
+</span><span id="line-2">   <span class="p">(</span><span class="k">if </span><span class="nv">m1</span>
+</span><span id="line-3">      <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">m</span> <span class="p">(</span><span class="nf">transform</span> <span class="nv">m1</span><span class="p">)]</span>
+</span><span id="line-4">         <span class="p">(</span><span class="nf">match</span> <span class="p">(</span><span class="nf">transform</span> <span class="p">(</span><span class="nf">rcv</span> <span class="mi">30</span> <span class="ss">:ms</span><span class="p">))</span>
+</span><span id="line-5">             <span class="p">[</span><span class="ss">:foo</span> <span class="nv">val</span><span class="p">]</span>  <span class="p">(</span><span class="nb">println </span><span class="s">&quot;got foo:&quot;</span> <span class="nv">val</span><span class="p">)</span>
+</span><span id="line-6">   		     <span class="ss">:else</span>      <span class="p">(</span><span class="nb">println </span><span class="s">&quot;got&quot;</span> <span class="nv">m</span><span class="p">)))</span>
+</span><span id="line-7">   	   <span class="p">(</span><span class="nb">println </span><span class="s">&quot;nothing...&quot;</span><span class="p">)))</span>
+</span></code></pre></div>
+<p>Pretty syntax is not the main goal of the <code>receive</code> function. The reason <code>receive</code> is much more powerful than <code>rcv</code>, is mostly because of a feature we will now&nbsp;introduce.</p>
+
+<p class="alert alert-info"><strong>Note</strong>: Because actors implement the <code>SendPort</code> interface, the <code>snd-map</code> and <code>snd-filter</code> functions (in the <code>rx</code> namespace) can be applied to actors as&nbsp;well.</p>
+
+<h3 id="selective-receive">Selective&nbsp;Receive</h3>
+
+<p>An actor is a state machine. It usually encompasses some <em>state</em> and the messages it receives trigger <em>state transitions</em>. But because the actor has no control over which messages it receives and when (which can be a result of either other actors’ behavior, or even the way the <span class="caps">OS</span> schedules threads), an actor would be required to process any message and any state, and build a full <em>state transition matrix</em>, namely how to transition whenever <em>any</em> messages is received at <em>any</em>&nbsp;state.</p>
+
+<p>This can not only lead to code explosion; it can lead to bugs. The key to managing a complex state machine is by not handling messages in the order they arrive, but in the order we wish to process them. If a message does not match any of the clauses in <code>receive</code>, it will remain in the mailbox. <code>receive</code> will return only when it finds a message that does. When another <code>receive</code> statement is called, it will again search the messages that are in the mailbox, and may match a message that has been skipped by a previous&nbsp;<code>receive</code>. </p>
+
+<p>In this code snippet, we specifically wait for the <code>:baz</code> message after receiving <code>:foo</code>, and so process the messages in this order – <code>:foo</code>, <code>:baz</code>, <code>:bar</code> – even though <code>:bar</code> is sent before&nbsp;<code>:baz</code>:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">res</span> <span class="p">(</span><span class="nf">atom</span> <span class="p">[])</span>
+</span><span id="line-2">      <span class="nv">actor</span> <span class="p">(</span><span class="nf">spawn</span>
+</span><span id="line-3">              <span class="o">#</span><span class="p">(</span><span class="nb">dotimes </span><span class="p">[</span><span class="nv">i</span> <span class="mi">2</span><span class="p">]</span>
+</span><span id="line-4">                 <span class="p">(</span><span class="nf">receive</span>
+</span><span id="line-5">                   <span class="p">[</span><span class="ss">:foo</span> <span class="nv">x</span><span class="p">]</span> <span class="p">(</span><span class="nf">do</span>
+</span><span id="line-6">                              <span class="p">(</span><span class="nf">swap!</span> <span class="nv">res</span> <span class="nb">conj </span><span class="nv">x</span><span class="p">)</span>
+</span><span id="line-7">                              <span class="p">(</span><span class="nf">receive</span>
+</span><span id="line-8">                                <span class="p">[</span><span class="ss">:baz</span> <span class="nv">z</span><span class="p">]</span> <span class="p">(</span><span class="nf">swap!</span> <span class="nv">res</span> <span class="nb">conj </span><span class="nv">z</span><span class="p">)))</span>
+</span><span id="line-9">                   <span class="p">[</span><span class="ss">:bar</span> <span class="nv">y</span><span class="p">]</span> <span class="p">(</span><span class="nf">swap!</span> <span class="nv">res</span> <span class="nb">conj </span><span class="nv">y</span><span class="p">)</span>
+</span><span id="line-10">                   <span class="p">[</span><span class="ss">:baz</span> <span class="nv">z</span><span class="p">]</span> <span class="p">(</span><span class="nf">swap!</span> <span class="nv">res</span> <span class="nb">conj </span><span class="nv">z</span><span class="p">))))]</span>
+</span><span id="line-11">  <span class="p">(</span><span class="nf">!</span> <span class="nv">actor</span> <span class="p">[</span><span class="ss">:foo</span> <span class="mi">1</span><span class="p">])</span>
+</span><span id="line-12">  <span class="p">(</span><span class="nf">!</span> <span class="nv">actor</span> <span class="p">[</span><span class="ss">:bar</span> <span class="mi">2</span><span class="p">])</span>
+</span><span id="line-13">  <span class="p">(</span><span class="nf">!</span> <span class="nv">actor</span> <span class="p">[</span><span class="ss">:baz</span> <span class="mi">3</span><span class="p">])</span>
+</span><span id="line-14">  <span class="p">(</span><span class="nb">join </span><span class="nv">actor</span><span class="p">)</span>
+</span><span id="line-15">  <span class="o">@</span><span class="nv">res</span><span class="p">)</span> <span class="c1">; =&gt; [1 3 2]</span>
+</span></code></pre></div>
+<p><a href="https://github.com/puniverse/pulsar/tree/master/src/test/clojure/co/paralleluniverse/pulsar/examples/priority.clj">Another example</a> demonstrates receiving messages in order of&nbsp;priority.</p>
+
+<p>Selective receive is also very useful when communicating with other actors. Here’s an excerpt from <a href="https://github.com/puniverse/pulsar/tree/master/src/test/clojure/co/paralleluniverse/pulsar/examples/selective.clj">this example</a>:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">defsfn</span> <span class="nv">adder</span> <span class="p">[]</span>
+</span><span id="line-2">  <span class="p">(</span><span class="k">loop </span><span class="p">[]</span>
+</span><span id="line-3">    <span class="p">(</span><span class="nf">receive</span>
+</span><span id="line-4">      <span class="p">[</span><span class="nv">from</span> <span class="nv">tag</span> <span class="p">[</span><span class="ss">:add</span> <span class="nv">a</span> <span class="nv">b</span><span class="p">]]</span> <span class="p">(</span><span class="nf">!</span> <span class="nv">from</span> <span class="nv">tag</span> <span class="p">[</span><span class="ss">:sum</span> <span class="p">(</span><span class="nb">+ </span><span class="nv">a</span> <span class="nv">b</span><span class="p">)]))</span>
+</span><span id="line-5">    <span class="p">(</span><span class="nf">recur</span><span class="p">)))</span>
+</span><span id="line-6">
+</span><span id="line-7"><span class="p">(</span><span class="nf">defsfn</span> <span class="nv">computer</span> <span class="p">[</span><span class="nv">adder</span><span class="p">]</span>
+</span><span id="line-8">  <span class="p">(</span><span class="k">loop </span><span class="p">[]</span>
+</span><span id="line-9">    <span class="p">(</span><span class="nf">receive</span> <span class="p">[</span><span class="nv">m</span><span class="p">]</span>
+</span><span id="line-10">             <span class="p">[</span><span class="nv">from</span> <span class="nv">tag</span> <span class="p">[</span><span class="ss">:compute</span> <span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span> <span class="nv">d</span><span class="p">]]</span> <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">tag1</span> <span class="p">(</span><span class="nf">maketag</span><span class="p">)]</span>
+</span><span id="line-11">                                             <span class="p">(</span><span class="nf">!</span> <span class="nv">adder</span> <span class="p">[</span><span class="o">@</span><span class="nv">self</span> <span class="nv">tag1</span> <span class="p">[</span><span class="ss">:add</span> <span class="p">(</span><span class="nb">* </span><span class="nv">a</span> <span class="nv">b</span><span class="p">)</span> <span class="p">(</span><span class="nb">* </span><span class="nv">c</span> <span class="nv">d</span><span class="p">)]])</span>
+</span><span id="line-12">                                             <span class="p">(</span><span class="nf">receive</span>
+</span><span id="line-13">                                               <span class="p">[</span><span class="nv">tag1</span> <span class="p">[</span><span class="ss">:sum</span> <span class="nv">sum</span><span class="p">]]</span>  <span class="p">(</span><span class="nf">!</span> <span class="nv">from</span> <span class="nv">tag</span> <span class="p">[</span><span class="ss">:result</span> <span class="nv">sum</span><span class="p">])</span>
+</span><span id="line-14">                                               <span class="ss">:after</span> <span class="mi">10</span>          <span class="p">(</span><span class="nf">!</span> <span class="nv">from</span> <span class="nv">tag</span> <span class="p">[</span><span class="ss">:error</span> <span class="s">&quot;timeout!&quot;</span><span class="p">])))</span>
+</span><span id="line-15">             <span class="ss">:else</span> <span class="p">(</span><span class="nb">println </span><span class="s">&quot;Unknown message: &quot;</span> <span class="nv">m</span><span class="p">))</span>
+</span><span id="line-16">    <span class="p">(</span><span class="nf">recur</span><span class="p">)))</span>
+</span><span id="line-17">
+</span><span id="line-18"><span class="p">(</span><span class="nf">defsfn</span> <span class="nv">curious</span> <span class="p">[</span><span class="nv">nums</span> <span class="nv">computer</span><span class="p">]</span>
+</span><span id="line-19">  <span class="p">(</span><span class="nb">when </span><span class="p">(</span><span class="nb">seq </span><span class="nv">nums</span><span class="p">)</span>
+</span><span id="line-20">    <span class="p">(</span><span class="k">let </span><span class="p">[[</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span> <span class="nv">d</span><span class="p">]</span> <span class="p">(</span><span class="nb">take </span><span class="mi">4</span> <span class="nv">nums</span><span class="p">)</span>
+</span><span id="line-21">          <span class="nv">tag</span>       <span class="p">(</span><span class="nf">maketag</span><span class="p">)]</span>
+</span><span id="line-22">      <span class="p">(</span><span class="nf">!</span> <span class="nv">computer</span> <span class="o">@</span><span class="nv">self</span> <span class="nv">tag</span> <span class="p">[</span><span class="ss">:compute</span> <span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span> <span class="nv">d</span><span class="p">])</span>
+</span><span id="line-23">      <span class="p">(</span><span class="nf">receive</span> <span class="p">[</span><span class="nv">m</span><span class="p">]</span>
+</span><span id="line-24">               <span class="p">[</span><span class="nv">tag</span> <span class="p">[</span><span class="ss">:result</span> <span class="nv">res</span><span class="p">]]</span>  <span class="p">(</span><span class="nb">println </span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span> <span class="nv">d</span> <span class="s">&quot;-&gt;&quot;</span> <span class="nv">res</span><span class="p">)</span>
+</span><span id="line-25">               <span class="p">[</span><span class="nv">tag</span> <span class="p">[</span><span class="ss">:error</span> <span class="nv">error</span><span class="p">]]</span> <span class="p">(</span><span class="nb">println </span><span class="s">&quot;ERROR: &quot;</span> <span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span> <span class="nv">d</span> <span class="s">&quot;-&gt;&quot;</span> <span class="nv">error</span><span class="p">)</span>
+</span><span id="line-26">               <span class="ss">:else</span> <span class="p">(</span><span class="nb">println </span><span class="s">&quot;Unexpected message&quot;</span> <span class="nv">m</span><span class="p">))</span>
+</span><span id="line-27">      <span class="p">(</span><span class="nf">recur</span> <span class="p">(</span><span class="nb">drop </span><span class="mi">4</span> <span class="nv">nums</span><span class="p">)</span> <span class="nv">computer</span><span class="p">))))</span>
+</span><span id="line-28">
+</span><span id="line-29"><span class="p">(</span><span class="kd">defn </span><span class="nv">-main</span> <span class="p">[]</span>
+</span><span id="line-30">  <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">ad</span> <span class="p">(</span><span class="nf">spawn</span> <span class="nv">adder</span><span class="p">)</span>
+</span><span id="line-31">        <span class="nv">cp</span> <span class="p">(</span><span class="nf">spawn</span> <span class="nv">computer</span> <span class="nv">ad</span><span class="p">)</span>
+</span><span id="line-32">        <span class="nv">cr</span> <span class="p">(</span><span class="nf">spawn</span> <span class="nv">curious</span> <span class="p">(</span><span class="nb">take </span><span class="mi">20</span> <span class="p">(</span><span class="nf">repeatedly</span> <span class="o">#</span><span class="p">(</span><span class="nb">rand-int </span><span class="mi">10</span><span class="p">)))</span> <span class="nv">cp</span><span class="p">)]</span>
+</span><span id="line-33">    <span class="p">(</span><span class="nb">join </span><span class="nv">cr</span><span class="p">)</span>
+</span><span id="line-34">    <span class="ss">:ok</span><span class="p">))</span>
+</span></code></pre></div>
+<p>In the example, we have three actors: <code>curious</code>, <code>computer</code> and <code>adder</code>. <code>curious</code> asks <code>computer</code> to perform a computation, and <code>computer</code> relies on <code>adder</code> to perform addition. Note the nested <code>receive</code> in <code>computer</code>: the actor waits for a reply from <code>adder</code> before accepting other requests (from <code>curious</code>) in the outer receive (actually, because this pattern of sending a message to an actor and waiting for a reply is so common, it’s encapsulated by a construct call <code>gen-server</code> - yet another blatant theft from Erlang - which we’ll introduce later; if you want to see how this example looks using <code>gen-server</code>, take a look <a href="https://github.com/puniverse/pulsar/tree/master/src/test/clojure/co/paralleluniverse/pulsar/examples/selective_gen_server.clj">here</a>. </p>
+
+<p>There are several actor systems that do not support selective receive, but Erlang does, and so does Pulsar. <a href="http://www.infoq.com/presentations/Death-by-Accidental-Complexity">The talk <em>Death by Accidental Complexity</em></a>, by Ulf Wiger, shows how using selective receive avoids implementing a full, complicated and error-prone transition matrix. <a href="http://www.infoq.com/presentations/1000-Year-old-Design-Patterns">In a different talk</a>, Wiger compared non-selective (<span class="caps">FIFO</span>) receive to a tetris game where you must fit each piece into the puzzle as it comes, while selective receive turns the problem into a jigsaw puzzle, where you can look for a piece that you know will&nbsp;fit.</p>
+
+<p class="alert alert-warn"><strong>A word of caution</strong>: Using selective receive in your code may lead to deadlocks (because you’re essentially saying, I’m going to wait here until a specific message arrives). This can be easily avoided by always specifying a timeout (with the <code>:after millis</code> clause) when doing a selective receive. Selective receive is a powerful tool that can greatly help writing readable, maintainable message-handling code, but don’t over-use&nbsp;it.</p>
+
+<h3 id="actor-state">Actor&nbsp;State</h3>
+
+<p>In Erlang, actor state is set by recursively calling the actor function with the new state as an argument. In Pulsar, we can do the same. Here’s an&nbsp;example:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">actor</span>
+</span><span id="line-2">      <span class="p">(</span><span class="nf">spawn</span> <span class="o">#</span><span class="p">(</span><span class="k">loop </span><span class="p">[</span><span class="nv">i</span> <span class="p">(</span><span class="nb">int </span><span class="mi">2</span><span class="p">)</span>
+</span><span id="line-3">                     <span class="nv">state</span> <span class="p">(</span><span class="nb">int </span><span class="mi">0</span><span class="p">)]</span>
+</span><span id="line-4">                <span class="p">(</span><span class="k">if </span><span class="p">(</span><span class="nb">== </span><span class="nv">i</span> <span class="mi">0</span><span class="p">)</span>
+</span><span id="line-5">                  <span class="nv">state</span>
+</span><span id="line-6">                  <span class="p">(</span><span class="nf">recur</span> <span class="p">(</span><span class="nb">dec </span><span class="nv">i</span><span class="p">)</span> <span class="p">(</span><span class="nb">+ </span><span class="nv">state</span> <span class="p">(</span><span class="nb">int </span><span class="p">(</span><span class="nf">receive</span><span class="p">)))))))]</span>
+</span><span id="line-7">  <span class="p">(</span><span class="nf">!</span> <span class="nv">actor</span> <span class="mi">13</span><span class="p">)</span>
+</span><span id="line-8">  <span class="p">(</span><span class="nf">!</span> <span class="nv">actor</span> <span class="mi">12</span><span class="p">)</span>
+</span><span id="line-9">  <span class="p">(</span><span class="nb">join </span><span class="nv">actor</span><span class="p">))</span> <span class="c1">; =&gt; 25</span>
+</span></code></pre></div>
+<p>Clojure is all about managing state. It ensures that every computation has access to consistent data. Because actors communicate with other computation only by exchanging immutable messages, and because each actor runs in a single strand, it’s absolutely ok for an actor to have mutable state - only the actor has access to&nbsp;it. </p>
+
+<p>Every Pulsar actor has a <code>state</code> field that can be read like this <code>@state</code> and written with <code>set-state!</code>. Here’s an&nbsp;example:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">actor</span>
+</span><span id="line-2">      <span class="p">(</span><span class="nf">spawn</span> <span class="o">#</span><span class="p">(</span><span class="nf">do</span>
+</span><span id="line-3">                <span class="p">(</span><span class="nf">set-state!</span> <span class="mi">0</span><span class="p">)</span>
+</span><span id="line-4">                <span class="p">(</span><span class="nf">set-state!</span> <span class="p">(</span><span class="nb">+ </span><span class="o">@</span><span class="nv">state</span> <span class="p">(</span><span class="nf">receive</span><span class="p">)))</span>
+</span><span id="line-5">                <span class="p">(</span><span class="nf">set-state!</span> <span class="p">(</span><span class="nb">+ </span><span class="o">@</span><span class="nv">state</span> <span class="p">(</span><span class="nf">receive</span><span class="p">)))</span>
+</span><span id="line-6">                <span class="o">@</span><span class="nv">state</span><span class="p">))]</span>
+</span><span id="line-7">  <span class="p">(</span><span class="nf">!</span> <span class="nv">actor</span> <span class="mi">13</span><span class="p">)</span>
+</span><span id="line-8">  <span class="p">(</span><span class="nf">!</span> <span class="nv">actor</span> <span class="mi">12</span><span class="p">)</span>
+</span><span id="line-9">  <span class="p">(</span><span class="nb">join </span><span class="nv">actor</span><span class="p">))</span> <span class="c1">; =&gt; 25</span>
+</span></code></pre></div>
+<p>Finally, what if we want several state fields? What if we want some or all of them to be of a primitive type? This, too, poses no risk of race conditions because all state fields are written and read only by the actor, and there is no danger of them appearing inconsistent to an&nbsp;observer.
+Pulsar supports this as an experimental feature (implemented internally with <code>deftype</code>), like&nbsp;so:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">actor</span> <span class="p">(</span><span class="nf">spawn</span> <span class="p">(</span><span class="nf">actor</span> <span class="p">[</span><span class="o">^</span><span class="nb">int </span><span class="nv">sum</span> <span class="mi">0</span><span class="p">]</span>
+</span><span id="line-2">                          <span class="p">(</span><span class="nf">set!</span> <span class="nv">sum</span> <span class="p">(</span><span class="nb">int </span><span class="p">(</span><span class="nb">+ </span><span class="nv">sum</span> <span class="p">(</span><span class="nf">receive</span><span class="p">))))</span>
+</span><span id="line-3">                          <span class="p">(</span><span class="nf">set!</span> <span class="nv">sum</span> <span class="p">(</span><span class="nb">int </span><span class="p">(</span><span class="nb">+ </span><span class="nv">sum</span> <span class="p">(</span><span class="nf">receive</span><span class="p">))))</span>
+</span><span id="line-4">                          <span class="nv">sum</span><span class="p">))]</span>
+</span><span id="line-5">  <span class="p">(</span><span class="nf">!</span> <span class="nv">actor</span> <span class="mi">13</span><span class="p">)</span>
+</span><span id="line-6">  <span class="p">(</span><span class="nf">!</span> <span class="nv">actor</span> <span class="mi">12</span><span class="p">)</span>
+</span><span id="line-7">  <span class="p">(</span><span class="nb">join </span><span class="nv">actor</span><span class="p">))</span> <span class="c1">; =&gt; 25</span>
+</span></code></pre></div>
+<p>These are three different ways of managing actor state. Eventually, we’ll settle on just one or two (and are open to discussion about which is&nbsp;preferred).</p>
+
+<h3 id="state-machines-with-strampoline">State Machines with&nbsp;Strampoline</h3>
+
+<p>As we’ve seen, the <code>receive</code> form defines which messages the actor is willing to accept and process. You can nest <code>receive</code> statements, or place them in other functions that the actor calls (in which case the must be defined with <code>defsfn</code>). It is often useful to treat the actor as a state machine, going from one state to another, executing a different <code>receive</code> at each state (to define the acceptable transitions from the state). To change state, all we would have to do is call a different function, each with its own receive, but here we face a technical limitation of Clojure. As Clojure (due to <span class="caps">JVM</span> limitations) does not perform true tail-call optimization, every state transition (i.e. every function call), would add a frame to the stack, eventually throwing a stack overflow. Clojure solves it with the <code>clojure.core/trampoline</code> function. It takes a function and calls it. When the function returns, if the returned value is a function, <code>trampoline</code> calls&nbsp;it.</p>
+
+<p>Pulsar comes with a version of <code>trampoline</code> for suspendable functions called <code>strampoline</code> (with the exact same <span class="caps">API</span> as&nbsp;<code>trampoline</code>).</p>
+
+<p>Consider this&nbsp;example:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">state2</span> <span class="p">(</span><span class="nf">sfn</span> <span class="p">[]</span>
+</span><span id="line-2">                    <span class="p">(</span><span class="nf">receive</span>
+</span><span id="line-3">                      <span class="ss">:bar</span> <span class="ss">:foobar</span><span class="p">))</span>
+</span><span id="line-4">      <span class="nv">state1</span> <span class="p">(</span><span class="nf">sfn</span> <span class="p">[]</span>
+</span><span id="line-5">                    <span class="p">(</span><span class="nf">receive</span>
+</span><span id="line-6">                      <span class="ss">:foo</span> <span class="nv">state2</span><span class="p">))</span>
+</span><span id="line-7">      <span class="nv">actor</span> <span class="p">(</span><span class="nf">spawn</span> <span class="p">(</span><span class="k">fn </span><span class="p">[]</span>
+</span><span id="line-8">                     <span class="p">(</span><span class="nf">strampoline</span> <span class="nv">state1</span><span class="p">)))]</span>
+</span><span id="line-9">  <span class="p">(</span><span class="nf">!</span> <span class="nv">actor</span> <span class="ss">:foo</span><span class="p">)</span>
+</span><span id="line-10">  <span class="p">(</span><span class="nf">Thread/sleep</span> <span class="mi">50</span><span class="p">)</span> <span class="c1">; or (Strand/sleep 50)</span>
+</span><span id="line-11">  <span class="p">(</span><span class="nf">!</span> <span class="nv">actor</span> <span class="ss">:bar</span><span class="p">)</span>
+</span><span id="line-12">  <span class="p">(</span><span class="nb">join </span><span class="nv">actor</span><span class="p">))</span> <span class="c1">; =&gt; :foobar</span>
+</span></code></pre></div>
+<p>The actor starts at <code>state1</code> (represented by the function with the same name), by calling <code>(strampoline state1)</code>. In <code>state1</code> we expect to receive the message <code>:foo</code>. When it arrives, we transition to <code>state2</code> by returning the <code>state2</code> function (which will immediately be called by <code>strampoline</code>). In <code>state1</code> we await the <code>:bar</code> message, and then&nbsp;terminate.</p>
+
+<p>What happens if the messages <code>:foo</code> and <code>:bar</code> arrive in reverse order? Thanks to selective receive the result will be exactly the same! <code>state1</code> will skip the <code>:bar</code> message, and transition to <code>state2</code> when <code>:foo</code> arrives; the <code>receive</code> statement in <code>state2</code> will then find the <code>:bar</code> message waiting in the&nbsp;mailbox:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">state2</span> <span class="p">(</span><span class="nf">sfn</span> <span class="p">[]</span>
+</span><span id="line-2">                    <span class="p">(</span><span class="nf">receive</span>
+</span><span id="line-3">                      <span class="ss">:bar</span> <span class="ss">:foobar</span><span class="p">))</span>
+</span><span id="line-4">      <span class="nv">state1</span> <span class="p">(</span><span class="nf">sfn</span> <span class="p">[]</span>
+</span><span id="line-5">                    <span class="p">(</span><span class="nf">receive</span>
+</span><span id="line-6">                      <span class="ss">:foo</span> <span class="nv">state2</span><span class="p">))</span>
+</span><span id="line-7">      <span class="nv">actor</span> <span class="p">(</span><span class="nf">spawn</span> <span class="p">(</span><span class="k">fn </span><span class="p">[]</span>
+</span><span id="line-8">                     <span class="p">(</span><span class="nf">strampoline</span> <span class="nv">state1</span><span class="p">)))]</span>
+</span><span id="line-9">  <span class="p">(</span><span class="nf">!</span> <span class="nv">actor</span> <span class="ss">:bar</span><span class="p">)</span>
+</span><span id="line-10">  <span class="p">(</span><span class="nf">Thread/sleep</span> <span class="mi">50</span><span class="p">)</span> <span class="c1">; or (Strand/sleep 50)</span>
+</span><span id="line-11">  <span class="p">(</span><span class="nf">!</span> <span class="nv">actor</span> <span class="ss">:foo</span><span class="p">)</span>
+</span><span id="line-12">  <span class="p">(</span><span class="nb">join </span><span class="nv">actor</span><span class="p">))</span> <span class="c1">; =&gt; :foobar</span>
+</span></code></pre></div>
+<h3 id="error-handling">Error&nbsp;Handling</h3>
+
+<p>The actor model does not only make concurrency easy; it also helps build fault-tolerant systems by compartmentalizing failure. Each actor is it’s own execution context - if it encounters an exception, only the actor is directly affected (like a thread, only actors are lightweight). Unlike regular functions/objects, where an exception has to be caught and handled immediately on the callstack, with actors we can completely separate code execution from error&nbsp;handling.</p>
+
+<p>In fact, when using actors, it is often best to to follow the <a href="http://www.erlang.org/download/armstrong_thesis_2003.pdf">philosophy laid out by Joe Armstrong</a>, Erlang’s chief designer, of “let it crash”. The idea is not to try and catch exceptions inside an actor, because attempting to catch and handle all exceptions is futile. Instead, we just let the actor crash, monitor its death elsewhere, and then take some&nbsp;action.</p>
+
+<p>The principle of actor error handling is that an actor can be asked to be notified of another actor’s death. This is done through <em>linking</em> and <em>watching</em>. </p>
+
+<h4 id="linking-actors">Linking&nbsp;actors</h4>
+
+<p>You link two actors with the <code>link!</code> function like&nbsp;this:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">link!</span> <span class="nv">actor1</span> <span class="nv">actor2</span><span class="p">)</span>
+</span></code></pre></div>
+<p>Better yet, is to call the function from within one of the actors, say <code>actor1</code>, in which case it will be called like&nbsp;so:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">link!</span> <span class="nv">actor2</span><span class="p">)</span>
+</span></code></pre></div>
+<p>A link is symmetrical. When two actors are linked, when one of them dies, the other throws an exception which, unless caught, kills it as&nbsp;well.</p>
+
+<p>Here’s an example from the&nbsp;tests:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">actor1</span> <span class="p">(</span><span class="nf">spawn</span> <span class="o">#</span><span class="p">(</span><span class="nf">Fiber/sleep</span> <span class="mi">100</span><span class="p">))</span>
+</span><span id="line-2">      <span class="nv">actor2</span> <span class="p">(</span><span class="nf">spawn</span>
+</span><span id="line-3">               <span class="p">(</span><span class="k">fn </span><span class="p">[]</span>
+</span><span id="line-4">                 <span class="p">(</span><span class="nf">link!</span> <span class="nv">actor1</span><span class="p">)</span>
+</span><span id="line-5">                 <span class="p">(</span><span class="nf">try</span>
+</span><span id="line-6">                   <span class="p">(</span><span class="k">loop </span><span class="p">[]</span> <span class="p">(</span><span class="nf">receive</span> <span class="p">[</span><span class="nv">m</span><span class="p">]</span> <span class="ss">:foo</span> <span class="ss">:bar</span><span class="p">)</span> <span class="p">(</span><span class="nf">recur</span><span class="p">))</span>
+</span><span id="line-7">                   <span class="p">(</span><span class="nf">catch</span> <span class="nv">co.paralleluniverse.actors.LifecycleException</span> <span class="nv">e</span>
+</span><span id="line-8">                     <span class="nv">true</span><span class="p">))))]</span>
+</span><span id="line-9">  
+</span><span id="line-10">  <span class="p">(</span><span class="nb">join </span><span class="nv">actor1</span><span class="p">)</span>
+</span><span id="line-11">  <span class="p">(</span><span class="nb">join </span><span class="nv">actor2</span><span class="p">))</span> <span class="c1">; =&gt; true</span>
+</span></code></pre></div>
+<p>Remember, linking is symmetrical, so if <code>actor2</code> were to die, <code>actor1</code> would get the&nbsp;exception.</p>
+
+<p>What if <code>actor2</code> wants to be notified when <code>actor1</code> dies, but doesn’t want to die itself? The <code>:trap</code> flag for the <code>spawn</code> macro, tells is to trap lifecycle exceptions and turn them into&nbsp;messages:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">actor1</span> <span class="p">(</span><span class="nf">spawn</span> <span class="o">#</span><span class="p">(</span><span class="nf">Strand/sleep</span> <span class="mi">100</span><span class="p">))</span>
+</span><span id="line-2">      <span class="nv">actor2</span> <span class="p">(</span><span class="nf">spawn</span> <span class="ss">:trap</span> <span class="nv">true</span>
+</span><span id="line-3">                    <span class="p">(</span><span class="k">fn </span><span class="p">[]</span>
+</span><span id="line-4">                      <span class="p">(</span><span class="nf">link!</span> <span class="nv">actor1</span><span class="p">)</span>
+</span><span id="line-5">                      <span class="p">(</span><span class="nf">receive</span> <span class="p">[</span><span class="nv">m</span><span class="p">]</span>
+</span><span id="line-6">                               <span class="p">[</span><span class="ss">:exit</span> <span class="nv">_</span> <span class="nv">actor</span> <span class="nv">reason</span><span class="p">]</span> <span class="nv">actor</span><span class="p">)))]</span>
+</span><span id="line-7">  <span class="p">(</span><span class="nb">join </span><span class="nv">actor1</span><span class="p">)</span>
+</span><span id="line-8">  <span class="p">(</span><span class="nb">join </span><span class="nv">actor2</span><span class="p">))</span> <span class="c1">; =&gt; actor1</span>
+</span></code></pre></div>
+<p>Now, when <code>actor1</code> dies, <code>actor2</code> receives an <code>:exit</code> message, telling it which actor has died and how. We’ll look into the <code>:exit</code> message in a&nbsp;second.</p>
+
+<p>We can undo the link by&nbsp;calling</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">unlink!</span> <span class="nv">actor1</span> <span class="nv">actor2</span><span class="p">)</span>
+</span></code></pre></div>
+<p>or </p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">unlink!</span> <span class="nv">actor2</span><span class="p">)</span>
+</span></code></pre></div>
+<p>from within&nbsp;<code>actor1</code>.</p>
+
+<h4 id="watching-actors">Watching&nbsp;actors</h4>
+
+<p>A more robust way of being notified of actor death than linking is with a <em>watch</em> (called <em>monitor</em> in Erlang; this is one of the very few occasions we have abandoned the Erlang function&nbsp;names):</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">actor1</span> <span class="p">(</span><span class="nf">spawn</span> <span class="o">#</span><span class="p">(</span><span class="nf">Fiber/sleep</span> <span class="mi">200</span><span class="p">))</span>
+</span><span id="line-2">      <span class="nv">actor2</span> <span class="p">(</span><span class="nf">spawn</span>
+</span><span id="line-3">               <span class="o">#</span><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">w</span> <span class="p">(</span><span class="nf">watch!</span> <span class="nv">actor1</span><span class="p">)]</span>
+</span><span id="line-4">                  <span class="p">(</span><span class="nf">receive</span>
+</span><span id="line-5">                    <span class="p">[</span><span class="ss">:exit</span> <span class="nv">w</span> <span class="nv">actor</span> <span class="nv">reason</span><span class="p">]</span> <span class="nv">actor</span><span class="p">)))]</span>
+</span><span id="line-6">  <span class="p">(</span><span class="nb">join </span><span class="nv">actor1</span><span class="p">)</span>
+</span><span id="line-7">  <span class="p">(</span><span class="nb">join </span><span class="nv">actor2</span><span class="p">))</span> <span class="c1">; =&gt; actor1</span>
+</span></code></pre></div>
+<p>Watches are asymmetrical. Here, <code>actor2</code> watches for <code>actor1</code>’s death, but not vice-versa. When <code>actor1</code> dies, <code>actor2</code> gets an <code>:exit</code> message, of the exact same structure of the message sent when we used a link and a <code>:trap</code>&nbsp;flag.</p>
+
+<p>The <code>watch!</code> function returns a watch object. Because an actor can potentially set many watches on another actor (say, it calls a library function which calls <code>watch!</code>), we could potentially get several copies of the exit message, each for a different&nbsp;watch.</p>
+
+<p>The message is a vector of 4&nbsp;elements:</p>
+
+<ol>
+  <li><code>:exit</code></li>
+  <li>The watch interested in the message (or <code>nil</code> when linking). Note how in the example we pattern-match on the second element (with the <code>w</code> value, which contains the watch object), to ensure that we only process the message belonging to our&nbsp;watch.</li>
+  <li>The actor that just&nbsp;died.</li>
+  <li>The dead actor’s death cause: <code>nil</code> for a natural death (no exception thrown, just like in our example), or the throwable responsible for the actor’s&nbsp;death.</li>
+</ol>
+
+<p>We can remove a watch by&nbsp;calling</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">unwatch!</span> <span class="nv">actor1</span> <span class="nv">actor2</span><span class="p">)</span>
+</span></code></pre></div>
+<p>or </p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">unwatch!</span> <span class="nv">actor2</span><span class="p">)</span>
+</span></code></pre></div>
+<p>from within&nbsp;<code>actor1</code>.</p>
+
+<h3 id="actor-registration">Actor&nbsp;Registration</h3>
+
+<p><em>Registering</em> an actor gives it a public name that can be used to locate the actor. You register an actor like&nbsp;so:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">register!</span> <span class="nv">actor</span> <span class="nv">name</span><span class="p">)</span>
+</span></code></pre></div>
+<p>or:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">register!</span> <span class="nv">actor</span><span class="p">)</span>
+</span></code></pre></div>
+<p>in which case the name will be the one given to the actor when it was <code>spawn</code>ed. <code>name</code> can be a string, or any object with a nice string representation (like a&nbsp;keyword).</p>
+
+<p>You obtain a reference to a registered actor&nbsp;with:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">whois</span> <span class="nv">name</span><span class="p">)</span>
+</span></code></pre></div>
+<p>but most actor-related functions can work directly with the registered name. For example, instead of&nbsp;this:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">register!</span> <span class="nv">actor</span> <span class="ss">:foo</span><span class="p">)</span>
+</span><span id="line-2"><span class="p">(</span><span class="nf">!</span> <span class="p">(</span><span class="nf">whois</span> <span class="ss">:foo</span><span class="p">)</span> <span class="s">&quot;hi foo!&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+<p>you can&nbsp;write:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">register</span> <span class="nv">!actor</span> <span class="ss">:foo</span><span class="p">)</span>
+</span><span id="line-2"><span class="p">(</span><span class="nf">!</span> <span class="ss">:foo</span> <span class="s">&quot;hi foo!&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+<p>You unregister an actor like&nbsp;so:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">unregister!</span> <span class="nv">actor</span><span class="p">)</span>
+</span></code></pre></div>
+<h4 id="registration-and-monitoring">Registration and&nbsp;Monitoring</h4>
+
+<p>When you register an actor, Pulsar automatically creates a <span class="caps">JMX</span> MBean to monitor it. Look for it using JConsole or&nbsp;Visual<span class="caps">VM.</span></p>
+
+<p>Details&nbsp;<span class="caps">TBD.</span></p>
+
+<h4 id="registration-and-clustering">Registration and&nbsp;Clustering</h4>
+
+<p>If you’re running in a Galaxy cluster, registering an actor will make it globally available on the cluster (so the name must be unique to the entire&nbsp;cluster).</p>
+
+<p>Details&nbsp;<span class="caps">TBD.</span></p>
+
+<h3 id="behaviors">Behaviors</h3>
+
+<p>Erlang’s designers have realized that many actors follow some common patterns - like an actor that receives requests for work and then sends back a result to the requester. They’ve turned those patterns into actor templates, called behaviors, in order to save poeple work and avoid some common errors. Some of these behaviors have been ported to&nbsp;Pulsar. </p>
+
+<p>Behaviors have two sides. One is the provider side, and is modeled in Pulsar as a protocols. You implement the protocol, and Pulsar provides the full actor implementation that uses your protocol. The other is the consumer side – functions used by other actors to access the functionality provided by the&nbsp;behavior.</p>
+
+<p>All behaviors (gen-server, gen-event and supervisors) support the <code>shutdown!</code> function, which requests an orderly shutdown of the&nbsp;actor:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">shutdown!</span> <span class="nv">behavior-actor</span><span class="p">)</span>
+</span></code></pre></div>
+<h4 id="gen-server">gen-server</h4>
+
+<p><code>gen-server</code> is a template for a server actor that receives requests and replies with responses. The consumer side for gen-server consists of the following&nbsp;functions:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">call!</span> <span class="nv">actor</span> <span class="nv">request</span><span class="p">)</span>
+</span></code></pre></div>
+<p>This would send the <code>request</code> message to the gen-server actor, and block until a response is received. It will then return the response. If the request triggers an exception in the actor, that exception will be thrown by&nbsp;<code>call!</code>.</p>
+
+<p>There’s also a timed version of <code>call!</code>, which gives up and returns <code>nil</code> if the timeout expires. For example,&nbsp;:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">call-timed!</span> <span class="nv">actor</span> <span class="mi">100</span> <span class="ss">:ms</span> <span class="nv">request</span><span class="p">)</span>
+</span></code></pre></div>
+<p>would wait up to 100ms for a&nbsp;response.</p>
+
+<p>You can also send a gen-server messages that do not require a response with the <code>cast!</code>&nbsp;function:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">cast!</span> <span class="nv">actor</span> <span class="nv">message</span><span class="p">)</span>
+</span></code></pre></div>
+<p>Finally, you can shutdown a gen-server with the shutdown&nbsp;function:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">shutdown!</span> <span class="nv">actor</span><span class="p">)</span>
+</span></code></pre></div>
+<p>In order to create a gen-server actor(the provider side), you need to implement the following&nbsp;protocol:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="kd">defprotocol </span><span class="nv">Server</span>
+</span><span id="line-2">  <span class="p">(</span><span class="nf">init</span> <span class="p">[</span><span class="nv">this</span><span class="p">])</span>
+</span><span id="line-3">  <span class="p">(</span><span class="nf">handle-call</span> <span class="p">[</span><span class="nv">this</span> <span class="o">^</span><span class="nv">Actor</span> <span class="nv">from</span> <span class="nv">id</span> <span class="nv">message</span><span class="p">])</span>
+</span><span id="line-4">  <span class="p">(</span><span class="nf">handle-cast</span> <span class="p">[</span><span class="nv">this</span> <span class="o">^</span><span class="nv">Actor</span> <span class="nv">from</span> <span class="nv">id</span> <span class="nv">message</span><span class="p">])</span>
+</span><span id="line-5">  <span class="p">(</span><span class="nf">handle-info</span> <span class="p">[</span><span class="nv">this</span> <span class="nv">message</span><span class="p">])</span>
+</span><span id="line-6">  <span class="p">(</span><span class="nf">handle-timeout</span> <span class="p">[</span><span class="nv">this</span><span class="p">])</span>
+</span><span id="line-7">  <span class="p">(</span><span class="nf">terminate</span> <span class="p">[</span><span class="nv">this</span> <span class="o">^</span><span class="nv">Throwable</span> <span class="nv">cause</span><span class="p">]))</span>
+</span></code></pre></div>
+<ul>
+  <li><code>init</code> – will be called alled when the actor&nbsp;starts</li>
+  <li><code>terminate</code> – will be called when the actor&nbsp;terminates.</li>
+  <li><code>handle-call</code> – called when the <code>call</code> function has been called on the actor :). This is where the gen-server’s functionality usually lies. The value returned from <code>handle-call</code> will be sent back to the actor making the request, unless <code>nil</code> is returned, in which case the response has to be sent manually as we’ll see&nbsp;later.</li>
+  <li><code>handle-cast</code> – called to handle messages sent with&nbsp;<code>cast!</code>.</li>
+  <li><code>handle-info</code> – called whenever a message has been sent to the actor directly (i.e., with <code>!</code>) rather than through <code>call!</code> or&nbsp;<code>cast!</code>.</li>
+  <li><code>handle-timeout</code> – called whenever the gen-server has not received any messages for a configurable duration of time. The timeout can be configured using either the <code>:timeout</code> option to the <code>gen-server</code> function, or by calling the <code>set-timeout!</code> function, as we’ll immediately&nbsp;see.</li>
+</ul>
+
+<p>You spawn a gen-server actor like&nbsp;so:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">spawn</span> <span class="p">(</span><span class="nf">gen-server</span> <span class="nv">&lt;options?&gt;</span> <span class="nv">server</span><span class="p">))</span>
+</span></code></pre></div>
+<p>where <code>options</code> can now only be <code>:timeout millis</code>. Here’s an example from the&nbsp;tests:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">gs</span> <span class="p">(</span><span class="nf">spawn</span>
+</span><span id="line-2">           <span class="p">(</span><span class="nf">gen-server</span> <span class="p">(</span><span class="nf">reify</span> <span class="nv">Server</span>
+</span><span id="line-3">                         <span class="p">(</span><span class="nf">init</span> <span class="p">[</span><span class="nv">_</span><span class="p">])</span>
+</span><span id="line-4">                         <span class="p">(</span><span class="nf">terminate</span> <span class="p">[</span><span class="nv">_</span> <span class="nv">cause</span><span class="p">])</span>
+</span><span id="line-5">                         <span class="p">(</span><span class="nf">handle-call</span> <span class="p">[</span><span class="nv">_</span> <span class="nv">from</span> <span class="nv">id</span> <span class="p">[</span><span class="nv">a</span> <span class="nv">b</span><span class="p">]]</span>
+</span><span id="line-6">                                      <span class="p">(</span><span class="nf">Strand/sleep</span> <span class="mi">50</span><span class="p">)</span>
+</span><span id="line-7">                                      <span class="p">(</span><span class="nb">+ </span><span class="nv">a</span> <span class="nv">b</span><span class="p">)))))]</span>
+</span><span id="line-8">  <span class="p">(</span><span class="nf">call!</span> <span class="nv">gs</span> <span class="mi">3</span> <span class="mi">4</span><span class="p">)</span><span class="c1">; =&gt; 7</span>
+</span></code></pre></div>
+<p>And here’s one with server&nbsp;timeouts:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">times</span> <span class="p">(</span><span class="nf">atom</span> <span class="mi">0</span><span class="p">)</span>
+</span><span id="line-2">            <span class="nv">gs</span> <span class="p">(</span><span class="nf">spawn</span>
+</span><span id="line-3">                 <span class="p">(</span><span class="nf">gen-server</span> <span class="ss">:timeout</span> <span class="mi">20</span>
+</span><span id="line-4">                             <span class="p">(</span><span class="nf">reify</span> <span class="nv">Server</span>
+</span><span id="line-5">                               <span class="p">(</span><span class="nf">init</span> <span class="p">[</span><span class="nv">_</span><span class="p">])</span>
+</span><span id="line-6">                               <span class="p">(</span><span class="nf">handle-timeout</span> <span class="p">[</span><span class="nv">_</span><span class="p">]</span>
+</span><span id="line-7">                                               <span class="p">(</span><span class="k">if </span><span class="p">(</span><span class="nb">&lt; </span><span class="o">@</span><span class="nv">times</span> <span class="mi">5</span><span class="p">)</span>
+</span><span id="line-8">                                                 <span class="p">(</span><span class="nf">swap!</span> <span class="nv">times</span> <span class="nv">inc</span><span class="p">)</span>
+</span><span id="line-9">                                                 <span class="p">(</span><span class="nf">shutdown!</span><span class="p">)))</span>
+</span><span id="line-10">                               <span class="p">(</span><span class="nf">terminate</span> <span class="p">[</span><span class="nv">_</span> <span class="nv">cause</span><span class="p">]))))]</span>
+</span><span id="line-11">        <span class="p">(</span><span class="nb">join </span><span class="mi">200</span> <span class="ss">:ms</span> <span class="nv">gs</span><span class="p">)</span>
+</span><span id="line-12">        <span class="o">@</span><span class="nv">times</span><span class="p">)</span> <span class="c1">; =&gt; 5</span>
+</span></code></pre></div>
+<p>You can set (and reset) the timeout from anywhere within the protocol’s methods by calling,&nbsp;say </p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">set-timeout!</span> <span class="mi">100</span> <span class="ss">:ms</span><span class="p">)</span>
+</span></code></pre></div>
+<p>A timeout value of 0 or less means no&nbsp;timeout.</p>
+
+<p>If the <code>handle-call</code> function returns <code>nil</code>, then no response is sent to the caller. The <code>call!</code> function remains blocked until a response is sent manually. This is done with the <code>reply!</code> function, which takes, along with the response message, the identitiy of the caller and the request <span class="caps">ID</span>, both passed to <code>handle-call</code>. Here’s an&nbsp;example:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">gs</span> <span class="p">(</span><span class="nf">spawn</span>
+</span><span id="line-2">           <span class="p">(</span><span class="nf">gen-server</span> <span class="ss">:timeout</span> <span class="mi">50</span>
+</span><span id="line-3">                       <span class="p">(</span><span class="nf">reify</span> <span class="nv">Server</span>
+</span><span id="line-4">                         <span class="p">(</span><span class="nf">init</span> <span class="p">[</span><span class="nv">_</span><span class="p">]</span>
+</span><span id="line-5">                               <span class="p">(</span><span class="nf">set-state!</span> <span class="p">{}))</span>
+</span><span id="line-6">                         <span class="p">(</span><span class="nf">terminate</span> <span class="p">[</span><span class="nv">_</span> <span class="nv">cause</span><span class="p">])</span>
+</span><span id="line-7">                         <span class="p">(</span><span class="nf">handle-call</span> <span class="p">[</span><span class="nv">_</span> <span class="nv">from</span> <span class="nv">id</span> <span class="p">[</span><span class="nv">a</span> <span class="nv">b</span><span class="p">]]</span>
+</span><span id="line-8">                                      <span class="p">(</span><span class="nf">set-state!</span> <span class="p">(</span><span class="nb">assoc </span><span class="o">@</span><span class="nv">state</span> <span class="ss">:a</span> <span class="nv">a</span> <span class="ss">:b</span> <span class="nv">b</span> <span class="ss">:from</span> <span class="nv">from</span> <span class="ss">:id</span> <span class="nv">id</span><span class="p">))</span>
+</span><span id="line-9">                                      <span class="nv">nil</span><span class="p">)</span>
+</span><span id="line-10">                         <span class="p">(</span><span class="nf">handle-timeout</span> <span class="p">[</span><span class="nv">_</span><span class="p">]</span>
+</span><span id="line-11">                                         <span class="p">(</span><span class="k">let </span><span class="p">[{</span><span class="ss">:keys</span> <span class="p">[</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">from</span> <span class="nv">id</span><span class="p">]}</span> <span class="o">@</span><span class="nv">state</span><span class="p">]</span>
+</span><span id="line-12">                                           <span class="p">(</span><span class="nb">when </span><span class="nv">id</span>
+</span><span id="line-13">                                             <span class="p">(</span><span class="nf">reply!</span> <span class="nv">from</span> <span class="nv">id</span> <span class="p">(</span><span class="nb">+ </span><span class="nv">a</span> <span class="nv">b</span><span class="p">))))))))]</span>
+</span><span id="line-14">  <span class="p">(</span><span class="nf">call-timed!</span> <span class="nv">gs</span> <span class="mi">100</span> <span class="ss">:ms</span> <span class="mi">5</span> <span class="mi">6</span><span class="p">))</span> <span class="c1">; =&gt; 11</span>
+</span></code></pre></div>
+<p>In the example, <code>handle-call</code> saves the request in the actor’s state, and later, in <code>handle-timeout</code> sends the response using <code>reply!</code>. The response is returned by&nbsp;<code>call-timed!</code>.</p>
+
+<p>If an error is encountered during the generation of the delayed repsonse, an exception can be returned to the caller (and will be thrown by <code>call!</code>), using&nbsp;<code>reply-error!</code>:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">reply-error!</span> <span class="nv">to</span> <span class="nv">id</span> <span class="p">(</span><span class="nf">Exception.</span> <span class="s">&quot;does not compute&quot;</span><span class="p">))</span>
+</span></code></pre></div>
+<p>where <code>to</code> is the identity of the caller passed as <code>from</code> to&nbsp;<code>handle-call</code>.</p>
+
+<h4 id="gen-event">gen-event</h4>
+
+<p>gen-event is an actor behavior that receives messages (<em>events</em>) and forwards them to registered <em>event handlers</em>.</p>
+
+<p>You spawn a gen-event like&nbsp;this:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">spawn</span> <span class="p">(</span><span class="nf">gen-event</span> <span class="nv">init</span><span class="p">))</span>
+</span></code></pre></div>
+<p><code>init</code> is an initializer function called from within the gen-event&nbsp;actor.</p>
+
+<p>You can then add event&nbsp;handlers:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">add-handler!</span> <span class="nv">ge</span> <span class="nv">handler</span><span class="p">)</span>
+</span></code></pre></div>
+<p>with <code>ge</code> being the gen-event actor (returned by the call to <code>spawn</code>), and <code>handler</code> being a function of a single argument that will be called whenever an event is&nbsp;generated.</p>
+
+<p>You generate an event with the <code>notify!</code>&nbsp;function:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">notify!</span> <span class="nv">ge</span> <span class="nv">event</span><span class="p">)</span>
+</span></code></pre></div>
+<p>with <code>ge</code> being the gen-event actor, and <code>event</code> is the event object (which can be any object). The event object is then passed to all registered event&nbsp;handlers.</p>
+
+<p>An event handler can be removed like&nbsp;so:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">remove-handler!</span> <span class="nv">ge</span> <span class="nv">handler</span><span class="p">)</span>
+</span></code></pre></div>
+<p>Here’s a complete example, taken from the&nbsp;tests:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">ge</span> <span class="p">(</span><span class="nf">spawn</span> <span class="p">(</span><span class="nf">gen-event</span>
+</span><span id="line-2">                  <span class="o">#</span><span class="p">(</span><span class="nf">add-handler!</span> <span class="o">@</span><span class="nv">self</span> <span class="nv">handler1</span><span class="p">)))]</span>
+</span><span id="line-3">  <span class="p">(</span><span class="nf">add-handler!</span> <span class="nv">ge</span> <span class="nv">handler2</span><span class="p">)</span>
+</span><span id="line-4">  <span class="p">(</span><span class="nf">notify!</span> <span class="nv">ge</span> <span class="s">&quot;hello&quot;</span><span class="p">))</span>
+</span></code></pre></div>
+<p>In this example, <code>handler1</code> is added in the <code>init</code> function (note how <code>@self</code> refers to the gen-event actor itself, as the init function is called from within the actor), and <code>handler2</code> is added&nbsp;later.</p>
+
+<p>When <code>notify!</code> is called, both handlers will be called and passed the event object (in this case, the <code>"hello"</code>&nbsp;string).</p>
+
+<h3 id="supervisors">Supervisors</h3>
+
+<p>A supervisor is an actor behavior designed to standardize error handling. Internally it uses watches and links, but it offers a more structured, standard, and simple way to react to&nbsp;errors.</p>
+
+<p>The general idea is that actors performing business logic, “worker actors”, are supervised by a supervisor actor that detects when they die and takes one of several pre-configured actions. Supervisors may, in turn, be supervised by other supervisors, thus forming a supervision hierarchy that compartmentalizes failure and&nbsp;recovery. </p>
+
+<p>A supervisors works as follows: it has a number of <em>children</em>, worker actors or other supervisors that are registered to be supervised wither at the supervisor’s construction time or at a later time. Each child has a mode, <code>:permanent</code>, <code>:transient</code> or <code>:temporary</code> that determines whether its death will trigger the supervisor’s <em>recovery event</em>. When the recovery event is triggered, the supervisor takes action specified by its <em>restart strategy</em>, or it will give up and fail, depending on predefined failure&nbsp;modes. </p>
+
+<p>When a child actor in the <code>:permanent</code> mode dies, it will always trigger its supervisor’s recovery event. When a child in the <code>:transient</code> mode dies, it will trigger a recovery event only if it has died as a result of an exception, but not if it has simply finished its operation. A <code>:temporary</code> child never triggers it supervisor’s recovery&nbsp;event.</p>
+
+<p>A supervisor’s <em>restart strategy</em> determines what it does during a <em>recovery event</em>: A strategy of <code>:escalate</code> measns that the supervisor will shut down (“kill”) all its surviving children and then die; a <code>:one-for-one</code> strategy will restart the dead child; an <code>:all-for-one</code> strategy will shut down all children and then restart them all; a <code>:rest-for-one</code> strategy will shut down and restart all those children added to the suervisor after the dead&nbsp;child.</p>
+
+<p>A supervisor is spawned&nbsp;so:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">spawn</span> <span class="p">(</span><span class="nf">supervisor</span> <span class="nv">restart-strategy</span> <span class="nv">init</span><span class="p">))</span>
+</span></code></pre></div>
+<p>where <code>restart-strategy</code> is one of: <code>:escalate</code>, <code>:one-for-one</code>, <code>:all-for-one</code>, or <code>:rest-for-one</code>, and <code>init</code> is a function that returns a sequence of <em>child specs</em> that will be used to add children to the supervisor when it’s&nbsp;constructed.</p>
+
+<p>A <em>child spec</em> is a vector of the following&nbsp;form:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">[</span><span class="nv">id</span> <span class="nv">mode</span> <span class="nv">max-restarts</span> <span class="nv">duration</span> <span class="nv">unit</span> <span class="nv">shutdown-deadline-millis</span> <span class="nv">actor-fn</span> <span class="o">&amp;</span> <span class="nv">actor-args</span><span class="p">]</span>
+</span></code></pre></div>
+<p>where:</p>
+
+<ul>
+  <li><code>id</code> is an optional identifier (usually a string) for the child actor. May be&nbsp;<code>nil</code>.</li>
+  <li><code>mode</code> is one of <code>:permanent</code>, <code>:transient</code> or&nbsp;<code>:temporary</code>.</li>
+  <li><code>max-restarts</code>, <code>duration</code> and <code>unit</code> are a triplet specifying how many times is the child allowed to restart in a given period of time before the supervisor should give up, kill all its children and die. For example <code>20 5 :sec</code> means at most 20 restarts in 5&nbsp;seconds.</li>
+  <li><code>shutdown-deadline-millis</code> is the maximal amount of time, in milliseconds that the child is allowed to spend from the time it’s requested to shut down until the time it is terminated. Whenever a the supervisor shuts down a child, it does so by sending it the message <code>[:shutdown sup]</code>, with <code>sup</code> being the supervisor. If the shutdown deadline elapses, the supervisor will forcefully shut it down by interrupting the child’s&nbsp;strand.</li>
+  <li><code>actor-fn &amp; actor-args</code> are the (suspendable) function (with optional arguments) that’s to serve as the child actor’s&nbsp;body.</li>
+</ul>
+
+<p>It is often useful to pass the supervisor to a child (so it could later dynamically add other children to the supervisor, for example). This is easily done because the <code>init</code> function is called inside the supervisor; therefore, any reference to <code>@self</code> inside the init function returns the supervisor. If you pass <code>@self</code>, then, as an argument to a child actor, it will receive the&nbsp;supervisor.</p>
+
+<p>Other than returning a sequence of child specs from the <code>init</code> function, you can also dynamically add a child to a supervisor by simply&nbsp;calling</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">add-child!</span> <span class="nv">sup</span> <span class="nv">id</span> <span class="nv">mode</span> <span class="nv">max-restarts</span> <span class="nv">duration</span> <span class="nv">unit</span> <span class="nv">shutdown-deadline-millis</span> <span class="nv">actor-fn</span> <span class="o">&amp;</span> <span class="nv">actor-args</span><span class="p">)</span>
+</span></code></pre></div>
+<p>with <code>sup</code> being the supervisor, and the rest of the arguments comprising the child spec for the actor, with the difference that if <code>actor-fn</code>, instead of an actor function, is a spawned actor (the value returned from <code>spawn</code>), then supervisor will supervise an already-spawned actor. Otherwise, (if it is a function), a new actor will be&nbsp;spawned.</p>
+
+<p>A supervised actor may be removed from the supervisor by&nbsp;calling</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">remove-child!</span> <span class="nv">sup</span> <span class="nv">id</span><span class="p">)</span>
+</span></code></pre></div>
+<p>with <code>id</code> being the one given to the actor in the child spec or the arguments to&nbsp;<code>add-child</code>.</p>
+
+<h3 id="hot-code-swapping">Hot Code&nbsp;Swapping</h3>
+
+<p>Hot code swapping is the ability to change your program’s code while it is running, with no need for a restart. Pulsar actors support a limited form of hot code swapping. Hot code swapping in Pulsar generally entails rebinding or redefining&nbsp;vars.</p>
+
+<p>An example of hot code swapping is found in the <a href="https://github.com/puniverse/pulsar/blob/master/src/test/clojure/co/paralleluniverse/pulsar/examples/codeswap.clj">codeswap.clj</a>&nbsp;program.</p>
+
+<h4 id="swapping-plain-actors">Swapping plain&nbsp;actors</h4>
+
+<p>In the actor’s main loop, using the <code>recur-swap</code> macro rather than <code>recur</code>, would use the new definition of the actor function, if one is found. The only difference in syntax between <code>recur-swap</code> and <code>recur</code> is that <code>recur-swap</code> takes the name of the function is the first&nbsp;parameter.</p>
+
+<p>In the following example (taken from <a href="https://github.com/puniverse/pulsar/blob/master/src/test/clojure/co/paralleluniverse/pulsar/examples/codeswap.clj">codeswap.clj</a>) if <code>a</code> is redefined, its new definition will be used in the next&nbsp;iteration.</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">defsfn</span> <span class="nv">a</span> <span class="p">[</span><span class="nv">n</span><span class="p">]</span>
+</span><span id="line-2">    <span class="p">(</span><span class="nb">when-let </span><span class="p">[</span><span class="nv">m</span> <span class="p">(</span><span class="nf">receive-timed</span> <span class="mi">1000</span><span class="p">)]</span>
+</span><span id="line-3">        <span class="p">(</span><span class="nb">println </span><span class="s">&quot;message:&quot;</span> <span class="nv">m</span><span class="p">))</span>
+</span><span id="line-4">    <span class="p">(</span><span class="nf">recur-swap</span> <span class="nv">a</span> <span class="p">(</span><span class="nb">inc </span><span class="nv">n</span><span class="p">)))</span>
+</span></code></pre></div>
+<h4 id="swapping-gen-server">Swapping&nbsp;gen-server</h4>
+
+<p><code>gen-server</code>s don’t need any special action to support hot code swapping. If the implementation of the <code>Server</code> protocol passed to <code>gen-server</code> is a var and that var is redefined, the new definition will be used when processing the next request. This is an example (taken from <a href="https://github.com/puniverse/pulsar/blob/master/src/test/clojure/co/paralleluniverse/pulsar/examples/codeswap.clj">codeswap.clj</a>) of a <code>gen-server</code> that supports hot code swapping when <code>s</code> is&nbsp;redefined:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="k">def </span><span class="nv">s</span> <span class="p">(</span><span class="nf">sreify</span> <span class="nv">Server</span>
+</span><span id="line-2">         <span class="p">(</span><span class="nf">init</span> <span class="p">[</span><span class="nv">_</span><span class="p">])</span>
+</span><span id="line-3">         <span class="p">(</span><span class="nf">terminate</span> <span class="p">[</span><span class="nv">_</span> <span class="nv">cause</span><span class="p">])</span>
+</span><span id="line-4">         <span class="p">(</span><span class="nf">handle-call</span> <span class="p">[</span><span class="nv">_</span> <span class="nv">from</span> <span class="nv">id</span> <span class="p">[</span><span class="nv">a</span> <span class="nv">b</span><span class="p">]]</span>
+</span><span id="line-5">           <span class="p">(</span><span class="nf">sleep</span> <span class="mi">50</span><span class="p">)</span>
+</span><span id="line-6">           <span class="p">(</span><span class="nb">+ </span><span class="nv">a</span> <span class="nv">b</span><span class="p">))))</span>
+</span><span id="line-7">
+</span><span id="line-8"><span class="p">(</span><span class="nf">spawn</span> <span class="p">(</span><span class="nf">gen-server</span> <span class="nv">s</span><span class="p">))</span>
+</span></code></pre></div>
+<h2 id="coreasync">core.async</h2>
+
+<p>core.async is a new <a href="https://github.com/clojure/core.async/">asynchronous programming library</a> for Clojure built by Rich Hickey and other contributors. It provides something akin to fibers (though more limited than fibers) and channels, and is also available in ClojureScript. Because core.async provides a subset of Pulsar’s capability, Pulsar provides an optional <span class="caps">API</span> that’s compatible with core.async which some people may&nbsp;prefer.</p>
+
+<p>The core.async implementation is found in the <code>co.paralleluniverse.pulsar.async</code> namespace. It defines the following vars: <code>chan</code>, <code>buffer</code>, <code>dropping-buffer</code>, <code>sliding-buffer</code>, <code>go</code>, <code>thread-call</code>, <code>thread</code>, <code>close!</code>, <code>take!</code>, <code>put!</code>, <code>&gt;!</code>, <code>&gt;!!</code>, <code>&lt;!</code>, <code>&lt;!!</code>, <code>alts!</code>, <code>alts!!</code>, <code>alt!</code>, <code>alt!!</code> and&nbsp;<code>timeout</code>.</p>
+
+<p>These definitions are no more than thin wrappers around Pulsar functions and&nbsp;macros:</p>
+
+<ul>
+  <li><code>(chan)</code> is the same as calling&nbsp;<code>(channel)</code>.</li>
+  <li><code>(chan (buffer n))</code> or <code>(chan n)</code> are the same as <code>(channel n :block)</code> or&nbsp;<code>(channel n)</code>.</li>
+  <li><code>(chan (dropping-buffer n))</code> is the same as&nbsp;<code>(channel n :drop)</code></li>
+  <li><code>(chan (sliding-buffer n))</code> is the same as&nbsp;<code>(channel n :displace)</code></li>
+  <li><code>close!</code> is the same as&nbsp;<code>close!</code></li>
+  <li><code>&gt;!</code> and <code>&gt;!!</code> are the same as&nbsp;<code>snd</code></li>
+  <li><code>&lt;!</code> and <code>&lt;!!</code> are the same as&nbsp;<code>rcv</code></li>
+</ul>
+
+<p>The core.async <span class="caps">API</span> and the Pulsar <span class="caps">API</span> may be used interchangeably, so you can call <code>&gt;!</code> on a channel created with <code>channel</code> or <code>snd</code> on a channel created with <code>chan</code>. They are one and the&nbsp;same.</p>
+
+<p><code>go</code> simply performs its body within a newly spawned&nbsp;fiber.</p>
+
+<p>These are the differences between the Pulsar implementation of the core.async <span class="caps">API</span>, and the original&nbsp;implementation:</p>
+
+<ul>
+  <li>Channels created with <code>(chan (sliding-buffer n))</code> are&nbsp;single-consumer.</li>
+  <li>You may use the <code>!</code> and the <code>!!</code> defs interchangeably (the original implementation forces the use of the single-bang defs in go-blocks and the double-bang defs in regular threads). This means that in the Pulsar implementation all of the double-bang names (<code>&gt;!!</code>, <code>&lt;!!</code>, <code>alts!!</code> and <code>alt!!</code>) are actually redundant (but included for&nbsp;compatibility).</li>
+</ul>
+
+<p>In addition, there are performance differences, mostly resulting from the fact that Pulsar uses fork-join pools to schedule fibers, while core.async uses regular thread pools. In short, if there is little interaction between go blocks (say, each go block writes something to a channel and completes), you can expet better performance from the original implementation. If there is a lot of interaction between go blocks (there’s non-trivial message passing among them), then the Pulsar implementation will yield better&nbsp;performance.</p>
+
+<h2 id="clustering">Clustering</h2>
+
+<p>Pulsar is able to run on a cluster, thereby letting actors and channels communicate across machines. The Pulsar/Quasar cluster runs on top of <a href="http://docs.paralleluniverse.co/galaxy/">Galaxy</a>, Parallel Universe’s in-memory data&nbsp;grid.</p>
+
+<p>In this version, clustering is pretty rudimentary, but essential features should work: actors can be made discoverable on the network, messages can be passed among actors on different nodes, and an actor on a failing node will behave as expected of a dying actor with respect to exit messages sent to other, remote, <em>watching</em> it or <em>linked</em> to&nbsp;it.</p>
+
+<h3 id="enabling-clustering">Enabling&nbsp;Clustering</h3>
+
+<p>First, you will need to add <code>quasar-galaxy</code> as a dependency to your&nbsp;project:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">[</span><span class="nv">co.paralleluniverse/quasar-galaxy</span> <span class="s">&quot;0.4.0&quot;</span><span class="p">]</span>
+</span></code></pre></div>
+<p>To make an actor discoverable, all you need to do is register&nbsp;it:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">register</span> <span class="nv">actor</span> <span class="ss">:global-actor1</span><span class="p">)</span>
+</span></code></pre></div>
+<p>or, if the actor already has a name (set in <code>spawn</code>), simply&nbsp;call:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">register</span><span class="p">)</span>
+</span></code></pre></div>
+<p>That’s it. The actor is now known throughout the cluster. If you want to send a message to it,&nbsp;call</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">!</span> <span class="ss">:global-actor1</span> <span class="p">[</span><span class="ss">:hi-from</span> <span class="o">@</span><span class="nv">self</span><span class="p">])</span>
+</span></code></pre></div>
+<p>Though this call looks up the actor in the registry every time it’s called. A better way might&nbsp;be:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">a</span> <span class="p">(</span><span class="nf">whereis</span> <span class="ss">:global-actor1</span><span class="p">)]</span>
+</span><span id="line-2">   <span class="p">(</span><span class="nf">!</span> <span class="nv">a</span> <span class="p">[</span><span class="ss">:hi-from</span> <span class="o">@</span><span class="nv">self</span><span class="p">]))</span>
+</span></code></pre></div>
+<p>An actor doesn’t have to be registered in order to be reachable on the network. Registering it simply makes it <em>discoverable</em>. If we pass a local actor in a message to a remote actor, the remote actor will be able to send messages to the local actor as well. In the simple example above, we are sending @self to :global-actor1; :global-actor1 will be able to send messages back to&nbsp;us.</p>
+
+<h3 id="example">Example</h3>
+
+<p>The best way to get started is by running the distributed pingpong&nbsp;example.</p>
+
+<p>Here’s the code for <a href="https://github.com/puniverse/pulsar/tree/master/src/test/clojure/co/paralleluniverse/pulsar/examples/cluster/ping.clj">ping</a> and for <a href="https://github.com/puniverse/pulsar/tree/master/src/test/clojure/co/paralleluniverse/pulsar/examples/cluster/pong.clj">pong</a>. You run them like&nbsp;this:</p>
+
+<div class="highlight"><pre><code><span id="line-1">lein with-profile cluster update-in :jvm-opts conj <span class="s1">&#39;&quot;-Dgalaxy.nodeId=2&quot;&#39;</span> <span class="s1">&#39;&quot;-Dgalaxy.port=7052&quot;&#39;</span> <span class="s1">&#39;&quot;-Dgalaxy.slave_port=8052&quot;&#39;</span> -- run -m co.paralleluniverse.pulsar.examples.cluster.ping
+</span><span id="line-2">lein with-profile cluster update-in :jvm-opts conj <span class="s1">&#39;&quot;-Dgalaxy.nodeId=1&quot;&#39;</span> <span class="s1">&#39;&quot;-Dgalaxy.port=7051&quot;&#39;</span> <span class="s1">&#39;&quot;-Dgalaxy.slave_port=8051&quot;&#39;</span> -- run -m co.paralleluniverse.pulsar.examples.cluster.pong
+</span></code></pre></div>
+<h3 id="cluster-configuration">Cluster&nbsp;Configuration</h3>
+
+<p>For instructions on how to configure the Galaxy cluster, please refere to Galaxy’s <a href="http://docs.paralleluniverse.co/galaxy/start/getting-started.html">getting started guide</a>.</p>
+
+<h2 id="examples">Examples</h2>
+
+<p>The Pulsar source code contains several&nbsp;examples:</p>
+
+<ul>
+  <li><a href="https://github.com/puniverse/pulsar/tree/master/src/test/clojure/co/paralleluniverse/pulsar/examples/pingpong.clj">A Pulsar port</a> of the canonical <a href="http://www.erlang.org/doc/getting_started/conc_prog.html#id67006">Erlang ping-pong example</a>, and <a href="https://github.com/puniverse/pulsar/tree/master/src/test/clojure/co/paralleluniverse/pulsar/examples/pingpong_register.clj">one that uses registration</a>, as in <a href="http://www.erlang.org/doc/getting_started/conc_prog.html#id67347">this Erlang example</a>.</li>
+  <li><a href="https://github.com/puniverse/pulsar/tree/master/src/test/clojure/co/paralleluniverse/pulsar/examples/selective.clj">A simple example</a>, used in the user manual, of selective&nbsp;receive.</li>
+  <li><a href="https://github.com/puniverse/pulsar/tree/master/src/test/clojure/co/paralleluniverse/pulsar/examples/selective_gen_server.clj">The same example</a>, only using&nbsp;<code>gen-server</code>.</li>
+  <li><a href="https://github.com/puniverse/pulsar/tree/master/src/test/clojure/co/paralleluniverse/pulsar/examples/priority.clj">A Pulsar port</a> of <a href="http://learnyousomeerlang.com/more-on-multiprocessing#selective-receives">this example</a> from the book <em><a href="http://learnyousomeerlang.com/">Learn You Some Erlang for great&nbsp;good!</a></em></li>
+  <li>An example of <a href="https://github.com/puniverse/pulsar/tree/master/src/test/clojure/co/paralleluniverse/pulsar/examples/binary.clj">using gloss for binary-buffer matching</a>.</li>
+  <li><a href="https://github.com/puniverse/pulsar/tree/master/src/test/clojure/co/paralleluniverse/pulsar/examples/ring_benchmark.clj">A Pulsar ring benchmark</a> with&nbsp;actors.</li>
+  <li><a href="https://github.com/puniverse/pulsar/tree/master/src/test/clojure/co/paralleluniverse/pulsar/examples/primitive_ring_benchmark.clj">A Pulsar ring benchmark</a> with promitive&nbsp;channels.</li>
+  <li><a href="https://github.com/puniverse/pulsar/tree/master/src/test/clojure/co/paralleluniverse/pulsar/examples/graph.clj">A Pulsar full-graph benchmark</a> where all actors ping and pong with all other&nbsp;actors.</li>
+</ul>
+
+<p>In addition, the <a href="https://github.com/puniverse/pulsar/blob/master/src/test/clojure/co/paralleluniverse/pulsar_test.clj">test suite</a> contains many more small&nbsp;examples.</p>
+
+
+					</div>
+				</div><!--main-->
+			</div><!--docs-cont-->
+		</div> <!--container-->
+	</section><!--main-->
+
+	<!-- <top-nav> -->
+<div id="doumentation-bottom-bar">
+	<div class="container">
+		<div class="side-title"><h2>documentation</h2></div>
+		<h3>Pulsar</h3>
+		<a href="https://github.com/puniverse/pulsar" class="btn-1"><span>View on Github</span></a>
+		<a href="/pulsar/api/index.html" class="btn-2"><span>API</span></a>
+		<a href="https://github.com/puniverse/pulsar/issues/new" class="btn-3"><span>File a bug</span></a>
+		<a href="https://groups.google.com/forum/#!forum/quasar-pulsar-user" class="btn-4"><span>Discuss</span></a>
+	</div>
 </div>
-
-      <hr>
-
-      <footer>
-        <div>
-          <div>&copy; 2013, Parallel Universe Software Co.</div>
-        </div>
-      </footer>
-
-    </div>
-  </div>
-</div>
-
-<!-- <script src="/pulsar/js/prettify/prettify.js"></script> -->
-<script src="/pulsar/js/jquery.min.js"></script>
-<script src="/pulsar/bootstrap/js/bootstrap.min.js"></script>
-<script src="/pulsar/js/bootstrap-scrollspy.js"></script>
-<script>
+<!-- </top-nav> -->
 
 
-  var _gaq = _gaq || [];
-  _gaq.push(['_setAccount', 'UA-25007319-2']);
-  _gaq.push(['_trackPageview']);
-  
-  (function() {
-    var ga = document.createElement('script'); 
-    ga.type = 'text/javascript'; 
-    ga.async = true;
-    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    var s = document.getElementsByTagName('script')[0]; 
-    s.parentNode.insertBefore(ga, s);
-  })();
-
-
-// Change "active" style on selected left-hand navigation menu item.
-$(document).ready(function () {
-  var path = location.pathname;
-  $('ul.nav > li > a[href="' + path + '"]').parent().addClass('active');
-
-  // TODO: Use kramdown {:.prettyprint .linenums .lang-ruby} to add the
-  // <pre class="prettyprint"> instead of doing this client-side.
-
-  // $('pre:has(code:not(.language-txt))').addClass('prettyprint');
-  // window.prettyPrint && prettyPrint();
-});
-</script>
+	<footer>
+        <div class="container">
+            <div id="logo-footer"></div>
+            <ul>
+                <li><a href="http://paralleluniverse.co/support/support/">Support</a></li>
+                <li><a href="http://docs.paralleluniverse.co">Documentation</a></li>
+                <li><a href="http://paralleluniverse.co/support/about/">Company</a></li>
+                <li><a href="http://blog.paralleluniverse.co">Blog</a></li>
+            </ul>
+            <a href="https://www.facebook.com/puniverseco" class="social social1">social</a>
+            <a href="https://twitter.com/puniverseco" class="social social2">social</a>
+            <a href="http://www.linkedin.com/company/parallel-universe?trk=company_name" class="social social3">social</a>
+        </div><!--container-->
+</footer>
 
 </body>
 </html>
