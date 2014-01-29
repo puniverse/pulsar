@@ -20,7 +20,6 @@
   Go-like channles and Erlang-like actors for the JVM"
 (:refer-clojure :exclude [promise await])
 (:import [java.util.concurrent TimeUnit ExecutionException TimeoutException Future]
-         [jsr166e ForkJoinPool ForkJoinTask]
          [co.paralleluniverse.strands Strand Stranded]
          [co.paralleluniverse.strands SuspendableCallable]
          [co.paralleluniverse.fibers DefaultFiberScheduler FiberScheduler Fiber Joinable FiberUtil]
@@ -200,20 +199,6 @@
      (catch Exception e#
        (throw (unwrap-exception* e#)))))
 
-;; ## Fork/Join Pool
-
-(ann in-fj-pool? [-> Boolean])
-(defn- in-fj-pool?
-  "Returns true if we're running inside a fork/join pool; false otherwise."
-  []
-  (ForkJoinTask/inForkJoinPool))
-
-(ann make-fj-pool [AnyInteger Boolean -> ForkJoinPool])
-(defn ^ForkJoinPool make-fj-pool
-  "Creates a new ForkJoinPool with the given parallelism and with the given async mode"
-  [^Integer parallelism ^Boolean async]
-  (ForkJoinPool. parallelism ForkJoinPool/defaultForkJoinWorkerThreadFactory nil async))
-
 ;; ## Suspendable functions
 ;; Only functions that have been especially instrumented can perform blocking actions
 ;; while running in a fiber.
@@ -296,7 +281,6 @@
      (strampoline #(apply f args))))
 
 ;; ## Fibers
-
 
 (ann current-fiber [-> Fiber])
 (defn current-fiber
