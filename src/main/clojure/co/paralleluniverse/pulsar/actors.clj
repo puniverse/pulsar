@@ -17,7 +17,7 @@
             [clojure.string :as str]
             [clojure.core.match :refer [match]]
             [clojure.core.typed :refer [ann def-alias Option AnyInteger]])
-  (:refer-clojure :exclude [promise await])
+  (:refer-clojure :exclude [promise await bean])
   (:import [java.util.concurrent TimeUnit ExecutionException TimeoutException]
            [co.paralleluniverse.fibers FiberScheduler]
            [co.paralleluniverse.strands Strand]
