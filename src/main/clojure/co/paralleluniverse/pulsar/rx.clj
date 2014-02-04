@@ -42,6 +42,20 @@
   [f ^ReceivePort ch]
   (Channels/map ^ReceivePort ch (fn->guava-fn f)))
 
+(defn ^ReceivePort mapcat
+  "Creates a receive-port (a read-only channel) that receives messages that are transformed by the
+  given mapping function f from a given channel ch.
+  "
+  [f ^ReceivePort ch]
+  (Channels/flatmap ^ReceivePort ch (fn->guava-fn
+                                      (fn [x]
+                                        (let [v (f x)]
+                                          (cond
+                                            (nil? v) v
+                                            (instance? ReceivePort v) v
+                                            (sequential? v) (seq->channel v)
+                                            :else (singleton-channel v)))))))
+
 (defn ^SendPort snd-map
   "Returns a channel that transforms messages by applying th given mapping function f
   before sending them to the given channel ch."

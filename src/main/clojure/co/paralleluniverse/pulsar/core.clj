@@ -596,8 +596,19 @@
 (defn closed?
   "Tests whether a channel has been closed and contains no more messages that 
   can be received."
-[^ReceivePort channel]
-(.isClosed channel))
+  [^ReceivePort channel]
+  (.isClosed channel))
+
+(defn ^ReceivePort singleton-channel
+  "Returns a channel that receives a single, given value
+  and then closes"
+  [x]
+  (Channels/singletonReceivePort x))
+
+(defn ^ReceivePort seq->channel
+  "Turns a sequence into a receive port that receives all values in the sequence"
+  [x]
+  (Channels/toReceivePort ^Iterable x))
 
 (defn topic
   "Creates a new topic.
