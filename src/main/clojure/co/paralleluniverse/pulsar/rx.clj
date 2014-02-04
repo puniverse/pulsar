@@ -45,7 +45,10 @@
 (defn ^ReceivePort mapcat
   "Creates a receive-port (a read-only channel) that receives messages that are transformed by the
   given mapping function f from a given channel ch.
-  "
+
+  Unlike map, the mapping function may return a single value, a sequence of values or a channel, and
+  in all cases the values contained in the sequence/channel will be received one at a time by the returned
+  receive-port."
   [f ^ReceivePort ch]
   (Channels/flatmap ^ReceivePort ch (fn->guava-fn
                                       (fn [x]
