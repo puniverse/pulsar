@@ -124,6 +124,8 @@
                      (cons (new clojure.lang.MapEntry (first pseq) (v (first pseq)))
                            (thisfn (rest pseq)))))) (keys pmap))))))
 
+;; ## Guava Interop
+
 (defn- collection?
   "Tests wheter an object is a java.util.Collection
 
