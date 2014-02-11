@@ -1,5 +1,7 @@
 ---
 layout: default
+title: Pulsar
+description: "Lightweight threads, CSP and Erlang-like actors for Clojure"
 ---
 
 # Overview
