@@ -15,7 +15,7 @@
         co.paralleluniverse.pulsar.core
         co.paralleluniverse.pulsar.actors)
   (:require [co.paralleluniverse.pulsar.lazyseq :as s :refer [channel->lazy-seq snd-seq]])
-  (:refer-clojure :exclude [promise await])
+  (:refer-clojure :exclude [promise await bean])
   (:import [java.util.concurrent TimeUnit TimeoutException ExecutionException]
            [co.paralleluniverse.common.util Debug]
            [co.paralleluniverse.strands Strand]
