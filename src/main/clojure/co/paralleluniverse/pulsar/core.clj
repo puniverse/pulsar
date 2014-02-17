@@ -135,6 +135,9 @@
   [s m]
   (with-meta s (merge-with #(%1) m (meta s))))
 
+(defn tagged [tag sym]
+  (vary-meta sym assoc :tag tag))
+
 (defn apply-variadic
   "Calls a variadic function by applying a concat of all arguments with the last argument (which is supposedly a collection)"
   {:no-doc true}
@@ -368,11 +371,13 @@
   with arguments args, and blocks the current fiber until the callback is called,
   then returns the value passed to the callback."
   [f & args]
-  `(let [^co.paralleluniverse.pulsar.ClojureFiberAsync fa#
+  (let [fa (tagged `ClojureFiberAsync (gensym "fa"))
+        fa1 (tagged `ClojureFiberAsync (gensym "fa1"))]
+  `(let [~fa
          (co.paralleluniverse.pulsar.ClojureFiberAsync.
-           (fn [^co.paralleluniverse.pulsar.ClojureFiberAsync fa1#]
-             (~f ~@args #(.complete fa1# %))))]
-     (.run fa#)))
+           (fn [~fa1]
+             (~f ~@args #(.complete ~fa1 %))))]
+     (.run ~fa))))
 
 
 ;; ## Strands
@@ -718,9 +723,8 @@
         priority (:priority opts)
         timeout (:timeout opts)
         dflt (contains? opts :else)
-        sa (gensym "sa")]
-    `(let [^co.paralleluniverse.strands.channels.SelectAction ~sa
-           (do-sel (list ~@ports) ~priority ~timeout)]
+        sa (tagged `SelectAction (gensym "sa"))]
+    `(let [~sa (do-sel (list ~@ports) ~priority ~timeout)]
        ~@(surround-with 
            (when dflt
              `(if (nil? ~sa) ~(:else opts)))
@@ -749,7 +753,7 @@
   
   See: `snd`"
   [channel message]
-  `(co.paralleluniverse.pulsar.ChannelsHelper/sendInt ^co.paralleluniverse.strands.channels.IntSendPort ~channel (int ~message)))
+  `(co.paralleluniverse.pulsar.ChannelsHelper/sendInt ~(tagged `IntSendPort channel) (int ~message)))
 
 (defmacro try-snd-int
   "Tries to immediately send an int value to an int-channel.
@@ -757,16 +761,16 @@
   
   See: `try-snd`"
   [channel message]
-  `(co.paralleluniverse.pulsar.ChannelsHelper/trySendInt ^co.paralleluniverse.strands.channels.IntSendPort ~channel (int ~message)))
+  `(co.paralleluniverse.pulsar.ChannelsHelper/trySendInt ~(tagged `IntSendPort channel) (int ~message)))
 
 (defmacro rcv-int
   "Receives an int value from an int-channel.
   
   See: `rcv`"
   ([channel]
-   `(int (.receiveInt ^co.paralleluniverse.strands.channels.IntReceivePort ~channel)))
+   `(int (.receiveInt ~(tagged `IntReceivePort channel))))
   ([channel timeout unit]
-   `(int (.receiveInt ^co.paralleluniverse.strands.channels.IntReceivePort ~channel (long ~timeout) (->timeunit ~unit)))))
+   `(int (.receiveInt ~(tagged `IntReceivePort channel) (long ~timeout) (->timeunit ~unit)))))
 
 (ann long-channel (Fn [AnyInteger -> LongChannel]
                       [-> LongChannel]))
@@ -781,7 +785,7 @@
   
   See: `snd`"
   [channel message]
-  `(co.paralleluniverse.pulsar.ChannelsHelper/sendLong ^co.paralleluniverse.strands.channels.LongSendPort ~channel (long ~message)))
+  `(co.paralleluniverse.pulsar.ChannelsHelper/sendLong ~(tagged `LongSendPort channel) (long ~message)))
 
 (defmacro try-snd-long
   "Tries to immediately send a long value to a long-channel.
@@ -789,16 +793,16 @@
   
   See: `try-snd`"
   [channel message]
-  `(co.paralleluniverse.pulsar.ChannelsHelper/trySendLong ^co.paralleluniverse.strands.channels.LongSendPort ~channel (long ~message)))
+  `(co.paralleluniverse.pulsar.ChannelsHelper/trySendLong ~(tagged `LongSendPort channel) (long ~message)))
 
 (defmacro rcv-long
   "Receives a long value from a long-channel.
   
   See: `rcv`"
   ([channel]
-   `(long (.receiveLong ^co.paralleluniverse.strands.channels.LongReceivePort ~channel)))
+   `(long (.receiveLong ~(tagged `LongReceivePort channel))))
   ([channel timeout unit]
-   `(long (.receiveLong ^co.paralleluniverse.strands.channels.LongReceivePort ~channel (long ~timeout) (->timeunit ~unit)))))
+   `(long (.receiveLong ~(tagged `LongReceivePort channel) (long ~timeout) (->timeunit ~unit)))))
 
 (ann float-channel (Fn [AnyInteger -> FloatChannel]
                        [-> FloatChannel]))
@@ -813,7 +817,7 @@
   
   See: `snd`"
   [channel message]
-  `(co.paralleluniverse.pulsar.ChannelsHelper/sendFloat ^co.paralleluniverse.strands.channels.FloatSendPort ~channel (float ~message)))
+  `(co.paralleluniverse.pulsar.ChannelsHelper/sendFloat ~(tagged `FloatSendPort channel) (float ~message)))
 
 (defmacro try-snd-float
   "Tries to immediately send a float value to a float-channel.
@@ -821,16 +825,16 @@
   
   See: `try-snd`"
   [channel message]
-  `(co.paralleluniverse.pulsar.ChannelsHelper/trySendFloat ^co.paralleluniverse.strands.channels.FloatSendPort ~channel (float ~message)))
+  `(co.paralleluniverse.pulsar.ChannelsHelper/trySendFloat ~(tagged `FloatSendPort channel) (float ~message)))
 
 (defmacro rcv-float
   "Receives a float value from a float-channel.
   
   See: `rcv`"
   ([channel]
-   `(float (.receiveFloat ^co.paralleluniverse.strands.channels.FloatReceivePort ~channel)))
+   `(float (.receiveFloat ~(tagged `FloatReceivePort channel))))
   ([channel timeout unit]
-   `(float (.receiveFloat ^co.paralleluniverse.strands.channels.FloatReceivePort ~channel (long ~timeout) (->timeunit ~unit)))))
+   `(float (.receiveFloat ~(tagged `FloatReceivePort channel) (long ~timeout) (->timeunit ~unit)))))
 
 (ann double-channel (Fn [AnyInteger -> DoubleChannel]
                         [-> DoubleChannel]))
@@ -845,7 +849,7 @@
   
   See: `snd`"
   [channel message]
-  `(co.paralleluniverse.pulsar.ChannelsHelper/sendDouble ^co.paralleluniverse.strands.channels.DoubleSendPort ~channel (double ~message)))
+  `(co.paralleluniverse.pulsar.ChannelsHelper/sendDouble ~(tagged `DoubleSendPort channel) (double ~message)))
 
 (defmacro try-snd-double
   "Tries to immediately send a double value to a double-channel.
@@ -853,15 +857,15 @@
   
   See: `try-snd`"
   [channel message]
-  `(co.paralleluniverse.pulsar.ChannelsHelper/trySendDouble ^co.paralleluniverse.strands.channels.DoubleSendPort ~channel (double ~message)))
+  `(co.paralleluniverse.pulsar.ChannelsHelper/trySendDouble ~(tagged `DoubleSendPort channel) (double ~message)))
 
 (defmacro rcv-double
   "Receives a double value from a double-channel.
   
   See: `rcv`"
   ([channel]
-   `(double (.receiveDouble ^co.paralleluniverse.strands.channels.DoubleReceivePort ~channel)))
+   `(double (.receiveDouble ~(tagged `DoubleReceivePort channel))))
   ([channel timeout unit]
-   `(double (.receiveDouble ^co.paralleluniverse.strands.channels.DoubleReceivePort ~channel (long ~timeout) (->timeunit ~unit)))))
+   `(double (.receiveDouble ~(tagged `DoubleReceivePort channel) (long ~timeout) (->timeunit ~unit)))))
 
 

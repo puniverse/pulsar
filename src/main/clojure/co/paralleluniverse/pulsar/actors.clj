@@ -497,9 +497,9 @@
                            `(match ~m ~@body)))
        ; if we don't, well, we have our work cut out for us
        (let [pbody   (partition 2 body)
-             mailbox (gensym "mailbox") n (gensym "n") m2 (gensym "m2") mtc (gensym "mtc") exp (gensym "exp")] ; symbols
+             mailbox (tagged `Actor (gensym "mailbox")) n (gensym "n") m2 (gensym "m2") mtc (gensym "mtc") exp (gensym "exp")] ; symbols
          `(let [[~mtc ~m]
-                (let ~(into [] (concat `[^co.paralleluniverse.actors.Actor ~mailbox (co.paralleluniverse.actors.PulsarActor/currentActor)]
+                (let ~(into [] (concat `[~mailbox (co.paralleluniverse.actors.PulsarActor/currentActor)]
                                        (if after-clause `[~timeout ~(second after-clause)
                                                           ~exp (if (pos? ~timeout) (long (+ (long (System/nanoTime)) (long (* 1000000 ~timeout)))) 0)] [])))
                   (co.paralleluniverse.actors.PulsarActor/maybeSetCurrentStrandAsOwner ~mailbox)
@@ -515,7 +515,7 @@
                               (let [m1# (co.paralleluniverse.actors.PulsarActor/value ~mailbox ~n)]
                                 (when (and (instance? co.paralleluniverse.actors.LifecycleMessage m1#)
                                            (or (not (instance? co.paralleluniverse.actors.PulsarActor ~mailbox))
-                                               (not (.isTrap ^co.paralleluniverse.actors.PulsarActor (cast co.paralleluniverse.actors.PulsarActor ~mailbox)))))
+                                               (not (.isTrap ~(tagged `PulsarActor `(cast co.paralleluniverse.actors.PulsarActor ~mailbox))))))
                                   (co.paralleluniverse.actors.PulsarActor/handleLifecycleMessage ~mailbox m1#))
                                 (let [~m2 (co.paralleluniverse.actors.PulsarActor/convert m1#)
                                       ~m ~(if transform `(~transform ~m2) `~m2)
@@ -626,7 +626,7 @@
   (let [[{:keys [^String name ^Integer timeout ^Integer mailbox-size overflow-policy], :or {timeout -1 mailbox-size -1}} body] (kps-args args)
         s (first body)]
     `(co.paralleluniverse.actors.behaviors.ServerActor. ~name
-                                                        ^co.paralleluniverse.actors.behaviors.Server (Server->java ~(if (symbol? s) `(var ~s) `(vref ~s)))
+                                                        (Server->java ~(if (symbol? s) `(var ~s) `(vref ~s)))
                                                         (long ~timeout) java.util.concurrent.TimeUnit/MILLISECONDS
                                                         nil (->MailboxConfig ~mailbox-size ~overflow-policy))))
 
