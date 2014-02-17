@@ -17,9 +17,10 @@
     [clojure.core.match :refer [match]]
     [clojure.core.typed :refer [ann Option AnyInteger]])
   (:refer-clojure :exclude [promise await
-                             map filter zip])
+                             map mapcat filter zip])
   (:import
     [co.paralleluniverse.strands.channels Channels Channel ReceivePort SendPort]
+    [co.paralleluniverse.strands SuspendableAction2]
     [com.google.common.base Function Predicate]
     ; for types:
     [clojure.lang Seqable LazySeq ISeq]))
@@ -36,11 +37,19 @@
     (^boolean apply [_ arg]
       (p? arg))))
 
+(defn- ^SuspendableAction2 fn->SuspendableAction2
+  [f]
+  (let [sf (suspendable! f)]
+    (reify SuspendableAction2
+      (^void call [_ x y]
+        (sf x y)))))
+
 (defn ^ReceivePort map
   "Creates a receive-port (a read-only channel) that receives messages that are transformed by the
   given mapping function f from a given channel ch."
   [f ^ReceivePort ch]
   (Channels/map ^ReceivePort ch (fn->guava-fn f)))
+
 
 (defn ^ReceivePort mapcat
   "Creates a receive-port (a read-only channel) that receives messages that are transformed by the
@@ -95,3 +104,9 @@
    (Channels/group ^java.util.Collection ports))
   ([port & ports]
    (Channels/group ^java.util.Collection (cons port ports))))
+
+(defn fiber-transform
+  "Spawns a fiber that runs the supplied function `f`, which is passed the
+  supplied receive-port `in` and send-port `out`"
+  [in out f]
+  (Channels/fiberTransform ^ReceivePort in ^SendPort out (fn->SuspendableAction2 f)))

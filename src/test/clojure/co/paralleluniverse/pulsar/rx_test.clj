@@ -222,3 +222,28 @@
         (snd ch 5)
         (close! ch)
         (join fiber))  => '(1 20 200 2000 40 400 4000 5 nil))
+
+(fact "test fiber-transform"
+      (let [in (channel)
+            out (channel)
+            fiber (spawn-fiber
+                    (fn []
+                      (list (rcv out) (rcv out) (rcv out) (rcv out))))]
+        (rx/fiber-transform in out (fn [in out]
+                                     (if-let [x (rcv in)]
+                                       (do
+                                         (when (zero? (mod x 2))
+                                           (snd out (* x 10)))
+                                         (recur in out))
+                                       (do (snd out 1234)
+                                           (close! out)))))
+        (sleep 20)
+        (snd in 1)
+        (snd in 2)
+        (sleep 20)
+        (snd in 3)
+        (snd in 4)
+        (sleep 20)
+        (snd in 5)
+        (close! in)
+        (join fiber))  => '(20 40 1234 nil))
