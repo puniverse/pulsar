@@ -34,7 +34,7 @@
               :dependencies [[midje "1.6.0" :exclusions [org.clojure/tools.namespace]]]
               :jvm-opts [;; Debugging
                          "-ea"
-                         ;"-Dco.paralleluniverse.lwthreads.verifyInstrumentation=true"
+                         ;"-Dco.paralleluniverse.fibers.verifyInstrumentation=true"
                          ;; Recording
                          ;"-Dco.paralleluniverse.debugMode=true"
                          ;"-Dco.paralleluniverse.globalFlightRecorder=true"
