@@ -591,12 +591,19 @@
 (defn close!
   "Closes a channel.
   Messages already in the channel will be received, but all future attempts at `snd`
-  will silently discard the message."
-  [channel]
-  (cond
-    (instance? SendPort channel)    (.close ^SendPort channel)
-    (instance? ReceivePort channel) (.close ^ReceivePort channel)
-    :else (throw (IllegalArgumentException. (str (.toString ^Object channel) " is not a channel")))))
+  will silently discard the message. After all messages have been consumed, `rcv` will
+  return `nil`.
+
+  If an exception is passed as the second argument, then the same will happen, except after
+  all messages are consumed, the passed exception will be thrown by `rcv`, wrapped in a
+  `co.paralleluniverse.strands.channels.ProducerException`."
+  ([channel]
+   (cond
+     (instance? SendPort channel)    (.close ^SendPort channel)
+     (instance? ReceivePort channel) (.close ^ReceivePort channel)
+     :else (throw (IllegalArgumentException. (str (.toString ^Object channel) " is not a channel")))))
+  ([^SendPort channel ^Throwable exception]
+   (.close ^SendPort channel exception)))
 
 (defn closed?
   "Tests whether a channel has been closed and contains no more messages that 
