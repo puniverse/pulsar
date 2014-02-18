@@ -13,8 +13,7 @@
 (ns co.paralleluniverse.pulsar.core-test
   (:use midje.sweet
         co.paralleluniverse.pulsar.core)
-  (:require [co.paralleluniverse.pulsar.lazyseq :as s :refer [channel->lazy-seq snd-seq]]
-            [midje.checking.core :as checking])
+  (:require [midje.checking.core :as checking])
   (:refer-clojure :exclude [promise await])
   (:import [java.util.concurrent TimeUnit TimeoutException ExecutionException]
            [co.paralleluniverse.common.util Debug]
@@ -120,6 +119,12 @@
         (snd ch "m4")
         (join fiber))  => '("m1" "m2" "m3" nil))
 
+(fact "Test snd-seq and rcv-into"
+      (let [ch (channel)
+            fiber (spawn-fiber #(rcv-into [] ch 1000))]
+        (snd-seq ch (range 5))
+        (close! ch)
+        (join fiber)) => [0 1 2 3 4])
 
 (facts "promises-promises"
        (fact "When try to set promise twice, then throw exception"

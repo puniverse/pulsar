@@ -611,6 +611,30 @@
   [^ReceivePort channel]
   (.isClosed channel))
 
+(defsfn snd-seq
+  "Sends a sequence of messages to a channel"
+  [^SendPort channel ms]
+  (when-let [m (first ms)]
+    (snd channel m)
+    (recur channel (rest ms))))
+
+(defsfn rcv-into
+  "Receives at most n values from the given channel and conjoins them
+  into the to collection"
+  [to ^ReceivePort channel n]
+  (if (instance? clojure.lang.IEditableCollection to)
+    (loop [to (transient to)
+           n (int n)]
+      (if-let [m (and (pos? n) (rcv channel))]
+        (recur (conj! to m) (dec n))
+        (persistent! to)))
+    (loop [to to
+           ^ReceivePort channel channel
+           n (int n)]
+      (when-let [m (and (pos? n) (rcv channel))]
+        (recur (conj to m) channel (dec n))))))
+
+
 (defn ^ReceivePort singleton-channel
   "Returns a channel that receives a single, given value
   and then closes"

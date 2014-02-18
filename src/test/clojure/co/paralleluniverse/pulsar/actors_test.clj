@@ -14,7 +14,7 @@
   (:use midje.sweet
         co.paralleluniverse.pulsar.core
         co.paralleluniverse.pulsar.actors)
-  (:require [co.paralleluniverse.pulsar.lazyseq :as s :refer [channel->lazy-seq snd-seq]])
+  (:require [co.paralleluniverse.pulsar.lazyseq :as s :refer [channel->lazy-seq]])
   (:refer-clojure :exclude [promise await bean])
   (:import [java.util.concurrent TimeUnit TimeoutException ExecutionException]
            [co.paralleluniverse.common.util Debug]
