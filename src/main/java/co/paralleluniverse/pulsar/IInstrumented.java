@@ -1,13 +1,18 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * Pulsar: lightweight threads and Erlang-like actors for Clojure.
+ * Copyright (C) 2013-2014, Parallel Universe Software Co. All rights reserved.
+ *
+ * This program and the accompanying materials are dual-licensed under
+ * either the terms of the Eclipse Public License v1.0 as published by
+ * the Eclipse Foundation
+ *
+ *   or (per the licensee's choosing)
+ *
+ * under the terms of the GNU Lesser General Public License version 3.0
+ * as published by the Free Software Foundation.
  */
 package co.paralleluniverse.pulsar;
 
-/**
- *
- * @author pron
- */
 public interface IInstrumented {
     
 }
