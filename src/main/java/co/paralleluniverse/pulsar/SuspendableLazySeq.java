@@ -37,7 +37,6 @@ import clojure.lang.PersistentList;
 import clojure.lang.RT;
 import clojure.lang.Sequential;
 import clojure.lang.Util;
-import co.paralleluniverse.fibers.Fiber;
 
 public final class SuspendableLazySeq extends Obj implements ISeq, Sequential, IPending, IHashEq {
     private volatile IFn fn;
@@ -59,10 +58,10 @@ public final class SuspendableLazySeq extends Obj implements ISeq, Sequential, I
         return new SuspendableLazySeq(meta, seq());
     }
 
-    private Object sval() { // throws SneakySuspendExecution {
+    private Object sval() {
         if (fn != null) {
             try {
-                sv = invoke();
+                sv = fn.invoke();
                 fn = null;
             } catch (RuntimeException e) {
                 throw e;
@@ -75,11 +74,8 @@ public final class SuspendableLazySeq extends Obj implements ISeq, Sequential, I
         return s;
     }
 
-    private Object invoke() { // throws SneakySuspendExecution {
-        return fn.invoke();
-    }
-
-    private ISeq seq1() { // throws SneakySuspendExecution {
+    @Override
+    final public ISeq seq() {
         sval();
         if (sv != null) {
             //Object ls = sv;
@@ -90,13 +86,6 @@ public final class SuspendableLazySeq extends Obj implements ISeq, Sequential, I
             s = seq(sv);
             sv = null;
         }
-        return s;
-    }
-
-    @Override
-    final public ISeq seq() {
-        if (Fiber.currentFiber() != null)
-            return seq1();
         return s;
     }
 

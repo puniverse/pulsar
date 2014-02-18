@@ -20,7 +20,7 @@
                              lazy-seq seq dorun doall nthnext nthrest take take-while
                              drop repeatedly map filter])
    (:import
-     [co.paralleluniverse.strands.channels Channel]
+     [co.paralleluniverse.strands.channels Channel SendPort ReceivePort]
      [co.paralleluniverse.pulsar ClojureHelper SuspendableLazySeq]
      ; for types:
      [clojure.lang Seqable LazySeq ISeq]))
@@ -41,20 +41,14 @@
 
 (defn channel->lazy-seq
   "Turns a channel into a lazy-seq."
-  ([^Channel channel]
+  ([^ReceivePort channel]
    (lazy-seq
     (when-let [m (.receive channel)]
       (cons m (channel->lazy-seq channel)))))
-  ([^Channel channel timeout unit]
+  ([^ReceivePort channel timeout unit]
    (lazy-seq
     (when-let [m (.receive channel (long timeout) unit)]
       (cons m (channel->lazy-seq channel timeout unit))))))
-
-(defn snd-seq
-  "Sends a sequence of messages to a channel"
-  [^Channel channel ms]
-  (doseq [m ms]
-    (.send channel m)))
 
 ;; Suspendable versions of core seq functions
 
@@ -65,7 +59,7 @@
                 :filters {:then (& (is (CountRange 1) 0) (! nil 0))
                           :else (| (is nil 0) (is (ExactCount 0) 0))}])))
 (defn ^clojure.lang.ISeq seq [x]
-  (co.paralleluniverse.pulsar.SuspendableLazySeq/seq x))
+  (SuspendableLazySeq/seq x))
 
 (defsfn dorun
   "When lazy sequences are produced via functions that have side
