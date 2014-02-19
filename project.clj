@@ -23,9 +23,11 @@
   :manifest {"Premain-Class" "co.paralleluniverse.fibers.instrument.JavaAgent"
              "Can-Retransform-Classes" "true"}
   :jvm-opts ["-server"
+             ;"-Dclojure.compiler.disable-locals-clearing=true"
              ;; ForkJoin wants these:
              "-XX:-UseBiasedLocking"
              "-XX:+UseCondCardMark"]
+  ;:injections [(alter-var-root #'*compiler-options* (constantly {:disable-locals-clearing true}))]
   :java-agents [[co.paralleluniverse/quasar-core "0.5.0-SNAPSHOT"]] ; :options "vd"
   :pedantic :warn
   :profiles {;; ----------- dev --------------------------------------

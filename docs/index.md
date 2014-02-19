@@ -128,8 +128,10 @@ The function `suspendable!` marks a given function as a suspendable function (th
 {:.alert .alert-info}
 **Note**: All functions (i.e. `fn`s) passed to any of the Pulsar API functions and macros are automatically made suspendable, so in most simple cases you will never need to use `sfn`, `defsfn` or `suspendable!`.
 
+{% comment %}
 {:.alert .alert-warn}
 **Note**: One thing to watch out for in suspendable functions is lazy-seqs. If the function consumes a seq, it's probably a good idea to force it with `doall` before passing it to the function.
+{% endcomment %}
 
 #### Spawning Fibers
 
@@ -474,6 +476,7 @@ Because they don't require boxing (for this reason `snd-xxx` and `rcv-xxx` are a
 
 Calling `rcv-xxx` on a closed channel will throw an exception.
 
+{% comment %}
 #### Channel lazy-seqs
 
 {:.centered .alert .alert-warning}
@@ -533,6 +536,7 @@ Then, manipulating messages with sequence functions is easy. Here are some examp
                  (snd ch m))
                (join fiber)) => (list 16)))
 ~~~
+{% endcomment %}
 
 ### Channel Transformation (AKA Reactive Extensions)
 
