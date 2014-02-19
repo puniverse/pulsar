@@ -219,7 +219,8 @@
 (defn suspendable!
   "Makes a function suspendable."
   ([f]
-   (ClojureHelper/retransform f nil))
+   (when f
+     (ClojureHelper/retransform f nil)))
   ([x prot]
    (ClojureHelper/retransform x prot)))
 
@@ -480,8 +481,8 @@
   blocking. See also - realized?.
 
   Unlike clojure.core/promise, this promise object can be used inside Pulsar fibers."
-  ([]
-   (let [dv (DelayedVal.)]
+  ([f]
+   (let [dv (DelayedVal. (->suspendable-callable (suspendable! f)))]
      (reify
        clojure.lang.IDeref
        (deref [_]
@@ -501,11 +502,8 @@
         [this x]
         (.set dv x)
         this))))
-  ([f]
-   (let [p (promise)]
-     (suspendable! f)
-     (spawn-fiber #(deliver p (f)))
-     p)))
+  ([]
+   (promise nil)))
 
 ;; ## Channels
 

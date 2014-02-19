@@ -157,6 +157,8 @@ public class ClojureHelper {
 
     ////////
     public static SuspendableCallable<Object> asSuspendableCallable(final IFn fn) {
+        if (fn == null)
+            return null;
         if (!(fn instanceof InstrumentedIFn))
             throw new IllegalArgumentException("Function " + fn + " has not been instrumented");
 
