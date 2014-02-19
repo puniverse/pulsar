@@ -17,7 +17,7 @@
     [clojure.core.match :refer [match]]
     [clojure.core.typed :refer [ann Option AnyInteger]])
   (:refer-clojure :exclude [promise await
-                             map mapcat filter zip])
+                             foreach map mapcat filter zip])
   (:import
     [co.paralleluniverse.strands.channels Channels Channel ReceivePort SendPort]
     [co.paralleluniverse.strands SuspendableAction2]
@@ -50,7 +50,6 @@
   [f ^ReceivePort ch]
   (Channels/map ^ReceivePort ch (fn->guava-fn f)))
 
-
 (defn ^ReceivePort mapcat
   "Creates a receive-port (a read-only channel) that receives messages that are transformed by the
   given mapping function f from a given channel ch.
@@ -68,12 +67,6 @@
                                             (sequential? v) (seq->channel v)
                                             :else (singleton-channel v)))))))
 
-(defn ^SendPort snd-map
-  "Returns a channel that transforms messages by applying th given mapping function f
-  before sending them to the given channel ch."
-  [f ^SendPort ch]
-  (Channels/map ^SendPort ch (fn->guava-fn f)))
-
 (defn ^ReceivePort filter
   "Creates a receive-port (a read-only channel) that filters messages that satisfy the predicate pred
   from the given channel ch.
@@ -81,12 +74,6 @@
    those that don't satisfy the predicate will be silently discarded."
   [pred ^ReceivePort ch]
   (Channels/filter ^ReceivePort ch (fn->guava-pred pred)))
-
-(defn ^SendPort snd-filter
-  "Returns a channel that filters messages that satisfy the predicate pred before sending to the given channel ch.
-   Messages that don't satisfy the predicate will be silently discarded when sent."
-  [pred ^SendPort ch]
-  (Channels/filter ^SendPort ch (fn->guava-pred pred)))
 
 (defn ^ReceivePort zip
   "Creates a receive-port (a read-only channel) that combines messages from the given channels
@@ -110,3 +97,15 @@
   supplied receive-port `in` and send-port `out`"
   [in out f]
   (Channels/fiberTransform ^ReceivePort in ^SendPort out (fn->SuspendableAction2 f)))
+
+(defn ^SendPort snd-map
+  "Returns a channel that transforms messages by applying th given mapping function f
+  before sending them to the given channel ch."
+  [f ^SendPort ch]
+  (Channels/mapSend ^SendPort ch (fn->guava-fn f)))
+
+(defn ^SendPort snd-filter
+  "Returns a channel that filters messages that satisfy the predicate pred before sending to the given channel ch.
+   Messages that don't satisfy the predicate will be silently discarded when sent."
+  [pred ^SendPort ch]
+  (Channels/filterSend ^SendPort ch (fn->guava-pred pred)))
