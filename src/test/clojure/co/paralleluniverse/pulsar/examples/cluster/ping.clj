@@ -14,6 +14,7 @@
   (println "ping finished"))
 
 (defn -main []
+  (println "Ping started")
   (when (nil? (whereis :pong))
     (println "Waiting for pong to register...")
     (loop []

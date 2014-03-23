@@ -12,6 +12,7 @@
 ;; lein with-profile cluster update-in :jvm-opts conj '"-Dgalaxy.nodeId=2"' '"-Dgalaxy.port=7052"' '"-Dgalaxy.slave_port=8052"' -- run -m co.paralleluniverse.pulsar.examples.cluster.ping
 
 (defsfn pong []
+  (println "Pong started")
   (register! :pong @self)
   (loop []
     (receive
