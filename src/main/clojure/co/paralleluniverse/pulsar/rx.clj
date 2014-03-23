@@ -58,14 +58,14 @@
   in all cases the values contained in the sequence/channel will be received one at a time by the returned
   receive-port."
   [f ^ReceivePort ch]
-  (Channels/flatmap ^ReceivePort ch (fn->guava-fn
-                                      (fn [x]
-                                        (let [v (f x)]
-                                          (cond
-                                            (nil? v) v
-                                            (instance? ReceivePort v) v
-                                            (sequential? v) (seq->channel v)
-                                            :else (singleton-channel v)))))))
+  (Channels/flatMap ch (fn->guava-fn
+                         (fn [x]
+                           (let [v (f x)]
+                             (cond
+                               (nil? v) v
+                               (instance? ReceivePort v) v
+                               (sequential? v) (seq->channel v)
+                               :else (singleton-channel v)))))))
 
 (defn ^ReceivePort filter
   "Creates a receive-port (a read-only channel) that filters messages that satisfy the predicate pred
@@ -109,3 +109,24 @@
    Messages that don't satisfy the predicate will be silently discarded when sent."
   [pred ^SendPort ch]
   (Channels/filterSend ^SendPort ch (fn->guava-pred pred)))
+
+
+(defn ^SendPort snd-mapcat
+  "Creates a send-port that sends messages that are transformed by the
+  given mapping function f from a given channel ch.
+
+  Unlike map, the mapping function may return a single value, a sequence of values or a channel, and
+  in all cases the values contained in the sequence/channel will be sent one at a time to the channel.
+  receive-port. If multiple producers write to the channel, the messages received from the mapped
+  collections/channels may be interleaved with messages produced by other producers.
+
+  The `pipe` parameter is an intermediate channel used by the operation."
+  [f ^SendPort ch ^Channel pipe]
+  (Channels/flatMapSend pipe ch (fn->guava-fn
+                                  (fn [x]
+                                    (let [v (f x)]
+                                      (cond
+                                        (nil? v) v
+                                        (instance? ReceivePort v) v
+                                        (sequential? v) (seq->channel v)
+                                        :else (singleton-channel v)))))))

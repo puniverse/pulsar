@@ -223,6 +223,40 @@
         (close! ch)
         (join fiber))  => '(1 20 200 2000 40 400 4000 5 nil))
 
+(fact "test snd-mapcat"
+      (let [ch1 (channel 10)
+            fiber (spawn-fiber
+                    (fn []
+                      (let
+                          [
+                           m1 (rcv ch1)
+                           m2 (rcv ch1)
+                           m3 (rcv ch1)
+                           m4 (rcv ch1)
+                           m5 (rcv ch1)
+                           m6 (rcv ch1)
+                           m7 (rcv ch1)
+                           m8 (rcv ch1)
+                           m9 (rcv ch1)]
+                        (list m1 m2 m3 m4 m5 m6 m7 m8 m9))))
+            ch (rx/snd-mapcat
+                 (fn [x]
+                   (cond
+                     (= x 3) nil
+                     (even? x) [(* 10 x) (* 100 x) (* 1000 x)]
+                     :else x))
+                 ch1
+                 (channel 1))]
+        (sleep 20)
+        (snd ch 1)
+        (snd ch 2)
+        (sleep 20)
+        (snd ch 3)
+        (snd ch 4)
+        (snd ch 5)
+        (close! ch)
+        (join fiber))  => '(1 20 200 2000 40 400 4000 5 nil))
+
 (fact "test fiber-transform"
       (let [in (channel)
             out (channel)
