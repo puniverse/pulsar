@@ -25,9 +25,13 @@ Aside from Pulsar's dependency on Quasar and its dependent libraries, Pulsar mak
 
 ## News 
 
+### March, 2014
+
+Pulsar 0.5.0 has been released.
+
 ### January 22, 2014
 
-Quasar 0.4.0 has been released.
+Pulsar 0.4.0 has been released.
 
 ### July 26, 2013
 
