@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html itemscope itemtype="http://schema.org/Organization">
+<html>
 <head>
 	<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
 <!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
@@ -87,6 +87,7 @@
 <li><ul><li><a href="#dependencies">Dependencies</a></li></ul></li>
 <li>
 <a href="#news" class="cat-link">News</a><ul>
+<li><a href="#march-2014">March, 2014</a></li>
 <li><a href="#january-22-2014">January 22, 2014</a></li>
 <li><a href="#july-26-2013">July 26, 2013</a></li>
 <li><a href="#july-19-2013">July 19, 2013</a></li>
@@ -164,9 +165,13 @@ It is a Clojure <span class="caps">API</span> for the <a href="https://github.co
 
 <h2 id="news">News</h2>
 
+<h3 id="march-2014">March,&nbsp;2014</h3>
+
+<p>Pulsar <span class="caps">0.5.0</span> has been&nbsp;released.</p>
+
 <h3 id="january-22-2014">January 22,&nbsp;2014</h3>
 
-<p>Quasar <span class="caps">0.4.0</span> has been&nbsp;released.</p>
+<p>Pulsar <span class="caps">0.4.0</span> has been&nbsp;released.</p>
 
 <h3 id="july-26-2013">July 26,&nbsp;2013</h3>
 
@@ -190,11 +195,11 @@ It is a Clojure <span class="caps">API</span> for the <a href="https://github.co
 
 <p>Add the following dependency to <a href="http://github.com/technomancy/leiningen/">Leiningen</a>’s&nbsp;project.clj:</p>
 
-<div class="highlight"><pre><code><span id="line-1"><span class="p">[</span><span class="nv">co.paralleluniverse/pulsar</span> <span class="s">&quot;0.4.0&quot;</span><span class="p">]</span>
+<div class="highlight"><pre><code><span id="line-1"><span class="p">[</span><span class="nv">co.paralleluniverse/pulsar</span> <span class="s">&quot;0.5.0&quot;</span><span class="p">]</span>
 </span></code></pre></div>
 <p>Then, the following must be added to the project.clj&nbsp;file:</p>
 
-<div class="highlight"><pre><code><span id="line-1"><span class="ss">:java-agents</span> <span class="p">[[</span><span class="nv">co.paralleluniverse/quasar-core</span> <span class="s">&quot;0.4.0&quot;</span><span class="p">]]</span>
+<div class="highlight"><pre><code><span id="line-1"><span class="ss">:java-agents</span> <span class="p">[[</span><span class="nv">co.paralleluniverse/quasar-core</span> <span class="s">&quot;0.5.0&quot;</span><span class="p">]]</span>
 </span></code></pre></div>
 <p>or, add the following to the java command&nbsp;line:</p>
 
@@ -244,8 +249,6 @@ It is a Clojure <span class="caps">API</span> for the <a href="https://github.co
 The function <code>suspendable!</code> marks a given function as a suspendable function (this operation cannot be undone). The <code>defsfn</code> macro, with the same syntax as <code>defn</code> defines a suspendable&nbsp;function.</p>
 
 <p class="alert alert-info"><strong>Note</strong>: All functions (i.e. <code>fn</code>s) passed to any of the Pulsar <span class="caps">API</span> functions and macros are automatically made suspendable, so in most simple cases you will never need to use <code>sfn</code>, <code>defsfn</code> or&nbsp;<code>suspendable!</code>.</p>
-
-<p class="alert alert-warn"><strong>Note</strong>: One thing to watch out for in suspendable functions is lazy-seqs. If the function consumes a seq, it’s probably a good idea to force it with <code>doall</code> before passing it to the&nbsp;function.</p>
 
 <h4 id="spawning-fibers">Spawning&nbsp;Fibers</h4>
 
@@ -545,61 +548,6 @@ It takes an even number of expressions, ordered as (ops1, action1, ops2, action2
 
 <p>Calling <code>rcv-xxx</code> on a closed channel will throw an&nbsp;exception.</p>
 
-<h4 id="channel-lazy-seqs">Channel&nbsp;lazy-seqs</h4>
-
-<p class="centered alert alert-warning"><strong>Note</strong>: Channel lazy-seqs are an experimental&nbsp;feature.</p>
-
-<p>Messages received through channels can be manipulted with Clojure’s sequence manipulation functions by transforming a channel into a <code>lazy-seq</code>. Unfortunately, Clojure implements <code>lazy-seq</code>s with the <code>clojure.lang.LazySeq</code> class, which <em>almost</em> allows a <code>lazy-seq</code> implementation by a channel - but not quite (a simple reordering of a couple of Java lines in the <code>LazySeq</code> class would have made it compatible with channels). The <code>lazy-seq</code> function in the <code>co.paralleluniverse.pulsar.lazyseq</code> namespace therefore creates a <code>lazy-seq</code> that works just like Clojure’s, but uses a slightly different underlying Java implementation. This is unfortunate, because it required a re-implementation of many sequence manipulation&nbsp;functions.</p>
-
-<p>Nevertheless, it’s still possible to work with channels as you would with lazy-seqs, you only need to mind calling the functions in the right&nbsp;namespace.</p>
-
-<p>To create a lazy-seq from a channel, simply&nbsp;call:</p>
-
-<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">channel-&gt;lazy-seq</span> <span class="nv">ch</span><span class="p">)</span>
-</span></code></pre></div>
-<p>Then, manipulating messages with sequence functions is easy. Here are some examples from the&nbsp;tests:</p>
-
-<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">require</span> <span class="p">[</span><span class="nv">co.paralleluniverse.pulsar.lazyseq</span> <span class="ss">:as</span> <span class="nv">s</span> <span class="ss">:refer</span> <span class="p">[</span><span class="nv">channel-&gt;lazy-seq</span> <span class="nv">snd-seq</span><span class="p">]])</span>
-</span><span id="line-2">
-</span><span id="line-3"><span class="p">(</span><span class="nf">facts</span> <span class="s">&quot;channels-seq&quot;</span>
-</span><span id="line-4">       <span class="p">(</span><span class="nf">fact</span> <span class="s">&quot;Receive sequence with sleep&quot;</span>
-</span><span id="line-5">             <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">ch</span> <span class="p">(</span><span class="nf">channel</span><span class="p">)</span>
-</span><span id="line-6">                   <span class="nv">fiber</span> <span class="p">(</span><span class="nf">spawn-fiber</span>
-</span><span id="line-7">                          <span class="p">(</span><span class="k">fn </span><span class="p">[]</span>
-</span><span id="line-8">                            <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">s</span> <span class="p">(</span><span class="nf">s/take</span> <span class="mi">5</span> <span class="p">(</span><span class="nf">channel-&gt;lazy-seq</span> <span class="nv">ch</span><span class="p">))]</span>
-</span><span id="line-9">                              <span class="p">(</span><span class="nf">s/doall</span> <span class="nv">s</span><span class="p">))))]</span>
-</span><span id="line-10">               <span class="p">(</span><span class="nb">dotimes </span><span class="p">[</span><span class="nv">m</span> <span class="mi">10</span><span class="p">]</span>
-</span><span id="line-11">                 <span class="p">(</span><span class="nf">Thread/sleep</span> <span class="mi">20</span><span class="p">)</span>
-</span><span id="line-12">                 <span class="p">(</span><span class="nf">snd</span> <span class="nv">ch</span> <span class="nv">m</span><span class="p">))</span>
-</span><span id="line-13">               <span class="p">(</span><span class="nb">join </span><span class="nv">fiber</span><span class="p">))</span>  <span class="nv">=&gt;</span> <span class="p">(</span><span class="nb">list </span><span class="mi">0</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span><span class="p">))</span>
-</span><span id="line-14">       <span class="p">(</span><span class="nf">fact</span> <span class="s">&quot;Map received sequence with sleep&quot;</span>
-</span><span id="line-15">             <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">ch</span> <span class="p">(</span><span class="nf">channel</span><span class="p">)</span>
-</span><span id="line-16">                   <span class="nv">fiber</span> <span class="p">(</span><span class="nf">spawn-fiber</span> <span class="p">(</span><span class="k">fn </span><span class="p">[]</span> <span class="p">(</span><span class="nf">s/doall</span> <span class="p">(</span><span class="nf">s/map</span> <span class="o">#</span><span class="p">(</span><span class="nb">* </span><span class="nv">%</span> <span class="nv">%</span><span class="p">)</span> <span class="p">(</span><span class="nf">s/take</span> <span class="mi">5</span> <span class="p">(</span><span class="nf">channel-&gt;lazy-seq</span> <span class="nv">ch</span><span class="p">))))))]</span>
-</span><span id="line-17">               <span class="p">(</span><span class="nb">dotimes </span><span class="p">[</span><span class="nv">m</span> <span class="mi">10</span><span class="p">]</span>
-</span><span id="line-18">                 <span class="p">(</span><span class="nf">Thread/sleep</span> <span class="mi">20</span><span class="p">)</span>
-</span><span id="line-19">                 <span class="p">(</span><span class="nf">snd</span> <span class="nv">ch</span> <span class="nv">m</span><span class="p">))</span>
-</span><span id="line-20">               <span class="p">(</span><span class="nb">join </span><span class="nv">fiber</span><span class="p">))</span> <span class="nv">=&gt;</span> <span class="p">(</span><span class="nb">list </span><span class="mi">0</span> <span class="mi">1</span> <span class="mi">4</span> <span class="mi">9</span> <span class="mi">16</span><span class="p">))</span>
-</span><span id="line-21">       <span class="p">(</span><span class="nf">fact</span> <span class="s">&quot;Filter received sequence with sleep (odd)&quot;</span>
-</span><span id="line-22">             <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">ch</span> <span class="p">(</span><span class="nf">channel</span><span class="p">)</span>
-</span><span id="line-23">                   <span class="nv">fiber</span> <span class="p">(</span><span class="nf">spawn-fiber</span>
-</span><span id="line-24">                          <span class="o">#</span><span class="p">(</span><span class="nf">s/doall</span> <span class="p">(</span><span class="nf">s/filter</span> <span class="nv">odd?</span> <span class="p">(</span><span class="nf">s/take</span> <span class="mi">5</span> <span class="p">(</span><span class="nf">channel-&gt;lazy-seq</span> <span class="nv">ch</span><span class="p">)))))]</span>
-</span><span id="line-25">               <span class="p">(</span><span class="nb">dotimes </span><span class="p">[</span><span class="nv">m</span> <span class="mi">10</span><span class="p">]</span>
-</span><span id="line-26">                 <span class="p">(</span><span class="nf">Thread/sleep</span> <span class="mi">20</span><span class="p">)</span>
-</span><span id="line-27">                 <span class="p">(</span><span class="nf">snd</span> <span class="nv">ch</span> <span class="nv">m</span><span class="p">))</span>
-</span><span id="line-28">               <span class="p">(</span><span class="nb">join </span><span class="nv">fiber</span><span class="p">))</span> <span class="nv">=&gt;</span> <span class="p">(</span><span class="nb">list </span><span class="mi">1</span> <span class="mi">3</span><span class="p">))</span>
-</span><span id="line-29">       <span class="p">(</span><span class="nf">fact</span> <span class="s">&quot;Filter and map received sequence with sleep (even)&quot;</span>
-</span><span id="line-30">             <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">ch</span> <span class="p">(</span><span class="nf">channel</span><span class="p">)</span>
-</span><span id="line-31">                   <span class="nv">fiber</span> <span class="p">(</span><span class="nf">spawn-fiber</span>
-</span><span id="line-32">                          <span class="p">(</span><span class="k">fn </span><span class="p">[]</span> <span class="p">(</span><span class="nf">s/doall</span>
-</span><span id="line-33">                                  <span class="p">(</span><span class="nf">s/filter</span> <span class="o">#</span><span class="p">(</span><span class="nb">&gt; </span><span class="nv">%</span> <span class="mi">10</span><span class="p">)</span>
-</span><span id="line-34">                                            <span class="p">(</span><span class="nf">s/map</span> <span class="o">#</span><span class="p">(</span><span class="nb">* </span><span class="nv">%</span> <span class="nv">%</span><span class="p">)</span>
-</span><span id="line-35">                                                   <span class="p">(</span><span class="nf">s/filter</span> <span class="nv">even?</span>
-</span><span id="line-36">                                                             <span class="p">(</span><span class="nf">s/take</span> <span class="mi">5</span> <span class="p">(</span><span class="nf">channel-&gt;lazy-seq</span> <span class="nv">ch</span><span class="p">))))))))]</span>
-</span><span id="line-37">               <span class="p">(</span><span class="nb">dotimes </span><span class="p">[</span><span class="nv">m</span> <span class="mi">10</span><span class="p">]</span>
-</span><span id="line-38">                 <span class="p">(</span><span class="nf">Thread/sleep</span> <span class="mi">20</span><span class="p">)</span>
-</span><span id="line-39">                 <span class="p">(</span><span class="nf">snd</span> <span class="nv">ch</span> <span class="nv">m</span><span class="p">))</span>
-</span><span id="line-40">               <span class="p">(</span><span class="nb">join </span><span class="nv">fiber</span><span class="p">))</span> <span class="nv">=&gt;</span> <span class="p">(</span><span class="nb">list </span><span class="mi">16</span><span class="p">)))</span>
-</span></code></pre></div>
 <h3 id="channel-transformation-aka-reactive-extensions">Channel Transformation (<span class="caps">AKA</span> Reactive&nbsp;Extensions)</h3>
 
 <p>The <code>co.paralleluniverse.pulsar.rx</code> namespace contains functions for transforming and combining channels. Known as “reactive extensions”, these transformations let you model your computation as a flow of data. These are the supported&nbsp;transformations:</p>
@@ -1322,7 +1270,7 @@ Pulsar supports this as an experimental feature (implemented internally with <co
 
 <p>First, you will need to add <code>quasar-galaxy</code> as a dependency to your&nbsp;project:</p>
 
-<div class="highlight"><pre><code><span id="line-1"><span class="p">[</span><span class="nv">co.paralleluniverse/quasar-galaxy</span> <span class="s">&quot;0.4.0&quot;</span><span class="p">]</span>
+<div class="highlight"><pre><code><span id="line-1"><span class="p">[</span><span class="nv">co.paralleluniverse/quasar-galaxy</span> <span class="s">&quot;0.5.0&quot;</span><span class="p">]</span>
 </span></code></pre></div>
 <p>To make an actor discoverable, all you need to do is register&nbsp;it:</p>
 
