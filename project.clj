@@ -51,7 +51,7 @@
              ;; ----------- cluster --------------------------------------
              :cluster
              {:repositories {"oracle" "http://download.oracle.com/maven/"}
-              :dependencies [[co.paralleluniverse/quasar-galaxy "0.3.0"]]
+              :dependencies [[co.paralleluniverse/quasar-galaxy "0.5.0"]]
               :java-source-paths ["src/cluster/java"]
               :jvm-opts [;; Debugging
                          "-ea"

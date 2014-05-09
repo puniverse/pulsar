@@ -28,7 +28,7 @@ import clojure.lang.PersistentQueue;
 import clojure.lang.PersistentTreeMap;
 import clojure.lang.PersistentTreeSet;
 import clojure.lang.PersistentVector;
-import co.paralleluniverse.io.serialization.KryoSerializer;
+import co.paralleluniverse.io.serialization.kryo.KryoSerializer;
 import co.paralleluniverse.remote.galaxy.RemoteInit;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
