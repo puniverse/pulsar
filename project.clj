@@ -1,4 +1,4 @@
-(defproject co.paralleluniverse/pulsar "0.5.0"
+(defproject co.paralleluniverse/pulsar "0.5.1"
   :description "A Clojure lightweight thread, asynchronous programming, and actor library"
   :url "http://github.com/puniverse/pulsar"
   :licenses [{:name "Eclipse Public License - v 1.0" :url "http://www.eclipse.org/legal/epl-v10.html"}
@@ -51,7 +51,7 @@
              ;; ----------- cluster --------------------------------------
              :cluster
              {:repositories {"oracle" "http://download.oracle.com/maven/"}
-              :dependencies [[co.paralleluniverse/quasar-galaxy "0.3.0"]]
+              :dependencies [[co.paralleluniverse/quasar-galaxy "0.5.0"]]
               :java-source-paths ["src/cluster/java"]
               :jvm-opts [;; Debugging
                          "-ea"
