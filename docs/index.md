@@ -1418,7 +1418,7 @@ lein with-profile cluster update-in :jvm-opts conj '"-Dgalaxy.nodeId=1"' '"-Dgal
 
 ### Cluster Configuration
 
-For instructions on how to configure the Galaxy cluster, please refere to Galaxy's [getting started guide](http://docs.paralleluniverse.co/galaxy/start/getting-started.html).
+For instructions on how to configure the Galaxy cluster, please refer to Galaxy's [getting started guide](http://docs.paralleluniverse.co/galaxy/#getting-started).
 
 ## Examples
 
