@@ -9,7 +9,7 @@ kramdown:
 
 # Site globals used throughout docs.
 project: Pulsar
-version: 0.5.0
+version: 0.5.1
 github: puniverse/pulsar
 google_group: "https://groups.google.com/forum/#!forum/quasar-pulsar-user"
 ga_tracking_id: UA-25007319-2

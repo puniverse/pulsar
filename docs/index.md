@@ -25,6 +25,10 @@ Aside from Pulsar's dependency on Quasar and its dependent libraries, Pulsar mak
 
 ## News 
 
+### May 10, 2014
+
+Pulsar 0.5.1 has been released. Contains a bug fix for Galaxy integration.
+
 ### March, 2014
 
 Pulsar 0.5.0 has been released.
