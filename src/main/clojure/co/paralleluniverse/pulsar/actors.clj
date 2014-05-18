@@ -477,9 +477,8 @@
   ([]
    `(co.paralleluniverse.actors.PulsarActor/selfReceive))
   ([& body]
-   (assert-args
-     (or (even? (count body)) (vector? (first body))) "a vector for its binding")
    (let [[body after-clause] (if (= :after (nth-from-last body 2 nil)) (split-at-from-last 2 body) [body nil])
+         _ (assert-args (or (even? (count body)) (vector? (first body))) "a vector for its binding")
          odd-forms   (odd? (count body))
          bind-clause (when odd-forms (first body))
          transform   (second bind-clause)
