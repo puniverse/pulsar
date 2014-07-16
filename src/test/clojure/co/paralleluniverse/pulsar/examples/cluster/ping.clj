@@ -15,7 +15,8 @@
 
 (defn -main []
   (println "Ping started")
-  (when (nil? (whereis :pong))
+  (whereis :pong)
+  #_(when (nil? (whereis :pong))
     (println "Waiting for pong to register...")
     (loop []
       (when (nil? (whereis :pong))

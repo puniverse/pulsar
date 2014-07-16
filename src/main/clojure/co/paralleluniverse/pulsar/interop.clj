@@ -20,7 +20,7 @@
     [clojure.lang Seqable LazySeq ISeq])
   (:require
     [clojure.string :as str]
-    [clojure.core.typed :refer [ann Option AnyInteger]]))
+    [clojure.core.typed :refer [ann Option AnyInteger I U Any All]]))
 
 
 (ann camel-to-dash [String -> String])

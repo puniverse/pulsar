@@ -16,7 +16,7 @@
             [co.paralleluniverse.pulsar.interop :refer :all]
             [clojure.string :as str]
             [clojure.core.match :refer [match]]
-            [clojure.core.typed :refer [ann def-alias Option AnyInteger]])
+            [clojure.core.typed :refer [ann def-alias Option AnyInteger Any U I All IFn HVec]])
   (:refer-clojure :exclude [promise await bean])
   (:import [java.util.concurrent TimeUnit ExecutionException TimeoutException]
            [co.paralleluniverse.fibers FiberScheduler]
@@ -31,7 +31,7 @@
             EventSource EventSourceActor EventHandler
             Supervisor Supervisor$ChildSpec Supervisor$ChildMode SupervisorActor SupervisorActor$RestartStrategy]
            ; for types:
-           [clojure.lang Keyword IObj IFn IMeta IDeref ISeq IPersistentCollection IPersistentVector IPersistentMap]))
+           [clojure.lang Keyword IObj IMeta IDeref ISeq IPersistentCollection IPersistentVector IPersistentMap]))
 
 ;; ## Private util functions
 ;; These are internal functions aided to assist other functions in handling variadic arguments and the like.
@@ -47,7 +47,7 @@
           (list* `assert-args more)))))
 
 (ann nth-from-last (All [x y]
-                        (Fn [(IPersistentCollection x) Long -> x]
+                        (IFn [(IPersistentCollection x) Long -> x]
                             [(IPersistentCollection x) Long y -> (U x y)])))
 (defn- nth-from-last
   ([coll index]
@@ -55,8 +55,8 @@
   ([coll index not-found]
    (nth coll (- (dec (count coll)) index) not-found)))
 
-(ann split-at-from-last (All [x]
-                             [Long (IPersistentCollection x) -> (Vector* (IPersistentCollection x) (IPersistentCollection x))]))
+#_(ann split-at-from-last (All [x]
+                             [Long (IPersistentCollection x) -> (HVec (IPersistentCollection x) (IPersistentCollection x))]))
 (defn- split-at-from-last
   [index coll]
   (split-at (- (dec (count coll)) index) coll))
@@ -237,7 +237,7 @@
 
 
 (ann get-actor [Any -> Actor])
-(defn ^ActorRef get-actor
+(defsfn ^ActorRef get-actor
   "If the argument is an actor -- returns it. If not, looks up a registered 
   actor with the argument as its name.
   
@@ -258,7 +258,7 @@
   (.setTrap ^PulsarActor @self true))
 
 
-(ann link! (Fn [ActorRef -> ActorRef]
+(ann link! (IFn [ActorRef -> ActorRef]
                [ActorRef ActorRef -> ActorRef]))
 (defn link!
   "Links two actors. If only one actor is specified, links the current actor with the
@@ -278,7 +278,7 @@
   ([actor1 actor2]
    (LocalActor/link (get-actor actor1) (get-actor actor2))))
 
-(ann unlink! (Fn [Actor -> Actor]
+(ann unlink! (IFn [Actor -> Actor]
                  [Actor Actor -> Actor]))
 (defn unlink!
   "Unlinks two actors. If only one actor is specified, unlinks the current actor from the
@@ -290,7 +290,7 @@
   ([actor1 actor2]
    (LocalActor/unlink (get-actor actor1) (get-actor actor2))))
 
-(ann watch! (Fn [Actor Actor -> LifecycleListener]
+(ann watch! (IFn [Actor Actor -> LifecycleListener]
                  [Actor -> LifecycleListener]))
 (defn watch!
   "Makes the current actor watch another actor. Returns a watch object which is then
@@ -315,14 +315,14 @@
   [actor]
    (.watch (Actor/currentActor) actor))
 
-(ann unwatch! (Fn [Actor Actor LifecycleListener -> nil]
+(ann unwatch! (IFn [Actor Actor LifecycleListener -> nil]
                  [Actor LifecycleListener -> nil]))
 (defn unwatch!
   "Makes an actor stop watching another actor"
   ([actor2 monitor]
    (.unwatch ^Actor (Actor/currentActor) actor2 monitor)))
 
-(ann register (Fn [String LocalActor -> LocalActor]
+(ann register (IFn [String LocalActor -> LocalActor]
                   [LocalActor -> LocalActor]))
 (defn register!
   "Registers an actor in the actor registry.
@@ -355,9 +355,12 @@
 
 (ann whereis [Any -> Actor])
 (defn ^ActorRef whereis
-  "Returns a registered actor by name."
-  [actor-name]
-  (ActorRegistry/getActor (name actor-name)))
+  "Returns a registered actor by name, blocking until one is registered"
+  ([actor-name]
+   (ActorRegistry/getActor (name actor-name)))
+  ([actor-name timeout unit]
+   (ActorRegistry/getActor (name actor-name) (long timeout) (->timeunit unit))))
+
 
 (ann maketag [-> Number])
 (defn maketag

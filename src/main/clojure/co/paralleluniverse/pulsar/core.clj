@@ -33,16 +33,16 @@
           DelayedVal]
          [co.paralleluniverse.pulsar ClojureHelper ChannelsHelper ClojureFiberAsync]
          ; for types:
-         [clojure.lang Keyword Sequential IObj IFn IMeta IDeref ISeq IPersistentCollection IPersistentVector IPersistentMap])
+         [clojure.lang Keyword Sequential IObj IMeta IDeref ISeq IPersistentCollection IPersistentVector IPersistentMap])
 (:require [co.paralleluniverse.pulsar.interop :refer :all]
-          [clojure.core.typed :refer [ann def-alias Option AnyInteger]]))
+          [clojure.core.typed :refer [ann def-alias Option AnyInteger Any U I All IFn HVec]]))
 
 ;; ## clojure.core type annotations
 
-(ann clojure.core/split-at (All [x] (Fn [Long (IPersistentCollection x) -> (IPersistentVector (IPersistentCollection x))])))
+(ann clojure.core/split-at (All [x] (IFn [Long (IPersistentCollection x) -> (IPersistentVector (IPersistentCollection x))])))
 (ann clojure.core/coll? [Any -> Boolean :filters {:then (is (IPersistentCollection Any) 0) :else (! (IPersistentCollection Any) 0)}])
-(ann clojure.core/partition-all (All [x] (Fn [Long (ISeq x) -> (ISeq (U (ISeq x) x))])))
-(ann clojure.core/into (All [[xs :< (IPersistentCollection Any)]] (Fn [xs (IPersistentCollection Any) -> xs])))
+(ann clojure.core/partition-all (All [x] (IFn [Long (ISeq x) -> (ISeq (U (ISeq x) x))])))
+(ann clojure.core/into (All [[xs :< (IPersistentCollection Any)]] (IFn [xs (IPersistentCollection Any) -> xs])))
 (ann clojure.core/set-agent-send-executor! [java.util.concurrent.ExecutorService -> nil])
 (ann clojure.core/set-agent-send-off-executor! [java.util.concurrent.ExecutorService -> nil])
 
@@ -68,9 +68,9 @@
           (list* `assert-args more)))))
 
 (ann sequentialize (All [x y]
-                        (Fn
-                         [(Fn [x -> y]) ->
-                          (Fn [x -> y]
+                        (IFn
+                         [(IFn [x -> y]) ->
+                          (IFn [x -> y]
                               [(ISeq x) -> (ISeq y)]
                               [x * -> (ISeq y)])])))
 (defn- sequentialize
@@ -102,7 +102,7 @@
     (concat expr exprs)
     (concat (butlast expr) (list (apply deep-surround-with (cons (last expr) exprs))))))
 
-(ann ops-args [(ISeq (Vector* (Fn [Any -> Boolean]) Any)) (ISeq Any) -> (ISeq Any)])
+#_(ann ops-args [(ISeq (HVec (IFn [Any -> Boolean]) Any)) (ISeq Any) -> (ISeq Any)])
 (defn- ops-args
   "Used to simplify optional parameters in functions.
   Takes a sequence of [predicate? default] pairs, and a sequence of arguments. Tests the first predicate against
@@ -118,7 +118,7 @@
         (cons d (ops-args (rest pds) xs))))
     (seq xs)))
 
-(ann ^:no-check kps-args [(ISeq Any) -> (Vector* (ISeq Any) (ISeq Any))])
+#_(ann ^:no-check kps-args [(ISeq Any) -> (HVec (ISeq Any) (ISeq Any))])
 (defn kps-args
   {:no-doc true}
   [args]
@@ -213,7 +213,7 @@
   (or (instance? co.paralleluniverse.pulsar.IInstrumented f)
       (.isAnnotationPresent (.getClass ^Object f) co.paralleluniverse.fibers.Instrumented)))
 
-(ann suspendable! (Fn [IFn -> IFn]
+(ann suspendable! (IFn [IFn -> IFn]
                       [IFn * -> (ISeq IFn)]
                       [(ISeq IFn) -> (ISeq IFn)]))
 (defn suspendable!
@@ -262,8 +262,8 @@
    ~@body))
 
 (ann ^:no-check strampoline (All [v1 v2 ...]
-                                (Fn
-                                 [(Fn [v1 v2 ... v2 -> Any]) v1 v2 ... v2 -> Any]
+                                (IFn
+                                 [(IFn [v1 v2 ... v2 -> Any]) v1 v2 ... v2 -> Any]
                                  [[-> Any] -> Any])))
 (defsfn strampoline
   "A suspendable version of trampoline. Should be used to implement
@@ -440,7 +440,7 @@
        (instance? co.paralleluniverse.actors.ActorRef s) (co.paralleluniverse.actors.LocalActor/get s timeout (->timeunit unit))
        :else (throw (IllegalArgumentException. (str "Cannot join " s)))))))
 
-(ann join (Fn [(U Joinable Thread) -> (Option Any)]
+(ann join (IFn [(U Joinable Thread) -> (Option Any)]
               [(Sequential (U Joinable Thread)) -> (ISeq Any)]))
 (defn join
   "Awaits the termination of the given strand or strands, and returns
@@ -513,7 +513,7 @@
 
 ;; ## Channels
 
-(ann channel (Fn [AnyInteger -> Channel]
+(ann channel (IFn [AnyInteger -> Channel]
                  [-> Channel]))
 (defn ^Channel channel
   "Creates a new channel.
@@ -572,7 +572,7 @@
   [^SendPort channel message]
   (.trySend channel message))
 
-(ann rcv (Fn [Channel -> Any]
+(ann rcv (IFn [Channel -> Any]
              [Channel Long (U TimeUnit Keyword) -> (Option Any)]))
 (defsfn rcv
   "Receives a message from a channel.
@@ -775,7 +775,7 @@
 
 ;; ### Primitive channels
 
-(ann int-channel (Fn [AnyInteger -> IntChannel]
+(ann int-channel (IFn [AnyInteger -> IntChannel]
                      [-> IntChannel]))
 (defn ^IntChannel int-channel
   "Creates an int channel"
@@ -807,7 +807,7 @@
   ([channel timeout unit]
    `(int (.receiveInt ~(tagged `IntReceivePort channel) (long ~timeout) (->timeunit ~unit)))))
 
-(ann long-channel (Fn [AnyInteger -> LongChannel]
+(ann long-channel (IFn [AnyInteger -> LongChannel]
                       [-> LongChannel]))
 (defn ^LongChannel long-channel
   "Creates a long channel"
@@ -839,7 +839,7 @@
   ([channel timeout unit]
    `(long (.receiveLong ~(tagged `LongReceivePort channel) (long ~timeout) (->timeunit ~unit)))))
 
-(ann float-channel (Fn [AnyInteger -> FloatChannel]
+(ann float-channel (IFn [AnyInteger -> FloatChannel]
                        [-> FloatChannel]))
 (defn ^FloatChannel float-channel
   "Creates a float channel"
@@ -871,7 +871,7 @@
   ([channel timeout unit]
    `(float (.receiveFloat ~(tagged `FloatReceivePort channel) (long ~timeout) (->timeunit ~unit)))))
 
-(ann double-channel (Fn [AnyInteger -> DoubleChannel]
+(ann double-channel (IFn [AnyInteger -> DoubleChannel]
                         [-> DoubleChannel]))
 (defn ^DoubleChannel double-channel
   "Creates a double channel"

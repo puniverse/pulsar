@@ -15,7 +15,7 @@
    (:require
      [co.paralleluniverse.pulsar.core :refer :all]
      [clojure.core.match :refer [match]]
-     [clojure.core.typed :refer [ann Option AnyInteger]])
+     [clojure.core.typed :refer [ann Option AnyInteger I U Any All]])
    (:refer-clojure :exclude [promise await
                              ;filter
                              ])
