@@ -406,11 +406,13 @@
                                (handle-timeout [_]
                                                (let [{:keys [a b from id]} @state]
                                                  (when id
-                                                   (reply! from id (+ a b))))))))]
+                                                   (reply! from id (+ a b))
+                                                   (set-state! nil)))))))]
         (fact
           (call-timed! gs 10 :ms 3 4) => (throws TimeoutException))
-        (call-timed! gs 100 :ms 5 6)) => 11)
-
+        (fact
+          (call-timed! gs 100 :ms 5 6) => 11)
+        (shutdown! gs)))
 
 (fact "When cast! then handle-cast is called"
       (let [res (atom nil)
@@ -621,7 +623,7 @@
         b (receive)]
     (call! adder a b)))
 
-(fact "Complex example test1"
+(fact :selected "Complex example test1"
       (let [prev       (atom nil)
             started    (atom 0)
             terminated (atom 0)
@@ -633,22 +635,22 @@
         (let [a (sup-child sup "actor1" 200)]
           (! a 3)
           (! a 4)
-          (fact 
+          (fact :selected
             (join a) => 7)
           (reset! prev a))
         (let [a (sup-child sup "actor1" 200)]
-          (fact
+          (fact :selected
             (identical? a @prev) => false)
           (! a 70)
           (! a 80)
-          (fact
+          (fact :selected
             (join a) => throws Exception)
           (reset! prev a))
         (let [a (sup-child sup "actor1" 200)]
           (fact (identical? a @prev) => false)
           (! a 7)
           (! a 8)
-          (fact
+          (fact :selected
             (join a) => 15))
         (Strand/sleep 2000) ; give the actor time to start the gen-server
         (shutdown! sup)

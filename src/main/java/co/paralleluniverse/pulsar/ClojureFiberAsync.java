@@ -17,7 +17,7 @@ package co.paralleluniverse.pulsar;
 import clojure.lang.IFn;
 import co.paralleluniverse.fibers.FiberAsync;
 
-public final class ClojureFiberAsync extends FiberAsync<Object, Void, Exception> {
+public final class ClojureFiberAsync extends FiberAsync<Object, Exception> {
     private final IFn fn;
 
     public ClojureFiberAsync(IFn fn) {
@@ -25,9 +25,8 @@ public final class ClojureFiberAsync extends FiberAsync<Object, Void, Exception>
     }
 
     @Override
-    protected final Void requestAsync() {
+    protected final void requestAsync() {
         fn.invoke(this);
-        return null;
     }
 
     public final void complete(Object res) {

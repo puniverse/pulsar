@@ -722,14 +722,21 @@
 
 (defn- child-spec
   [^String id mode max-restarts duration unit shutdown-deadline-millis & args]
-  (Supervisor$ChildSpec. ^String id
-                         ^Supervisor$ChildMode (keyword->enum Supervisor$ChildMode mode)
-                         (int max-restarts)
-                         (long duration) ^TimeUnit (->timeunit unit)
-                         (long shutdown-deadline-millis)
-                         ^ActorBuilder (if (instance? ActorBuilder (first args))
-                                         (first args)
-                                         (actor-builder #(apply create-actor args)))))
+  (if (instance? ActorRef (first args))
+    (Supervisor$ChildSpec. ^String id
+                           ^Supervisor$ChildMode (keyword->enum Supervisor$ChildMode mode)
+                           (int max-restarts)
+                           (long duration) ^TimeUnit (->timeunit unit)
+                           (long shutdown-deadline-millis)
+                           ^ActorRef (first args))
+      (Supervisor$ChildSpec. ^String id
+                           ^Supervisor$ChildMode (keyword->enum Supervisor$ChildMode mode)
+                           (int max-restarts)
+                           (long duration) ^TimeUnit (->timeunit unit)
+                           (long shutdown-deadline-millis)
+                           ^ActorBuilder (if (instance? ActorBuilder (first args))
+                                           (first args)
+                                           (actor-builder #(apply create-actor args))))))
 
 (defsfn add-child!
   "Adds an actor to a supervisor"

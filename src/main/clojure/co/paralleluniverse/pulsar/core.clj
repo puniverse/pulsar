@@ -424,15 +424,21 @@
 (ann join* [(U Joinable Thread) -> (Option Any)])
 (defn- join*
   ([s]
-   (if (instance? Joinable s)
-     (unwrap-exception
-      (.get ^Joinable s))
-     (Strand/join s)))
+   (unwrap-exception
+     (cond
+       (instance? Joinable s) (.get ^Joinable s)
+       (instance? Strand s)   (Strand/join s)
+       (instance? Thread s)   (Strand/join (Strand/of ^Thread s))
+       (instance? co.paralleluniverse.actors.ActorRef s) (co.paralleluniverse.actors.LocalActor/get s)
+       :else (throw (IllegalArgumentException. (str "Cannot join " s))))))
   ([timeout unit s]
-   (if (instance? Joinable s)
-     (unwrap-exception
-      (.get ^Joinable s timeout (->timeunit unit)))
-     (Strand/join s timeout (->timeunit unit)))))
+   (unwrap-exception
+     (cond
+       (instance? Joinable s) (.get ^Joinable s timeout (->timeunit unit))
+       (instance? Strand s)   (Strand/join s timeout (->timeunit unit))
+       (instance? Thread s)   (Strand/join (Strand/of ^Thread s) timeout (->timeunit unit))
+       (instance? co.paralleluniverse.actors.ActorRef s) (co.paralleluniverse.actors.LocalActor/get s timeout (->timeunit unit))
+       :else (throw (IllegalArgumentException. (str "Cannot join " s)))))))
 
 (ann join (Fn [(U Joinable Thread) -> (Option Any)]
               [(Sequential (U Joinable Thread)) -> (ISeq Any)]))
