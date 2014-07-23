@@ -6,7 +6,7 @@ description: "Lightweight threads, CSP and Erlang-like actors for Clojure"
 
 # Overview
 
-Pulsar is a Clojure library that provides high-performance lightweight threads and Erlang-like actors. 
+Pulsar is a Clojure library that provides high-performance lightweight threads and Erlang-like actors.
 It is a Clojure API for the [Quasar] Java library, with the addition of pattern matching and an Erlang-like syntax.
 
 A good introduction to Pulsar (and Quasar) can be found in the blog post [Erlang (and Go) in Clojure (and Java), Lightweight Threads, Channels and Actors for the JVM](http://blog.paralleluniverse.co/post/49445260575/quasar-pulsar).
@@ -23,15 +23,19 @@ Aside from Pulsar's dependency on Quasar and its dependent libraries, Pulsar mak
 * [core.match](https://github.com/clojure/core.match) - A pattern matching library for Clojure.
 * [Gloss](https://github.com/ztellman/gloss), by Zach Tellman - a byte-format DSL
 
-## News 
+## News
+
+### July 23, 2014
+
+Pulsar [0.6.0](https://github.com/puniverse/pulsar/releases/tag/v0.6.0) has been released.
 
 ### March, 2014
 
-Pulsar 0.5.0 has been released.
+Pulsar [0.5.0](https://github.com/puniverse/pulsar/releases/tag/v0.5.0) has been released.
 
 ### January 22, 2014
 
-Pulsar 0.4.0 has been released.
+Pulsar [0.4.0](https://github.com/puniverse/pulsar/releases/tag/v0.4.0) has been released.
 
 ### July 26, 2013
 
@@ -43,7 +47,7 @@ Quasar/Pulsar 0.2.0 [has been released](http://blog.paralleluniverse.co/post/558
 
 ### May 2, 2013
 
-Introductory blog post: [Erlang (and Go) in Clojure (and Java), Lightweight Threads, Channels and Actors for the JVM](<http://blog.paralleluniverse.co/post/49445260575/quasar-pulsar>). 
+Introductory blog post: [Erlang (and Go) in Clojure (and Java), Lightweight Threads, Channels and Actors for the JVM](<http://blog.paralleluniverse.co/post/49445260575/quasar-pulsar>).
 
 # Getting Started
 
@@ -122,9 +126,9 @@ Pulsar is a Clojure API to [Quasar]. Many of the concepts explained below are ac
 
 ### Fibers {#fibers}
 
-Fibers are lightweight threads. They provide functionality similar to threads, and a similar API, but they're not managed by the OS. They are lightweight (an idle fiber occupies ~400 bytes of RAM), and you can have millions of them in an application. If you are familiar with Go, fibers are like goroutines. Fibers in Pulsar (well, Quasar, actually) are scheduled by one or more [ForkJoinPool](http://docs.oracle.com/javase/7/docs/api/java/util/concurrent/ForkJoinPool.html)s. 
+Fibers are lightweight threads. They provide functionality similar to threads, and a similar API, but they're not managed by the OS. They are lightweight (an idle fiber occupies ~400 bytes of RAM), and you can have millions of them in an application. If you are familiar with Go, fibers are like goroutines. Fibers in Pulsar (well, Quasar, actually) are scheduled by one or more [ForkJoinPool](http://docs.oracle.com/javase/7/docs/api/java/util/concurrent/ForkJoinPool.html)s.
 
-One significant difference between Fibers and Threads is that Fibers are not preempted; i.e. a fiber is (permanently or temporarily) unscheduled by the scheduler only if it terminates, or if it calls one of a few specific Java methods that cause the fiber to become suspended. A function that calls a suspending operation is called a *suspendable* function, and a function that calls another suspendable function is itself suspendable. 
+One significant difference between Fibers and Threads is that Fibers are not preempted; i.e. a fiber is (permanently or temporarily) unscheduled by the scheduler only if it terminates, or if it calls one of a few specific Java methods that cause the fiber to become suspended. A function that calls a suspending operation is called a *suspendable* function, and a function that calls another suspendable function is itself suspendable.
 
 Suspendable functions require special bytecode instrumentation (performed by an instrumentation agent), so they must be explicitly designated as such.
 The function `suspendable!` marks a given function as a suspendable function (this operation cannot be undone). The `defsfn` macro, with the same syntax as `defn` defines a suspendable function.
@@ -154,7 +158,7 @@ To create a fiber of a function `f` that takes arguments `arg1` and `arg2`, run
   If `:fj-pool` is not specified, then the pool used will be either the pool of the fiber calling `spawn-fiber`, or, if `spawn-fiber` is not called from within a fiber, a default pool.
 * `:stack-size` - The initial fiber data stack size.
 
-The fiber will terminate when `f` completes execution. 
+The fiber will terminate when `f` completes execution.
 
 {:.alert .alert-info}
 **Note**: Spawning a fiber is a very cheap operation in both computation and memory. Do not fear creating many (thousands, tens-of-thousands or even hundereds-of-thousands) fibers.
@@ -215,7 +219,7 @@ from the Pulsar test suite:
 
 #### Compatibility with Clojure Concurrency Constructs
 
-Code running in fibers may make free use of Clojure atoms and agents. 
+Code running in fibers may make free use of Clojure atoms and agents.
 
 Spawning or dereferencing a future created with `clojure.core/future` is ok, but there's a better alternative: you can turn a spawned fiber into a future with `fiber->future` and can then dereference or call regular future functions on the returned value, like `realized?` (In fact, you don't even have to call `fiber->future`; fibers already implement the `Future` interface and can be treated as futures directly, but this may change in the future, so, until the API is fully settled, we recommend using `fiber->future`).
 
@@ -304,7 +308,7 @@ Channels are queues used to pass messages between strands (remember, strands are
 (channel)
 ~~~
 
-creates and returns a new channel. 
+creates and returns a new channel.
 
 A more general form of the `channel` function is:
 
@@ -316,14 +320,14 @@ The channel's `capacity` is the number of messages that can wait in the queue. A
 
 `overflow-policy` specifies what happens to the producer (sender) of a message when the channel's capacity is exhausted, and may be one of:
 
-* `:throw` - throws an exception 
+* `:throw` - throws an exception
 * `:drop` - silently drops (discards) the message
 * `:block` - blocks the sender until messages are consumed from the channel and it has remaining capacity
 * `:displace` - removes the oldest message waiting in the channel to make room for the new message.
 
-If you leave out the `overflow-policy` argument, the default policy of `:block` is used. Leaving both out (and simply calling `(channel)` is the same as `(channel 0 :block)` (obviously, a transfer channel (a channel of capacity 0), would only work with a `:block` policy). 
+If you leave out the `overflow-policy` argument, the default policy of `:block` is used. Leaving both out (and simply calling `(channel)` is the same as `(channel 0 :block)` (obviously, a transfer channel (a channel of capacity 0), would only work with a `:block` policy).
 
-Bounded channels are generally faster than unbounded channels. 
+Bounded channels are generally faster than unbounded channels.
 
 Use of the `:displace` policy places an additional restriction on the channel: its messages may be consumed by a single strand only.
 
@@ -362,13 +366,13 @@ These calls will wait for a message for 10 milliseconds before giving up and ret
 
 #### Closing the channel
 
-After calling 
+After calling
 
 ~~~ clojure
 (close! channel)
 ~~~
 
-any future messages sent to the channel will be ignored. Any messages already in the channel will be received. Once the last message has been received, another call to `rcv` will return `nil`. 
+any future messages sent to the channel will be ignored. Any messages already in the channel will be received. Once the last message has been received, another call to `rcv` will return `nil`.
 
 #### Channel Selection – `sel` and `select`
 
@@ -380,7 +384,7 @@ For example, in the following call,
 
 ~~~ clojure
 (sel [ch1 [ch2 msg1] ch3 [ch4 msg2]])
-~~~ 
+~~~
 
 a message will either be received from `ch1` or `ch2`, or one will be sent to eiter `ch2` or `ch4`. If, for instance, `ch2` will become available for reading (i.e. it has been sent a message) first, than only that operation, in this case a `rcv` will be performed on `ch1`. If `ch2` becomes available for writing before that happens, then only that operation, a `snd`, will be performed. If two operations are available at the same time, one will be chosen randomly (unless the `:priority` option is set, as we'll see later).
 
@@ -416,7 +420,7 @@ Like `sel`, `select` blocks until an operation succeeds, or, if a `:timeout` opt
 Here's an example:
 
 ~~~ clojure
-(select :timeout 100 
+(select :timeout 100
         c1 ([v] (println "received" v))
         [[c2 m2] [c3 m3]] ([v c] (println "sent to" c))
         :else "timeout!")
@@ -462,14 +466,14 @@ As mentioned earlier, a ticker channel is single-consumer, i.e. only one strand 
 (ticker-consumer ch)
 ~~~
 
-`ch` must be a channel of bounded capacity with the `:displace` policy. `ticker-consumer` returns a *receive port* (a channel that can only receive messages, not send them) that can be used to receive messages from `ch`. Each ticker-consumer will yield monotonic messages, namely no message will be received more than once, and the messages will be received in the order they're sent, but if the consumer is too slow, messages could be lost. 
+`ch` must be a channel of bounded capacity with the `:displace` policy. `ticker-consumer` returns a *receive port* (a channel that can only receive messages, not send them) that can be used to receive messages from `ch`. Each ticker-consumer will yield monotonic messages, namely no message will be received more than once, and the messages will be received in the order they're sent, but if the consumer is too slow, messages could be lost.
 
 Each consumer strand will use its own `ticker-consumer`, and each can consume messages at its own pace, and each `ticker-consumer` port will return the same messages (messages consumed from one will not be removed from the other views), subject possibly to different messages being missed by different consumers depending on their pace.
 
 
 #### Primitive channels
 
-It is also possible to create channels that carry messages of primitive JVM types. The analogous primitive channel functions to `channel`, `snd` and `rcv`, are, respectively: 
+It is also possible to create channels that carry messages of primitive JVM types. The analogous primitive channel functions to `channel`, `snd` and `rcv`, are, respectively:
 
 * `int` channels: `int-channel`, `snd-int`, `rcv-int`
 * `long` channels: `long-channel`, `snd-long`, `rcv-long`
@@ -583,7 +587,7 @@ This will create a new actor, and start running it in a new fiber.
 * `:mailbox-size` - The number of messages that can wait in the mailbox, or -1 (the default) for an unbounded mailbox.
 * `:overflow-policy` - What to do if a bounded mailbox overflows. Can be either:
   - `:throw`, in which case an exception will be thrown *into the receiving actor*
-  - `:drop`, in which case the message will be silently discarded, or 
+  - `:drop`, in which case the message will be silently discarded, or
   - `:block`, in which case the sender will block until there's room in the mailbox.
 * `:trap` - If set to `true`, linked actors' death will send an exit message rather than throw an exception (see below).
 * `:lifecycle-handle` - A function that will be called to handle special messages sent to the actor. If set to `nil` (the default), the default handler is used, which is what you want in all circumstances, except for some actors that are meant to do some special tricks.
@@ -711,7 +715,7 @@ And this is how we'll use it from within another actor:
       b ...]
    (! adder-actor @self tag [:add a b])
    (->>
-      (receive 
+      (receive
          [tag [:sum sum]] sum
          :after 10        nil)
       (println "sum:"))
@@ -720,7 +724,7 @@ And this is how we'll use it from within another actor:
 
 ### Actors vs. Channels
 
-One of the reasons of providing a different `receive` function for actors is because programming with actors is conceptually different from just using fibers and channels. I think of channels as hoses  pumping data into a function, or as sort of like asynchronous parameters. A fiber may pull many different kinds of data from many different channels, and combine the data in some way. 
+One of the reasons of providing a different `receive` function for actors is because programming with actors is conceptually different from just using fibers and channels. I think of channels as hoses  pumping data into a function, or as sort of like asynchronous parameters. A fiber may pull many different kinds of data from many different channels, and combine the data in some way.
 
 Actors are a different abstraction. They are more like objects in object-oriented languages, assigned to a single thread. The mailbox serves as the object's dispatch mechanism; it's not a hose but a switchboard. It's for this reason that actors often need to pattern-match their mailbox messages, while regular channels – each usually serving as a conduit for a single kind of data – don't.
 
@@ -745,7 +749,7 @@ Pretty syntax is not the main goal of the `receive` function. The reason `receiv
 
 An actor is a state machine. It usually encompasses some *state* and the messages it receives trigger *state transitions*. But because the actor has no control over which messages it receives and when (which can be a result of either other actors' behavior, or even the way the OS schedules threads), an actor would be required to process any message and any state, and build a full *state transition matrix*, namely how to transition whenever *any* messages is received at *any* state.
 
-This can not only lead to code explosion; it can lead to bugs. The key to managing a complex state machine is by not handling messages in the order they arrive, but in the order we wish to process them. If a message does not match any of the clauses in `receive`, it will remain in the mailbox. `receive` will return only when it finds a message that does. When another `receive` statement is called, it will again search the messages that are in the mailbox, and may match a message that has been skipped by a previous `receive`. 
+This can not only lead to code explosion; it can lead to bugs. The key to managing a complex state machine is by not handling messages in the order they arrive, but in the order we wish to process them. If a message does not match any of the clauses in `receive`, it will remain in the mailbox. `receive` will return only when it finds a message that does. When another `receive` statement is called, it will again search the messages that are in the mailbox, and may match a message that has been skipped by a previous `receive`.
 
 In this code snippet, we specifically wait for the `:baz` message after receiving `:foo`, and so process the messages in this order -- `:foo`, `:baz`, `:bar` -- even though `:bar` is sent before `:baz`:
 
@@ -808,7 +812,7 @@ Selective receive is also very useful when communicating with other actors. Here
     :ok))
 ~~~
 
-In the example, we have three actors: `curious`, `computer` and `adder`. `curious` asks `computer` to perform a computation, and `computer` relies on `adder` to perform addition. Note the nested `receive` in `computer`: the actor waits for a reply from `adder` before accepting other requests (from `curious`) in the outer receive (actually, because this pattern of sending a message to an actor and waiting for a reply is so common, it's encapsulated by a construct call `gen-server` - yet another blatant theft from Erlang - which we'll introduce later; if you want to see how this example looks using `gen-server`, take a look [here]({{examples}}/selective_gen_server.clj). 
+In the example, we have three actors: `curious`, `computer` and `adder`. `curious` asks `computer` to perform a computation, and `computer` relies on `adder` to perform addition. Note the nested `receive` in `computer`: the actor waits for a reply from `adder` before accepting other requests (from `curious`) in the outer receive (actually, because this pattern of sending a message to an actor and waiting for a reply is so common, it's encapsulated by a construct call `gen-server` - yet another blatant theft from Erlang - which we'll introduce later; if you want to see how this example looks using `gen-server`, take a look [here]({{examples}}/selective_gen_server.clj).
 
 There are several actor systems that do not support selective receive, but Erlang does, and so does Pulsar. [The talk *Death by Accidental Complexity*](http://www.infoq.com/presentations/Death-by-Accidental-Complexity), by Ulf Wiger, shows how using selective receive avoids implementing a full, complicated and error-prone transition matrix. [In a different talk](http://www.infoq.com/presentations/1000-Year-old-Design-Patterns), Wiger compared non-selective (FIFO) receive to a tetris game where you must fit each piece into the puzzle as it comes, while selective receive turns the problem into a jigsaw puzzle, where you can look for a piece that you know will fit.
 
@@ -831,7 +835,7 @@ In Erlang, actor state is set by recursively calling the actor function with the
   (join actor)) ; => 25
 ~~~
 
-Clojure is all about managing state. It ensures that every computation has access to consistent data. Because actors communicate with other computation only by exchanging immutable messages, and because each actor runs in a single strand, it's absolutely ok for an actor to have mutable state - only the actor has access to it. 
+Clojure is all about managing state. It ensures that every computation has access to consistent data. Because actors communicate with other computation only by exchanging immutable messages, and because each actor runs in a single strand, it's absolutely ok for an actor to have mutable state - only the actor has access to it.
 
 Every Pulsar actor has a `state` field that can be read like this `@state` and written with `set-state!`. Here’s an example:
 
@@ -910,7 +914,7 @@ The actor model does not only make concurrency easy; it also helps build fault-t
 
 In fact, when using actors, it is often best to to follow the [philosophy laid out by Joe Armstrong](http://www.erlang.org/download/armstrong_thesis_2003.pdf), Erlang's chief designer, of "let it crash". The idea is not to try and catch exceptions inside an actor, because attempting to catch and handle all exceptions is futile. Instead, we just let the actor crash, monitor its death elsewhere, and then take some action.
 
-The principle of actor error handling is that an actor can be asked to be notified of another actor's death. This is done through *linking* and *watching*. 
+The principle of actor error handling is that an actor can be asked to be notified of another actor's death. This is done through *linking* and *watching*.
 
 #### Linking actors
 
@@ -939,7 +943,7 @@ Here's an example from the tests:
                    (loop [] (receive [m] :foo :bar) (recur))
                    (catch co.paralleluniverse.actors.LifecycleException e
                      true))))]
-  
+
   (join actor1)
   (join actor2)) ; => true
 ~~~
@@ -967,7 +971,7 @@ We can undo the link by calling
 (unlink! actor1 actor2)
 ~~~
 
-or 
+or
 
 ~~~ clojure
 (unlink! actor2)
@@ -1006,7 +1010,7 @@ We can remove a watch by calling
 (unwatch! actor1 actor2)
 ~~~
 
-or 
+or
 
 ~~~ clojure
 (unwatch! actor2)
@@ -1070,7 +1074,7 @@ Details TBD.
 
 ### Behaviors
 
-Erlang's designers have realized that many actors follow some common patterns - like an actor that receives requests for work and then sends back a result to the requester. They've turned those patterns into actor templates, called behaviors, in order to save poeple work and avoid some common errors. Some of these behaviors have been ported to Pulsar. 
+Erlang's designers have realized that many actors follow some common patterns - like an actor that receives requests for work and then sends back a result to the requester. They've turned those patterns into actor templates, called behaviors, in order to save poeple work and avoid some common errors. Some of these behaviors have been ported to Pulsar.
 
 Behaviors have two sides. One is the provider side, and is modeled in Pulsar as a protocols. You implement the protocol, and Pulsar provides the full actor implementation that uses your protocol. The other is the consumer side -- functions used by other actors to access the functionality provided by the behavior.
 
@@ -1165,7 +1169,7 @@ And here's one with server timeouts:
         @times) ; => 5
 ~~~
 
-You can set (and reset) the timeout from anywhere within the protocol's methods by calling, say 
+You can set (and reset) the timeout from anywhere within the protocol's methods by calling, say
 
 ~~~ clojure
 (set-timeout! 100 :ms)
@@ -1253,9 +1257,9 @@ When `notify!` is called, both handlers will be called and passed the event obje
 
 A supervisor is an actor behavior designed to standardize error handling. Internally it uses watches and links, but it offers a more structured, standard, and simple way to react to errors.
 
-The general idea is that actors performing business logic, "worker actors", are supervised by a supervisor actor that detects when they die and takes one of several pre-configured actions. Supervisors may, in turn, be supervised by other supervisors, thus forming a supervision hierarchy that compartmentalizes failure and recovery. 
+The general idea is that actors performing business logic, "worker actors", are supervised by a supervisor actor that detects when they die and takes one of several pre-configured actions. Supervisors may, in turn, be supervised by other supervisors, thus forming a supervision hierarchy that compartmentalizes failure and recovery.
 
-A supervisors works as follows: it has a number of *children*, worker actors or other supervisors that are registered to be supervised wither at the supervisor's construction time or at a later time. Each child has a mode, `:permanent`, `:transient` or `:temporary` that determines whether its death will trigger the supervisor's *recovery event*. When the recovery event is triggered, the supervisor takes action specified by its *restart strategy*, or it will give up and fail, depending on predefined failure modes. 
+A supervisors works as follows: it has a number of *children*, worker actors or other supervisors that are registered to be supervised wither at the supervisor's construction time or at a later time. Each child has a mode, `:permanent`, `:transient` or `:temporary` that determines whether its death will trigger the supervisor's *recovery event*. When the recovery event is triggered, the supervisor takes action specified by its *restart strategy*, or it will give up and fail, depending on predefined failure modes.
 
 When a child actor in the `:permanent` mode dies, it will always trigger its supervisor's recovery event. When a child in the `:transient` mode dies, it will trigger a recovery event only if it has died as a result of an exception, but not if it has simply finished its operation. A `:temporary` child never triggers it supervisor's recovery event.
 
@@ -1436,4 +1440,3 @@ The Pulsar source code contains several examples:
 * [A Pulsar full-graph benchmark]({{examples}}/graph.clj) where all actors ping and pong with all other actors.
 
 In addition, the [test suite](https://github.com/{{site.github}}/blob/master/src/test/clojure/co/paralleluniverse/pulsar_test.clj) contains many more small examples.
-
