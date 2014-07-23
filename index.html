@@ -87,6 +87,7 @@
 <li><ul><li><a href="#dependencies">Dependencies</a></li></ul></li>
 <li>
 <a href="#news" class="cat-link">News</a><ul>
+<li><a href="#july-23-2014">July 23, 2014</a></li>
 <li><a href="#march-2014">March, 2014</a></li>
 <li><a href="#january-22-2014">January 22, 2014</a></li>
 <li><a href="#july-26-2013">July 26, 2013</a></li>
@@ -147,7 +148,7 @@
 					<div class="doc-text">
 						<h1 id="overview">Overview</h1>
 
-<p>Pulsar is a Clojure library that provides high-performance lightweight threads and Erlang-like&nbsp;actors. 
+<p>Pulsar is a Clojure library that provides high-performance lightweight threads and Erlang-like&nbsp;actors.
 It is a Clojure <span class="caps">API</span> for the <a href="https://github.com/puniverse/quasar">Quasar</a> Java library, with the addition of pattern matching and an Erlang-like&nbsp;syntax.</p>
 
 <p>A good introduction to Pulsar (and Quasar) can be found in the blog post <a href="http://blog.paralleluniverse.co/post/49445260575/quasar-pulsar">Erlang (and Go) in Clojure (and Java), Lightweight Threads, Channels and Actors for the <span class="caps">JVM</span></a>.</p>
@@ -165,13 +166,17 @@ It is a Clojure <span class="caps">API</span> for the <a href="https://github.co
 
 <h2 id="news">News</h2>
 
+<h3 id="july-23-2014">July 23,&nbsp;2014</h3>
+
+<p>Pulsar <a href="https://github.com/puniverse/pulsar/releases/tag/v0.6.0"><span class="caps">0.6.0</span></a> has been&nbsp;released.</p>
+
 <h3 id="march-2014">March,&nbsp;2014</h3>
 
-<p>Pulsar <span class="caps">0.5.0</span> has been&nbsp;released.</p>
+<p>Pulsar <a href="https://github.com/puniverse/pulsar/releases/tag/v0.5.0"><span class="caps">0.5.0</span></a> has been&nbsp;released.</p>
 
 <h3 id="january-22-2014">January 22,&nbsp;2014</h3>
 
-<p>Pulsar <span class="caps">0.4.0</span> has been&nbsp;released.</p>
+<p>Pulsar <a href="https://github.com/puniverse/pulsar/releases/tag/v0.4.0"><span class="caps">0.4.0</span></a> has been&nbsp;released.</p>
 
 <h3 id="july-26-2013">July 26,&nbsp;2013</h3>
 
@@ -183,7 +188,7 @@ It is a Clojure <span class="caps">API</span> for the <a href="https://github.co
 
 <h3 id="may-2-2013">May 2,&nbsp;2013</h3>
 
-<p>Introductory blog post: <a href="http://blog.paralleluniverse.co/post/49445260575/quasar-pulsar">Erlang (and Go) in Clojure (and Java), Lightweight Threads, Channels and Actors for the <span class="caps">JVM</span></a>. </p>
+<p>Introductory blog post: <a href="http://blog.paralleluniverse.co/post/49445260575/quasar-pulsar">Erlang (and Go) in Clojure (and Java), Lightweight Threads, Channels and Actors for the <span class="caps">JVM</span></a>.</p>
 
 <h1 id="getting-started">Getting&nbsp;Started</h1>
 
@@ -195,11 +200,11 @@ It is a Clojure <span class="caps">API</span> for the <a href="https://github.co
 
 <p>Add the following dependency to <a href="http://github.com/technomancy/leiningen/">Leiningen</a>’s&nbsp;project.clj:</p>
 
-<div class="highlight"><pre><code><span id="line-1"><span class="p">[</span><span class="nv">co.paralleluniverse/pulsar</span> <span class="s">&quot;0.5.0&quot;</span><span class="p">]</span>
+<div class="highlight"><pre><code><span id="line-1"><span class="p">[</span><span class="nv">co.paralleluniverse/pulsar</span> <span class="s">&quot;0.6.0&quot;</span><span class="p">]</span>
 </span></code></pre></div>
 <p>Then, the following must be added to the project.clj&nbsp;file:</p>
 
-<div class="highlight"><pre><code><span id="line-1"><span class="ss">:java-agents</span> <span class="p">[[</span><span class="nv">co.paralleluniverse/quasar-core</span> <span class="s">&quot;0.5.0&quot;</span><span class="p">]]</span>
+<div class="highlight"><pre><code><span id="line-1"><span class="ss">:java-agents</span> <span class="p">[[</span><span class="nv">co.paralleluniverse/quasar-core</span> <span class="s">&quot;0.6.0&quot;</span><span class="p">]]</span>
 </span></code></pre></div>
 <p>or, add the following to the java command&nbsp;line:</p>
 
@@ -241,9 +246,9 @@ It is a Clojure <span class="caps">API</span> for the <a href="https://github.co
 
 <h3 id="fibers">Fibers</h3>
 
-<p>Fibers are lightweight threads. They provide functionality similar to threads, and a similar <span class="caps">API</span>, but they’re not managed by the <span class="caps">OS.</span> They are lightweight (an idle fiber occupies ~400 bytes of <span class="caps">RAM</span>), and you can have millions of them in an application. If you are familiar with Go, fibers are like goroutines. Fibers in Pulsar (well, Quasar, actually) are scheduled by one or more <a href="http://docs.oracle.com/javase/7/docs/api/java/util/concurrent/ForkJoinPool.html">ForkJoinPool</a>s. </p>
+<p>Fibers are lightweight threads. They provide functionality similar to threads, and a similar <span class="caps">API</span>, but they’re not managed by the <span class="caps">OS.</span> They are lightweight (an idle fiber occupies ~400 bytes of <span class="caps">RAM</span>), and you can have millions of them in an application. If you are familiar with Go, fibers are like goroutines. Fibers in Pulsar (well, Quasar, actually) are scheduled by one or more <a href="http://docs.oracle.com/javase/7/docs/api/java/util/concurrent/ForkJoinPool.html">ForkJoinPool</a>s.</p>
 
-<p>One significant difference between Fibers and Threads is that Fibers are not preempted; i.e. a fiber is (permanently or temporarily) unscheduled by the scheduler only if it terminates, or if it calls one of a few specific Java methods that cause the fiber to become suspended. A function that calls a suspending operation is called a <em>suspendable</em> function, and a function that calls another suspendable function is itself&nbsp;suspendable. </p>
+<p>One significant difference between Fibers and Threads is that Fibers are not preempted; i.e. a fiber is (permanently or temporarily) unscheduled by the scheduler only if it terminates, or if it calls one of a few specific Java methods that cause the fiber to become suspended. A function that calls a suspending operation is called a <em>suspendable</em> function, and a function that calls another suspendable function is itself&nbsp;suspendable.</p>
 
 <p>Suspendable functions require special bytecode instrumentation (performed by an instrumentation agent), so they must be explicitly designated as&nbsp;such.
 The function <code>suspendable!</code> marks a given function as a suspendable function (this operation cannot be undone). The <code>defsfn</code> macro, with the same syntax as <code>defn</code> defines a suspendable&nbsp;function.</p>
@@ -267,7 +272,7 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either the
   <li><code>:stack-size</code> - The initial fiber data stack&nbsp;size.</li>
 </ul>
 
-<p>The fiber will terminate when <code>f</code> completes&nbsp;execution. </p>
+<p>The fiber will terminate when <code>f</code> completes&nbsp;execution.</p>
 
 <p class="alert alert-info"><strong>Note</strong>: Spawning a fiber is a very cheap operation in both computation and memory. Do not fear creating many (thousands, tens-of-thousands or even hundereds-of-thousands)&nbsp;fibers.</p>
 
@@ -319,7 +324,7 @@ from the Pulsar test&nbsp;suite:</p>
 </span></code></pre></div>
 <h4 id="compatibility-with-clojure-concurrency-constructs">Compatibility with Clojure Concurrency&nbsp;Constructs</h4>
 
-<p>Code running in fibers may make free use of Clojure atoms and&nbsp;agents. </p>
+<p>Code running in fibers may make free use of Clojure atoms and&nbsp;agents.</p>
 
 <p>Spawning or dereferencing a future created with <code>clojure.core/future</code> is ok, but there’s a better alternative: you can turn a spawned fiber into a future with <code>fiber-&gt;future</code> and can then dereference or call regular future functions on the returned value, like <code>realized?</code> (In fact, you don’t even have to call <code>fiber-&gt;future</code>; fibers already implement the <code>Future</code> interface and can be treated as futures directly, but this may change in the future, so, until the <span class="caps">API</span> is fully settled, we recommend using&nbsp;<code>fiber-&gt;future</code>).</p>
 
@@ -398,7 +403,7 @@ from the Pulsar test&nbsp;suite:</p>
 
 <div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">channel</span><span class="p">)</span>
 </span></code></pre></div>
-<p>creates and returns a new&nbsp;channel. </p>
+<p>creates and returns a new&nbsp;channel.</p>
 
 <p>A more general form of the <code>channel</code> function&nbsp;is:</p>
 
@@ -409,15 +414,15 @@ from the Pulsar test&nbsp;suite:</p>
 <p><code>overflow-policy</code> specifies what happens to the producer (sender) of a message when the channel’s capacity is exhausted, and may be one&nbsp;of:</p>
 
 <ul>
-  <li><code>:throw</code> - throws an&nbsp;exception </li>
+  <li><code>:throw</code> - throws an&nbsp;exception</li>
   <li><code>:drop</code> - silently drops (discards) the&nbsp;message</li>
   <li><code>:block</code> - blocks the sender until messages are consumed from the channel and it has remaining&nbsp;capacity</li>
   <li><code>:displace</code> - removes the oldest message waiting in the channel to make room for the new&nbsp;message.</li>
 </ul>
 
-<p>If you leave out the <code>overflow-policy</code> argument, the default policy of <code>:block</code> is used. Leaving both out (and simply calling <code>(channel)</code> is the same as <code>(channel 0 :block)</code> (obviously, a transfer channel (a channel of capacity 0), would only work with a <code>:block</code>&nbsp;policy). </p>
+<p>If you leave out the <code>overflow-policy</code> argument, the default policy of <code>:block</code> is used. Leaving both out (and simply calling <code>(channel)</code> is the same as <code>(channel 0 :block)</code> (obviously, a transfer channel (a channel of capacity 0), would only work with a <code>:block</code>&nbsp;policy).</p>
 
-<p>Bounded channels are generally faster than unbounded&nbsp;channels. </p>
+<p>Bounded channels are generally faster than unbounded&nbsp;channels.</p>
 
 <p>Use of the <code>:displace</code> policy places an additional restriction on the channel: its messages may be consumed by a single strand&nbsp;only.</p>
 
@@ -447,11 +452,11 @@ from the Pulsar test&nbsp;suite:</p>
 
 <h4 id="closing-the-channel">Closing the&nbsp;channel</h4>
 
-<p>After&nbsp;calling </p>
+<p>After&nbsp;calling</p>
 
 <div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">close!</span> <span class="nv">channel</span><span class="p">)</span>
 </span></code></pre></div>
-<p>any future messages sent to the channel will be ignored. Any messages already in the channel will be received. Once the last message has been received, another call to <code>rcv</code> will return&nbsp;<code>nil</code>. </p>
+<p>any future messages sent to the channel will be ignored. Any messages already in the channel will be received. Once the last message has been received, another call to <code>rcv</code> will return&nbsp;<code>nil</code>.</p>
 
 <h4 id="channel-selection--sel-and-select">Channel Selection – <code>sel</code> and&nbsp;<code>select</code></h4>
 
@@ -492,7 +497,7 @@ It takes an even number of expressions, ordered as (ops1, action1, ops2, action2
 
 <p>Here’s an&nbsp;example:</p>
 
-<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nb">select </span><span class="ss">:timeout</span> <span class="mi">100</span> 
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nb">select </span><span class="ss">:timeout</span> <span class="mi">100</span>
 </span><span id="line-2">        <span class="nv">c1</span> <span class="p">([</span><span class="nv">v</span><span class="p">]</span> <span class="p">(</span><span class="nb">println </span><span class="s">&quot;received&quot;</span> <span class="nv">v</span><span class="p">))</span>
 </span><span id="line-3">        <span class="p">[[</span><span class="nv">c2</span> <span class="nv">m2</span><span class="p">]</span> <span class="p">[</span><span class="nv">c3</span> <span class="nv">m3</span><span class="p">]]</span> <span class="p">([</span><span class="nv">v</span> <span class="nv">c</span><span class="p">]</span> <span class="p">(</span><span class="nb">println </span><span class="s">&quot;sent to&quot;</span> <span class="nv">c</span><span class="p">))</span>
 </span><span id="line-4">        <span class="ss">:else</span> <span class="s">&quot;timeout!&quot;</span><span class="p">)</span>
@@ -529,13 +534,13 @@ It takes an even number of expressions, ordered as (ops1, action1, ops2, action2
 
 <div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">ticker-consumer</span> <span class="nv">ch</span><span class="p">)</span>
 </span></code></pre></div>
-<p><code>ch</code> must be a channel of bounded capacity with the <code>:displace</code> policy. <code>ticker-consumer</code> returns a <em>receive port</em> (a channel that can only receive messages, not send them) that can be used to receive messages from <code>ch</code>. Each ticker-consumer will yield monotonic messages, namely no message will be received more than once, and the messages will be received in the order they’re sent, but if the consumer is too slow, messages could be&nbsp;lost. </p>
+<p><code>ch</code> must be a channel of bounded capacity with the <code>:displace</code> policy. <code>ticker-consumer</code> returns a <em>receive port</em> (a channel that can only receive messages, not send them) that can be used to receive messages from <code>ch</code>. Each ticker-consumer will yield monotonic messages, namely no message will be received more than once, and the messages will be received in the order they’re sent, but if the consumer is too slow, messages could be&nbsp;lost.</p>
 
 <p>Each consumer strand will use its own <code>ticker-consumer</code>, and each can consume messages at its own pace, and each <code>ticker-consumer</code> port will return the same messages (messages consumed from one will not be removed from the other views), subject possibly to different messages being missed by different consumers depending on their&nbsp;pace.</p>
 
 <h4 id="primitive-channels">Primitive&nbsp;channels</h4>
 
-<p>It is also possible to create channels that carry messages of primitive <span class="caps">JVM</span> types. The analogous primitive channel functions to <code>channel</code>, <code>snd</code> and <code>rcv</code>, are,&nbsp;respectively: </p>
+<p>It is also possible to create channels that carry messages of primitive <span class="caps">JVM</span> types. The analogous primitive channel functions to <code>channel</code>, <code>snd</code> and <code>rcv</code>, are,&nbsp;respectively:</p>
 
 <ul>
   <li><code>int</code> channels: <code>int-channel</code>, <code>snd-int</code>,&nbsp;<code>rcv-int</code></li>
@@ -590,7 +595,7 @@ To create and start an actor of a function <code>f</code> that takes arguments <
   <li><code>:overflow-policy</code> - What to do if a bounded mailbox overflows. Can be&nbsp;either:
     <ul>
       <li><code>:throw</code>, in which case an exception will be thrown <em>into the receiving&nbsp;actor</em></li>
-      <li><code>:drop</code>, in which case the message will be silently discarded,&nbsp;or </li>
+      <li><code>:drop</code>, in which case the message will be silently discarded,&nbsp;or</li>
       <li><code>:block</code>, in which case the sender will block until there’s room in the&nbsp;mailbox.</li>
     </ul>
   </li>
@@ -694,7 +699,7 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
 </span><span id="line-4">      <span class="nv">b</span> <span class="nv">...</span><span class="p">]</span>
 </span><span id="line-5">   <span class="p">(</span><span class="nf">!</span> <span class="nv">adder-actor</span> <span class="o">@</span><span class="nv">self</span> <span class="nv">tag</span> <span class="p">[</span><span class="ss">:add</span> <span class="nv">a</span> <span class="nv">b</span><span class="p">])</span>
 </span><span id="line-6">   <span class="p">(</span><span class="nf">-&gt;&gt;</span>
-</span><span id="line-7">      <span class="p">(</span><span class="nf">receive</span> 
+</span><span id="line-7">      <span class="p">(</span><span class="nf">receive</span>
 </span><span id="line-8">         <span class="p">[</span><span class="nv">tag</span> <span class="p">[</span><span class="ss">:sum</span> <span class="nv">sum</span><span class="p">]]</span> <span class="nv">sum</span>
 </span><span id="line-9">         <span class="ss">:after</span> <span class="mi">10</span>        <span class="nv">nil</span><span class="p">)</span>
 </span><span id="line-10">      <span class="p">(</span><span class="nb">println </span><span class="s">&quot;sum:&quot;</span><span class="p">))</span>
@@ -702,7 +707,7 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
 </span></code></pre></div>
 <h3 id="actors-vs-channels">Actors vs.&nbsp;Channels</h3>
 
-<p>One of the reasons of providing a different <code>receive</code> function for actors is because programming with actors is conceptually different from just using fibers and channels. I think of channels as hoses  pumping data into a function, or as sort of like asynchronous parameters. A fiber may pull many different kinds of data from many different channels, and combine the data in some&nbsp;way. </p>
+<p>One of the reasons of providing a different <code>receive</code> function for actors is because programming with actors is conceptually different from just using fibers and channels. I think of channels as hoses  pumping data into a function, or as sort of like asynchronous parameters. A fiber may pull many different kinds of data from many different channels, and combine the data in some&nbsp;way.</p>
 
 <p>Actors are a different abstraction. They are more like objects in object-oriented languages, assigned to a single thread. The mailbox serves as the object’s dispatch mechanism; it’s not a hose but a switchboard. It’s for this reason that actors often need to pattern-match their mailbox messages, while regular channels – each usually serving as a conduit for a single kind of data –&nbsp;don’t.</p>
 
@@ -724,7 +729,7 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
 
 <p>An actor is a state machine. It usually encompasses some <em>state</em> and the messages it receives trigger <em>state transitions</em>. But because the actor has no control over which messages it receives and when (which can be a result of either other actors’ behavior, or even the way the <span class="caps">OS</span> schedules threads), an actor would be required to process any message and any state, and build a full <em>state transition matrix</em>, namely how to transition whenever <em>any</em> messages is received at <em>any</em>&nbsp;state.</p>
 
-<p>This can not only lead to code explosion; it can lead to bugs. The key to managing a complex state machine is by not handling messages in the order they arrive, but in the order we wish to process them. If a message does not match any of the clauses in <code>receive</code>, it will remain in the mailbox. <code>receive</code> will return only when it finds a message that does. When another <code>receive</code> statement is called, it will again search the messages that are in the mailbox, and may match a message that has been skipped by a previous&nbsp;<code>receive</code>. </p>
+<p>This can not only lead to code explosion; it can lead to bugs. The key to managing a complex state machine is by not handling messages in the order they arrive, but in the order we wish to process them. If a message does not match any of the clauses in <code>receive</code>, it will remain in the mailbox. <code>receive</code> will return only when it finds a message that does. When another <code>receive</code> statement is called, it will again search the messages that are in the mailbox, and may match a message that has been skipped by a previous&nbsp;<code>receive</code>.</p>
 
 <p>In this code snippet, we specifically wait for the <code>:baz</code> message after receiving <code>:foo</code>, and so process the messages in this order – <code>:foo</code>, <code>:baz</code>, <code>:bar</code> – even though <code>:bar</code> is sent before&nbsp;<code>:baz</code>:</p>
 
@@ -783,7 +788,7 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
 </span><span id="line-33">    <span class="p">(</span><span class="nb">join </span><span class="nv">cr</span><span class="p">)</span>
 </span><span id="line-34">    <span class="ss">:ok</span><span class="p">))</span>
 </span></code></pre></div>
-<p>In the example, we have three actors: <code>curious</code>, <code>computer</code> and <code>adder</code>. <code>curious</code> asks <code>computer</code> to perform a computation, and <code>computer</code> relies on <code>adder</code> to perform addition. Note the nested <code>receive</code> in <code>computer</code>: the actor waits for a reply from <code>adder</code> before accepting other requests (from <code>curious</code>) in the outer receive (actually, because this pattern of sending a message to an actor and waiting for a reply is so common, it’s encapsulated by a construct call <code>gen-server</code> - yet another blatant theft from Erlang - which we’ll introduce later; if you want to see how this example looks using <code>gen-server</code>, take a look <a href="https://github.com/puniverse/pulsar/tree/master/src/test/clojure/co/paralleluniverse/pulsar/examples/selective_gen_server.clj">here</a>. </p>
+<p>In the example, we have three actors: <code>curious</code>, <code>computer</code> and <code>adder</code>. <code>curious</code> asks <code>computer</code> to perform a computation, and <code>computer</code> relies on <code>adder</code> to perform addition. Note the nested <code>receive</code> in <code>computer</code>: the actor waits for a reply from <code>adder</code> before accepting other requests (from <code>curious</code>) in the outer receive (actually, because this pattern of sending a message to an actor and waiting for a reply is so common, it’s encapsulated by a construct call <code>gen-server</code> - yet another blatant theft from Erlang - which we’ll introduce later; if you want to see how this example looks using <code>gen-server</code>, take a look <a href="https://github.com/puniverse/pulsar/tree/master/src/test/clojure/co/paralleluniverse/pulsar/examples/selective_gen_server.clj">here</a>.</p>
 
 <p>There are several actor systems that do not support selective receive, but Erlang does, and so does Pulsar. <a href="http://www.infoq.com/presentations/Death-by-Accidental-Complexity">The talk <em>Death by Accidental Complexity</em></a>, by Ulf Wiger, shows how using selective receive avoids implementing a full, complicated and error-prone transition matrix. <a href="http://www.infoq.com/presentations/1000-Year-old-Design-Patterns">In a different talk</a>, Wiger compared non-selective (<span class="caps">FIFO</span>) receive to a tetris game where you must fit each piece into the puzzle as it comes, while selective receive turns the problem into a jigsaw puzzle, where you can look for a piece that you know will&nbsp;fit.</p>
 
@@ -803,7 +808,7 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
 </span><span id="line-8">  <span class="p">(</span><span class="nf">!</span> <span class="nv">actor</span> <span class="mi">12</span><span class="p">)</span>
 </span><span id="line-9">  <span class="p">(</span><span class="nb">join </span><span class="nv">actor</span><span class="p">))</span> <span class="c1">; =&gt; 25</span>
 </span></code></pre></div>
-<p>Clojure is all about managing state. It ensures that every computation has access to consistent data. Because actors communicate with other computation only by exchanging immutable messages, and because each actor runs in a single strand, it’s absolutely ok for an actor to have mutable state - only the actor has access to&nbsp;it. </p>
+<p>Clojure is all about managing state. It ensures that every computation has access to consistent data. Because actors communicate with other computation only by exchanging immutable messages, and because each actor runs in a single strand, it’s absolutely ok for an actor to have mutable state - only the actor has access to&nbsp;it.</p>
 
 <p>Every Pulsar actor has a <code>state</code> field that can be read like this <code>@state</code> and written with <code>set-state!</code>. Here’s an&nbsp;example:</p>
 
@@ -874,7 +879,7 @@ Pulsar supports this as an experimental feature (implemented internally with <co
 
 <p>In fact, when using actors, it is often best to to follow the <a href="http://www.erlang.org/download/armstrong_thesis_2003.pdf">philosophy laid out by Joe Armstrong</a>, Erlang’s chief designer, of “let it crash”. The idea is not to try and catch exceptions inside an actor, because attempting to catch and handle all exceptions is futile. Instead, we just let the actor crash, monitor its death elsewhere, and then take some&nbsp;action.</p>
 
-<p>The principle of actor error handling is that an actor can be asked to be notified of another actor’s death. This is done through <em>linking</em> and <em>watching</em>. </p>
+<p>The principle of actor error handling is that an actor can be asked to be notified of another actor’s death. This is done through <em>linking</em> and <em>watching</em>.</p>
 
 <h4 id="linking-actors">Linking&nbsp;actors</h4>
 
@@ -898,7 +903,7 @@ Pulsar supports this as an experimental feature (implemented internally with <co
 </span><span id="line-6">                   <span class="p">(</span><span class="k">loop </span><span class="p">[]</span> <span class="p">(</span><span class="nf">receive</span> <span class="p">[</span><span class="nv">m</span><span class="p">]</span> <span class="ss">:foo</span> <span class="ss">:bar</span><span class="p">)</span> <span class="p">(</span><span class="nf">recur</span><span class="p">))</span>
 </span><span id="line-7">                   <span class="p">(</span><span class="nf">catch</span> <span class="nv">co.paralleluniverse.actors.LifecycleException</span> <span class="nv">e</span>
 </span><span id="line-8">                     <span class="nv">true</span><span class="p">))))]</span>
-</span><span id="line-9">  
+</span><span id="line-9">
 </span><span id="line-10">  <span class="p">(</span><span class="nb">join </span><span class="nv">actor1</span><span class="p">)</span>
 </span><span id="line-11">  <span class="p">(</span><span class="nb">join </span><span class="nv">actor2</span><span class="p">))</span> <span class="c1">; =&gt; true</span>
 </span></code></pre></div>
@@ -921,7 +926,7 @@ Pulsar supports this as an experimental feature (implemented internally with <co
 
 <div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">unlink!</span> <span class="nv">actor1</span> <span class="nv">actor2</span><span class="p">)</span>
 </span></code></pre></div>
-<p>or </p>
+<p>or</p>
 
 <div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">unlink!</span> <span class="nv">actor2</span><span class="p">)</span>
 </span></code></pre></div>
@@ -956,7 +961,7 @@ Pulsar supports this as an experimental feature (implemented internally with <co
 
 <div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">unwatch!</span> <span class="nv">actor1</span> <span class="nv">actor2</span><span class="p">)</span>
 </span></code></pre></div>
-<p>or </p>
+<p>or</p>
 
 <div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">unwatch!</span> <span class="nv">actor2</span><span class="p">)</span>
 </span></code></pre></div>
@@ -1006,7 +1011,7 @@ Pulsar supports this as an experimental feature (implemented internally with <co
 
 <h3 id="behaviors">Behaviors</h3>
 
-<p>Erlang’s designers have realized that many actors follow some common patterns - like an actor that receives requests for work and then sends back a result to the requester. They’ve turned those patterns into actor templates, called behaviors, in order to save poeple work and avoid some common errors. Some of these behaviors have been ported to&nbsp;Pulsar. </p>
+<p>Erlang’s designers have realized that many actors follow some common patterns - like an actor that receives requests for work and then sends back a result to the requester. They’ve turned those patterns into actor templates, called behaviors, in order to save poeple work and avoid some common errors. Some of these behaviors have been ported to&nbsp;Pulsar.</p>
 
 <p>Behaviors have two sides. One is the provider side, and is modeled in Pulsar as a protocols. You implement the protocol, and Pulsar provides the full actor implementation that uses your protocol. The other is the consumer side – functions used by other actors to access the functionality provided by the&nbsp;behavior.</p>
 
@@ -1085,7 +1090,7 @@ Pulsar supports this as an experimental feature (implemented internally with <co
 </span><span id="line-11">        <span class="p">(</span><span class="nb">join </span><span class="mi">200</span> <span class="ss">:ms</span> <span class="nv">gs</span><span class="p">)</span>
 </span><span id="line-12">        <span class="o">@</span><span class="nv">times</span><span class="p">)</span> <span class="c1">; =&gt; 5</span>
 </span></code></pre></div>
-<p>You can set (and reset) the timeout from anywhere within the protocol’s methods by calling,&nbsp;say </p>
+<p>You can set (and reset) the timeout from anywhere within the protocol’s methods by calling,&nbsp;say</p>
 
 <div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">set-timeout!</span> <span class="mi">100</span> <span class="ss">:ms</span><span class="p">)</span>
 </span></code></pre></div>
@@ -1157,9 +1162,9 @@ Pulsar supports this as an experimental feature (implemented internally with <co
 
 <p>A supervisor is an actor behavior designed to standardize error handling. Internally it uses watches and links, but it offers a more structured, standard, and simple way to react to&nbsp;errors.</p>
 
-<p>The general idea is that actors performing business logic, “worker actors”, are supervised by a supervisor actor that detects when they die and takes one of several pre-configured actions. Supervisors may, in turn, be supervised by other supervisors, thus forming a supervision hierarchy that compartmentalizes failure and&nbsp;recovery. </p>
+<p>The general idea is that actors performing business logic, “worker actors”, are supervised by a supervisor actor that detects when they die and takes one of several pre-configured actions. Supervisors may, in turn, be supervised by other supervisors, thus forming a supervision hierarchy that compartmentalizes failure and&nbsp;recovery.</p>
 
-<p>A supervisors works as follows: it has a number of <em>children</em>, worker actors or other supervisors that are registered to be supervised wither at the supervisor’s construction time or at a later time. Each child has a mode, <code>:permanent</code>, <code>:transient</code> or <code>:temporary</code> that determines whether its death will trigger the supervisor’s <em>recovery event</em>. When the recovery event is triggered, the supervisor takes action specified by its <em>restart strategy</em>, or it will give up and fail, depending on predefined failure&nbsp;modes. </p>
+<p>A supervisors works as follows: it has a number of <em>children</em>, worker actors or other supervisors that are registered to be supervised wither at the supervisor’s construction time or at a later time. Each child has a mode, <code>:permanent</code>, <code>:transient</code> or <code>:temporary</code> that determines whether its death will trigger the supervisor’s <em>recovery event</em>. When the recovery event is triggered, the supervisor takes action specified by its <em>restart strategy</em>, or it will give up and fail, depending on predefined failure&nbsp;modes.</p>
 
 <p>When a child actor in the <code>:permanent</code> mode dies, it will always trigger its supervisor’s recovery event. When a child in the <code>:transient</code> mode dies, it will trigger a recovery event only if it has died as a result of an exception, but not if it has simply finished its operation. A <code>:temporary</code> child never triggers it supervisor’s recovery&nbsp;event.</p>
 
@@ -1270,7 +1275,7 @@ Pulsar supports this as an experimental feature (implemented internally with <co
 
 <p>First, you will need to add <code>quasar-galaxy</code> as a dependency to your&nbsp;project:</p>
 
-<div class="highlight"><pre><code><span id="line-1"><span class="p">[</span><span class="nv">co.paralleluniverse/quasar-galaxy</span> <span class="s">&quot;0.5.0&quot;</span><span class="p">]</span>
+<div class="highlight"><pre><code><span id="line-1"><span class="p">[</span><span class="nv">co.paralleluniverse/quasar-galaxy</span> <span class="s">&quot;0.6.0&quot;</span><span class="p">]</span>
 </span></code></pre></div>
 <p>To make an actor discoverable, all you need to do is register&nbsp;it:</p>
 
@@ -1302,7 +1307,7 @@ Pulsar supports this as an experimental feature (implemented internally with <co
 </span></code></pre></div>
 <h3 id="cluster-configuration">Cluster&nbsp;Configuration</h3>
 
-<p>For instructions on how to configure the Galaxy cluster, please refere to Galaxy’s <a href="http://docs.paralleluniverse.co/galaxy/start/getting-started.html">getting started guide</a>.</p>
+<p>For instructions on how to configure the Galaxy cluster, please refer to Galaxy’s <a href="http://docs.paralleluniverse.co/galaxy/#getting-started">getting started guide</a>.</p>
 
 <h2 id="examples">Examples</h2>
 
@@ -1320,7 +1325,6 @@ Pulsar supports this as an experimental feature (implemented internally with <co
 </ul>
 
 <p>In addition, the <a href="https://github.com/puniverse/pulsar/blob/master/src/test/clojure/co/paralleluniverse/pulsar_test.clj">test suite</a> contains many more small&nbsp;examples.</p>
-
 
 					</div>
 				</div><!--main-->
