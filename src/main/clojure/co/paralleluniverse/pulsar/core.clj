@@ -29,8 +29,8 @@
           TickerChannelConsumer Topic ReceivePortGroup
           IntChannel LongChannel FloatChannel DoubleChannel
           IntSendPort LongSendPort FloatSendPort DoubleSendPort
-          IntReceivePort LongReceivePort FloatReceivePort DoubleReceivePort
-          DelayedVal]
+          IntReceivePort LongReceivePort FloatReceivePort DoubleReceivePort]
+         [co.paralleluniverse.strands.dataflow Val Var]
          [co.paralleluniverse.pulsar ClojureHelper ChannelsHelper ClojureFiberAsync]
          ; for types:
          [clojure.lang Keyword Sequential IObj IMeta IDeref ISeq IPersistentCollection IPersistentVector IPersistentMap])
@@ -488,7 +488,7 @@
 
   Unlike clojure.core/promise, this promise object can be used inside Pulsar fibers."
   ([f]
-   (let [dv (DelayedVal. (->suspendable-callable (suspendable! f)))]
+   (let [dv (Val. (->suspendable-callable (suspendable! f)))]
      (reify
        clojure.lang.IDeref
        (deref [_]
