@@ -1,4 +1,4 @@
-# Pulsar [![Build Status](https://travis-ci.org/puniverse/pulsar.png?branch=master)](https://travis-ci.org/puniverse/pulsar) [![Dependency Status](https://www.versioneye.com/user/projects/52b019ccec137505ee00002e/badge.png)](https://www.versioneye.com/user/projects/52b019ccec137505ee00002e)<br/>Lightweight threads, Go-like channels, and Erlang-like actors for Clojure
+# Pulsar [![Build Status](https://travis-ci.org/puniverse/pulsar.svg?branch=master)](https://travis-ci.org/puniverse/pulsar) [![Dependency Status](https://www.versioneye.com/user/projects/52b019ccec137505ee00002e/badge.png)](https://www.versioneye.com/user/projects/52b019ccec137505ee00002e)<br/>Lightweight threads, Go-like channels, and Erlang-like actors for Clojure
 
 Pulsar wraps the [Quasar](https://github.com/puniverse/quasar) library with a Clojure API that's very similar to Erlang.
 
