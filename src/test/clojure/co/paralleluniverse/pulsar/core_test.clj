@@ -41,6 +41,12 @@
         (join fib))
       => (throws Exception "my exception"))
 
+(fact "simple test"
+      (let [f (fn [a b] (Fiber/sleep 20) (+ a b))
+            fib (spawn-fiber f 3 4)]
+        (join fib))
+      => 7)
+
 (fact "When fiber interrupted while sleeping then InterruptedException thrown"
       (let [fib (spawn-fiber
                   #(try
@@ -219,7 +225,7 @@
                             (let [m (rcv ch)]
                               (when m
                                 (assert (> m prev)) ;(fact m => (gt? prev))
-                                (recur m))))))
+                                (recur (long m)))))))
             f1 (spawn-fiber task)
             t1 (spawn-thread task)
             f2 (spawn-fiber task)

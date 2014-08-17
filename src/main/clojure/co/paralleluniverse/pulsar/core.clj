@@ -336,7 +336,7 @@
   {:arglists '([:name? :stack-size? :scheduler? f & args])}
   [& args]
   (let [[{:keys [^String name ^Integer stack-size ^FiberScheduler scheduler] :or {stack-size -1}} body] (kps-args args)]
-    `(let [f#     (suspendable! ~(if (== (count body) 1) (first body) `(fn [] (apply ~@body))))
+    `(let [f#     (suspendable! ~(if (== (count body) 1) (first body) `(fn [] (apply (suspendable! (first ~body)) (rest ~body)))))
            fiber# (co.paralleluniverse.fibers.Fiber. ~name (get-scheduler ~scheduler) (int ~stack-size) (->suspendable-callable f#))]
        (.start fiber#))))
 
@@ -627,11 +627,11 @@
   into the to collection"
   [to ^ReceivePort channel n]
   (if (instance? clojure.lang.IEditableCollection to)
-    (loop [to (transient to)
-           n (int n)]
+    (loop [to to
+            n (int n)]
       (if-let [m (and (pos? n) (rcv channel))]
-        (recur (conj! to m) (dec n))
-        (persistent! to)))
+        (recur (conj to m) (dec n))
+        to))
     (loop [to to
            ^ReceivePort channel channel
            n (int n)]
