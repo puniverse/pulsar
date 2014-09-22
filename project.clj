@@ -1,4 +1,4 @@
-(defproject co.paralleluniverse/pulsar "0.7.0-SNAPSHOT"
+(defproject co.paralleluniverse/pulsar "0.6.1-SNAPSHOT"
   :description "A Clojure lightweight thread, asynchronous programming, and actor library"
   :url "http://github.com/puniverse/pulsar"
   :licenses [{:name "Eclipse Public License - v 1.0" :url "http://www.eclipse.org/legal/epl-v10.html"}
@@ -14,12 +14,12 @@
                  "releases" "https://oss.sonatype.org/content/repositories/releases"}
   :test-selectors {:selected :selected}
   :dependencies [[org.clojure/clojure "1.5.1"]
-                 [co.paralleluniverse/quasar-core   "0.6.0"] ; :classifier "jdk8"
-                 [co.paralleluniverse/quasar-actors "0.6.0"]
-                 [org.clojure/core.match "0.2.1"]
+                 [co.paralleluniverse/quasar-core   "0.6.1-SNAPSHOT"] ; :classifier "jdk8"
+                 [co.paralleluniverse/quasar-actors "0.6.1-SNAPSHOT"]
+                 [org.clojure/core.match "0.2.2" :exclusions [org.ow2.asm/*]]
                  [useful "0.8.8"]
                  [gloss "0.2.2" :exclusions [com.yammer.metrics/metrics-core useful]]
-                 [org.clojure/core.typed "0.2.56" :exclusions [org.apache.ant/ant org.clojure/core.unify org.ow2.asm/*]]]
+                 [org.clojure/core.typed "0.2.67" :exclusions [org.apache.ant/ant org.clojure/core.unify org.ow2.asm/*]]]
   :manifest {"Premain-Class" "co.paralleluniverse.fibers.instrument.JavaAgent"
              "Can-Retransform-Classes" "true"}
   :jvm-opts ["-server"
@@ -28,7 +28,7 @@
              "-XX:-UseBiasedLocking"
              "-XX:+UseCondCardMark"]
   ;:injections [(alter-var-root #'*compiler-options* (constantly {:disable-locals-clearing true}))]
-  :java-agents [[co.paralleluniverse/quasar-core "0.6.0"]] ; :classifier "jdk8" :options "vd"
+  :java-agents [[co.paralleluniverse/quasar-core "0.6.1-SNAPSHOT"]] ; :classifier "jdk8" :options "vd"
   :pedantic :warn
   :profiles {;; ----------- dev --------------------------------------
              :dev
@@ -36,7 +36,7 @@
               :dependencies [[midje "1.6.0" :exclusions [org.clojure/tools.namespace]]]
               :jvm-opts [;; Debugging
                          "-ea"
-                         ;"-Dco.paralleluniverse.fibers.verifyInstrumentation=true"
+                         ;"-Dco.paralleluniverse.fibers.verifyInstrumentation"
                          ;"-Dco.paralleluniverse.fibers.traceInterrupt=true"
                          ;; Recording
                          ;"-Dco.paralleluniverse.debugMode=true"
