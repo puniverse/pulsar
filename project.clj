@@ -19,7 +19,7 @@
                  [org.clojure/core.match "0.2.2" :exclusions [org.ow2.asm/*]]
                  [useful "0.8.8"]
                  [gloss "0.2.2" :exclusions [com.yammer.metrics/metrics-core useful]]
-                 [org.clojure/core.typed "0.2.67" :exclusions [org.apache.ant/ant org.clojure/core.unify org.ow2.asm/*]]]
+                 [org.clojure/core.typed "0.2.72" :exclusions [org.apache.ant/ant org.clojure/core.unify org.ow2.asm/*]]]
   :manifest {"Premain-Class" "co.paralleluniverse.fibers.instrument.JavaAgent"
              "Can-Retransform-Classes" "true"}
   :jvm-opts ["-server"
