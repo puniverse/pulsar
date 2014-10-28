@@ -1,7 +1,7 @@
 .DS_Store
+*.iml
 .idea/
 .nrepl-port
-*.iml
 /target
 build/
 /docs/api/
