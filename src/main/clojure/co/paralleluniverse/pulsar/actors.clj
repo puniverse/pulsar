@@ -140,9 +140,11 @@
 (defmacro spawn
   "Creates and starts a new actor running in its own, newly-spawned fiber.
   
-  f - the actor function.
+  f - the actor function, or an actor created with actor, gen-server etc..
   args - (optional) arguments to for the function.
-  
+
+  If `f` is an actor rather than an actor function, the optional parameters will be ignored.
+
   Options:
   * `:name` - The actor's name (that's also given to the fiber running the actor). The name can be a string
               or a keyword, in which case it's identical to the keyword's name (i.e. a name of `\"foo\"` is the same as `:foo`).
