@@ -529,14 +529,15 @@
                                     (recur ~n (inc ~iter)))))) ; no match. try the next
                             ; ~n == nil
                             ~(if after-clause
-                               `(when-not (== ~timeout 0)
+                               `(if-not (== ~timeout 0)
                                   (do ; timeout != 0 and ~n == nil
                                     (try
                                       (co.paralleluniverse.actors.PulsarActor/await ~mailbox ~iter (- ~exp (long (System/nanoTime))) java.util.concurrent.TimeUnit/NANOSECONDS)
                                       (finally
                                         (co.paralleluniverse.actors.PulsarActor/unlock ~mailbox)))
                                     (when-not (> (long (System/nanoTime)) ~exp)
-                                      (recur ~n (inc ~iter)))))
+                                      (recur ~n (inc ~iter))))
+                                  (co.paralleluniverse.actors.PulsarActor/unlock ~mailbox))
                                `(do
                                   (try
                                     (co.paralleluniverse.actors.PulsarActor/await ~mailbox ~iter)
