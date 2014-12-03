@@ -26,4 +26,4 @@
            (! @self [7 :low])
            (! @self [1 :low])
            (! @self [17 :high])
-           (important)))))
+           (println (important))))))
