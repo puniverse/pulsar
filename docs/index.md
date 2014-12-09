@@ -246,7 +246,7 @@ Here's an example from the tests:
   fiber (spawn-fiber
       (fn []
           (await service 2 5)))]
-          (join fiber))
+          (join fiber)) ; => 7
 ~~~
 
 #### Strands
