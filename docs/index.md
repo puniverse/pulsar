@@ -243,10 +243,10 @@ Here's an example from the tests:
                   (.execute exec ^Runnable (fn []
                                               (sleep 50)
                                               (clbk (+ a b)))))
-  fiber (spawn-fiber
-      (fn []
-          (await service 2 5)))]
-          (join fiber)) ; => 7
+      fiber (spawn-fiber
+              (fn []
+                (await service 2 5)))]
+   (join fiber)) ; => 7
 ~~~
 
 #### Strands
