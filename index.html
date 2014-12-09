@@ -347,10 +347,11 @@ from the Pulsar test&nbsp;suite:</p>
 </span><span id="line-2">      <span class="nv">service</span> <span class="p">(</span><span class="k">fn </span><span class="p">[</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">clbk</span><span class="p">]</span> <span class="c1">; an asynchronous service</span>
 </span><span id="line-3">                  <span class="p">(</span><span class="nf">.execute</span> <span class="nv">exec</span> <span class="o">^</span><span class="nv">Runnable</span> <span class="p">(</span><span class="k">fn </span><span class="p">[]</span>
 </span><span id="line-4">                                              <span class="p">(</span><span class="nf">sleep</span> <span class="mi">50</span><span class="p">)</span>
-</span><span id="line-5">                                              <span class="p">(</span><span class="nf">clbk</span> <span class="p">(</span><span class="nb">+ </span><span class="nv">a</span> <span class="nv">b</span><span class="p">)))))]</span>
-</span><span id="line-6">  <span class="p">(</span><span class="nf">spawn-fiber</span>
-</span><span id="line-7">      <span class="p">(</span><span class="k">fn </span><span class="p">[]</span>
-</span><span id="line-8">          <span class="p">(</span><span class="nb">await </span><span class="nv">service</span> <span class="mi">2</span> <span class="mi">5</span><span class="p">))))</span> <span class="c1">; =&gt; 7</span>
+</span><span id="line-5">                                              <span class="p">(</span><span class="nf">clbk</span> <span class="p">(</span><span class="nb">+ </span><span class="nv">a</span> <span class="nv">b</span><span class="p">)))))</span>
+</span><span id="line-6">      <span class="nv">fiber</span> <span class="p">(</span><span class="nf">spawn-fiber</span>
+</span><span id="line-7">              <span class="p">(</span><span class="k">fn </span><span class="p">[]</span>
+</span><span id="line-8">                <span class="p">(</span><span class="nb">await </span><span class="nv">service</span> <span class="mi">2</span> <span class="mi">5</span><span class="p">)))]</span>
+</span><span id="line-9">   <span class="p">(</span><span class="nb">join </span><span class="nv">fiber</span><span class="p">))</span> <span class="c1">; =&gt; 7</span>
 </span></code></pre></div>
 <h4 id="strands">Strands</h4>
 
