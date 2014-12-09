@@ -242,10 +242,11 @@ Here's an example from the tests:
       service (fn [a b clbk] ; an asynchronous service
                   (.execute exec ^Runnable (fn []
                                               (sleep 50)
-                                              (clbk (+ a b)))))]
-  (spawn-fiber
-      (fn []
-          (await service 2 5)))) ; => 7
+                                              (clbk (+ a b)))))
+      fiber (spawn-fiber
+              (fn []
+                (await service 2 5)))]
+   (join fiber)) ; => 7
 ~~~
 
 #### Strands
