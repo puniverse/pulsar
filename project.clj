@@ -75,7 +75,7 @@
              {:plugins [[lein-midje "3.1.1"]
                         [codox "0.6.4"]
                         [lein-marginalia "0.7.1"]]
-              :dependencies [[midje "1.6.0"]]
+              :dependencies [[midje "1.6.3"]]
               :exclusions [org.clojure/tools.namespace]
               :injections [(require 'clojure.test)
                            (alter-var-root #'clojure.test/*load-tests* (constantly false))]
