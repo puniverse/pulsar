@@ -489,7 +489,7 @@
   Unlike clojure.core/promise, this promise object can be used inside Pulsar fibers."
   ([f]
    (let [dv (Val. (->suspendable-callable (suspendable! f)))]
-     (reify
+     (sreify
        clojure.lang.IDeref
        (deref [_]
               (.get dv))

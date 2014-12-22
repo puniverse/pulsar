@@ -635,7 +635,7 @@
                                                         (long ~timeout) java.util.concurrent.TimeUnit/MILLISECONDS
                                                         nil (->MailboxConfig ~mailbox-size ~overflow-policy))))
 
-(defn call!
+(defsfn call!
   "Makes a synchronous call to a gen-server and returns the response"
   ([^co.paralleluniverse.actors.behaviors.Server gs m]
    (unwrap-exception
@@ -644,7 +644,7 @@
    (unwrap-exception
      (.call gs (vec (cons m args))))))
 
-(defn call-timed!
+(defsfn call-timed!
   "Makes a synchronous call to a gen-server and returns the response"
   ([^co.paralleluniverse.actors.behaviors.Server gs timeout unit m]
    (unwrap-exception
@@ -665,12 +665,12 @@
   [timeout unit]
   (.setTimeout (ServerActor/currentServerActor) timeout (->timeunit unit)))
 
-(defn reply!
+(defsfn reply!
   "Replies to a message sent to the current gen-server"
   [^Actor to id res]
   (.reply (ServerActor/currentServerActor) to id res))
 
-(defn reply-error!
+(defsfn reply-error!
   "Replies with an error to a message sent to the current gen-server"
   [^Actor to id ^Throwable error]
   (.replyError (ServerActor/currentServerActor) to id error))

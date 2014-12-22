@@ -39,8 +39,7 @@ import org.objectweb.asm.Type;
  * @author pron
  */
 public class ClojureHelper {
-    // This whole mess with lastInstrumented is a heuristic to save us from calling clazz.isAnnotationPresent(Instrumented.class)),
-    // which turns out to be *slow*.
+    // This whole mess with lastInstrumented is a heuristic to save us from calling clazz.isAnnotationPresent(Instrumented.class) which turns out to be *slow*.
     private static final int NUM_LAST_INSTRUMENTED = 3;
     private static final ThreadLocal<Class[]> lastInstrumented = new ThreadLocal<Class[]>() {
         @Override
@@ -65,7 +64,10 @@ public class ClojureHelper {
         Retransform.addWaiver("clojure.lang.RestFn", "invoke");
         Retransform.addWaiver("clojure.lang.RestFn", "doInvoke");
         Retransform.addWaiver("clojure.core$apply", "invoke");
+        Retransform.addWaiver("clojure.core$deref", "invoke");
+
         Retransform.addWaiver("co.paralleluniverse.pulsar.InstrumentedIFn", "invoke");
+        Retransform.addWaiver("co.paralleluniverse.pulsar.InstrumentedIFn", "applyTo");
 
         Retransform.addWaiver("co.paralleluniverse.actors.behaviors.EventHandler", "handleEvent");
 
@@ -95,7 +97,7 @@ public class ClojureHelper {
         final boolean isClass = thing instanceof Class;
         final Class clazz = isClass ? (Class) thing : thing.getClass();
 
-        final boolean isIFn = IFn.class.isAssignableFrom(clazz);
+        final boolean isIFn = protocols == null && IFn.class.isAssignableFrom(clazz);
 
         if (IInstrumented.class.isAssignableFrom(clazz) || clazz.isAnnotationPresent(Instrumented.class)) {
             if (isIFn) {
@@ -137,7 +139,7 @@ public class ClojureHelper {
                 Method[] methods = cls.getMethods();
 
                 for (Method method : methods) {
-                    if ((IFn.class.isAssignableFrom(cls) && (method.getName().equals("invoke") || method.getName().equals("doInvoke")))
+                    if ((IFn.class.isAssignableFrom(cls) && (method.getName().equals("invoke") || method.getName().equals("doInvoke") || method.getName().equals("invokePrim")))
                             || (cls == clazz && !isIFn && protocolMethods.contains(method.getName()))) { // method.getDeclaringClass().equals(clazz))) {
                         ce.set(method.getName(), Type.getMethodDescriptor(method), MethodDatabase.SuspendableType.SUSPENDABLE);
                     }
