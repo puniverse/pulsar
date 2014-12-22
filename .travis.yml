@@ -1,4 +1,5 @@
 language: clojure
+sudo: false
 lein: lein2
 script: lein2 midje :print-facts
 jdk:
