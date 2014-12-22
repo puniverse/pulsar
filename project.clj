@@ -33,7 +33,7 @@
   :profiles {;; ----------- dev --------------------------------------
              :dev
              {:plugins [[lein-midje "3.1.1"]]
-              :dependencies [[midje "1.6.0" :exclusions [org.clojure/tools.namespace]]]
+              :dependencies [[midje "1.6.3" :exclusions [org.clojure/tools.namespace]]]
               :jvm-opts [;; Debugging
                          "-ea"
                          ;"-Dco.paralleluniverse.fibers.verifyInstrumentation"
