@@ -16,6 +16,7 @@
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [co.paralleluniverse/quasar-core   "0.6.2"] ; :classifier "jdk8"
                  [co.paralleluniverse/quasar-actors "0.6.2"]
+                 [org.ow2.asm/asm "5.0.3"]
                  [org.clojure/core.match "0.2.2" :exclusions [org.ow2.asm/*]]
                  [useful "0.8.8"]
                  [gloss "0.2.4" :exclusions [com.yammer.metrics/metrics-core useful]]

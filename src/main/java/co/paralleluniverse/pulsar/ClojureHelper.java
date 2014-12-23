@@ -32,7 +32,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import com.google.common.base.Function;
-import org.objectweb.asm.Type;
+import co.paralleluniverse.asm.Type;
 
 /**
  *
