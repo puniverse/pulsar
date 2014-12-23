@@ -10,10 +10,9 @@ branches:
 env:
   global:
     - secure: "awdH1k9QfkxoeiS29nqnSEOMcY7tCvilNIM1pEtp3XkoPRxFzSqmCHNfDQnaqOVLr40dcDId08JP7CUWFZCkKPeQko+yTgHbr29R2+vAHlmSIiZiRrSP7I4yX+MN4ePrFjI+ltEx1cr5JWTGhtFPbILimKvpl4vCpmL5Kixqi30="
-    - DOCS_BRANCH="0.6.1"
+    - DOCS_BRANCH="0.6.2"
     - GEN_APIDOCS="lein2 with-profile doc do doc, marg src/test/clojure/co/paralleluniverse/pulsar/*.clj src/test/clojure/co/paralleluniverse/pulsar/examples/*.clj"
 
 after_success:
   - chmod a+x travis/post_build.sh
   - ./travis/post_build.sh
-
