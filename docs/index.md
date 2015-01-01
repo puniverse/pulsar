@@ -1046,14 +1046,14 @@ in which case the name will be the one given to the actor when it was `spawn`ed.
 You obtain a reference to a registered actor with:
 
 ~~~ clojure
-(whois name)
+(whereis name)
 ~~~
 
 but most actor-related functions can work directly with the registered name. For example, instead of this:
 
 ~~~ clojure
 (register! actor :foo)
-(! (whois :foo) "hi foo!")
+(! (whereis :foo) "hi foo!")
 ~~~
 
 you can write:
