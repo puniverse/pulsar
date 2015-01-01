@@ -992,16 +992,16 @@ Pulsar supports this as an experimental feature (implemented internally with <co
 
 <p>You obtain a reference to a registered actor&nbsp;with:</p>
 
-<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">whois</span> <span class="nv">name</span><span class="p">)</span>
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">whereis</span> <span class="nv">name</span><span class="p">)</span>
 </span></code></pre></div>
 <p>but most actor-related functions can work directly with the registered name. For example, instead of&nbsp;this:</p>
 
 <div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">register!</span> <span class="nv">actor</span> <span class="ss">:foo</span><span class="p">)</span>
-</span><span id="line-2"><span class="p">(</span><span class="nf">!</span> <span class="p">(</span><span class="nf">whois</span> <span class="ss">:foo</span><span class="p">)</span> <span class="s">&quot;hi foo!&quot;</span><span class="p">)</span>
+</span><span id="line-2"><span class="p">(</span><span class="nf">!</span> <span class="p">(</span><span class="nf">whereis</span> <span class="ss">:foo</span><span class="p">)</span> <span class="s">&quot;hi foo!&quot;</span><span class="p">)</span>
 </span></code></pre></div>
 <p>you can&nbsp;write:</p>
 
-<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">register</span> <span class="nv">!actor</span> <span class="ss">:foo</span><span class="p">)</span>
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">register!</span> <span class="nv">actor</span> <span class="ss">:foo</span><span class="p">)</span>
 </span><span id="line-2"><span class="p">(</span><span class="nf">!</span> <span class="ss">:foo</span> <span class="s">&quot;hi foo!&quot;</span><span class="p">)</span>
 </span></code></pre></div>
 <p>You unregister an actor like&nbsp;so:</p>
@@ -1290,11 +1290,11 @@ Pulsar supports this as an experimental feature (implemented internally with <co
 </span></code></pre></div>
 <p>To make an actor discoverable, all you need to do is register&nbsp;it:</p>
 
-<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">register</span> <span class="nv">actor</span> <span class="ss">:global-actor1</span><span class="p">)</span>
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">register!</span> <span class="nv">actor</span> <span class="ss">:global-actor1</span><span class="p">)</span>
 </span></code></pre></div>
 <p>or, if the actor already has a name (set in <code>spawn</code>), simply&nbsp;call:</p>
 
-<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">register</span><span class="p">)</span>
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">register!</span><span class="p">)</span>
 </span></code></pre></div>
 <p>That’s it. The actor is now known throughout the cluster. If you want to send a message to it,&nbsp;call</p>
 
