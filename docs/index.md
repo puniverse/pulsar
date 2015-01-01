@@ -1059,7 +1059,7 @@ but most actor-related functions can work directly with the registered name. For
 you can write:
 
 ~~~ clojure
-(register !actor :foo)
+(register! actor :foo)
 (! :foo "hi foo!")
 ~~~
 
@@ -1394,13 +1394,13 @@ First, you will need to add `quasar-galaxy` as a dependency to your project:
 To make an actor discoverable, all you need to do is register it:
 
 ~~~ clojure
-(register actor :global-actor1)
+(register! actor :global-actor1)
 ~~~
 
 or, if the actor already has a name (set in `spawn`), simply call:
 
 ~~~ clojure
-(register)
+(register!)
 ~~~
 
 That's it. The actor is now known throughout the cluster. If you want to send a message to it, call
