@@ -26,9 +26,37 @@ public class PulsarSuspendableClassifier implements SuspendableClassifier {
         if (className.equals("clojure/lang/IFn")) {
             if (methodName.equals("invoke"))
                 return SuspendableType.SUSPENDABLE_SUPER;
-        } else if (className.startsWith("clojure/lang/IFn$") && methodName.equals("invokePrim"))
+        }
+        else if (className.startsWith("clojure/lang/IFn$") && methodName.equals("invokePrim"))
             return SuspendableType.SUSPENDABLE_SUPER;
+        else if (isClojureUserFunction(db, className, superClassName, interfaces, methodName, methodDesc, methodSignature, methodExceptions))
+            return SuspendableType.SUSPENDABLE; // circlespainter: making all Clojure functions suspendable [EVAL]
 
         return null;
+    }
+
+    private static boolean isClojureUserFunction(MethodDatabase db, String className, String superClassName, String[] interfaces, String methodName, String methodDesc, String methodSignature, String[] methodExceptions) {
+        // Based mostly on http://nicholaskariniemi.github.io/2014/01/26/clojure-compilation.html and http://clojure.org/compilation
+        // TODO try to reuse any decently packed Clojure compiler's logic (if there's any)
+        return !isClojureCoreClassName(className)
+                && isClojureFunctionName(className)
+                && isClojureFunctionSuperClassName(superClassName)
+                && isClojureFunctionInvocationMethodName(methodName);
+    }
+
+    private static boolean isClojureCoreClassName(String className) {
+        return className != null && (className.startsWith("clojure/core$") || className.startsWith("clojure/lang/"));
+    }
+
+    private static boolean isClojureFunctionInvocationMethodName(String methodName) {
+        return "invoke".equals(methodName) || "doInvoke".equals(methodName);
+    }
+
+    private static boolean isClojureFunctionSuperClassName(String superClassName) {
+        return superClassName != null && (superClassName.endsWith("AFunction") || superClassName.endsWith("RestFn"));
+    }
+
+    private static boolean isClojureFunctionName(String className) {
+        return className != null && className.contains("$");
     }
 }
