@@ -36,7 +36,17 @@ public class PulsarSuspendableClassifier implements SuspendableClassifier {
     }
 
     private static boolean isClojureUserFunction(MethodDatabase db, String className, String superClassName, String[] interfaces, String methodName, String methodDesc, String methodSignature, String[] methodExceptions) {
-        // Based mostly on http://nicholaskariniemi.github.io/2014/01/26/clojure-compilation.html and http://clojure.org/compilation
+
+        // Refs (based mostly on first two):
+        //
+        // - http://nicholaskariniemi.github.io/2014/01/26/clojure-compilation.html
+        // - http://clojure.org/compilation
+        // - https://github.com/clojure/clojure/blob/clojure-1.6.0/src/jvm/clojure/lang/Compiler.java#L3462
+        // - https://github.com/clojure/clojure/blob/clojure-1.6.0/src/jvm/clojure/lang/Compiler.java#L2800
+        // - https://github.com/pallet/ritz/blob/develop/repl-utils/src/ritz/repl_utils/mangle.clj
+
+        // TODO protocols
+        // TODO datatypes?
         // TODO try to reuse any decently packed Clojure compiler's logic (if there's any)
         return !isClojureCoreClassName(className)
                 && isClojureFunctionName(className)
