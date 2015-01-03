@@ -166,12 +166,12 @@
   {:arglists '([:name? :mailbox-size? :overflow-policy? :trap? :lifecycle-handler? :scheduler? :stack-size? f & args])}
   [& args]
   (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size overflow-policy ^IFn lifecycle-handler ^Integer stack-size ^FiberScheduler scheduler], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)
-        b (gensym 'b)
-        args (gensym 'args)
+        b   (gensym 'b)    ; Using 'gensym' as autogen syms (e.g. 'sym#') seem not to behave as desired in unquote
         cls (gensym 'cls)]
-    `(let [~b     (first ~body)        ; by-val semantics for 'spawn': eval function value
-           ~args  (list ~@(rest body)) ; by-val semantics for 'spawn': eval args
-           ~cls   (fn [] (apply ~b ~args))
+    `(let [args#  (list ~@(rest body))     ; eval once all args
+           ~b     (first ~body)            ; eval once the function
+           ~cls   (fn [] (apply ~b args#)) ; => "call-by-value"-like behaviour for spawned function when args are being
+                                           ;    passed (so that e.g. arguments containing @self are correctly evaluated)
            nme#   (when ~name (clojure.core/name ~name))
            f#     (when (not (instance? Actor ~b))
                     (suspendable! ~(if (== (count body) 1) b cls)))
