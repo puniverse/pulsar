@@ -42,15 +42,46 @@
   [n]
   [(if (= n 1) (BoxQueue. true false) (CircularObjectBuffer. (int n) false)) Channels$OverflowPolicy/DISPLACE])
 
+; TODO test
+(defmacro rx-chan [chan-class-name chan-class-constructor-args xform ex-handler]
+  "Proxies an object channel's receive methods by applying a given
+  transformation and exception handling for it."
+  `(let [xform# ~xform
+         ex-handler# ~ex-handler
+         tranform-and-handle# (fn [val-producer#]
+                                (if ex-handler#
+                                  (try (xform# (val-producer#))
+                                       (catch Throwable t# (or (ex-handler# t#) (throw t#))))
+                                  (val-producer#)))]
+     (cond
+       (and (nil? xform#) (nil? ex-handler#))
+         (new ~chan-class-name ~@chan-class-constructor-args)
+       :else
+         (proxy [~chan-class-name] ~chan-class-constructor-args
+           (receive
+             ([] (tranform-and-handle# #(proxy-super receive)))
+             ([unit#] (tranform-and-handle# #(proxy-super receive unit#)))
+             ([timeout# unit#] (tranform-and-handle# #(proxy-super receive timeout# unit#))))
+           (tryReceive [] (tranform-and-handle# #(proxy-super tryReceive)))))))
+
+; TODO test new functionality
 (defn chan
-  "Creates a channel with an optional buffer. If buf-or-n is a number, 
-  will create and use a fixed buffer of that size."
+  "Creates a channel with an optional buffer, an optional transducer
+  (like (map f), (filter p) etc or a composition thereof), and an
+  optional exception-handler.  If buf-or-n is a number, will create
+  and use a fixed buffer of that size. If a transducer is supplied a
+  buffer must be specified. ex-handler must be a fn of one argument -
+  if an exception occurs during transformation it will be called with
+  the Throwable as an argument, and any non-nil return value will be
+  placed in the channel."
   ([] (chan nil))
-  ([buf-or-n] 
+  ([buf-or-n] (chan buf-or-n nil))
+  ([buf-or-n xform] (chan buf-or-n xform nil))
+  ([buf-or-n xform ex-handler]
    (cond
-     (nil? buf-or-n)    (TransferChannel.)
-     (number? buf-or-n) (chan (buffer buf-or-n))
-     :else              (QueueObjectChannel. (first buf-or-n) (second buf-or-n) false))))
+     (number? buf-or-n) (chan (buffer buf-or-n) xform ex-handler)
+     (nil? buf-or-n)    (rx-chan TransferChannel [] xform ex-handler)
+     :else              (rx-chan QueueObjectChannel [(first buf-or-n) (second buf-or-n) false] xform ex-handler))))
 
 (defsfn <!
   "takes a val from port. Must be called inside a (go ...) block. Will
