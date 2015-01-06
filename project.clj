@@ -3,7 +3,7 @@
   :url "http://github.com/puniverse/pulsar"
   :licenses [{:name "Eclipse Public License - v 1.0" :url "http://www.eclipse.org/legal/epl-v10.html"}
              {:name "GNU Lesser General Public License - v 3" :url "http://www.gnu.org/licenses/lgpl.html"}]
-  :min-lein-version "2.2.0"
+  :min-lein-version "2.5.0"
   :distribution :repo
   :source-paths      ["src/main/clojure"]
   :test-paths        ["src/test/clojure"]
@@ -13,14 +13,14 @@
   :repositories {"snapshots" "https://oss.sonatype.org/content/repositories/snapshots"
                  "releases" "https://oss.sonatype.org/content/repositories/releases"}
   :test-selectors {:selected :selected}
-  :dependencies [[org.clojure/clojure "1.5.1"]
+  :dependencies [[org.clojure/clojure "1.6.0"]
                  [co.paralleluniverse/quasar-core   "0.6.3-SNAPSHOT"] ; :classifier "jdk8"
                  [co.paralleluniverse/quasar-actors "0.6.3-SNAPSHOT"]
                  [org.ow2.asm/asm "5.0.3"]
                  [org.clojure/core.match "0.2.2" :exclusions [org.ow2.asm/*]]
                  [useful "0.8.8"]
                  [gloss "0.2.4" :exclusions [com.yammer.metrics/metrics-core useful]]
-                 [org.clojure/core.typed "0.2.72" :exclusions [org.apache.ant/ant org.clojure/core.unify org.ow2.asm/*]]]
+                 [org.clojure/core.typed "0.2.77" :exclusions [org.apache.ant/ant org.clojure/core.unify org.ow2.asm/*]]]
   :manifest {"Premain-Class" "co.paralleluniverse.fibers.instrument.JavaAgent"
              "Can-Retransform-Classes" "true"}
   :jvm-opts ["-server"
@@ -29,11 +29,11 @@
              "-XX:-UseBiasedLocking"
              "-XX:+UseCondCardMark"]
   ;:injections [(alter-var-root #'*compiler-options* (constantly {:disable-locals-clearing true}))]
-  :java-agents [[co.paralleluniverse/quasar-core "0.6.2"]] ; :classifier "jdk8" :options "vd"
+  :java-agents [[co.paralleluniverse/quasar-core "0.6.3-SNAPSHOT"]] ; :classifier "jdk8" :options "vd"
   :pedantic :warn
   :profiles {;; ----------- dev --------------------------------------
              :dev
-             {:plugins [[lein-midje "3.1.1"]]
+             {:plugins [[lein-midje "3.1.3"]]
               :dependencies [[midje "1.6.3" :exclusions [org.clojure/tools.namespace]]]
               :jvm-opts [;; Debugging
                          "-ea"
@@ -53,7 +53,7 @@
              ;; ----------- cluster --------------------------------------
              :cluster
              {:repositories {"oracle" "http://download.oracle.com/maven/"}
-              :dependencies [[co.paralleluniverse/quasar-galaxy "0.6.1"]]
+              :dependencies [[co.paralleluniverse/quasar-galaxy "0.6.3-SNAPSHOT"]]
               :java-source-paths ["src/cluster/java"]
               :jvm-opts [;; Debugging
                          "-ea"
@@ -73,9 +73,9 @@
 
              ;; ----------- doc --------------------------------------
              :doc
-             {:plugins [[lein-midje "3.1.1"]
-                        [codox "0.6.4"]
-                        [lein-marginalia "0.7.1"]]
+             {:plugins [[lein-midje "3.1.3"]
+                        [codox "0.8.10"]
+                        [lein-marginalia "0.8.0"]]
               :dependencies [[midje "1.6.3"]]
               :exclusions [org.clojure/tools.namespace]
               :injections [(require 'clojure.test)
