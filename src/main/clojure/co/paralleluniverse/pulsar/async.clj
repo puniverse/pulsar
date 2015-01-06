@@ -13,16 +13,18 @@
 ; Docstrings are Copyright (c) Rich Hickey and contributors, Parallel Universe
 ;
 (ns co.paralleluniverse.pulsar.async
-  "Implementation of core.async"
+  "Fiber-based implementation of core.async"
   (:import
-    [co.paralleluniverse.strands.channels Channel QueueObjectChannel TransferChannel TimeoutChannel Channels$OverflowPolicy
-     SendPort ReceivePort Selectable Selector SelectAction]
+    [co.paralleluniverse.strands.channels QueueObjectChannel TransferChannel TimeoutChannel Channels$OverflowPolicy
+                                          SendPort ReceivePort Selector SelectAction]
     [co.paralleluniverse.strands.queues ArrayQueue BoxQueue CircularObjectBuffer]
-    [co.paralleluniverse.pulsar ClojureHelper]
-    [java.util.concurrent TimeUnit ThreadLocalRandom Executors Executor ScheduledExecutorService]
-    [com.google.common.util.concurrent ThreadFactoryBuilder])
+    [java.util.concurrent TimeUnit Executors Executor]
+    [com.google.common.util.concurrent ThreadFactoryBuilder]
+    (java.util List))
   (:require
     [co.paralleluniverse.pulsar.core :as p :refer [defsfn]]))
+
+; TODO port (or run unmodified if possible) original async testsuite
 
 (defn buffer
   "Returns a fixed buffer of size n. When full, puts will block/park."
@@ -42,17 +44,19 @@
   [n]
   [(if (= n 1) (BoxQueue. true false) (CircularObjectBuffer. (int n) false)) Channels$OverflowPolicy/DISPLACE])
 
-; TODO test
 (defmacro rx-chan [chan-class-name chan-class-constructor-args xform ex-handler]
   "Proxies an object channel's receive methods by applying a given
   transformation and exception handling for it."
   `(let [xform# ~xform
          ex-handler# ~ex-handler
          tranform-and-handle# (fn [val-producer#]
-                                (if ex-handler#
-                                  (try (xform# (val-producer#))
-                                       (catch Throwable t# (or (ex-handler# t#) (throw t#))))
-                                  (val-producer#)))]
+                                (let [val# (val-producer#)]
+                                  (if xform#
+                                    (if ex-handler#
+                                      (try (xform# (val-producer#))
+                                           (catch Throwable t# (or (ex-handler# t#) (throw t#))))
+                                      (val-producer#))
+                                    val#)))]
      (cond
        (and (nil? xform#) (nil? ex-handler#))
          (new ~chan-class-name ~@chan-class-constructor-args)
@@ -64,11 +68,10 @@
              ([timeout# unit#] (tranform-and-handle# #(proxy-super receive timeout# unit#))))
            (tryReceive [] (tranform-and-handle# #(proxy-super tryReceive)))))))
 
-; TODO test new functionality
 (defn chan
   "Creates a channel with an optional buffer, an optional transducer
   (like (map f), (filter p) etc or a composition thereof), and an
-  optional exception-handler.  If buf-or-n is a number, will create
+  optional exception-handler. If buf-or-n is a number, will create
   and use a fixed buffer of that size. If a transducer is supplied a
   buffer must be specified. ex-handler must be a fn of one argument -
   if an exception occurs during transformation it will be called with
@@ -115,17 +118,20 @@
 ;; Unlike in core.async put! is a second-class citizen of this implementation. 
 ;; It gives no performance benefits over using go >!
 (defn put!
-  "Asynchronously puts a val into port, calling fn0 (if supplied) when
-  complete. nil values are not allowed. Will throw if closed. If
-  on-caller? (default true) is true, and the put is immediately
-  accepted, will call fn0 on calling thread.  Returns nil."
+  "Asynchronously puts a val into port, calling fn1 (if supplied) when
+   complete, returning false iff port is already closed. nil values are
+   not allowed. If on-caller? (default true) is true, and the put is
+   immediately accepted, will call fn1 on calling thread.  Returns
+   true unless port is already closed."
 ([port val] (put! port val nil))
-([port val fn0] (put! port val fn0 true))
-([port val fn0 on-caller?]
- (if (and on-caller? (p/try-snd port val))
-   (when fn0 (fn0))
-   (p/spawn-fiber #((p/snd port val) 
-                    (when fn0 (fn0)))))))
+([port val fn1] (put! port val fn1 true))
+([port val fn1 on-caller?]
+  (if (not (p/closed? port))
+    (if (and on-caller? (p/try-snd port val))
+      (when fn1 (fn1))
+      (p/spawn-fiber #((p/snd port val)
+                       (when fn1 (fn1)))))
+    false)))
 
 (defn close!
   "Closes a channel. The channel will no longer accept any puts (they
@@ -141,18 +147,28 @@
   [msecs]
   (TimeoutChannel/timeout msecs TimeUnit/MILLISECONDS))
 
-(defn ^SelectAction do-alts
-  [ports priority dflt]
-  (let [^boolean priority (if priority true false)
-        ^java.util.List ps (map (fn [port]
+(defn- do-alts-internal
+  "Returns a SelectAction given a set of selection operations and an options map"
+  [ports opts]
+  (let [^boolean priority (if (:priority opts) true false)
+        ^List ps (map (fn [port]
                                   (if (vector? port)
                                     (Selector/send ^SendPort (first port) (second port))
                                     (Selector/receive ^ReceivePort port)))
                                 ports)
-        ^SelectAction sa (if dflt
+        ^SelectAction sa (if (:default opts)
                            (Selector/trySelect priority ps)
                            (Selector/select    priority ps))]
     sa))
+
+(defn do-alts
+  "Returns derefable [val port] if immediate, nil if enqueued"
+  [fret ports opts]
+  (let [sa (do-alts-internal ports opts)
+        v [(.message sa) (.port sa)]]
+    (if (and (contains? opts :default) (nil? sa))
+      [(:default opts) :default]
+      (if fret (fret v) v))))
 
 (defn alts!
   "Completes at most one of several channel operations. Must be called
@@ -174,15 +190,12 @@
   
   Note: there is no guarantee that the port exps or val exprs will be
   used, nor in what order should they be, so they should not be
-  depended upon for side effects."
+  depended upon for side effects.
+
+  Pulsar implementation: Identical to alts!!. May be used outside go blocks as well."
 
 [ports & {:as opts}]
-(let [dflt (contains? opts :default)
-      ^SelectAction sa (do-alts ports (:priority opts) dflt)]
-  (if (and dflt (nil? sa))
-    [(:default opts) :default]
-    [(.message sa) (.port sa)])))
-
+(do-alts identity ports opts))
 
 (defmacro alt!
  "Makes a single choice between one of several channel operations,
@@ -210,7 +223,9 @@
   :default 42)
   
   Each option may appear at most once. The choice and parking
-  characteristics are those of alts!."
+  characteristics are those of alts!.
+
+  Pulsar implementation: Identical to alt!!. May be used outside go blocks as well."
   [& clauses]
   (let [clauses (partition 2 clauses)
         opt? #(keyword? (first %)) 
@@ -224,8 +239,8 @@
         priority (:priority opts)
         dflt (contains? opts :default)
         sa (gensym "sa")]
-    `(let [^co.paralleluniverse.strands.channels.SelectAction ~sa
-           (do-alts (list ~@ports) ~priority ~dflt)]
+    `(let [^SelectAction ~sa
+           (do-alts-internal (list ~@ports) ~opts)]
        ~@(p/surround-with (when dflt
                    `(if (nil? ~sa) ~(:default opts)))
                  `(case (.index ~sa)
