@@ -148,24 +148,37 @@
   Options:
   * `:name` - The actor's name (that's also given to the fiber running the actor). The name can be a string
               or a keyword, in which case it's identical to the keyword's name (i.e. a name of `\"foo\"` is the same as `:foo`).
-  * `:mailbox-size` - The number of messages that can wait in the mailbox, 
+  * `:mailbox-size` - The number of messages that can wait in the mailbox,
                       or -1 (the default) for an unbounded mailbox.
-  * `:overflow-policy` - What to do if a bounded mailbox overflows. Can be on of:
+  * `:overflow-policy` - What to do if a bounded mailbox overflows. Can be one of:
      - `:throw` - an exception will be thrown *into the receiving actor*
-     - `:drop`  -  the message will be silently discarded 
-     - `:block` - the sender will block until there's room in the mailbox.  
+     - `:drop`  -  the message will be silently discarded
+     - `:block` - the sender will block until there's room in the mailbox.
   * `:trap` - If set to `true`, linked actors' death will send an exit message rather than throw an exception.
   * `:lifecycle-handler` - A function that will be called to handle special messages sent to the actor.
                            If set to `nil` (the default), the default handler is used, which is what you
                            want in all circumstances, except for some actors that are meant to do some
                            special tricks.
+  * `:strand-type` - Whether to run this actor in a fiber or a thread. Either
+     - `:fiber` - The default - run the actor in a fiber.
+     - `:thread` - Run the actor in a native thread.
   * `:scheduler` - The `FiberScheduler` in which the fiber will run.
                    If not specified, then the pool used will be either the pool of the fiber calling
                    `spawn-fiber`, or, if `spawn-fiber` is not called from within a fiber, a default pool.
-  * `:stack-size` - The initial fiber stack size."
-  {:arglists '([:name? :mailbox-size? :overflow-policy? :trap? :lifecycle-handler? :scheduler? :stack-size? f & args])}
+                   Ignored when the `strand-type` is `:thread`.
+  * `:stack-size` - The initial fiber stack size.
+                    Ignored when the `strand-type` is `:thread`."
+  {:arglists '([:name? :mailbox-size? :overflow-policy? :trap? :lifecycle-handler? :strand-type? :scheduler? :stack-size? f & args])}
   [& args]
-  (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size overflow-policy ^IFn lifecycle-handler ^Integer stack-size ^FiberScheduler scheduler], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)
+  (let [[{:keys [^String name
+                 ^Integer mailbox-size
+                 ^Boolean trap
+                 overflow-policy
+                 ^IFn lifecycle-handler
+                 ^Integer stack-size
+                 ^FiberScheduler scheduler
+                 ^clojure.lang.Keyword strand-type],
+          :or {trap false mailbox-size -1 stack-size -1 strand-type :fiber}} body] (kps-args args)
         b   (gensym 'b)    ; Using 'gensym' as autogen syms (e.g. 'sym#') seem not to behave as desired in unquote
         cls (gensym 'cls)]
     `(let [args#  (list ~@(rest body))     ; eval once all args
@@ -182,8 +195,13 @@
                                                                          ~trap
                                                                          (->MailboxConfig ~mailbox-size ~overflow-policy)
                                                                          ~lifecycle-handler f#))
-           fiber# (co.paralleluniverse.fibers.Fiber. nme# (get-scheduler ~scheduler) (int ~stack-size) actor#)]
-       (.start fiber#)
+           strand# (condp = ~strand-type
+                     :fiber (let [fiber#
+                                  (co.paralleluniverse.fibers.Fiber. nme# (get-scheduler ~scheduler) (int ~stack-size) actor#)]
+                              (.start fiber#)
+                              fiber#)
+                     :thread (.spawnThread actor#)
+                     )]
        (.ref actor#))))
 
 (defmacro recur-swap
