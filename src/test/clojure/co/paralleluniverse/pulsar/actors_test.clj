@@ -300,12 +300,12 @@
                  (fact "Fiber" (action fiber-actor) => effect)
                  (fact "Thread" (action thread-actor) => effect)))
          (fact "Test primitive actor-state"
-               (let [actor (actor [^int sum 0]
+               (let [actor #(actor [^int sum 0]
                                   (set! sum (int (+ sum (receive))))
                                   (set! sum (int (+ sum (receive))))
                                   sum)
-                     fiber-actor (spawn actor)
-                     thread-actor (spawn-thread-actor actor)]
+                     fiber-actor (spawn (actor))
+                     thread-actor (spawn-thread-actor (actor))]
                  (fact "Fiber" (action fiber-actor) => effect)
                  (fact "Thread" (action thread-actor) => effect)))))
 
