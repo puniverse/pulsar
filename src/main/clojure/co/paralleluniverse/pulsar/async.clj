@@ -16,17 +16,18 @@
 ; Distributed under the Eclipse Public License, the same as Clojure.
 ;
 (ns co.paralleluniverse.pulsar.async
-  "Fiber-based re-implementation of [org.clojure/core.async \"0.1.346.0-17112a-alpha\"]"
+  "Fiber-based implementation of [org.clojure/core.async \"0.1.346.0-17112a-alpha\"]"
   (:refer-clojure :exclude [reduce into merge map take partition  partition-by] :as core)
   (:require
     [co.paralleluniverse.pulsar.core :as p :refer [defsfn sfn]])
   (:import
-    [co.paralleluniverse.strands.channels QueueObjectChannel TransferChannel TimeoutChannel Channels$OverflowPolicy SendPort ReceivePort Selector SelectAction]
+    [co.paralleluniverse.strands.channels QueueObjectChannel TransferChannel TimeoutChannel Channels$OverflowPolicy SendPort ReceivePort Selector SelectAction DelegatingChannel Channels]
     [co.paralleluniverse.strands.queues ArrayQueue BoxQueue CircularObjectBuffer]
     [java.util.concurrent TimeUnit Executors Executor]
     [com.google.common.util.concurrent ThreadFactoryBuilder]
     (java.util List Arrays)
-    (co.paralleluniverse.strands Strand)))
+    (co.paralleluniverse.strands Strand)
+    (com.google.common.base Function)))
 
 (alias 'core 'clojure.core)
 
@@ -56,29 +57,25 @@
   [buff]
   false) ; TODO Verify correctness for Pulsar's core.async impl
 
-(defmacro rx-chan [chan-class-name chan-class-constructor-args xform ex-handler]
-  "Proxies an object channel's receive methods by applying a given
-   transformation and exception handling for it."
-  `(let [xform# ~xform
-         ex-handler# ~ex-handler
-         tranform-and-handle# (fn [val-producer#]
-                                (let [val# (val-producer#)]
-                                  (if xform#
-                                    (if ex-handler#
-                                      (try (xform# (val-producer#))
-                                           (catch Throwable t# (or (ex-handler# t#) (throw t#))))
-                                      (val-producer#))
-                                    val#)))]
+(defn rx-chan [chan xform ex-handler]
+  "Returns a new transforming channel based on the one passed as a first argument. The given transformation will
+  be applied."
+  (let [tranform-and-handle (if xform
+                              (if ex-handler
+                                (fn [val-producer]
+                                  (let [val (val-producer)]
+                                    (try (xform val)
+                                      (catch Throwable t# (or (ex-handler t) (throw t))))))
+                                  (fn [val-producer] (xform (val-producer))))
+                                (fn [val-producer] (val-producer)))]
      (cond
-       (and (nil? xform#) (nil? ex-handler#))
-         (new ~chan-class-name ~@chan-class-constructor-args)
+       (and (nil? xform) (nil? ex-handler))
+         chan
        :else
-         (proxy [~chan-class-name] ~chan-class-constructor-args
-           (receive
-             ([] (tranform-and-handle# #(proxy-super receive)))
-             ([unit#] (tranform-and-handle# #(proxy-super receive unit#)))
-             ([timeout# unit#] (tranform-and-handle# #(proxy-super receive timeout# unit#))))
-           (tryReceive [] (tranform-and-handle# #(proxy-super tryReceive)))))))
+       (DelegatingChannel. chan (.map (Channels/transform chan)
+                                      (reify Function
+                                        (apply [_ v] (transform-and-handle v))
+                                        (equals [this that] (= this that))))))))
 
 (defn chan
   "Creates a channel with an optional buffer, an optional transducer
@@ -95,8 +92,8 @@
   ([buf-or-n xform ex-handler]
    (cond
      (number? buf-or-n) (chan (buffer buf-or-n) xform ex-handler)
-     (nil? buf-or-n)    (rx-chan TransferChannel [] xform ex-handler)
-     :else              (rx-chan QueueObjectChannel [(first buf-or-n) (second buf-or-n) false] xform ex-handler))))
+     (nil? buf-or-n)    (rx-chan (TransferChannel.) xform ex-handler)
+     :else              (rx-chan (QueueObjectChannel. (first buf-or-n) (second buf-or-n) false) xform ex-handler))))
 
 (defsfn <!
   "Takes a val from port. Must be called inside a (go ...) block. Will
