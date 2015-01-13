@@ -24,15 +24,16 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterators;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 public class PulsarSuspendableClassifier implements SuspendableClassifier {
-    public static final List<String> CLOJURE_FUNCTION_BASE_INTERFACES = Arrays.asList(new String[] { "clojure/lang/IFn", "clojure/lang/IFn$" } );
-    public static final List<String> CLOJURE_FUNCTION_BASE_INVOCATION_METHODS = Arrays.asList(new String[] { "invoke", "invokePrim" });
+    public static final List<String> CLOJURE_FUNCTION_BASE_INTERFACES = Arrays.asList("clojure/lang/IFn", "clojure/lang/IFn$");
+    public static final List<String> CLOJURE_FUNCTION_BASE_INVOCATION_METHODS = Arrays.asList("invoke", "invokePrim");
 
-    //////////////////////////////////
-    // Clojure auto-instrument support
-    //////////////////////////////////
+    /////////////////////////////////////////////////////
+    // Clojure auto-instrument support (EVAL/SPERIMENTAL)
+    /////////////////////////////////////////////////////
 
     public static final String CLOJURE_AUTO_INSTRUMENT_STRATEGY_SYSTEM_PROPERTY_NAME = "co.paralleluniverse.pulsar.instrument.auto";
     public static final String CLOJURE_AUTO_INSTRUMENT_STRATEGY_SYSTEM_PROPERTY_VALUE_ALL = "all";
@@ -40,18 +41,22 @@ public class PulsarSuspendableClassifier implements SuspendableClassifier {
 
     public static final String CLOJURE_FUNCTION_ANONYMOUS_CLASS_NAME_MARKER = "$fn__";
     public static final String CLOJURE_FUNCTION_CLASS_NAME_MARKER = "$";
-    public static final List<String> CLOJURE_CORE_PACKAGE_NAMES = Arrays.asList(new String[] { "clojure/core$", "clojure/lang/" } );
-    public static final List<String> CLOJURE_FUNCTION_BASE_CLASSES = Arrays.asList(new String[] { "clojure/lang/AFunction", "clojure/lang/RestFn" } );
-    public static final List<String> CLOJURE_FUNCTION_ADDITIONAL_INVOCATION_METHODS = Arrays.asList(new String[] { "doInvoke", "applyTo", "applyToHelper", "call", "run" } );
+    public static final List<String> CLOJURE_FUNCTION_BASE_CLASSES = Arrays.asList("clojure/lang/AFunction", "clojure/lang/RestFn");
+    public static final List<String> CLOJURE_FUNCTION_ADDITIONAL_INVOCATION_METHODS = Arrays.asList("doInvoke", "applyTo", "applyToHelper", "call", "run");
+    private static final String CLOJURE_SOURCE_EXTENSION = ".clj";
+    private static final List<String> CLOJURE_DATATYPE_INTERFACES = Arrays.asList("clojure/lang/IObj", "clojura.lang.IType", "clojura.lang.IRecord");
 
     @Override
-    public SuspendableType isSuspendable(final MethodDatabase db, final String className, final String superClassName, final String[] interfaces, final String methodName, final String methodDesc, final String methodSignature, final String[] methodExceptions) {
+    public SuspendableType isSuspendable(final MethodDatabase db, final String sourceName, final String sourceDebugInfo,
+                                         final boolean isInterface, final String className, final String superClassName,
+                                         final String[] interfaces, final String methodName, final String methodDesc,
+                                         final String methodSignature, final String[] methodExceptions) {
         if (CLOJURE_FUNCTION_BASE_INTERFACES.contains(className) && CLOJURE_FUNCTION_BASE_INVOCATION_METHODS.contains(methodName))
             return SuspendableType.SUSPENDABLE_SUPER;
 
-        //////////////////////////////////
-        // Clojure auto-instrument support
-        //////////////////////////////////
+        /////////////////////////////////////////////////////
+        // Clojure auto-instrument support (EVAL/SPERIMENTAL)
+        /////////////////////////////////////////////////////
 
         // Refs (based mostly on first two):
         //
@@ -64,29 +69,21 @@ public class PulsarSuspendableClassifier implements SuspendableClassifier {
         // TODO Finish / improve protocols / datatypes
         // TODO Try to reuse any decently packed Clojure compiler's logic (if there's any)
 
-        if (autoInstrumentAnonymousFunctionsOnly()) {
-            if (isClojureAnonymousFunctionClassName(className))
-                return SuspendableType.SUSPENDABLE; // circlespainter: making all Clojure functions suspendable [EVAL]
-        }  else if (autoInstrumentEverythingClojure()) {
-            if (isClojureUserFunction(className, superClassName, methodName))
-                return SuspendableType.SUSPENDABLE; // circlespainter: making all Clojure functions suspendable [EVAL]
-            else if (isPossiblyProtocolMethodDeclaration(className, superClassName, interfaces, methodName, methodDesc, methodSignature, methodExceptions))
-                return SuspendableType.SUSPENDABLE_SUPER;
-            else if (isPossiblyProtocolMethodImplementation(className, superClassName, interfaces, methodName, methodDesc, methodSignature, methodExceptions))
-                return SuspendableType.SUSPENDABLE;
+        if (isPossiblyClojureSourceName(sourceName)) {
+            if (autoInstrumentAnonymousFunctionsOnly()) {
+                if (isClojureAnonymousFunctionClassName(className))
+                    return SuspendableType.SUSPENDABLE;
+            } else if (autoInstrumentEverythingClojure()) {
+                if (isPossiblyProtocolMethodDeclaration(sourceName, isInterface))
+                    return SuspendableType.SUSPENDABLE_SUPER;
+                else if (isPossiblyProtocolMethodImplementation(interfaces))
+                    return SuspendableType.SUSPENDABLE;
+                else if (isClojureUserFunction(className, superClassName, methodName))
+                    return SuspendableType.SUSPENDABLE;
+            }
         }
 
         return null;
-    }
-
-    private boolean isPossiblyProtocolMethodDeclaration(final String className, final String superClassName, final String[] interfaces, final String methodName, final String methodDesc, final String methodSignature, final String[] methodExceptions) {
-        // TODO Implement; heuristics: all interface methods only referencing Object` in their signature
-        return false;
-    }
-
-    private boolean isPossiblyProtocolMethodImplementation(final String className, final String superClassName, final String[] interfaces, final String methodName, final String methodDesc, final String methodSignature, final String[] methodExceptions) {
-        // TODO Implement; heuristics: all methods in classes implementing `IRecord`, `IType` or `IObj` implementing protocol method decls
-        return false;
     }
 
     private static boolean autoInstrumentAnonymousFunctionsOnly() {
@@ -97,21 +94,28 @@ public class PulsarSuspendableClassifier implements SuspendableClassifier {
         return CLOJURE_AUTO_INSTRUMENT_STRATEGY_SYSTEM_PROPERTY_VALUE_ALL.equals(System.getProperty(CLOJURE_AUTO_INSTRUMENT_STRATEGY_SYSTEM_PROPERTY_NAME));
     }
 
-    private static boolean isClojureUserFunction(final String className, final String superClassName, final String methodName) {
-        return ! isClojureCoreClassName(className)
-                && isClojureFunctionClassName(className)
-                && CLOJURE_FUNCTION_BASE_CLASSES.contains(superClassName)
-                && (CLOJURE_FUNCTION_BASE_INVOCATION_METHODS.contains(methodName)
-                    || CLOJURE_FUNCTION_ADDITIONAL_INVOCATION_METHODS.contains(methodName));
+    private boolean isPossiblyProtocolMethodDeclaration(final String sourceName, final boolean isInterface) {
+        // Don't instrument all interfaces, only the ones we're sure they come from Clojure sources
+        return isInterface && sourceName != null && sourceNameHasClojureExtension(sourceName);
     }
 
-    private static boolean isClojureCoreClassName(final String className) {
-        return className != null && Iterators.filter(CLOJURE_CORE_PACKAGE_NAMES.iterator(), new Predicate<String>() {
-            @Override
-            public boolean apply(String packageName) {
-                return className.startsWith(packageName);
-            }
-        }).hasNext();
+    private boolean isPossiblyClojureSourceName(final String sourceName) {
+        // Considering even classes for which we don't have source info, e.g. because we're running Quasar without
+        // extended info or for some other reason
+        return sourceName == null || sourceNameHasClojureExtension(sourceName);
+    }
+
+    private boolean isPossiblyProtocolMethodImplementation(final String[] interfaces) {
+        HashSet<String> intersection = new HashSet<String>(Arrays.asList(interfaces));
+        intersection.retainAll(CLOJURE_DATATYPE_INTERFACES);
+        return !intersection.isEmpty();
+    }
+
+    private static boolean isClojureUserFunction(final String className, final String superClassName, final String methodName) {
+        return isClojureFunctionClassName(className)
+               && CLOJURE_FUNCTION_BASE_CLASSES.contains(superClassName)
+               && (CLOJURE_FUNCTION_BASE_INVOCATION_METHODS.contains(methodName)
+                  || CLOJURE_FUNCTION_ADDITIONAL_INVOCATION_METHODS.contains(methodName));
     }
 
     private static boolean isClojureFunctionClassName(final String className) {
@@ -120,5 +124,9 @@ public class PulsarSuspendableClassifier implements SuspendableClassifier {
 
     private static boolean isClojureAnonymousFunctionClassName(final String className) {
         return className != null && className.contains(CLOJURE_FUNCTION_ANONYMOUS_CLASS_NAME_MARKER);
+    }
+
+    private boolean sourceNameHasClojureExtension(String sourceName) {
+        return sourceName.toLowerCase().endsWith(CLOJURE_SOURCE_EXTENSION);
     }
 }

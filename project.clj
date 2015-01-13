@@ -14,8 +14,8 @@
                  "releases" "https://oss.sonatype.org/content/repositories/releases"}
   :test-selectors {:selected :selected}
   :dependencies [[org.clojure/clojure "1.5.1"]
-                 [co.paralleluniverse/quasar-core   "0.6.2"] ; :classifier "jdk8"
-                 [co.paralleluniverse/quasar-actors "0.6.2"]
+                 [co.paralleluniverse/quasar-core   "0.6.3-SNAPSHOT"] ; :classifier "jdk8"
+                 [co.paralleluniverse/quasar-actors "0.6.3-SNAPSHOT"]
                  [org.ow2.asm/asm "5.0.3"]
                  [org.clojure/core.match "0.2.2" :exclusions [org.ow2.asm/*]]
                  [useful "0.8.8"]
@@ -26,10 +26,11 @@
   :jvm-opts ["-server"
              ;"-Dclojure.compiler.disable-locals-clearing=true"
              ;; ForkJoin wants these:
+             ;"-Dco.paralleluniverse.pulsar.instrument.auto=all"
              "-XX:-UseBiasedLocking"
              "-XX:+UseCondCardMark"]
   ;:injections [(alter-var-root #'*compiler-options* (constantly {:disable-locals-clearing true}))]
-  :java-agents [[co.paralleluniverse/quasar-core "0.6.2"]] ; :classifier "jdk8" :options "vd"
+  :java-agents [[co.paralleluniverse/quasar-core "0.6.3-SNAPSHOT"]] ; :classifier "jdk8" :options "vdx"
   :pedantic :warn
   :profiles {;; ----------- dev --------------------------------------
              :dev
@@ -53,7 +54,7 @@
              ;; ----------- cluster --------------------------------------
              :cluster
              {:repositories {"oracle" "http://download.oracle.com/maven/"}
-              :dependencies [[co.paralleluniverse/quasar-galaxy "0.6.1"]]
+              :dependencies [[co.paralleluniverse/quasar-galaxy "0.6.3-SNAPSHOT"]]
               :java-source-paths ["src/cluster/java"]
               :jvm-opts [;; Debugging
                          "-ea"
