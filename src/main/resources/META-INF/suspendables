@@ -1,3 +1,4 @@
+clojure.lang.Reflector.invokeNoArgInstanceMember
 clojure.lang.Reflector.invokeInstanceMethod
 clojure.lang.Reflector.invokeMatchingMethod
 clojure.lang.Reflector.invokeStaticMethod

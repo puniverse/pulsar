@@ -1,13 +1,16 @@
 clojure.lang.RT.first
 clojure.lang.RT.second
+clojure.lang.RT.next
 clojure.lang.RT.more
 clojure.lang.RT.seq
 clojure.lang.RT.assoc
 clojure.lang.RT.get
 clojure.lang.RT.keys
+clojure.lang.Cons.next
 clojure.lang.LazySeq.sval
 clojure.lang.LazySeq.seq
 clojure.lang.LazySeq.first
+clojure.lang.LazySeq.next
 clojure.lang.LazySeq.more
 clojure.lang.MultiFn.invoke
 clojure.lang.AFunction.call
