@@ -26,11 +26,10 @@
   :jvm-opts ["-server"
              ;"-Dclojure.compiler.disable-locals-clearing=true"
              ;; ForkJoin wants these:
-             ;"-Dco.paralleluniverse.pulsar.instrument.auto=all"
              "-XX:-UseBiasedLocking"
              "-XX:+UseCondCardMark"]
   ;:injections [(alter-var-root #'*compiler-options* (constantly {:disable-locals-clearing true}))]
-  :java-agents [[co.paralleluniverse/quasar-core "0.6.3-SNAPSHOT"]] ; :classifier "jdk8" :options "vdx"
+  :java-agents [[co.paralleluniverse/quasar-core "0.6.3-SNAPSHOT" :options "x"]] ; :classifier "jdk8" :options "vdcmx"
   :pedantic :warn
   :profiles {;; ----------- dev --------------------------------------
              :dev
@@ -87,4 +86,8 @@
                                 co.paralleluniverse.pulsar.lazyseq
                                 co.paralleluniverse.pulsar.async]
                       :output-dir "docs/api"}
-              :global-vars {*warn-on-reflection* false}}})
+              :global-vars {*warn-on-reflection* false}}
+             ;; ----------- other instrumentation strategies ---------
+             :auto-instrument-all
+             {:jvm-opts [; "-Dco.paralleluniverse.fibers.verifyInstrumentation=true"
+                         "-Dco.paralleluniverse.pulsar.instrument.auto=all"]}})
