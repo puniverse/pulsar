@@ -65,9 +65,6 @@ public class PulsarSuspendableClassifier implements SuspendableClassifier {
                                          final boolean isInterface, final String className, final String superClassName,
                                          final String[] interfaces, final String methodName, final String methodDesc,
                                          final String methodSignature, final String[] methodExceptions) {
-        if (CLOJURE_FUNCTION_BASE_INTERFACES.contains(className) && CLOJURE_FUNCTION_BASE_INVOCATION_METHODS.contains(methodName))
-            return SuspendableType.SUSPENDABLE_SUPER;
-
         //////////////////////////////////////////////////////
         // Clojure auto-instrument support (EVAL/EXPERIMENTAL)
         //////////////////////////////////////////////////////
@@ -80,17 +77,18 @@ public class PulsarSuspendableClassifier implements SuspendableClassifier {
         // - https://github.com/clojure/clojure/blob/clojure-1.6.0/src/jvm/clojure/lang/Compiler.java#L2800
         // - https://github.com/pallet/ritz/blob/develop/repl-utils/src/ritz/repl_utils/mangle.clj
 
-        // TODO Finish / improve protocols / datatypes
-        // TODO Try to reuse any decently packed Clojure compiler's logic (if there's any)
-
         if (autoInstrument()) {
-            final SuspendableType declared = autoSuspendables.isSuspendable(db, sourceName, sourceDebugInfo, isInterface, className, superClassName, interfaces, methodName, methodDesc, methodSignature, methodExceptions);
+            final SuspendableType declared =
+                autoSuspendables.isSuspendable(className, methodName, methodDesc) ?
+                    SuspendableType.SUSPENDABLE :
+                        (autoSuspendables.isSuperSuspendable(className, methodName, methodDesc) ?
+                            SuspendableType.SUSPENDABLE_SUPER : null);
             if (declared != null && declared != SuspendableType.NON_SUSPENDABLE) {
-                log(db, "auto-?", "found suspendable explicit for auto mode", sourceName, isInterface, className, superClassName, interfaces, methodName, methodSignature);
+                log(db, "auto-?", "found explicit '" + declared + "'", sourceName, isInterface, className, superClassName, interfaces, methodName, methodSignature);
                 return declared;
             }
 
-            if (isPossiblyClojureSourceName(sourceName)) {
+            if (!isStdlib(className) && isPossiblyClojureSourceName(sourceName)) {
                 if (autoInstrumentAnonymousFunctionsOnly()) {
                     if (isClojureAnonymousFunctionClassName(className)) {
                         log(db, "auto-anon", "found suspendable Clojure anon fn", sourceName, isInterface, className, superClassName, interfaces, methodName, methodSignature);
@@ -114,7 +112,8 @@ public class PulsarSuspendableClassifier implements SuspendableClassifier {
             }
 
             log(db, "auto-?", "NON suspendable", sourceName, isInterface, className, superClassName, interfaces, methodName, methodSignature);
-        }
+        } else if (CLOJURE_FUNCTION_BASE_INTERFACES.contains(className) && CLOJURE_FUNCTION_BASE_INVOCATION_METHODS.contains(methodName))
+            return SuspendableType.SUSPENDABLE_SUPER;
 
         return null;
     }
@@ -142,12 +141,14 @@ public class PulsarSuspendableClassifier implements SuspendableClassifier {
         // Assuming interface without sources outside of the Java and Parallel Universe packages are user protocol interfaces
         // TODO find a way to include (or get included) debug info in protocol classes
         return isInterface
-                && (sourceNameHasClojureExtension(sourceName) || !isStdlib(className));
+                // && (sourceNameHasClojureExtension(sourceName) || !isStdlib(className))
+                ;
     }
 
     private static boolean isStdlib(final String className) {
         return className.startsWith("java")
-                || className.startsWith("co/paralleluniverse");
+                || className.startsWith("clojure/lang")
+                || className.startsWith("clojure/core");
     }
 
     private static boolean isPossiblyClojureSourceName(final String sourceName) {
@@ -181,8 +182,14 @@ public class PulsarSuspendableClassifier implements SuspendableClassifier {
         return sourceName!= null && sourceName.toLowerCase().endsWith(CLOJURE_SOURCE_EXTENSION);
     }
 
-    private static void log(final MethodDatabase db, final String mode, final String message, final String sourceName, final boolean isInterface, final String className, final String superClassName, final String[] interfaces, final String methodName, final String methodSignature) {
-        db.log(LogLevel.DEBUG, "[PulsarSuspendableClassifier] %s, %s '%s: %s %s[extends %s implements %s]#%s(%s)'", mode, message, sourceName != null ? sourceName : "<no source>", isInterface ? "interface" : "class", className, superClassName != null ? superClassName : "<no class>", interfaces != null ? Arrays.toString(interfaces) : "<no interface>", methodName, nullToEmpty(methodSignature));
+    private static void log(final MethodDatabase db, final String mode, final String message, final String sourceName,
+                            final boolean isInterface, final String className, final String superClassName, final String[] interfaces,
+                            final String methodName, final String methodSignature) {
+        db.log(LogLevel.DEBUG, "[PulsarSuspendableClassifier] %s, %s '%s: %s %s[extends %s implements %s]#%s(%s)'",
+            mode, message, sourceName != null ? sourceName : "<no source>", isInterface ? "interface" : "class",
+            className, superClassName != null ? superClassName : "<no class>",
+            interfaces != null ? Arrays.toString(interfaces) : "<no interface>",
+            methodName, nullToEmpty(methodSignature));
     }
 
     private static int countOccurrences(final String of, final String in) {

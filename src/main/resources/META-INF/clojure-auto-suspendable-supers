@@ -1,6 +1,6 @@
-clojure.lang.ISeq.first
-clojure.lang.ISeq.more
-clojure.lang.ILookup.valAt
+#clojure.lang.ISeq.first
+#clojure.lang.ISeq.more
+#clojure.lang.ILookup.valAt
+#clojure.lang.ILookupThunk.get
 clojure.lang.IFn.invoke
 clojure.lang.IFn.invokePrim
-clojure.lang.ILookupThunk.get
