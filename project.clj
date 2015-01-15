@@ -29,7 +29,7 @@
              "-XX:-UseBiasedLocking"
              "-XX:+UseCondCardMark"]
   ;:injections [(alter-var-root #'*compiler-options* (constantly {:disable-locals-clearing true}))]
-  :java-agents [[co.paralleluniverse/quasar-core "0.6.3-SNAPSHOT" :options "x"]] ; :classifier "jdk8" :options "vdcmx"
+  :java-agents [[co.paralleluniverse/quasar-core "0.6.3-SNAPSHOT" :options "x"]] ; :classifier "jdk8" :options "vdcbmx"
   :pedantic :warn
   :profiles {;; ----------- dev --------------------------------------
              :dev
