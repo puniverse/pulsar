@@ -98,11 +98,17 @@ public class PulsarInstrumentListProvider implements InstrumentListProvider {
                 mClassAndMeth(eqN("clojure/core$first"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
 
                 // Skip JDK
-                mClass(startsWithN("java"), SuspendableType.NON_SUSPENDABLE, a(jdkMsg)),
+                mClass(startsWithN("java/"), SuspendableType.NON_SUSPENDABLE, a(jdkMsg)),
+                mClass(startsWithN("jsr166e/"), SuspendableType.NON_SUSPENDABLE, a(jdkMsg)),
+                mClass(startsWithN("sun/"), SuspendableType.NON_SUSPENDABLE, a(jdkMsg)),
+                mClass(startsWithN("oracle/"), SuspendableType.NON_SUSPENDABLE, a(jdkMsg)),
+                mClass(startsWithN("com/oracle"), SuspendableType.NON_SUSPENDABLE, a(jdkMsg)),
+                mClass(startsWithN("org/cliffc/high_scale_lib/"), SuspendableType.NON_SUSPENDABLE, a(jdkMsg)),
 
                 // Instrument Parall Universe Clojure tests and examples
                 mSrcAndClass(srcP, and(startsWithN("co/paralleluniverse"), or(containsCIN("test"), containsCIN("example"))), SuspendableType.SUSPENDABLE, a(testExamplePUMsg)),
                 mSrcAndMeth(srcP, or(containsCIN("test"), containsCIN("example")), SuspendableType.SUSPENDABLE, a(testExamplePUMsg)),
+
                 // Don't say anything about the rest of Parallel Universe
                 mClass(startsWithN("co/paralleluniverse"), null, a(puMsg)),
 
