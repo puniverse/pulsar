@@ -89,5 +89,4 @@
               :global-vars {*warn-on-reflection* false}}
              ;; ----------- other instrumentation strategies ---------
              :auto-instrument-all
-             {:jvm-opts [; "-Dco.paralleluniverse.fibers.verifyInstrumentation=true"
-                         "-Dco.paralleluniverse.pulsar.instrument.auto=all"]}})
+             {:jvm-opts ["-Dco.paralleluniverse.pulsar.instrument.auto=all"]}})
