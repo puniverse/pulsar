@@ -49,7 +49,7 @@ public class PulsarInstrumentListProvider implements InstrumentListProvider {
         final String cljSusLsCoreMsg = "Pulsar's built-in matchlist found suspendable Clojure RT for lazyseq";
         final String cljSusProtoSusCoreMsg = "Pulsar's built-in matchlist found suspendable Clojure RT for protocol extension";
 
-        final String jdkMsg = "Pulsar's built-in matchlist found NON suspendable JDK";
+        final String jdkOr3rdMsg = "Pulsar's built-in matchlist found NON suspendable JDK or other known non-suspendable 3rd-party";
         final String puMsg = "Pulsar's built-in matchlist not saying anything about Parallel Universe";
         final String cljCoreMsg = "Pulsar's built-in matchlist found NON suspendable Clojure Core RT";
         final String cljUtilMsg = "Pulsar's built-in matchlist found NON suspendable Clojure Utils RT";
@@ -108,45 +108,42 @@ public class PulsarInstrumentListProvider implements InstrumentListProvider {
             mClassAndMeth(eqN("clojure/core$first"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
 
             // Instrument few more selected Parallel Universe stack methods
-            /*
-            mClassAndMeth(eqN("co/paralleluniverse/fibers/Joinable"), eqN("join"), SuspendableType.SUSPENDABLE_SUPER, a(susPUMeth)),
-            mClassAndMeth(eqN("co/paralleluniverse/fibers/Strand"), eqN("join"), SuspendableType.SUSPENDABLE_SUPER, a(susPUMeth)),
-            mClassAndMeth(eqN("co/paralleluniverse/actors/ActorRunner"), eqN("join"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-            mClassAndMeth(eqN("co/paralleluniverse/actors/LocalActor"), eqN("join"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-            mClassAndMeth(eqN("co/paralleluniverse/fibers/Fiber"), eqN("join"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-            mClassAndMeth(eqN("co/paralleluniverse/actors/Actor"), eqN("join"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-
-            mClassAndMeth(eqN("co/paralleluniverse/pulsar/InstrumentedIFn"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-            */
-
-            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/core$promise$"), eqN("deref"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/core$"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/core$"), eqN("invokePrim"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/core$"), eqN("doInvoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$rcv"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$snd"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$rcv_into"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$sel"), eqN("doInvoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$do_sel"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$strampoline"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$sleep"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClass(eqN("co/paralleluniverse/pulsar/actors$spawn"), SuspendableType.NON_SUSPENDABLE, a(susPUMeth)), // too large and not needed
+            mClass(eqN("co/paralleluniverse/pulsar/actors$receive"), SuspendableType.NON_SUSPENDABLE, a(susPUMeth)), // too large and not needed
             mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/actors$"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/actors$"), eqN("invokePrim"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
             mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/actors$"), eqN("doInvoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(and(startsWithN("co/paralleluniverse/fiber/"), containsN("$")), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)), // Comsat
 
-            // Skip JDK
-            mClass(startsWithN("java/"), SuspendableType.NON_SUSPENDABLE, a(jdkMsg)),
-            mClass(startsWithN("jsr166e/"), SuspendableType.NON_SUSPENDABLE, a(jdkMsg)),
-            mClass(startsWithN("sun/"), SuspendableType.NON_SUSPENDABLE, a(jdkMsg)),
-            mClass(startsWithN("oracle/"), SuspendableType.NON_SUSPENDABLE, a(jdkMsg)),
-            mClass(startsWithN("com/oracle/"), SuspendableType.NON_SUSPENDABLE, a(jdkMsg)),
-            mClass(startsWithN("org/cliffc/high_scale_lib/"), SuspendableType.NON_SUSPENDABLE, a(jdkMsg)),
+            // Skip JDK and other known 3rd-party non-suspendable packages
+            mClass(startsWithN("java/"), SuspendableType.NON_SUSPENDABLE, a(jdkOr3rdMsg)),
+            mClass(startsWithN("jsr166e/"), SuspendableType.NON_SUSPENDABLE, a(jdkOr3rdMsg)),
+            mClass(startsWithN("sun/"), SuspendableType.NON_SUSPENDABLE, a(jdkOr3rdMsg)),
+            mClass(startsWithN("oracle/"), SuspendableType.NON_SUSPENDABLE, a(jdkOr3rdMsg)),
+            mClass(startsWithN("com/oracle/"), SuspendableType.NON_SUSPENDABLE, a(jdkOr3rdMsg)),
+            mClass(startsWithN("org/cliffc/high_scale_lib/"), SuspendableType.NON_SUSPENDABLE, a(jdkOr3rdMsg)),
+            mClass(startsWithN("manifold/"), SuspendableType.NON_SUSPENDABLE, a(jdkOr3rdMsg)),
+            mClass(startsWithN("gloss/"), SuspendableType.NON_SUSPENDABLE, a(jdkOr3rdMsg)),
+            mClass(startsWithN("swiss/"), SuspendableType.NON_SUSPENDABLE, a(jdkOr3rdMsg)),
+            mClass(startsWithN("potemkin/"), SuspendableType.NON_SUSPENDABLE, a(jdkOr3rdMsg)),
 
             // Instrument Parall Universe Clojure tests and examples
             mSrcAndClass(srcP, and(startsWithN("co/paralleluniverse"), or(containsCIN("test"), containsCIN("example"))), SuspendableType.SUSPENDABLE, a(testExamplePUMsg)),
             mSrcAndMeth(srcP, or(containsCIN("test"), containsCIN("example")), SuspendableType.SUSPENDABLE, a(testExamplePUMsg)),
-
-            // Don't say anything about the rest of Parallel Universe
-            mClass(startsWithN("co/paralleluniverse/"), null, a(puMsg)),
 
             // Skip Clojure core
             mClass(startsWithN("clojure/lang"), SuspendableType.NON_SUSPENDABLE, a(cljCoreMsg)),
             mClass(startsWithN("clojure/core"), SuspendableType.NON_SUSPENDABLE, a(cljCoreMsg)),
             // mClass(startsWithN("clojure/java"), SuspendableType.NON_SUSPENDABLE, a(cljCoreMsg)), // Ring needs this instrumented
             mClass(startsWithN("clj_tuple"), SuspendableType.NON_SUSPENDABLE, a(cljCoreMsg)),
+            mClass(startsWithN("primitive_math$"), SuspendableType.NON_SUSPENDABLE, a(cljCoreMsg)),
+            mClass(startsWithN("byte_streams$"), SuspendableType.NON_SUSPENDABLE, a(cljCoreMsg)),
             mClass(startsWithN("clojure/set"), SuspendableType.NON_SUSPENDABLE, a(cljCoreMsg)),
             mClass(startsWithN("clojure/string"), SuspendableType.NON_SUSPENDABLE, a(cljCoreMsg)),
             mClass(startsWithN("clojure/uuid"), SuspendableType.NON_SUSPENDABLE, a(cljCoreMsg)),
@@ -211,8 +208,11 @@ public class PulsarInstrumentListProvider implements InstrumentListProvider {
             mMethAndIfs(startsWithN("entrySet"), arrayContainsN("clojure/lang/IRecord"), SuspendableType.NON_SUSPENDABLE, a(cljRecMsg)),
             mMethAndIfs(startsWithN("assoc"), arrayContainsN("clojure/lang/IRecord"), SuspendableType.NON_SUSPENDABLE, a(cljRecMsg)),
 
-            // Instrument interfaces from .clj or no source: missing better info, assuming they are all protocols
-            // TODO find a way to include (or get included) debug info in protocol classes
+           // Shortcut: don't change anything more about the rest of Parallel Universe (skip rule below)
+           mClass(startsWithN("co/paralleluniverse/"), null, a(puMsg)),
+
+           // Instrument interfaces from .clj or no source: missing better info, assuming they are all protocols
+           // TODO find a way to include (or get included) debug info in protocol classes
             mSrcAndIsIf(srcP, eq(true), SuspendableType.SUSPENDABLE_SUPER, a(cljSusProtoDefMsg)),
 
             // Instrument proxy user methods
