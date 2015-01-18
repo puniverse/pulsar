@@ -1,6 +1,3 @@
-clojure.lang.Reflector.invokeNoArgInstanceMember
 clojure.lang.Reflector.invokeInstanceMethod
 clojure.lang.Reflector.invokeMatchingMethod
-clojure.lang.Reflector.invokeStaticMethod
-clojure.lang.Reflector.invokeStaticMethodVariadic
 #clojure.lang.LazySeq.*
