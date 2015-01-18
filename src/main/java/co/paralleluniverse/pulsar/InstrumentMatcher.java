@@ -32,12 +32,12 @@ public class InstrumentMatcher {
     final Predicate<String> methodSignatureP;
     final Predicate<String[]> methodExceptionsP;
     final MethodDatabase.SuspendableType suspendableType;
-    final Action2<EvalCriteria, MethodDatabase.SuspendableType> action;
+    final Action2<EvalCriteria, Match<MethodDatabase.SuspendableType>> action;
 
     InstrumentMatcher(final Predicate<String> sourceNameP, final Predicate<String> sourceDebugInfoP,
                       final Predicate<Boolean> isInterfaceP, final Predicate<String> classNameP, final Predicate<String> superClassNameP, final Predicate<String[]> interfacesP,
                       final Predicate<String> methodNameP, final Predicate<String> methodDescP, final Predicate<String> methodSignatureP, final Predicate<String[]> methodExceptionsP,
-                      final MethodDatabase.SuspendableType suspendableType, final Action2<EvalCriteria, MethodDatabase.SuspendableType> action) {
+                      final MethodDatabase.SuspendableType suspendableType, final Action2<EvalCriteria, Match<MethodDatabase.SuspendableType>> action) {
         this.sourceNameP = sourceNameP;
         this.sourceDebugInfoP = sourceDebugInfoP;
         this.isInterfaceP = isInterfaceP;
@@ -52,10 +52,10 @@ public class InstrumentMatcher {
         this.action = action;
     }
 
-    MethodDatabase.SuspendableType eval(final MethodDatabase db, final String sourceName, final String sourceDebugInfo,
+    Match<MethodDatabase.SuspendableType> eval(final MethodDatabase db, final String sourceName, final String sourceDebugInfo,
                          final boolean isInterface, final String className, final String superClassName, final String[] interfaces,
                          final String methodName, final String methodDesc, final String methodSignature, final String[] methodExceptions) {
-        final MethodDatabase.SuspendableType ret =
+        final Match<MethodDatabase.SuspendableType> ret =
                 (sourceNameP == null || sourceNameP.apply(sourceName))
                 && (sourceDebugInfoP == null || sourceDebugInfoP.apply(sourceDebugInfo))
                 && (isInterfaceP == null || isInterfaceP.apply(isInterface))
@@ -66,12 +66,31 @@ public class InstrumentMatcher {
                 && (methodDescP == null || methodDescP.apply(methodDesc))
                 && (methodSignatureP == null || methodSignatureP.apply(methodSignature))
                 && (methodExceptionsP == null || methodExceptionsP.apply(methodExceptions))
-            ? suspendableType : null;
+            ? new Match<MethodDatabase.SuspendableType>(suspendableType) : null;
         action.call(new EvalCriteria(db, sourceName, sourceDebugInfo, isInterface, className, superClassName, interfaces, methodName, methodDesc, methodSignature, methodExceptions), ret);
         return ret;
     }
 
-    class EvalCriteria {
+    public class Match<T> {
+        private final T value;
+
+        public Match(T v) {
+            this.value = v;
+        }
+
+        public T getValue() {
+            return value;
+        }
+
+        @Override
+        public String toString() {
+            return "Match{" +
+                    "value=" + (value != null ? value : "<no comment>") +
+                    '}';
+        }
+    }
+
+    public class EvalCriteria {
         final MethodDatabase db;
         final String sourceName;
         final String sourceDebugInfo;

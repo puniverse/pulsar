@@ -30,8 +30,7 @@ public class PulsarSuspendableClassifier implements SuspendableClassifier {
     private static final String CLOJURE_AUTO_INSTRUMENT_STRATEGY_SYSTEM_PROPERTY_NAME = "co.paralleluniverse.pulsar.instrument.auto";
     private static final String CLOJURE_AUTO_INSTRUMENT_STRATEGY_SYSTEM_PROPERTY_VALUE_ALL = "all";
 
-    private final List<InstrumentMatcher[]> matchLists = new ArrayList<InstrumentMatcher[]>();
-    private final ServiceLoader<InstrumentListProvider> loader;
+    private final List<InstrumentMatcher[]> matchLists;
     private final boolean autoInstrumentEverythingClojure;
 
     @Override
@@ -44,9 +43,11 @@ public class PulsarSuspendableClassifier implements SuspendableClassifier {
             // Clojure auto-instrument support (EVAL/EXPERIMENTAL)
             //////////////////////////////////////////////////////
 
-            final SuspendableType t = match(db, sourceName, sourceDebugInfo, isInterface, className, superClassName, interfaces, methodName, methodDesc, methodSignature, methodExceptions);
+            final InstrumentMatcher.Match<SuspendableType> t =
+                match(db, matchLists, sourceName, sourceDebugInfo, isInterface, className, superClassName, interfaces,
+                methodName, methodDesc, methodSignature, methodExceptions);
             if (t != null)
-                return t;
+                return t.getValue();
 
             PulsarInstrumentListProvider.log(db, "auto", "evaluation of matchlist didn't say anything",
                                              sourceName, isInterface, className, superClassName, interfaces, methodName, methodSignature);
@@ -57,33 +58,40 @@ public class PulsarSuspendableClassifier implements SuspendableClassifier {
         return null;
     }
 
-    private SuspendableType match(final MethodDatabase db, final String sourceName, final String sourceDebugInfo,
-                                  final boolean isInterface, final String className, final String superClassName, final String[] interfaces,
-                                  final String methodName, final String methodDesc, final String methodSignature, final String[] methodExceptions) {
-        for (final InstrumentMatcher[] ml : matchLists) {
-            for (final InstrumentMatcher m : ml) {
-                final SuspendableType t = m.eval(db, sourceName, sourceDebugInfo, isInterface, className, superClassName, interfaces, methodName, methodDesc, methodSignature, methodExceptions);
-                if (t != null)
-                    return t;
-            }
-        }
-        return null;
-    }
-
     public PulsarSuspendableClassifier(final ClassLoader classLoader) {
         this.autoInstrumentEverythingClojure =  CLOJURE_AUTO_INSTRUMENT_STRATEGY_SYSTEM_PROPERTY_VALUE_ALL.equals(System.getProperty(CLOJURE_AUTO_INSTRUMENT_STRATEGY_SYSTEM_PROPERTY_NAME));
-        this.loader = ServiceLoader.load(InstrumentListProvider.class, classLoader);
-
-        final Iterator<InstrumentListProvider> i = this.loader.iterator();
-        while (i.hasNext()) {
-            this.matchLists.add(i.next().getMatchList());
-        }
-
+        this.matchLists = loadMatchLists(classLoader);
         if (this.matchLists.size() == 0)
             this.matchLists.add(new PulsarInstrumentListProvider().getMatchList());
     }
 
     public PulsarSuspendableClassifier() {
         this(PulsarSuspendableClassifier.class.getClassLoader());
+    }
+
+    public static List<InstrumentMatcher[]> loadMatchLists(final ClassLoader classLoader) {
+        final List<InstrumentMatcher[]> ret = new ArrayList<InstrumentMatcher[]>();
+        final ServiceLoader<InstrumentListProvider> loader = ServiceLoader.load(InstrumentListProvider.class, classLoader);
+
+        for (InstrumentListProvider aLoader : loader) {
+            ret.add(aLoader.getMatchList());
+        }
+
+        return ret;
+    }
+
+    public static InstrumentMatcher.Match<SuspendableType> match(final MethodDatabase db, final List<InstrumentMatcher[]> matchLists, final String sourceName, final String sourceDebugInfo,
+                                                                 final boolean isInterface, final String className, final String superClassName, final String[] interfaces,
+                                                                 final String methodName, final String methodDesc, final String methodSignature, final String[] methodExceptions) {
+        for (final InstrumentMatcher[] ml : matchLists) {
+            for (final InstrumentMatcher m : ml) {
+                final InstrumentMatcher.Match<SuspendableType> t =
+                        m.eval(db, sourceName, sourceDebugInfo, isInterface, className, superClassName, interfaces,
+                                methodName, methodDesc, methodSignature, methodExceptions);
+                if (t != null)
+                    return t;
+            }
+        }
+        return null;
     }
 }
