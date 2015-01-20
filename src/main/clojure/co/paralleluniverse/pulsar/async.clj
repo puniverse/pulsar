@@ -27,7 +27,8 @@
     [com.google.common.util.concurrent ThreadFactoryBuilder]
     (java.util List Arrays)
     (co.paralleluniverse.strands Strand)
-    (com.google.common.base Function)))
+    (com.google.common.base Function)
+    (co.paralleluniverse.pulsar DelegatingChannel)))
 
 (alias 'core 'clojure.core)
 
