@@ -21,7 +21,7 @@
   (:require
     [co.paralleluniverse.pulsar.core :as p :refer [defsfn sfn]])
   (:import
-    [co.paralleluniverse.strands.channels QueueObjectChannel TransferChannel TimeoutChannel Channels$OverflowPolicy SendPort ReceivePort Selector SelectAction DelegatingChannel Channels]
+    [co.paralleluniverse.strands.channels QueueObjectChannel TransferChannel TimeoutChannel Channels$OverflowPolicy SendPort ReceivePort Selector SelectAction Channels]
     [co.paralleluniverse.strands.queues ArrayQueue BoxQueue CircularObjectBuffer]
     [java.util.concurrent TimeUnit Executors Executor]
     [com.google.common.util.concurrent ThreadFactoryBuilder]
@@ -61,22 +61,24 @@
 (defn rx-chan [chan xform ex-handler]
   "Returns a new transforming channel based on the one passed as a first argument. The given transformation will
   be applied."
-  (let [tranform-and-handle (if xform
-                              (if ex-handler
-                                (fn [val-producer]
-                                  (let [val (val-producer)]
-                                    (try (xform val)
-                                      (catch Throwable t# (or (ex-handler t) (throw t))))))
-                                  (fn [val-producer] (xform (val-producer))))
-                                (fn [val-producer] (val-producer)))]
+  (let [transform-and-handle (if xform
+                               (if ex-handler
+                                 (fn [val-producer]
+                                   (let [val (val-producer)]
+                                     (try (xform val)
+                                       (catch Throwable t (or (ex-handler t) (throw t))))))
+                                   (fn [val-producer] (xform (val-producer))))
+                                 (fn [val-producer] (val-producer)))]
      (cond
        (and (nil? xform) (nil? ex-handler))
          chan
        :else
-       (DelegatingChannel. chan (.map (Channels/transform chan)
-                                      (reify Function
-                                        (apply [_ v] (transform-and-handle v))
-                                        (equals [this that] (= this that))))))))
+       (DelegatingChannel. chan
+                           (.map (Channels/transform chan)
+                                 (reify Function
+                                   (apply [_ v] (transform-and-handle v))
+                                   (equals [this that] (= this that))))
+                           chan))))
 
 (defn chan
   "Creates a channel with an optional buffer, an optional transducer
@@ -359,7 +361,7 @@
 
 ;; OPS
 
-; TODO Think which are useful in Quasar too
+; TODO Port on top of new Quasar primitives
 
 (defmacro go-loop
   "Like (go (loop ...))"
