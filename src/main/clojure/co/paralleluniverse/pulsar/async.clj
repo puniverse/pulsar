@@ -131,7 +131,7 @@
 ;; It gives no performance benefits over using go >!
 (defn put!
   "Asynchronously puts a val into port, calling fn1 (if supplied) when
-   complete, returning false iff port is already closed. nil values are
+   complete, passing false iff port is already closed. nil values are
    not allowed. If on-caller? (default true) is true, and the put is
    immediately accepted, will call fn1 on calling thread.  Returns
    true unless port is already closed."
@@ -139,11 +139,13 @@
   ([port val fn1] (put! port val fn1 true))
   ([port val fn1 on-caller?]
     (if (not (p/closed? port))
-      (if (and on-caller? (p/try-snd port val))
-        (when fn1 (fn1))
-        (p/spawn-fiber #((p/snd port val)
-                         (when fn1 (fn1)))))
-      false)))
+      (if-let [res (and on-caller? (p/try-snd port val))]
+        (when fn1 (fn1 res))
+        (p/spawn-fiber #(let [res (p/snd port val)]
+                           (when fn1 (fn1 res)))))
+      (do
+        (fn1 false)
+        false))))
 
 (defn close!
   "Closes a channel. The channel will no longer accept any puts (they
