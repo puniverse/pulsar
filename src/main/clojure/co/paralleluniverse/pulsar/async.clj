@@ -55,8 +55,8 @@
 (defn unblocking-buffer?
   "Returns true if a channel created with buffer will never block. That is to say,
    puts into this buffer will never cause the buffer to be full. "
-  [buff]
-  false) ; TODO Verify correctness for Pulsar's core.async impl
+  [[_ policy]]
+  (and (not= policy Channels$OverflowPolicy/BLOCK) (not= policy Channels$OverflowPolicy/BACKOFF)))
 
 (defn rx-chan [chan xform ex-handler]
   "Returns a new transforming channel based on the one passed as a first argument. The given transformation will
