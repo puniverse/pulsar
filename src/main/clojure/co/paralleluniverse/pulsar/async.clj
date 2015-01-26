@@ -143,7 +143,7 @@
   ([port val fn1 on-caller?]
     (if (not (p/closed? port))
       (if-let [res (and on-caller? (p/try-snd port val))]
-        (when fn1 (fn1 res))
+        (when fn1 (fn1 res) true)
         (p/spawn-fiber #(let [res (p/snd port val)]
                            (when fn1 (fn1 res)))))
       (do
@@ -427,8 +427,8 @@
 (defsfn pipe
   "Takes elements from the from channel and supplies them to the to
    channel. By default, the to channel will be closed when the from
-   channel closes, but can be determined by the close?  parameter. Will
-   stop consuming the from channel if the to channel closes"
+   channel closes, but can be determined by the close? parameter. Will
+   stop consuming the from channel if the to channel closes."
   ([from to] (pipe from to true))
   ([from to close?]
     (go-loop []
