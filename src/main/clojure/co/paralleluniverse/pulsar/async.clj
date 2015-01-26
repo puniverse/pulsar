@@ -285,7 +285,11 @@
    f when completed."
   [f]
   (let [c (chan 1)]
-    (.execute thread-macro-executor (f->chan c f))
+    (let [binds (clojure.lang.Var/getThreadBindingFrame)]
+      (.execute thread-macro-executor
+                (fn []
+                  (clojure.lang.Var/resetThreadBindingFrame binds)
+                  ((f->chan c f)))))
     c))
 
 (defmacro thread
