@@ -122,10 +122,13 @@
 (defsfn >!
   "Puts a val into port. nil values are not allowed. Must be called
    inside a (go ...) block. Will park if no buffer space is available.
+   Returns true unless port is already closed.
   
-   Pulsar implementation: Identical to >!!. May be used outside go blocks as well. "
+   Pulsar implementation: Identical to >!!. May be used outside go blocks as well."
   [port val]
-  (p/snd port val))
+  (if (not (p/closed? port))
+    (do (p/snd port val) true)
+    false))
 
 ;; Unlike in core.async put! is a second-class citizen of this implementation.
 ;; It gives no performance benefits over using go >!
@@ -144,7 +147,7 @@
         (p/spawn-fiber #(let [res (p/snd port val)]
                            (when fn1 (fn1 res)))))
       (do
-        (fn1 false)
+        (when fn1 (fn1 false))
         false))))
 
 (defn close!
@@ -341,9 +344,9 @@
 
 (def >!!
   "Puts a val into port. nil values are not allowed. Will block if no
-   buffer space is available. Returns nil.
+   buffer space is available. Returns true unless port is already closed.
   
-   Pulsar implementation: Identical to <!!. May be used outside go blocks as well."
+   Pulsar implementation: Identical to >!. May be used outside go blocks as well."
   >!)
 
 (defmacro alts!!
