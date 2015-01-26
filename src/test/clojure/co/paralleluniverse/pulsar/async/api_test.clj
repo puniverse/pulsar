@@ -153,3 +153,89 @@
        (fact "bindings"
              (<!! (fiber test-dyn))
              => true)))
+
+(fact "ops tests"
+
+      (fact "onto-chan"
+            (<!! (a/into [] (a/to-chan (range 10))))
+            => (range 10))
+
+      (fact "pipe"
+            (let [out (chan)]
+              (pipe (a/to-chan [1 2 3 4 5])
+                    out)
+              (<!! (a/into [] out)))
+            => [1 2 3 4 5])
+
+      (fact "map"
+            (<!! (a/into [] (a/map + [(a/to-chan (range 4))
+                                      (a/to-chan (range 4))
+                                      (a/to-chan (range 4))
+                                      (a/to-chan (range 4))])))
+            => [0 4 8 12])
+
+      (fact "split"
+            ;; Must provide buffers for channels else the tests won't complete
+            (let [[even odd] (a/split even? (a/to-chan [1 2 3 4 5 6]) 5 5)]
+              (fact (<!! (a/into [] even))
+                    => [2 4 6])
+              (fact (<!! (a/into [] odd))
+                    => [1 3 5])))
+
+      (fact "merge"
+            ;; merge uses alt, so results can be in any order, we're using
+            ;; frequencies as a way to make sure we get the right result.
+            (frequencies (<!! (a/into [] (a/merge [(a/to-chan (range 4))
+                                                   (a/to-chan (range 4))
+                                                   (a/to-chan (range 4))
+                                                   (a/to-chan (range 4))]))))
+            => {0 4
+                1 4
+                2 4
+                3 4})
+
+      (fact "mix"
+            (let [out (chan)
+                  mx (mix out)]
+              (admix mx (a/to-chan [1 2 3]))
+              (admix mx (a/to-chan [4 5 6]))
+
+              (<!! (a/into #{} (a/take 6 out))))
+            => #{1 2 3 4 5 6})
+
+      (fact "mult"
+            (let [a (chan 4)
+                  b (chan 4)
+                  src (chan)
+                  m (mult src)]
+              (tap m a)
+              (tap m b)
+              (pipe (a/to-chan (range 4)) src)
+              (fact (<!! (a/into [] a))
+                    => [0 1 2 3])
+              (fact (<!! (a/into [] b))
+                    => [0 1 2 3])))
+
+      (fact "pub-sub"
+            (let [a-ints (chan 5)
+                  a-strs (chan 5)
+                  b-ints (chan 5)
+                  b-strs (chan 5)
+                  src (chan)
+                  p (pub src (fn [x]
+                               (if (string? x)
+                                 :string
+                                 :int)))]
+              (sub p :string a-strs)
+              (sub p :string b-strs)
+              (sub p :int a-ints)
+              (sub p :int b-ints)
+              (pipe (a/to-chan [1 "a" 2 "b" 3 "c"]) src)
+              (fact (<!! (a/into [] a-ints))
+                    => [1 2 3])
+              (fact (<!! (a/into [] b-ints))
+                    => [1 2 3])
+              (fact (<!! (a/into [] a-strs))
+                    => ["a" "b" "c"])
+              (fact (<!! (a/into [] b-strs))
+                    => ["a" "b" "c"]))))
