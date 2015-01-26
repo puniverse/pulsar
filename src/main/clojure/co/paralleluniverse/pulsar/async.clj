@@ -164,7 +164,7 @@
   [msecs]
   (TimeoutChannel/timeout msecs TimeUnit/MILLISECONDS))
 
-(defn- do-alts-internal
+(defsfn ^:private do-alts-internal
   "Returns a SelectAction given a set of selection operations and an options map"
   [ports opts]
   (let [^boolean priority (if (:priority opts) true false)
@@ -178,7 +178,7 @@
                            (Selector/select    priority ps))]
     sa))
 
-(defn do-alts
+(defsfn do-alts
   "Returns derefable [val port] if immediate, nil if enqueued"
   [fret ports opts]
   (let [^SelectAction sa (do-alts-internal ports opts)
@@ -187,7 +187,7 @@
       [(:default opts) :default]
       (if fret (fret v) v))))
 
-(defn alts!
+(defsfn alts!
   "Completes at most one of several channel operations. Must be called
    inside a (go ...) block. ports is a set of channel endpoints, which
    can be either a channel to take from or a vector of
