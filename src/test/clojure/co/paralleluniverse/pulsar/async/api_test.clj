@@ -20,8 +20,7 @@
   (:refer-clojure :exclude [map into reduce merge take partition partition-by])
   (:require [co.paralleluniverse.pulsar.core :as p])
   (:require [co.paralleluniverse.pulsar.async :refer :all :as a])
-  (:import (co.paralleluniverse.strands Strand)
-           (co.paralleluniverse.fibers Fiber)))
+  (:import (co.paralleluniverse.strands Strand)))
 
 (defn default-chan []
   (chan 1))
@@ -111,7 +110,7 @@
                            test-channel (chan nil)
                            write-promise (p/promise)]
                        (take! test-channel (fn [_] nil))
-                       (Strand/sleep 100)
+                       (Strand/sleep 100) ; Make (almost) sure the reading fiber is blocked on the channel before put!
                        (put! test-channel :foo (fn [_] (deliver write-promise (Strand/currentStrand))) true)
                        [starting-strand @write-promise]))
             => true)
