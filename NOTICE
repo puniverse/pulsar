@@ -4,6 +4,12 @@ This product contains modified source code from Continuations Library, by Matthi
     * LICENSE: New BSD (http://directory.fsf.org/wiki/License:BSD_3Clause)
     * HOMEPAGE: http://www.matthiasmann.de/content/view/24/26/
 
+This product contains modified source code from Clojure
+
+    Copyright (c) 2013 Rich Hickey and contributors
+    * LICENSE: Eclipse Public License v1.0 (http://www.eclipse.org/legal/epl-v10.html)
+    * HOMEPAGE: https://github.com/clojure/clojure
+
 This product contains modified source code from core.async, a Clojure library designed to provide facilities for async programming and communication by Rich Hickey and contributors:
 
     Copyright (c) 2013 Rich Hickey and contributors

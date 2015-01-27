@@ -21,14 +21,15 @@
   (:require
     [co.paralleluniverse.pulsar.core :as p :refer [defsfn sfn]])
   (:import
-    [co.paralleluniverse.strands.channels QueueObjectChannel TransferChannel TimeoutChannel Channels$OverflowPolicy SendPort ReceivePort Selector SelectAction Channels]
+    [co.paralleluniverse.strands.channels QueueObjectChannel TransferChannel TimeoutChannel Channels$OverflowPolicy SendPort ReceivePort Selector SelectAction Channels DelegatingSendPort]
     [co.paralleluniverse.strands.queues ArrayQueue BoxQueue CircularObjectBuffer]
     [java.util.concurrent TimeUnit Executors Executor]
     [com.google.common.util.concurrent ThreadFactoryBuilder]
     (java.util List Arrays)
     (co.paralleluniverse.strands Strand)
     (com.google.common.base Function)
-    (co.paralleluniverse.pulsar DelegatingChannel)))
+    (co.paralleluniverse.pulsar DelegatingChannel ClojureHelper SendProtocol)
+    (co.paralleluniverse.fibers Suspendable)))
 
 (alias 'core 'clojure.core)
 
@@ -58,27 +59,53 @@
   [[_ policy]]
   (and (not= policy Channels$OverflowPolicy/BLOCK) (not= policy Channels$OverflowPolicy/BACKOFF)))
 
-(defn rx-chan [chan xform ex-handler]
-  "Returns a new transforming channel based on the one passed as a first argument. The given transformation will
-  be applied."
-  (let [transform-and-handle (if xform
-                               (if ex-handler
-                                 (fn [val-producer]
-                                   (let [val (val-producer)]
-                                     (try (xform val)
-                                       (catch Throwable t (or (ex-handler t) (throw t))))))
-                                   (fn [val-producer] (xform (val-producer))))
-                                 (fn [val-producer] (val-producer)))]
+(defsfn ^:private ex-handler [ex]
+  (-> (Thread/currentThread)
+      .getUncaughtExceptionHandler
+      (.uncaughtException (Thread/currentThread) ex))
+  nil)
+
+(defn rx-chan [chan xform exh]
+  "Returns a new transforming channel based on the one passed as a first argument. The given transducer will
+  be applied to the add (send) function."
+  (let [add-reducer-builder
+          (fn [snd-op]
+            (sfn
+              ([x] x)
+              ([x v] (snd-op v) x)))
+        handle-builder
+          (fn [snd-op]
+            (sfn [x exh t]
+              (let [else ((or (p/suspendable! exh) ex-handler) t)]
+                (if (nil? else)
+                  x
+                  ((add-reducer-builder snd-op) x else)))))
+        xf-add-reducer-builder
+          (fn [snd-op]
+            (let [add-reducer (add-reducer-builder snd-op)
+                  handle (handle-builder snd-op)
+                  add! (if xform (p/suspendable! (xform add-reducer)) add-reducer)]
+              (sfn
+                ([x]
+                  (try
+                    (add! x)
+                    (catch Throwable t
+                      (handle x exh t))))
+                ([x v]
+                  (try
+                    (add! x v)
+                    (catch Throwable t
+                      (handle x exh t)))))))
+        px
+          (p/suspendable!
+            (p/sproxy [DelegatingSendPort SendProtocol] [chan]
+              (send [v] ((xf-add-reducer-builder (sfn [v] (p/sproxy-super send v))) this v)))
+            [SendProtocol])]
      (cond
-       (and (nil? xform) (nil? ex-handler))
+       (and (nil? xform) (nil? exh))
          chan
        :else
-       (DelegatingChannel. chan
-                           (.map (Channels/transform chan)
-                                 (reify Function
-                                   (apply [_ v] (transform-and-handle v))
-                                   (equals [this that] (= this that))))
-                           chan))))
+         (DelegatingChannel. px chan chan))))
 
 (defn chan
   "Creates a channel with an optional buffer, an optional transducer
@@ -95,8 +122,8 @@
   ([buf-or-n xform ex-handler]
    (cond
      (number? buf-or-n) (chan (buffer buf-or-n) xform ex-handler)
-     (nil? buf-or-n)    (rx-chan (TransferChannel.) xform ex-handler)
-     :else              (rx-chan (QueueObjectChannel. (first buf-or-n) (second buf-or-n) false) xform ex-handler))))
+     (nil? buf-or-n)    (do (when xform (assert buf-or-n "buffer must be supplied when transducer is")) (rx-chan (TransferChannel.) nil nil))
+     :else              (let [buf (first buf-or-n) policy (second buf-or-n)] (rx-chan (QueueObjectChannel. buf policy false) xform ex-handler)))))
 
 (defsfn <!
   "Takes a val from port. Must be called inside a (go ...) block. Will
@@ -478,7 +505,7 @@
                         (close! res)
                         (put! p res)
                         true)))
-          async (fn [[v p :as job]]
+          async (sfn [[v p :as job]]
                   (if (nil? job)
                     (do (close! results) nil)
                     (let [res (chan 1)]
