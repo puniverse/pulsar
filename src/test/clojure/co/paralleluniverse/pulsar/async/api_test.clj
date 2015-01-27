@@ -92,6 +92,7 @@
                            test-channel (chan nil)
                            read-promise (p/promise)]
                        (put! test-channel :foo (constantly nil))
+                       (Strand/sleep 100) ; Make (almost) sure the reading fiber is blocked on the channel before put!
                        (take! test-channel (fn [_] (deliver read-promise (Strand/currentStrand))) true)
                        [starting-strand @read-promise]))
             => true)
