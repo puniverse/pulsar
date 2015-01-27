@@ -300,11 +300,13 @@
   [c f]
   (p/sfn []
     (let [ret (try (f)
-                (catch Throwable t
-                  nil))]
-      (when-not (nil? ret)
+                (catch Throwable t ; TODO can't use finally as in core.async as it triggers an instrumentation problem in do-alts!
+                  {:_exc t}))]
+      (when-not (or (nil? ret) (and (map? ret) (instance? Throwable (:_exc ret))))
         (>! c ret))
-      (close! c))))
+      (close! c)
+      (when (and (map? ret) (instance? Throwable (:_exc ret)))
+        (throw (:_exc ret))))))
 
 (defonce ^:private ^Executor thread-macro-executor
   (Executors/newCachedThreadPool (-> (ThreadFactoryBuilder.) (.setNameFormat "async-thread-%d") (.setDaemon true) (.build))))
