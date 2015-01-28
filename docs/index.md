@@ -352,7 +352,7 @@ Sending a message to a channel is simple:
 (snd channel message)
 ~~~
 
-`message` can be any object, but not `nil`. Receiving a message from a channel is equaly easy:
+`message` can be any object, but not `nil`. Receiving a message from a channel is equally easy:
 
 ~~~ clojure
 (rcv channel)
@@ -361,7 +361,7 @@ Sending a message to a channel is simple:
 The `rcv` function returns the first message in the channel (the one that has waited there the longest), if there is one. If the channel is empty, the function will block until a message is sent to the channel, and will then return it.
 
 {:.alert .alert-info}
-**Note**: `rcv` is a suspendable function, so any function calling it must also be decalred suspendable. But remember, the function passed to `spawn-fiber` is automatically made suspendable.
+**Note**: `rcv` is a suspendable function, so any function calling it must also be declared suspendable. But remember, the function passed to `spawn-fiber` is automatically made suspendable.
 
 It is also possible to limit the amount of time `rcv` will wait for a message:
 
@@ -399,7 +399,7 @@ For example, in the following call,
 (sel [ch1 [ch2 msg1] ch3 [ch4 msg2]])
 ~~~
 
-a message will either be received from `ch1` or `ch2`, or one will be sent to eiter `ch2` or `ch4`. If, for instance, `ch2` will become available for reading (i.e. it has been sent a message) first, than only that operation, in this case a `rcv` will be performed on `ch1`. If `ch2` becomes available for writing before that happens, then only that operation, a `snd`, will be performed. If two operations are available at the same time, one will be chosen randomly (unless the `:priority` option is set, as we'll see later).
+a message will either be received from `ch1` or `ch2`, or one will be sent to either `ch2` or `ch4`. If, for instance, `ch2` will become available for reading (i.e. it has been sent a message) first, than only that operation, in this case a `rcv` will be performed on `ch1`. If `ch2` becomes available for writing before that happens, then only that operation, a `snd`, will be performed. If two operations are available at the same time, one will be chosen randomly (unless the `:priority` option is set, as we'll see later).
 
 Note that if a channel's overflow policy is anything by `:block`, then `snd` operations are always available.
 
@@ -424,11 +424,11 @@ So, for example, calling
 Will return, `[msg ch]` if any of the channels was immediately available for a `rcv`, or `nil` if none of them were.
 
 The `select` macro performs a very similar operation as `sel`, but allows you to specify an action to perform depending on which operation has succeeded.
-It takes an even number of expressions, ordered as (ops1, action1, ops2, action2 ...) with the ops being a channel operation descriptior (remember: a descriptor is either a channel for an `rcv` operation, or a vector of a channel and a message specifying a `snd` operation) or a collection of descriptors, and the actions are Clojure expressions. Like `sel`, `select` performs at most one operation, in which case it will run the operation's respective action and return its result.
+It takes an even number of expressions, ordered as (ops1, action1, ops2, action2 ...) with the ops being a channel operation descriptor (remember: a descriptor is either a channel for an `rcv` operation, or a vector of a channel and a message specifying a `snd` operation) or a collection of descriptors, and the actions are Clojure expressions. Like `sel`, `select` performs at most one operation, in which case it will run the operation's respective action and return its result.
 
 An action expression can bind values to the operations results. The action expression may begin with a vector of one or two symbols. In that case, the first symbol will be bound to the message returned from the successful receive in the respective ops clause (or `nil` if the successful operation is a `snd`), and the second symbol, if present, will be bound to the successful operation's channel.
 
-Like `sel`, `select` blocks until an operation succeeds, or, if a `:timeout` option is specified, until the timeout (in milliseconds) elapses. If a timeout is specfied and elapses, `select` will run the action in an optional `:else` clause and return its result, or, if an `:else` clause is not present, `select` will return `nil`.
+Like `sel`, `select` blocks until an operation succeeds, or, if a `:timeout` option is specified, until the timeout (in milliseconds) elapses. If a timeout is specified and elapses, `select` will run the action in an optional `:else` clause and return its result, or, if an `:else` clause is not present, `select` will return `nil`.
 
 Here's an example:
 
@@ -465,7 +465,7 @@ You can also unsubscribe a channel:
 (subscribe! tpc ch)
 ~~~
 
-Note that a messages sent to the topic is essentialy replicated to all subscribers, i.e. it will be received once in each channel.
+Note that a messages sent to the topic is essentially replicated to all subscribers, i.e. it will be received once in each channel.
 
 #### Ticker Channels
 
@@ -923,7 +923,7 @@ What happens if the messages `:foo` and `:bar` arrive in reverse order? Thanks t
 
 ### Error Handling
 
-The actor model does not only make concurrency easy; it also helps build fault-tolerant systems by compartmentalizing failure. Each actor is it's own execution context - if it encounters an exception, only the actor is directly affected (like a thread, only actors are lightweight). Unlike regular functions/objects, where an exception has to be caught and handled immediately on the callstack, with actors we can completely separate code execution from error handling.
+The actor model does not only make concurrency easy; it also helps build fault-tolerant systems by compartmentalizing failure. Each actor is it's own execution context - if it encounters an exception, only the actor is directly affected (like a thread, only actors are lightweight). Unlike regular functions/objects, where an exception has to be caught and handled immediately on the call stack, with actors we can completely separate code execution from error handling.
 
 In fact, when using actors, it is often best to to follow the [philosophy laid out by Joe Armstrong](http://www.erlang.org/download/armstrong_thesis_2003.pdf), Erlang's chief designer, of "let it crash". The idea is not to try and catch exceptions inside an actor, because attempting to catch and handle all exceptions is futile. Instead, we just let the actor crash, monitor its death elsewhere, and then take some action.
 
@@ -1087,7 +1087,7 @@ Details TBD.
 
 ### Behaviors
 
-Erlang's designers have realized that many actors follow some common patterns - like an actor that receives requests for work and then sends back a result to the requester. They've turned those patterns into actor templates, called behaviors, in order to save poeple work and avoid some common errors. Some of these behaviors have been ported to Pulsar.
+Erlang's designers have realized that many actors follow some common patterns - like an actor that receives requests for work and then sends back a result to the requester. They've turned those patterns into actor templates, called behaviors, in order to save people work and avoid some common errors. Some of these behaviors have been ported to Pulsar.
 
 Behaviors have two sides. One is the provider side, and is modeled in Pulsar as a protocols. You implement the protocol, and Pulsar provides the full actor implementation that uses your protocol. The other is the consumer side -- functions used by other actors to access the functionality provided by the behavior.
 
@@ -1139,7 +1139,7 @@ In order to create a gen-server actor(the provider side), you need to implement 
   (terminate [this ^Throwable cause]))
 ~~~
 
-* `init` -- will be called alled when the actor starts
+* `init` -- will be called when the actor starts
 * `terminate` -- will be called when the actor terminates.
 * `handle-call` -- called when the `call` function has been called on the actor :). This is where the gen-server's functionality usually lies. The value returned from `handle-call` will be sent back to the actor making the request, unless `nil` is returned, in which case the response has to be sent manually as we'll see later.
 * `handle-cast` -- called to handle messages sent with `cast!`.
@@ -1190,7 +1190,7 @@ You can set (and reset) the timeout from anywhere within the protocol's methods 
 
 A timeout value of 0 or less means no timeout.
 
-If the `handle-call` function returns `nil`, then no response is sent to the caller. The `call!` function remains blocked until a response is sent manually. This is done with the `reply!` function, which takes, along with the response message, the identitiy of the caller and the request ID, both passed to `handle-call`. Here's an example:
+If the `handle-call` function returns `nil`, then no response is sent to the caller. The `call!` function remains blocked until a response is sent manually. This is done with the `reply!` function, which takes, along with the response message, the identity of the caller and the request ID, both passed to `handle-call`. Here's an example:
 
 ~~~ clojure
 (let [gs (spawn
@@ -1276,7 +1276,7 @@ A supervisors works as follows: it has a number of *children*, worker actors or 
 
 When a child actor in the `:permanent` mode dies, it will always trigger its supervisor's recovery event. When a child in the `:transient` mode dies, it will trigger a recovery event only if it has died as a result of an exception, but not if it has simply finished its operation. A `:temporary` child never triggers it supervisor's recovery event.
 
-A supervisor's *restart strategy* determines what it does during a *recovery event*: A strategy of `:escalate` measns that the supervisor will shut down ("kill") all its surviving children and then die; a `:one-for-one` strategy will restart the dead child; an `:all-for-one` strategy will shut down all children and then restart them all; a `:rest-for-one` strategy will shut down and restart all those children added to the suervisor after the dead child.
+A supervisor's *restart strategy* determines what it does during a *recovery event*: A strategy of `:escalate` means that the supervisor will shut down ("kill") all its surviving children and then die; a `:one-for-one` strategy will restart the dead child; an `:all-for-one` strategy will shut down all children and then restart them all; a `:rest-for-one` strategy will shut down and restart all those children added to the supervisor after the dead child.
 
 A supervisor is spawned so:
 
