@@ -25,9 +25,13 @@ Aside from Pulsar's dependency on Quasar and its dependent libraries, Pulsar mak
 
 ## News
 
+### TBD
+
+Pulsar [0.6.3](https://github.com/puniverse/pulsar/releases/tag/v0.6.3) has been released.
+
 ### December 23, 2014
 
-Pulsar [0.6.2](https://github.com/puniverse/pulsar/releases/tag/v0.6.1) has been released.
+Pulsar [0.6.2](https://github.com/puniverse/pulsar/releases/tag/v0.6.2) has been released.
 
 ### September 23, 2014
 
@@ -1350,9 +1354,9 @@ In the following example (taken from [codeswap.clj](https://github.com/puniverse
 
 ## core.async
 
-core.async is a new [asynchronous programming library](https://github.com/clojure/core.async/) for Clojure built by Rich Hickey and other contributors. It provides something akin to fibers (though more limited than fibers) and channels, and is also available in ClojureScript. Because core.async provides a subset of Pulsar's capability, Pulsar provides an optional API that's compatible with core.async which some people may prefer.
+core.async is a new [asynchronous programming library](https://github.com/clojure/core.async/) for Clojure built by Rich Hickey and other contributors. It provides something akin to fibers through `go` blocks (though more limited than fibers) and channels, and is also available in ClojureScript. Because core.async provides a subset of Pulsar's capability, Pulsar provides an optional API that's compatible with core.async which some people may prefer. The original core.async test suite has been ported as well in order to ensure API-level compatibility.
 
-The core.async implementation is found in the `co.paralleluniverse.pulsar.async` namespace. It defines the following vars: `chan`, `buffer`, `dropping-buffer`, `sliding-buffer`, `go`, `thread-call`, `thread`, `close!`, `take!`, `put!`, `>!`, `>!!`, `<!`, `<!!`, `alts!`, `alts!!`, `alt!`, `alt!!` and `timeout`.
+The core.async implementation is found in the `co.paralleluniverse.pulsar.async` namespace. At present the support level is up to _core.async 0.1.346.0-17112a-alpha_, excluding deprecated and experimental features. 
 
 These definitions are no more than thin wrappers around Pulsar functions and macros:
 
@@ -1372,8 +1376,9 @@ These are the differences between the Pulsar implementation of the core.async AP
 
 * Channels created with `(chan (sliding-buffer n))` are single-consumer.
 * You may use the `!` and the `!!` defs interchangeably (the original implementation forces the use of the single-bang defs in go-blocks and the double-bang defs in regular threads). This means that in the Pulsar implementation all of the double-bang names (`>!!`, `<!!`, `alts!!` and `alt!!`) are actually redundant (but included for compatibility).
+* In addition to `thread` and `thread-call` there are `fiber` and `fiber-call` as well which are not part of the original core.async API.
 
-In addition, there are performance differences, mostly resulting from the fact that Pulsar uses fork-join pools to schedule fibers, while core.async uses regular thread pools. In short, if there is little interaction between go blocks (say, each go block writes something to a channel and completes), you can expet better performance from the original implementation. If there is a lot of interaction between go blocks (there's non-trivial message passing among them), then the Pulsar implementation will yield better performance.
+In addition, there are performance differences, mostly resulting from the fact that Pulsar uses fork-join pools to schedule fibers, while core.async uses regular thread pools. In short, if there is little interaction between go blocks (say, each go block writes something to a channel and completes), you can expect better performance from the original implementation. If there is a lot of interaction between go blocks (there's non-trivial message passing among them), then the Pulsar implementation will yield better performance.
 
 ## Clustering
 
@@ -1448,4 +1453,4 @@ The Pulsar source code contains several examples:
 * [A Pulsar ring benchmark]({{examples}}/primitive_ring_benchmark.clj) with promitive channels.
 * [A Pulsar full-graph benchmark]({{examples}}/graph.clj) where all actors ping and pong with all other actors.
 
-In addition, the [test suite](https://github.com/{{site.github}}/blob/master/src/test/clojure/co/paralleluniverse/pulsar_test.clj) contains many more small examples.
+In addition, the [test suite](https://github.com/{{site.github}}/tree/master/src/test/clojure/co/paralleluniverse/pulsar) contains many more small examples.
