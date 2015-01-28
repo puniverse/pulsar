@@ -170,7 +170,7 @@ It is a Clojure <span class="caps">API</span> for the <a href="https://github.co
 
 <h3 id="december-23-2014">December 23,&nbsp;2014</h3>
 
-<p>Pulsar <a href="https://github.com/puniverse/pulsar/releases/tag/v0.6.1"><span class="caps">0.6.2</span></a> has been&nbsp;released.</p>
+<p>Pulsar <a href="https://github.com/puniverse/pulsar/releases/tag/v0.6.2"><span class="caps">0.6.2</span></a> has been&nbsp;released.</p>
 
 <h3 id="september-23-2014">September 23,&nbsp;2014</h3>
 
@@ -305,7 +305,7 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either the
 <h4 id="bindings">Bindings</h4>
 
 <p>Fibers behave well with Clojure <code>bindings</code>. A newly spawned fiber inherits the bindings in effect at the time of&nbsp;spawning,
-and bindings decleared in a fiber last throughout the fiber’s lifetime. This is demonstrated in the following tests&nbsp;taken
+and bindings declared in a fiber last throughout the fiber’s lifetime. This is demonstrated in the following tests&nbsp;taken
 from the Pulsar test&nbsp;suite:</p>
 
 <div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="k">def </span><span class="o">^</span><span class="ss">:dynamic</span> <span class="nv">*foo*</span> <span class="mi">40</span><span class="p">)</span>
@@ -443,13 +443,13 @@ from the Pulsar test&nbsp;suite:</p>
 
 <div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">snd</span> <span class="nv">channel</span> <span class="nv">message</span><span class="p">)</span>
 </span></code></pre></div>
-<p><code>message</code> can be any object, but not <code>nil</code>. Receiving a message from a channel is equaly&nbsp;easy:</p>
+<p><code>message</code> can be any object, but not <code>nil</code>. Receiving a message from a channel is equally&nbsp;easy:</p>
 
 <div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">rcv</span> <span class="nv">channel</span><span class="p">)</span>
 </span></code></pre></div>
 <p>The <code>rcv</code> function returns the first message in the channel (the one that has waited there the longest), if there is one. If the channel is empty, the function will block until a message is sent to the channel, and will then return&nbsp;it.</p>
 
-<p class="alert alert-info"><strong>Note</strong>: <code>rcv</code> is a suspendable function, so any function calling it must also be decalred suspendable. But remember, the function passed to <code>spawn-fiber</code> is automatically made&nbsp;suspendable.</p>
+<p class="alert alert-info"><strong>Note</strong>: <code>rcv</code> is a suspendable function, so any function calling it must also be declared suspendable. But remember, the function passed to <code>spawn-fiber</code> is automatically made&nbsp;suspendable.</p>
 
 <p>It is also possible to limit the amount of time <code>rcv</code> will wait for a&nbsp;message:</p>
 
@@ -479,7 +479,7 @@ from the Pulsar test&nbsp;suite:</p>
 
 <div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">sel</span> <span class="p">[</span><span class="nv">ch1</span> <span class="p">[</span><span class="nv">ch2</span> <span class="nv">msg1</span><span class="p">]</span> <span class="nv">ch3</span> <span class="p">[</span><span class="nv">ch4</span> <span class="nv">msg2</span><span class="p">]])</span>
 </span></code></pre></div>
-<p>a message will either be received from <code>ch1</code> or <code>ch2</code>, or one will be sent to eiter <code>ch2</code> or <code>ch4</code>. If, for instance, <code>ch2</code> will become available for reading (i.e. it has been sent a message) first, than only that operation, in this case a <code>rcv</code> will be performed on <code>ch1</code>. If <code>ch2</code> becomes available for writing before that happens, then only that operation, a <code>snd</code>, will be performed. If two operations are available at the same time, one will be chosen randomly (unless the <code>:priority</code> option is set, as we’ll see&nbsp;later).</p>
+<p>a message will either be received from <code>ch1</code> or <code>ch2</code>, or one will be sent to either <code>ch2</code> or <code>ch4</code>. If, for instance, <code>ch2</code> will become available for reading (i.e. it has been sent a message) first, than only that operation, in this case a <code>rcv</code> will be performed on <code>ch1</code>. If <code>ch2</code> becomes available for writing before that happens, then only that operation, a <code>snd</code>, will be performed. If two operations are available at the same time, one will be chosen randomly (unless the <code>:priority</code> option is set, as we’ll see&nbsp;later).</p>
 
 <p>Note that if a channel’s overflow policy is anything by <code>:block</code>, then <code>snd</code> operations are always&nbsp;available.</p>
 
@@ -500,11 +500,11 @@ from the Pulsar test&nbsp;suite:</p>
 <p>Will return, <code>[msg ch]</code> if any of the channels was immediately available for a <code>rcv</code>, or <code>nil</code> if none of them&nbsp;were.</p>
 
 <p>The <code>select</code> macro performs a very similar operation as <code>sel</code>, but allows you to specify an action to perform depending on which operation has&nbsp;succeeded.
-It takes an even number of expressions, ordered as (ops1, action1, ops2, action2 …) with the ops being a channel operation descriptior (remember: a descriptor is either a channel for an <code>rcv</code> operation, or a vector of a channel and a message specifying a <code>snd</code> operation) or a collection of descriptors, and the actions are Clojure expressions. Like <code>sel</code>, <code>select</code> performs at most one operation, in which case it will run the operation’s respective action and return its&nbsp;result.</p>
+It takes an even number of expressions, ordered as (ops1, action1, ops2, action2 …) with the ops being a channel operation descriptor (remember: a descriptor is either a channel for an <code>rcv</code> operation, or a vector of a channel and a message specifying a <code>snd</code> operation) or a collection of descriptors, and the actions are Clojure expressions. Like <code>sel</code>, <code>select</code> performs at most one operation, in which case it will run the operation’s respective action and return its&nbsp;result.</p>
 
 <p>An action expression can bind values to the operations results. The action expression may begin with a vector of one or two symbols. In that case, the first symbol will be bound to the message returned from the successful receive in the respective ops clause (or <code>nil</code> if the successful operation is a <code>snd</code>), and the second symbol, if present, will be bound to the successful operation’s&nbsp;channel.</p>
 
-<p>Like <code>sel</code>, <code>select</code> blocks until an operation succeeds, or, if a <code>:timeout</code> option is specified, until the timeout (in milliseconds) elapses. If a timeout is specfied and elapses, <code>select</code> will run the action in an optional <code>:else</code> clause and return its result, or, if an <code>:else</code> clause is not present, <code>select</code> will return&nbsp;<code>nil</code>.</p>
+<p>Like <code>sel</code>, <code>select</code> blocks until an operation succeeds, or, if a <code>:timeout</code> option is specified, until the timeout (in milliseconds) elapses. If a timeout is specified and elapses, <code>select</code> will run the action in an optional <code>:else</code> clause and return its result, or, if an <code>:else</code> clause is not present, <code>select</code> will return&nbsp;<code>nil</code>.</p>
 
 <p>Here’s an&nbsp;example:</p>
 
@@ -533,7 +533,7 @@ It takes an even number of expressions, ordered as (ops1, action1, ops2, action2
 
 <div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">subscribe!</span> <span class="nv">tpc</span> <span class="nv">ch</span><span class="p">)</span>
 </span></code></pre></div>
-<p>Note that a messages sent to the topic is essentialy replicated to all subscribers, i.e. it will be received once in each&nbsp;channel.</p>
+<p>Note that a messages sent to the topic is essentially replicated to all subscribers, i.e. it will be received once in each&nbsp;channel.</p>
 
 <h4 id="ticker-channels">Ticker&nbsp;Channels</h4>
 
@@ -886,7 +886,7 @@ Pulsar supports this as an experimental feature (implemented internally with <co
 </span></code></pre></div>
 <h3 id="error-handling">Error&nbsp;Handling</h3>
 
-<p>The actor model does not only make concurrency easy; it also helps build fault-tolerant systems by compartmentalizing failure. Each actor is it’s own execution context - if it encounters an exception, only the actor is directly affected (like a thread, only actors are lightweight). Unlike regular functions/objects, where an exception has to be caught and handled immediately on the callstack, with actors we can completely separate code execution from error&nbsp;handling.</p>
+<p>The actor model does not only make concurrency easy; it also helps build fault-tolerant systems by compartmentalizing failure. Each actor is it’s own execution context - if it encounters an exception, only the actor is directly affected (like a thread, only actors are lightweight). Unlike regular functions/objects, where an exception has to be caught and handled immediately on the call stack, with actors we can completely separate code execution from error&nbsp;handling.</p>
 
 <p>In fact, when using actors, it is often best to to follow the <a href="http://www.erlang.org/download/armstrong_thesis_2003.pdf">philosophy laid out by Joe Armstrong</a>, Erlang’s chief designer, of “let it crash”. The idea is not to try and catch exceptions inside an actor, because attempting to catch and handle all exceptions is futile. Instead, we just let the actor crash, monitor its death elsewhere, and then take some&nbsp;action.</p>
 
@@ -1022,7 +1022,7 @@ Pulsar supports this as an experimental feature (implemented internally with <co
 
 <h3 id="behaviors">Behaviors</h3>
 
-<p>Erlang’s designers have realized that many actors follow some common patterns - like an actor that receives requests for work and then sends back a result to the requester. They’ve turned those patterns into actor templates, called behaviors, in order to save poeple work and avoid some common errors. Some of these behaviors have been ported to&nbsp;Pulsar.</p>
+<p>Erlang’s designers have realized that many actors follow some common patterns - like an actor that receives requests for work and then sends back a result to the requester. They’ve turned those patterns into actor templates, called behaviors, in order to save people work and avoid some common errors. Some of these behaviors have been ported to&nbsp;Pulsar.</p>
 
 <p>Behaviors have two sides. One is the provider side, and is modeled in Pulsar as a protocols. You implement the protocol, and Pulsar provides the full actor implementation that uses your protocol. The other is the consumer side – functions used by other actors to access the functionality provided by the&nbsp;behavior.</p>
 
@@ -1063,7 +1063,7 @@ Pulsar supports this as an experimental feature (implemented internally with <co
 </span><span id="line-7">  <span class="p">(</span><span class="nf">terminate</span> <span class="p">[</span><span class="nv">this</span> <span class="o">^</span><span class="nv">Throwable</span> <span class="nv">cause</span><span class="p">]))</span>
 </span></code></pre></div>
 <ul>
-  <li><code>init</code> – will be called alled when the actor&nbsp;starts</li>
+  <li><code>init</code> – will be called when the actor&nbsp;starts</li>
   <li><code>terminate</code> – will be called when the actor&nbsp;terminates.</li>
   <li><code>handle-call</code> – called when the <code>call</code> function has been called on the actor :). This is where the gen-server’s functionality usually lies. The value returned from <code>handle-call</code> will be sent back to the actor making the request, unless <code>nil</code> is returned, in which case the response has to be sent manually as we’ll see&nbsp;later.</li>
   <li><code>handle-cast</code> – called to handle messages sent with&nbsp;<code>cast!</code>.</li>
@@ -1107,7 +1107,7 @@ Pulsar supports this as an experimental feature (implemented internally with <co
 </span></code></pre></div>
 <p>A timeout value of 0 or less means no&nbsp;timeout.</p>
 
-<p>If the <code>handle-call</code> function returns <code>nil</code>, then no response is sent to the caller. The <code>call!</code> function remains blocked until a response is sent manually. This is done with the <code>reply!</code> function, which takes, along with the response message, the identitiy of the caller and the request <span class="caps">ID</span>, both passed to <code>handle-call</code>. Here’s an&nbsp;example:</p>
+<p>If the <code>handle-call</code> function returns <code>nil</code>, then no response is sent to the caller. The <code>call!</code> function remains blocked until a response is sent manually. This is done with the <code>reply!</code> function, which takes, along with the response message, the identity of the caller and the request <span class="caps">ID</span>, both passed to <code>handle-call</code>. Here’s an&nbsp;example:</p>
 
 <div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">gs</span> <span class="p">(</span><span class="nf">spawn</span>
 </span><span id="line-2">           <span class="p">(</span><span class="nf">gen-server</span> <span class="ss">:timeout</span> <span class="mi">50</span>
@@ -1179,7 +1179,7 @@ Pulsar supports this as an experimental feature (implemented internally with <co
 
 <p>When a child actor in the <code>:permanent</code> mode dies, it will always trigger its supervisor’s recovery event. When a child in the <code>:transient</code> mode dies, it will trigger a recovery event only if it has died as a result of an exception, but not if it has simply finished its operation. A <code>:temporary</code> child never triggers it supervisor’s recovery&nbsp;event.</p>
 
-<p>A supervisor’s <em>restart strategy</em> determines what it does during a <em>recovery event</em>: A strategy of <code>:escalate</code> measns that the supervisor will shut down (“kill”) all its surviving children and then die; a <code>:one-for-one</code> strategy will restart the dead child; an <code>:all-for-one</code> strategy will shut down all children and then restart them all; a <code>:rest-for-one</code> strategy will shut down and restart all those children added to the suervisor after the dead&nbsp;child.</p>
+<p>A supervisor’s <em>restart strategy</em> determines what it does during a <em>recovery event</em>: A strategy of <code>:escalate</code> means that the supervisor will shut down (“kill”) all its surviving children and then die; a <code>:one-for-one</code> strategy will restart the dead child; an <code>:all-for-one</code> strategy will shut down all children and then restart them all; a <code>:rest-for-one</code> strategy will shut down and restart all those children added to the supervisor after the dead&nbsp;child.</p>
 
 <p>A supervisor is spawned&nbsp;so:</p>
 
@@ -1274,7 +1274,7 @@ Pulsar supports this as an experimental feature (implemented internally with <co
   <li>You may use the <code>!</code> and the <code>!!</code> defs interchangeably (the original implementation forces the use of the single-bang defs in go-blocks and the double-bang defs in regular threads). This means that in the Pulsar implementation all of the double-bang names (<code>&gt;!!</code>, <code>&lt;!!</code>, <code>alts!!</code> and <code>alt!!</code>) are actually redundant (but included for&nbsp;compatibility).</li>
 </ul>
 
-<p>In addition, there are performance differences, mostly resulting from the fact that Pulsar uses fork-join pools to schedule fibers, while core.async uses regular thread pools. In short, if there is little interaction between go blocks (say, each go block writes something to a channel and completes), you can expet better performance from the original implementation. If there is a lot of interaction between go blocks (there’s non-trivial message passing among them), then the Pulsar implementation will yield better&nbsp;performance.</p>
+<p>In addition, there are performance differences, mostly resulting from the fact that Pulsar uses fork-join pools to schedule fibers, while core.async uses regular thread pools. In short, if there is little interaction between go blocks (say, each go block writes something to a channel and completes), you can expect better performance from the original implementation. If there is a lot of interaction between go blocks (there’s non-trivial message passing among them), then the Pulsar implementation will yield better&nbsp;performance.</p>
 
 <h2 id="clustering">Clustering</h2>
 
@@ -1335,7 +1335,7 @@ Pulsar supports this as an experimental feature (implemented internally with <co
   <li><a href="https://github.com/puniverse/pulsar/tree/master/src/test/clojure/co/paralleluniverse/pulsar/examples/graph.clj">A Pulsar full-graph benchmark</a> where all actors ping and pong with all other&nbsp;actors.</li>
 </ul>
 
-<p>In addition, the <a href="https://github.com/puniverse/pulsar/blob/master/src/test/clojure/co/paralleluniverse/pulsar_test.clj">test suite</a> contains many more small&nbsp;examples.</p>
+<p>In addition, the <a href="https://github.com/puniverse/pulsar/tree/master/src/test/clojure/co/paralleluniverse/pulsar/">test suite</a> contains many more small&nbsp;examples.</p>
 
 					</div>
 				</div><!--main-->
