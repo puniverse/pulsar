@@ -296,17 +296,22 @@
                                    ~@a))))
                         (range) exprs))))))
 
+(defrecord ^:private f->chan-exc [^Throwable exc])
+(alter-meta! #'->f->chan-exc assoc :private true)
+(alter-meta! #'map->f->chan-exc assoc :private true)
+
 (defn- f->chan
   [c f]
   (p/sfn []
+    ; TODO can't simply use finally (as in core.async) because it triggers an instrumentation problem in do-alts!
     (let [ret (try (f)
-                (catch Throwable t ; TODO can't use finally as in core.async as it triggers an instrumentation problem in do-alts!
-                  {:_exc t}))]
-      (when-not (or (nil? ret) (and (map? ret) (instance? Throwable (:_exc ret))))
+                (catch Throwable t
+                  (->f->chan-exc t)))]
+      (when-not (or (nil? ret) (instance? f->chan-exc ret))
         (>! c ret))
       (close! c)
-      (when (and (map? ret) (instance? Throwable (:_exc ret)))
-        (throw (:_exc ret))))))
+      (when (instance? f->chan-exc ret)
+        (throw (:exc ret))))))
 
 (defonce ^:private ^Executor thread-macro-executor
   (Executors/newCachedThreadPool (-> (ThreadFactoryBuilder.) (.setNameFormat "async-thread-%d") (.setDaemon true) (.build))))
