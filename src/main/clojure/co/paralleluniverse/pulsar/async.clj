@@ -27,8 +27,9 @@
     [com.google.common.util.concurrent ThreadFactoryBuilder]
     (java.util List Arrays)
     (co.paralleluniverse.strands Strand SuspendableAction1)
-    (co.paralleluniverse.pulsar DelegatingChannel CoreAsyncSendPort IdentityPipeline)
-    (co.paralleluniverse.common.util Function2)))
+    (co.paralleluniverse.pulsar.async DelegatingChannel CoreAsyncSendPort IdentityPipeline PredicateSplitSendPort)
+    (co.paralleluniverse.common.util Function2)
+    (com.google.common.base Predicate)))
 
 (alias 'core 'clojure.core)
 
@@ -469,8 +470,6 @@
           init)
         ch))))
 
-; TODO Port on top of new Quasar primitives
-
 (defsfn pipe
   "Takes elements from the from channel and supplies them to the to
    channel. By default, the to channel will be closed when the from
@@ -493,13 +492,13 @@
   ([p ch t-buf-or-n f-buf-or-n]
     (let [tc (chan t-buf-or-n)
           fc (chan f-buf-or-n)]
-      (go-loop []
-               (let [v (<! ch)]
-                 (if (nil? v)
-                   (do (close! tc) (close! fc))
-                   (when (>! (if (p v) tc fc) v)
-                     (recur)))))
+      (pipe ch (PredicateSplitSendPort.
+                 (reify Predicate
+                   (apply [_ v] (p v)))
+                 tc fc))
       [tc fc])))
+
+; TODO Port on top of new Quasar primitives
 
 (defsfn ^:private pipeline*
   ([n to xf from close? ex-handler type]
