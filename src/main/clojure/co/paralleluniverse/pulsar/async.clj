@@ -498,6 +498,18 @@
                  tc fc))
       [tc fc])))
 
+(defsfn take
+  "Returns a channel that will return, at most, n items from ch. After n items
+   have been returned, or ch has been closed, the return channel will close.
+
+   The output channel is unbuffered by default, unless buf-or-n is given."
+  ([n ch]
+    (take n ch nil))
+  ([n ch buf-or-n]
+    (let [out (chan buf-or-n)]
+      (pipe (Channels/take ch n) out)
+      out)))
+
 ; TODO Port on top of new Quasar primitives
 
 (defsfn ^:private pipeline*
@@ -914,21 +926,3 @@
    collection. ch must close before into produces a result."
   [coll ch]
   (reduce conj coll ch))
-
-(defsfn take
-  "Returns a channel that will return, at most, n items from ch. After n items
-   have been returned, or ch has been closed, the return channel will close.
-
-   The output channel is unbuffered by default, unless buf-or-n is given."
-  ([n ch]
-    (take n ch nil))
-  ([n ch buf-or-n]
-    (let [out (chan buf-or-n)]
-      (go (loop [x 0]
-            (when (< x n)
-              (let [v (<! ch)]
-                (when (not (nil? v))
-                  (>! out v)
-                  (recur (inc x))))))
-          (close! out))
-      out)))
