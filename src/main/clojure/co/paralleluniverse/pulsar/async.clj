@@ -21,13 +21,14 @@
   (:require
     [co.paralleluniverse.pulsar.core :as p :refer [defsfn sfn]])
   (:import
-    [co.paralleluniverse.strands.channels QueueObjectChannel TransferChannel TimeoutChannel Channels$OverflowPolicy SendPort ReceivePort Selector SelectAction]
+    [co.paralleluniverse.strands.channels QueueObjectChannel TransferChannel TimeoutChannel Channels$OverflowPolicy SendPort ReceivePort Selector SelectAction ReducingReceivePort Channels]
     [co.paralleluniverse.strands.queues ArrayQueue BoxQueue CircularObjectBuffer]
     [java.util.concurrent TimeUnit Executors Executor]
     [com.google.common.util.concurrent ThreadFactoryBuilder]
     (java.util List Arrays)
     (co.paralleluniverse.strands Strand SuspendableAction1)
-    (co.paralleluniverse.pulsar DelegatingChannel CoreAsyncSendPort)))
+    (co.paralleluniverse.pulsar DelegatingChannel CoreAsyncSendPort)
+    (co.paralleluniverse.common.util Function2)))
 
 (alias 'core 'clojure.core)
 
@@ -402,8 +403,6 @@
 
 ;; OPS
 
-; TODO Port on top of new Quasar primitives
-
 (defmacro go-loop
   "Like (go (loop ...))"
   [bindings & body]
@@ -443,6 +442,14 @@
     (onto-chan ch coll)
     ch))
 
+(defsfn ^:private last
+  [ch]
+  (loop [ret nil]
+    (let [v (<! ch)]
+      (if (nil? v)
+        ret
+        (recur v)))))
+
 (defsfn reduce
   "f should be a function of 2 arguments. Returns a channel containing
    the single result of applying f to init and the first item from the
@@ -450,11 +457,19 @@
    the channel closes without yielding items, returns init and f is not
    called. ch must close before reduce produces a result."
   [f init ch]
-  (go-loop [ret init]
-           (let [v (<! ch)]
-             (if (nil? v)
-               ret
-               (recur (f ret v))))))
+  (fiber
+    (last
+      (DelegatingChannel.
+        ch
+        (Channels/reduce
+          ch
+          (reify
+            Function2
+              (apply [_ accum v] (f accum v)))
+          init)
+        ch))))
+
+; TODO Port on top of new Quasar primitives
 
 (defsfn pipe
   "Takes elements from the from channel and supplies them to the to
