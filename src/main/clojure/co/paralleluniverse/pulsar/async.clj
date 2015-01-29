@@ -17,17 +17,17 @@
 ;
 (ns co.paralleluniverse.pulsar.async
   "Fiber-based implementation of [org.clojure/core.async \"0.1.346.0-17112a-alpha\"]"
-  (:refer-clojure :exclude [reduce into merge map take partition  partition-by] :as core)
+  (:refer-clojure :exclude [reduce into merge map take partition partition-by] :as core)
   (:require
     [co.paralleluniverse.pulsar.core :as p :refer [defsfn sfn]])
   (:import
-    [co.paralleluniverse.strands.channels QueueObjectChannel TransferChannel TimeoutChannel Channels$OverflowPolicy SendPort ReceivePort Selector SelectAction ReducingReceivePort Channels]
+    [co.paralleluniverse.strands.channels QueueObjectChannel TransferChannel TimeoutChannel Channels$OverflowPolicy SendPort ReceivePort Selector SelectAction Channels]
     [co.paralleluniverse.strands.queues ArrayQueue BoxQueue CircularObjectBuffer]
     [java.util.concurrent TimeUnit Executors Executor]
     [com.google.common.util.concurrent ThreadFactoryBuilder]
     (java.util List Arrays)
     (co.paralleluniverse.strands Strand SuspendableAction1)
-    (co.paralleluniverse.pulsar DelegatingChannel CoreAsyncSendPort)
+    (co.paralleluniverse.pulsar DelegatingChannel CoreAsyncSendPort IdentityPipeline)
     (co.paralleluniverse.common.util Function2)))
 
 (alias 'core 'clojure.core)
@@ -478,13 +478,7 @@
    stop consuming the from channel if the to channel closes."
   ([from to] (pipe from to true))
   ([from to close?]
-    (go-loop []
-             (let [v (<! from)]
-               (if (nil? v)
-                 (when close? (close! to))
-                 (when (>! to v)
-                   (recur)))))
-    to))
+    (p/spawn-fiber #(.run (IdentityPipeline. from to 0 close?)))))
 
 (defsfn split
   "Takes a predicate and a source channel and returns a vector of two
