@@ -21,15 +21,13 @@
   (:require
     [co.paralleluniverse.pulsar.core :as p :refer [defsfn sfn]])
   (:import
-    [co.paralleluniverse.strands.channels QueueObjectChannel TransferChannel TimeoutChannel Channels$OverflowPolicy SendPort ReceivePort Selector SelectAction Channels DelegatingSendPort]
+    [co.paralleluniverse.strands.channels QueueObjectChannel TransferChannel TimeoutChannel Channels$OverflowPolicy SendPort ReceivePort Selector SelectAction]
     [co.paralleluniverse.strands.queues ArrayQueue BoxQueue CircularObjectBuffer]
     [java.util.concurrent TimeUnit Executors Executor]
     [com.google.common.util.concurrent ThreadFactoryBuilder]
     (java.util List Arrays)
-    (co.paralleluniverse.strands Strand)
-    (com.google.common.base Function)
-    (co.paralleluniverse.pulsar DelegatingChannel ClojureHelper SendProtocol)
-    (co.paralleluniverse.fibers Suspendable)))
+    (co.paralleluniverse.strands Strand SuspendableAction1)
+    (co.paralleluniverse.pulsar DelegatingChannel CoreAsyncSendPort)))
 
 (alias 'core 'clojure.core)
 
@@ -97,10 +95,10 @@
                     (catch Throwable t
                       (handle x exh t)))))))
         px
-          (p/suspendable!
-            (p/sproxy [DelegatingSendPort SendProtocol] [chan]
-              (send [v] ((xf-add-reducer-builder (sfn [v] (p/sproxy-super send v))) this v)))
-            [SendProtocol])]
+          (CoreAsyncSendPort.
+            chan
+            (p/sreify SuspendableAction1
+              (call [_ v] ((xf-add-reducer-builder (sfn [v] (.send chan v))) chan v))))]
      (cond
        (and (nil? xform) (nil? exh))
          chan

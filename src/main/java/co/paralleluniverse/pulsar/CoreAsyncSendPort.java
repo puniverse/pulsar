@@ -14,11 +14,23 @@
 package co.paralleluniverse.pulsar;
 
 import co.paralleluniverse.fibers.SuspendExecution;
+import co.paralleluniverse.strands.SuspendableAction1;
+import co.paralleluniverse.strands.channels.DelegatingSendPort;
+import co.paralleluniverse.strands.channels.SendPort;
 
 /**
- *
  * @author circlespainter
  */
-public interface SendProtocol<M> {
-    void send(M m) throws SuspendExecution, InterruptedException;
+public class CoreAsyncSendPort<T> extends DelegatingSendPort<T> {
+    private final SuspendableAction1<T> sendAction;
+
+    public CoreAsyncSendPort(final SendPort<T> target, final SuspendableAction1<T> sendAction) {
+        super(target);
+        this.sendAction = sendAction;
+    }
+
+    @Override
+    public void send(T message) throws SuspendExecution, InterruptedException {
+        sendAction.call(message);
+    }
 }
