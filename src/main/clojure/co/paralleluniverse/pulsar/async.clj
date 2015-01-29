@@ -510,6 +510,17 @@
       (pipe (Channels/take ch n) out)
       out)))
 
+(defsfn merge
+  "Takes a collection of source channels and returns a channel which
+   contains all values taken from them. The returned channel will be
+   unbuffered by default, or a buf-or-n can be supplied. The channel
+   will close after all the source channels have closed."
+  ([chs] (merge chs nil))
+  ([chs buf-or-n]
+    (let [out (chan buf-or-n)]
+      (pipe (Channels/group chs) out)
+      out)))
+
 ; TODO Port on top of new Quasar primitives
 
 (defsfn ^:private pipeline*
@@ -900,24 +911,6 @@
                    (close! out)
                    (do (>! out (apply f rets))
                        (recur)))))
-      out)))
-
-(defsfn merge
-  "Takes a collection of source channels and returns a channel which
-   contains all values taken from them. The returned channel will be
-   unbuffered by default, or a buf-or-n can be supplied. The channel
-   will close after all the source channels have closed."
-  ([chs] (merge chs nil))
-  ([chs buf-or-n]
-    (let [out (chan buf-or-n)]
-      (go-loop [cs (vec chs)]
-               (if (pos? (count cs))
-                 (let [[v c] (alts! cs)]
-                   (if (nil? v)
-                     (recur (filterv #(not= c %) cs))
-                     (do (>! out v)
-                         (recur cs))))
-                 (close! out)))
       out)))
 
 (defsfn into
