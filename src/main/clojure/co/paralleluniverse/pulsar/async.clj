@@ -29,7 +29,7 @@
     (co.paralleluniverse.strands Strand SuspendableAction1)
     (co.paralleluniverse.pulsar.async DelegatingChannel CoreAsyncSendPort IdentityPipeline PredicateSplitSendPort)
     (co.paralleluniverse.common.util Function2)
-    (com.google.common.base Predicate)))
+    (com.google.common.base Predicate Function)))
 
 (alias 'core 'clojure.core)
 
@@ -874,30 +874,9 @@
    buf-or-n can be supplied"
   ([f chs] (map f chs nil))
   ([f chs buf-or-n]
-    (let [chs (vec chs)
-          out (chan buf-or-n)
-          cnt (count chs)
-          rets (object-array cnt)
-          dchan (chan 1)
-          dctr (atom nil)
-          done (mapv (fn [i]
-                       (fn [ret]
-                         (aset rets i ret)
-                         (when (zero? (swap! dctr dec))
-                           (put! dchan (Arrays/copyOf rets cnt)))))
-                     (range cnt))]
-      (go-loop []
-               (reset! dctr cnt)
-               (dotimes [i cnt]
-                 (try
-                   (take! (chs i) (done i))
-                   (catch Exception e
-                     (swap! dctr dec))))
-               (let [rets (<! dchan)]
-                 (if (some nil? rets)
-                   (close! out)
-                   (do (>! out (apply f rets))
-                       (recur)))))
+    (let [chs (seq chs)
+          out (chan buf-or-n)]
+      (pipe (Channels/zip chs (reify Function (apply [_ a] (apply f (seq a))))) out)
       out)))
 
 (defsfn into
