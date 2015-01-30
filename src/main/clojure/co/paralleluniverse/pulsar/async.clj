@@ -21,7 +21,7 @@
   (:require
     [co.paralleluniverse.pulsar.core :as p :refer [defsfn sfn]])
   (:import
-    [co.paralleluniverse.strands.channels QueueObjectChannel TransferChannel TimeoutChannel Channels$OverflowPolicy SendPort ReceivePort Selector SelectAction Channels]
+    [co.paralleluniverse.strands.channels QueueObjectChannel TransferChannel TimeoutChannel Channels$OverflowPolicy SendPort ReceivePort Selector SelectAction Channels ReceivePortGroup Mix$SoloEffect Mix$State Mix$Mode]
     [co.paralleluniverse.strands.queues ArrayQueue BoxQueue CircularObjectBuffer]
     [java.util.concurrent TimeUnit Executors Executor]
     [com.google.common.util.concurrent ThreadFactoryBuilder]
@@ -521,6 +521,104 @@
       (pipe (Channels/group chs) out)
       out)))
 
+(defprotocol Mix
+  (admix* [m ch])
+  (unmix* [m ch])
+  (unmix-all* [m])
+  (toggle* [m state-map])
+  (solo-mode* [m mode]))
+
+(defprotocol Mux
+  (muxch* [_]))
+
+(defsfn mix
+   "Creates and returns a mix of one or more input channels which will
+    be put on the supplied out channel. Input sources can be added to
+    the mix with 'admix', and removed with 'unmix'. A mix supports
+    soloing, muting and pausing multiple inputs atomically using
+    'toggle', and can solo using either muting or pausing as determined
+    by 'solo-mode'.
+
+    Each channel can have zero or more boolean modes set via 'toggle':
+
+    :solo - when true, only this (ond other soloed) channel(s) will appear
+            in the mix output channel. :mute and :pause states of soloed
+            channels are ignored. If solo-mode is :mute, non-soloed
+            channels are muted, if :pause, non-soloed channels are
+            paused.
+
+    :mute - muted channels will have their contents consumed but not included in the mix
+    :pause - paused channels will not have their contents consumed (and thus also not included in the mix)"
+   [out]
+   (let [rp-array #(let [a (make-array ReceivePort 1)] (aset a 0 %) a)
+         empty-rp-array (make-array ReceivePort 0)
+         flatten-coll-map (fn [coll-map f-key f-val]
+                            (reduce-kv
+                              (fn [res coll val]
+                                (core/merge
+                                  res
+                                  (core/map
+                                    (fn [a] {(f-key a) (f-val val)})
+                                    coll)))
+                              {} coll-map))
+         to-flattened-c-state (fn [c-state-map] (flatten-coll-map c-state-map identity identity))
+         to-mix-state (fn [flattened-c-state]
+                        (Mix$State.
+                          (cond
+                            (:mute flattened-c-state) Mix$Mode/MUTE
+                            (:pause flattened-c-state) Mix$Mode/PAUSE
+                            :else Mix$Mode/NORMAL)
+                          (:solo flattened-c-state)))
+         to-mix-state-map (fn [state-map]
+                            (flatten-coll-map state-map identity #(to-mix-state (to-flattened-c-state %))))
+         solo-modes #{:mute :pause}
+         g (ReceivePortGroup. true)
+         m (reify
+             Mux
+             (muxch* [_] out)
+             Mix
+             (admix* [_ ch] (.add g (rp-array ch)))
+             (unmix* [_ ch] (.remove g (rp-array ch)))
+             (unmix-all* [_] (.remove g empty-rp-array))
+             (toggle* [_ state-map] (.setState g (to-mix-state-map state-map)))
+             (solo-mode* [_ mode]
+               (assert (solo-modes mode) (str "mode must be one of: " solo-modes))
+               (.setSoloEffect (condp mode = :mute Mix$SoloEffect/MUTE_OTHERS :pause Mix$SoloEffect/PAUSE_OTHERS))))]
+     (pipe g out)
+     m))
+
+(defn admix
+  "Adds ch as an input to the mix"
+  [mix ch]
+  (admix* mix ch))
+
+(defn unmix
+  "Removes ch as an input to the mix"
+  [mix ch]
+  (unmix* mix ch))
+
+(defn unmix-all
+  "removes all inputs from the mix"
+  [mix]
+  (unmix-all* mix))
+
+(defn toggle
+  "Atomically sets the state(s) of one or more channels in a mix. The
+   state map is a map of channels -> channel-state-map. A
+   channel-state-map is a map of attrs -> boolean, where attr is one or
+   more of :mute, :pause or :solo. Any states supplied are merged with
+   the current state.
+
+   Note that channels can be added to a mix via toggle, which can be
+   used to add channels in a particular (e.g. paused) state."
+  [mix state-map]
+  (toggle* mix state-map))
+
+(defn solo-mode
+  "Sets the solo mode of the mix. mode must be one of :mute or :pause"
+  [mix mode]
+  (solo-mode* mix mode))
+
 ; TODO Port on top of new Quasar primitives
 
 (defsfn ^:private pipeline*
@@ -621,9 +719,6 @@
   ([n to af from] (pipeline-async n to af from true))
   ([n to af from close?] (pipeline* n to af from close? nil :async)))
 
-(defprotocol Mux
-  (muxch* [_]))
-
 (defprotocol Mult
   (tap* [m ch close?])
   (untap* [m ch])
@@ -688,114 +783,6 @@
 (defn untap-all
   "Disconnects all target channels from a mult"
   [mult] (untap-all* mult))
-
-(defprotocol Mix
-  (admix* [m ch])
-  (unmix* [m ch])
-  (unmix-all* [m])
-  (toggle* [m state-map])
-  (solo-mode* [m mode]))
-
-(defsfn mix
-  "Creates and returns a mix of one or more input channels which will
-   be put on the supplied out channel. Input sources can be added to
-   the mix with 'admix', and removed with 'unmix'. A mix supports
-   soloing, muting and pausing multiple inputs atomically using
-   'toggle', and can solo using either muting or pausing as determined
-   by 'solo-mode'.
-
-   Each channel can have zero or more boolean modes set via 'toggle':
-
-   :solo - when true, only this (ond other soloed) channel(s) will appear
-           in the mix output channel. :mute and :pause states of soloed
-           channels are ignored. If solo-mode is :mute, non-soloed
-           channels are muted, if :pause, non-soloed channels are
-           paused.
-
-   :mute - muted channels will have their contents consumed but not included in the mix
-   :pause - paused channels will not have their contents consumed (and thus also not included in the mix)"
-  [out]
-  (let [cs (atom {}) ;;ch->attrs-map
-        solo-modes #{:mute :pause}
-        attrs (conj solo-modes :solo)
-        solo-mode (atom :mute)
-        change (chan)
-        changed #(put! change true)
-        pick (fn [attr chs]
-               (reduce-kv
-                 (fn [ret c v]
-                   (if (attr v)
-                     (conj ret c)
-                     ret))
-                 #{} chs))
-        calc-state (fn []
-                     (let [chs @cs
-                           mode @solo-mode
-                           solos (pick :solo chs)
-                           pauses (pick :pause chs)]
-                       {:solos solos
-                        :mutes (pick :mute chs)
-                        :reads (conj
-                                 (if (and (= mode :pause) (not (empty? solos)))
-                                   (vec solos)
-                                   (vec (remove pauses (keys chs))))
-                                 change)}))
-        m (reify
-            Mux
-            (muxch* [_] out)
-            Mix
-            (admix* [_ ch] (swap! cs assoc ch {}) (changed))
-            (unmix* [_ ch] (swap! cs dissoc ch) (changed))
-            (unmix-all* [_] (reset! cs {}) (changed))
-            (toggle* [_ state-map] (swap! cs (partial merge-with core/merge) state-map) (changed))
-            (solo-mode* [_ mode]
-              (assert (solo-modes mode) (str "mode must be one of: " solo-modes))
-              (reset! solo-mode mode)
-              (changed)))]
-    (go-loop [{:keys [solos mutes reads] :as state} (calc-state)]
-             (let [[v c] (alts! reads)]
-               (if (or (nil? v) (= c change))
-                 (do (when (nil? v)
-                       (swap! cs dissoc c))
-                     (recur (calc-state)))
-                 (if (or (solos c)
-                         (and (empty? solos) (not (mutes c))))
-                   (when (>! out v)
-                     (recur state))
-                   (recur state)))))
-    m))
-
-(defn admix
-  "Adds ch as an input to the mix"
-  [mix ch]
-  (admix* mix ch))
-
-(defn unmix
-  "Removes ch as an input to the mix"
-  [mix ch]
-  (unmix* mix ch))
-
-(defn unmix-all
-  "removes all inputs from the mix"
-  [mix]
-  (unmix-all* mix))
-
-(defn toggle
-  "Atomically sets the state(s) of one or more channels in a mix. The
-   state map is a map of channels -> channel-state-map. A
-   channel-state-map is a map of attrs -> boolean, where attr is one or
-   more of :mute, :pause or :solo. Any states supplied are merged with
-   the current state.
-
-   Note that channels can be added to a mix via toggle, which can be
-   used to add channels in a particular (e.g. paused) state."
-  [mix state-map]
-  (toggle* mix state-map))
-
-(defn solo-mode
-  "Sets the solo mode of the mix. mode must be one of :mute or :pause"
-  [mix mode]
-  (solo-mode* mix mode))
 
 (defprotocol Pub
   (sub* [p v ch close?])
