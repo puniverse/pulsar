@@ -28,7 +28,7 @@
   (:import (co.paralleluniverse.fibers Fiber)
            (co.paralleluniverse.strands Strand$UncaughtExceptionHandler)))
 
-(defn with-default-uncaught-exception-handler-fiber [handler f]
+(p/defsfn with-default-uncaught-exception-handler-fiber [handler f]
   (let [old-handler-fiber (Fiber/getDefaultUncaughtExceptionHandler)]
     (try
       (Fiber/setDefaultUncaughtExceptionHandler
@@ -39,7 +39,7 @@
       (Fiber/setDefaultUncaughtExceptionHandler old-handler-fiber)
       (catch Throwable t (.printStackTrace t) (throw t)))))
 
-(defn with-default-uncaught-exception-handler-thread [handler f]
+(p/defsfn with-default-uncaught-exception-handler-thread [handler f]
   (let [old-handler-thread (Thread/getDefaultUncaughtExceptionHandler)]
     (try
       (Thread/setDefaultUncaughtExceptionHandler
@@ -51,39 +51,43 @@
       (catch Throwable t (.printStackTrace t) (throw t)))))
 
 (fact "Exception in thread"
-      (let [log (p/promise)
-            ex (Exception. "This exception is expected")]
+      (let [log (p/promise)]
         (with-default-uncaught-exception-handler-thread
-          (fn [_ throwable] (deliver log throwable))
-          #(let [ret (thread (throw ex))]
-            (<!! ret)))
-        (fact (identical? ex (root-cause @log)) => true)))
+          (p/sfn [_ throwable] (deliver log throwable))
+          (p/sfn []
+                 (let [ex (Exception. "This exception is expected")
+                       ret (thread (throw ex))]
+                   (<!! ret)
+                   (fact (identical? ex (root-cause @log)) => true))))))
 
 (fact "Exception in go"
-  (let [log (p/promise)]
-    (with-default-uncaught-exception-handler-fiber
-      (p/sfn [_ throwable] (deliver log throwable))
-      #(let [ex (Exception. "This exception is expected")
-             ret (go (throw ex))]
-        (<!! ret)
-        (fact (root-cause @log) => ex)))))
+      (let [log (p/promise)]
+        (with-default-uncaught-exception-handler-fiber
+          (p/sfn [_ throwable] (deliver log throwable))
+          (p/sfn []
+                 (let [ex (Exception. "This exception is expected")
+                       ret (go (throw ex))]
+                   (<!! ret)
+                   (fact (root-cause @log) => ex))))))
 
 (fact "Exception in put callback"
-  (let [log (p/promise)]
-    (with-default-uncaught-exception-handler-fiber
-      (p/sfn [_ throwable] (deliver log throwable))
-      #(let [ex (Exception. "This exception is expected")
-             c (chan)]
-        (put! c :foo (fn [_] (throw ex)))
-        (<!! c)
-        (fact (root-cause @log) => ex)))))
+      (let [log (p/promise)]
+        (with-default-uncaught-exception-handler-fiber
+          (p/sfn [_ throwable] (deliver log throwable))
+          (p/sfn []
+                 (let [ex (Exception. "This exception is expected")
+                       c (chan)]
+                   (put! c :foo (fn [_] (throw ex)))
+                   (<!! c)
+                   (fact (root-cause @log) => ex))))))
 
 (fact "Exception in take callback"
-  (let [log (p/promise)]
-    (with-default-uncaught-exception-handler-fiber
-      (p/sfn [_ throwable] (deliver log throwable))
-      #(let [ex (Exception. "This exception is expected")
-             c (chan)]
-        (take! c (fn [_] (throw ex)))
-        (>!! c :foo)
-        (fact (root-cause @log) => ex)))))
+      (let [log (p/promise)]
+        (with-default-uncaught-exception-handler-fiber
+          (p/sfn [_ throwable] (deliver log throwable))
+          (p/sfn []
+                 (let [ex (Exception. "This exception is expected")
+                       c (chan)]
+                   (take! c (fn [_] (throw ex)))
+                   (>!! c :foo)
+                   (fact (root-cause @log) => ex))))))
