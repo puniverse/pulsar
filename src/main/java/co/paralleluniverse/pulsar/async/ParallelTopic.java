@@ -15,6 +15,7 @@ package co.paralleluniverse.pulsar.async;
 
 import co.paralleluniverse.fibers.DefaultFiberScheduler;
 import co.paralleluniverse.fibers.SuspendExecution;
+import co.paralleluniverse.fibers.Suspendable;
 import co.paralleluniverse.strands.Strand;
 import co.paralleluniverse.strands.StrandFactory;
 import co.paralleluniverse.strands.SuspendableRunnable;
@@ -26,8 +27,11 @@ import co.paralleluniverse.strands.channels.SendPort;
 import co.paralleluniverse.strands.channels.Topic;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * A topic that will spawn fibers from a factory and distribute messages to subscribers in parallel
@@ -41,17 +45,21 @@ public class ParallelTopic<Message> extends Topic<Message> {
     
     private final StrandFactory strandFactory;
     private final Channel<Message> internalChannel;
-    
+    private final Collection<SendPort<? super Message>> subscribersToBeLeftOpen;
+    private final AtomicReference<Throwable> closingException = new AtomicReference<Throwable>();
+
     private ParallelTopic(final Channel<Message> internalChannel, final StrandFactory strandFactory, final boolean staged) {
+        this.subscribersToBeLeftOpen = new CopyOnWriteArraySet<SendPort<? super Message>>();
+
         this.internalChannel = internalChannel;
         this.strandFactory = strandFactory;
-        
+
         startDistributionLoop(staged);
     }
     
     /**
-     * Creates a new ParallelTopic message distributor ({@link PubSub}) with the given buffer parameters, {@link StrandFactory} and staging behavior.
-     * <p/>
+     * Creates a new ParallelTopic message distributor with the given buffer parameters, {@link StrandFactory} and staging behavior.
+     *
      * @param bufferSize    The buffer size of this topic.
      * @param policy        The buffer policy of this topic.
      * @param strandFactory The {@llink StrandFactory} instance that will build the strands performing send operations to subscribers as well as the looping
@@ -63,8 +71,8 @@ public class ParallelTopic<Message> extends Topic<Message> {
     }
 
     /**
-     * Creates a new ParallelTopic staged message distributor ({@link PubSub}) with the given buffer parameters and {@link StrandFactory}.
-     * <p/>
+     * Creates a new ParallelTopic staged message distributor with the given buffer parameters and {@link StrandFactory}.
+     *
      * @param bufferSize    The buffer size of this topic.
      * @param policy        The buffer policy of this topic.
      * @param strandFactory The {@llink StrandFactory} instance that will build the strands performing send operations to subscribers as well as the looping
@@ -75,8 +83,8 @@ public class ParallelTopic<Message> extends Topic<Message> {
     }
 
     /**
-     * Creates a new ParallelTopic message distributor ({@link PubSub}) using a fiber-creating {@link StrandFactory} and with the given buffer parameters and staging behavior.
-     * <p/>
+     * Creates a new ParallelTopic message distributor using a fiber-creating {@link StrandFactory} and with the given buffer parameters and staging behavior.
+     *
      * @param bufferSize    The buffer size of this topic.
      * @param policy        The buffer policy of this topic.
      * @param staged        Whether all send operations to subscribers for a given message must be completed before initiating the subsequent one.
@@ -86,8 +94,8 @@ public class ParallelTopic<Message> extends Topic<Message> {
     }
 
     /**
-     * Creates a new staged ParallelTopic message distributor ({@link PubSub}) using a fiber-creating {@link StrandFactory} and with the given buffer parameters.
-     * <p/>
+     * Creates a new staged ParallelTopic message distributor using a fiber-creating {@link StrandFactory} and with the given buffer parameters.
+     *
      * @param bufferSize    The buffer size of this topic.
      * @param policy        The buffer policy of this topic.
      */
@@ -96,8 +104,8 @@ public class ParallelTopic<Message> extends Topic<Message> {
     }
 
     /**
-     * Creates a new ParallelTopic message distributor ({@link PubSub}) using a fiber-creating {@link StrandFactory} and with the given buffer parameters and staging behavior.
-     * <p/>
+     * Creates a new ParallelTopic message distributor using a fiber-creating {@link StrandFactory} and with the given buffer parameters and staging behavior.
+     *
      * @param bufferSize    The buffer size of this topic.
      * @param staged        Whether all send operations to subscribers for a given message must be completed before initiating the subsequent one.
      */
@@ -106,12 +114,39 @@ public class ParallelTopic<Message> extends Topic<Message> {
     }
 
     /**
-     * Creates a new staged ParallelTopic message distributor ({@link PubSub}) using a fiber-creating {@link StrandFactory} and with the given buffer parameters.
-     * <p/>
+     * Creates a new staged ParallelTopic message distributor using a fiber-creating {@link StrandFactory} and with the given buffer parameters.
+     *
      * @param bufferSize    The buffer size of this topic.
      */
     public ParallelTopic(final int bufferSize) {
         this(Channels.<Message>newChannel(bufferSize), strandFactoryDefault, stagedDefault);
+    }
+
+    /**
+     * Subscribe a channel to receive messages sent to this topic.
+     *
+     * @param close Specifies if the channel should be closed when the topic is closed (by default it is).
+     */
+    public <T extends SendPort<? super Message>> T subscribe(final T sub, final boolean close) {
+        if (close)
+            return super.subscribe(sub);
+        else {
+            subscribersToBeLeftOpen.add(sub);
+            getSubscribers().add(sub);
+            return sub;
+        }
+    }
+
+    @Override
+    public void unsubscribe(SendPort<? super Message> sub) {
+        super.unsubscribe(sub);
+        subscribersToBeLeftOpen.remove(sub);
+    }
+
+    @Override
+    public void unsubscribeAll() {
+        super.unsubscribeAll();
+        subscribersToBeLeftOpen.clear();
     }
 
     @Override
@@ -134,39 +169,73 @@ public class ParallelTopic<Message> extends Topic<Message> {
         return internalChannel.trySend(message);
     }
 
-    private void startDistributionLoop(final boolean staged) {
-        strandFactory.newStrand(SuspendableUtils.runnableToCallable(new SuspendableRunnable() {
-            // TODO check if there are more efficient alternatives
-            private final ArrayList<Strand> stage = new ArrayList<Strand>();
+    @Override
+    public void close() {
+        sendClosed = true;
+        internalChannel.close();
+    }
 
+    @Override
+    public void close(Throwable t) {
+        closingException.set(t);
+        close();
+    }
+
+    @Suspendable
+    private Strand startDistributionLoop(final boolean staged) {
+        // TODO check if there are more efficient alternatives
+        final ArrayList<Strand> stage = new ArrayList<Strand>();
+
+        return strandFactory.newStrand(SuspendableUtils.runnableToCallable(new SuspendableRunnable() {
             @Override
             public void run() throws SuspendExecution, InterruptedException {
-                for(;;) {
-                    final Message m = internalChannel.receive();
-                    if (isSendClosed())
-                        return;
-                    if (staged)
-                        stage.clear();
-                    for (final SendPort<? super Message> sub : getSubscribers()) {
-                        final Strand f = strandFactory.newStrand(SuspendableUtils.runnableToCallable(new SuspendableRunnable() {
-                            @Override
-                            public void run() throws SuspendExecution, InterruptedException {
-                                sub.send(m);
+                try {
+                    for (;;) {
+                        if (sendClosed) {
+                            // Close subs
+                            for (final SendPort<?> sub : getSubscribers()) {
+                                if (!subscribersToBeLeftOpen.contains(sub)) {
+                                    if (closingException.get() != null)
+                                        sub.close(closingException.get());
+                                    else
+                                        sub.close();
+                                }
                             }
-                        })).start();
-                        if (staged)
-                            stage.add(f);
-                    }
-                    if (staged) {
-                        for(final Strand s : stage) {
-                            try {
-                                s.join();
-                            } catch (final ExecutionException ee) {
-                                // This should never happen
-                                throw new AssertionError(ee);
-                            }
+
+                            return;
                         }
+
+                        final Message m = internalChannel.receive();
+                        if (m != null) {
+                            if (staged)
+                                stage.clear();
+
+                            for (final SendPort<? super Message> sub : getSubscribers()) {
+                                final Strand s = strandFactory.newStrand(SuspendableUtils.runnableToCallable(new SuspendableRunnable() {
+                                    @Override
+                                    public void run() throws SuspendExecution, InterruptedException {
+                                        try {
+                                            sub.send(m);
+                                        } catch (Throwable t) {
+                                            t.printStackTrace();
+                                            throw new RuntimeException(t);
+                                        }
+                                    }
+                                })).start();
+
+                                if (staged)
+                                    stage.add(s);
+                            }
+
+                            if (staged) {
+                                for (final Strand s : stage)
+                                    s.join();
+                            }
+                        } // Else sendClosed
                     }
+                } catch (final ExecutionException ee) {
+                    // This should never happen
+                    throw new AssertionError(ee);
                 }
             }
         })).start();
