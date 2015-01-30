@@ -1,1 +1,2 @@
 co.paralleluniverse.pulsar.async.Pub.sub*
+co.paralleluniverse.strands.Strand.join
