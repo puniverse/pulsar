@@ -37,7 +37,8 @@
               :dependencies [[midje "1.6.3" :exclusions [org.clojure/tools.namespace]]]
               :jvm-opts [;; Debugging
                          "-ea"
-                         ;"-Dco.paralleluniverse.fibers.verifyInstrumentation"
+                         ;"-Dco.paralleluniverse.fibers.verifyInstrumentation=true"
+                         ;"-Dco.paralleluniverse.fibers.detectRunawayFibers=false"
                          ;"-Dco.paralleluniverse.fibers.traceInterrupt=true"
                          ;; Recording
                          ;"-Dco.paralleluniverse.debugMode=true"
@@ -47,6 +48,8 @@
                          ;; Logging
                          "-Dlog4j.configurationFile=log4j.xml"
                          "-DLog4jContextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector"
+                         ;"-Xdebug"
+                         ;"-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005"
                          ]
               :global-vars {*warn-on-reflection* true}}
 
