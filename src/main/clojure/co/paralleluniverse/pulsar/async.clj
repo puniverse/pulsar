@@ -28,7 +28,7 @@
     (java.util List)
     (co.paralleluniverse.strands Strand SuspendableAction1 SuspendableAction2 SuspendableCallable)
     (co.paralleluniverse.pulsar.async DelegatingChannel CoreAsyncSendPort IdentityPipeline PredicateSplitSendPort ParallelTopic PubSplitSendPort)
-    (co.paralleluniverse.common.util Function2)
+    (co.paralleluniverse.common.util Function2 Pair)
     (com.google.common.base Predicate Function)
     (co.paralleluniverse.strands.channels.transfer Pipeline)))
 
@@ -695,36 +695,30 @@
    the source."
   ([ch topic-fn] (pub ch topic-fn (constantly nil)))
   ([ch topic-fn buf-fn]
-    (let [mults (atom {}) ;;topic->mult
-          ensure-mult (sfn [topic]
-                           (or (get @mults topic)
-                               (get (swap! mults
-                                           #(if (% topic) % (assoc % topic (mult (chan (buf-fn topic))))))
-                                    topic)))
+    (let [selector
+            (reify Function
+              (apply [_ m] (topic-fn m)))
+          mult-sp-fn
+            (reify Function
+              (apply [_ topic]
+                (let [m (mult (chan (buf-fn topic)))
+                      sp (muxch* m)]
+                  (Pair. m sp))))
+          pub (PubSplitSendPort. selector mult-sp-fn)
           p (p/sreify
               Mux
-              (muxch* [_] ch)
+                (muxch* [_] ch)
 
               Pub
-              (sub* [_ topic ch close?]
-                (let [m (ensure-mult topic)]
-                  (tap m ch close?)))
-              (unsub* [_ topic ch]
-                (when-let [m (get @mults topic)]
-                  (untap m ch)))
-              (unsub-all* [_] (reset! mults {}))
-              (unsub-all* [_ topic] (swap! mults dissoc topic)))]
-      (go-loop []
-               (let [val (<! ch)]
-                 (if (nil? val)
-                   (doseq [m (vals @mults)]
-                     (close! (muxch* m)))
-                   (let [topic (topic-fn val)
-                         m (get @mults topic)]
-                     (when m
-                       (when-not (>! (muxch* m) val)
-                         (swap! mults dissoc topic)))
-                     (recur)))))
+                (sub* [_ topic ch close?]
+                      (let [m (.ensure pub topic)]
+                        (tap m ch close?)))
+                (unsub* [_ topic ch]
+                        (when-let [m (.get pub topic)]
+                          (untap m ch)))
+                (unsub-all* [_] (.reset pub))
+                (unsub-all* [_ topic] (.remove pub topic)))]
+      (pipe ch pub)
       p)))
 
 (defsfn sub
