@@ -14,6 +14,9 @@
 package co.paralleluniverse.pulsar.async;
 
 import co.paralleluniverse.fibers.SuspendExecution;
+import co.paralleluniverse.strands.SuspendableAction2;
+import co.paralleluniverse.strands.SuspendableCallable;
+import co.paralleluniverse.strands.channels.Channel;
 import co.paralleluniverse.strands.channels.ReceivePort;
 import co.paralleluniverse.strands.channels.SendPort;
 import co.paralleluniverse.strands.channels.transfer.Pipeline;
@@ -22,12 +25,17 @@ import co.paralleluniverse.strands.channels.transfer.Pipeline;
  * @author circlespainter
  */
 public class IdentityPipeline<T> extends Pipeline<T, T> {
-    public IdentityPipeline(ReceivePort<? extends T> from, SendPort<? super T> to, int parallelism, boolean closeTo) {
-        super(from, to, parallelism, closeTo);
-    }
-
-    @Override
-    public T transform(T t) throws SuspendExecution, InterruptedException {
-        return t;
+    public IdentityPipeline(ReceivePort<? extends T> from, SendPort<? super T> to, int parallelism, Boolean closeTo) {
+        super (
+            from, to,
+            new SuspendableAction2<T, Channel<T>>() {
+                @Override
+                public void call(T t, Channel<T> tCh) throws SuspendExecution, InterruptedException {
+                    tCh.send(t);
+                    tCh.close();
+                }
+            },
+            parallelism, closeTo != null ? closeTo : false
+        );
     }
 }

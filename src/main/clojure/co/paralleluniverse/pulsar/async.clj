@@ -25,11 +25,12 @@
     [co.paralleluniverse.strands.queues ArrayQueue BoxQueue CircularObjectBuffer]
     [java.util.concurrent TimeUnit Executors Executor]
     [com.google.common.util.concurrent ThreadFactoryBuilder]
-    (java.util List Arrays)
-    (co.paralleluniverse.strands Strand SuspendableAction1)
-    (co.paralleluniverse.pulsar.async DelegatingChannel CoreAsyncSendPort IdentityPipeline PredicateSplitSendPort ParallelTopic)
+    (java.util List)
+    (co.paralleluniverse.strands Strand SuspendableAction1 SuspendableAction2 SuspendableCallable)
+    (co.paralleluniverse.pulsar.async DelegatingChannel CoreAsyncSendPort IdentityPipeline PredicateSplitSendPort ParallelTopic PubSplitSendPort)
     (co.paralleluniverse.common.util Function2)
-    (com.google.common.base Predicate Function)))
+    (com.google.common.base Predicate Function)
+    (co.paralleluniverse.strands.channels.transfer Pipeline)))
 
 (alias 'core 'clojure.core)
 
@@ -768,75 +769,46 @@
   [coll ch]
   (reduce conj coll ch))
 
-; TODO Port on top of new Quasar primitives
-
-(defsfn ^:private pipeline*
+(p/defsfn ^:private pipeline*
   ([n to xf from close? ex-handler type]
     (assert (pos? n))
-    (let [ex-handler (or ex-handler (fn [ex]
+    (let [pline
+            (p/sfn [n transform ch-builder]
+              (p/spawn-fiber
+                (p/sfn []
+                  (.run
+                    (Pipeline. from to transform n (if close? true false) ch-builder)))))
+          identity-transform
+            (p/sreify SuspendableAction2
+              (call [_ v c] (>! c v) (close! c)))
+          transforming-transform
+            (p/sreify SuspendableAction2
+              (call [_ v c] (xf v c)))
+          ex-handler (or ex-handler (fn [ex]
                                       (-> (Strand/currentStrand)
                                           .getUncaughtExceptionHandler
                                           (.uncaughtException (Strand/currentStrand) ex))
                                       nil))
-          jobs (chan n)
-          results (chan n)
-          process (sfn [[v p :as job]]
-                    (if (nil? job)
-                      (do (close! results) nil)
-                      (let [res (chan 1 xf ex-handler)]
-                        (>! res v)
-                        (close! res)
-                        (put! p res)
-                        true)))
-          async (sfn [[v p :as job]]
-                  (if (nil? job)
-                    (do (close! results) nil)
-                    (let [res (chan 1)]
-                      (xf v res)
-                      (put! p res)
-                      true)))]
-      (dotimes [_ n]
-        (case type
-          :blocking (fiber
-                      (let [job (<! jobs)]
-                        (when (process job)
-                          (recur))))
-          :compute (go-loop []
-                            (let [job (<! jobs)]
-                              (when (process job)
-                                (recur))))
-          :async (go-loop []
-                          (let [job (<! jobs)]
-                            (when (async job)
-                              (recur))))))
-      (go-loop []
-               (let [v (<! from)]
-                 (if (nil? v)
-                   (close! jobs)
-                   (let [p (chan 1)]
-                     (>! jobs [v p])
-                     (>! results p)
-                     (recur)))))
-      (go-loop []
-               (let [p (<! results)]
-                 (if (nil? p)
-                   (when close? (close! to))
-                   (let [res (<! p)]
-                     (loop []
-                       (let [v (<! res)]
-                         (when (and (not (nil? v)) (>! to v))
-                           (recur))))
-                     (recur))))))))
+          transducing-channel-builder
+            (p/sreify SuspendableCallable
+              (run [_] (chan 1 xf ex-handler)))
+          plain-channel-builder
+            (p/sreify SuspendableCallable
+              (run [_] (chan 1)))]
+      (case type
+        :blocking (pline 0 identity-transform transducing-channel-builder)
+        :compute (pline n identity-transform transducing-channel-builder)
+        :async (pline n transforming-transform plain-channel-builder)))))
 
 ;;todo - switch pipe arg order to match these (to/from)
-(defsfn pipeline
+(defn pipeline
   "Takes elements from the from channel and supplies them to the to
    channel, subject to the transducer xf, with parallelism n. Because
    it is parallel, the transducer will be applied independently to each
    element, not across elements, and may produce zero or more outputs
    per input.  Outputs will be returned in order relative to the
    inputs. By default, the to channel will be closed when the from
-   channel closes, but can be determined by the close?  parameter. Will
+   channel closes, but can be determined by the close? parameter. Will
    stop consuming the from channel if the to channel closes. Note this
    should be used for computational parallelism. If you have multiple
    blocking operations to put in flight, use pipeline-blocking instead,
@@ -846,13 +818,13 @@
   ([n to xf from close?] (pipeline n to xf from close? nil))
   ([n to xf from close? ex-handler] (pipeline* n to xf from close? ex-handler :compute)))
 
-(defsfn pipeline-blocking
+(defn pipeline-blocking
   "Like pipeline, for blocking operations."
   ([n to xf from] (pipeline-blocking n to xf from true))
   ([n to xf from close?] (pipeline-blocking n to xf from close? nil))
   ([n to xf from close? ex-handler] (pipeline* n to xf from close? ex-handler :blocking)))
 
-(defsfn pipeline-async
+(defn pipeline-async
   "Takes elements from the from channel and supplies them to the to
    channel, subject to the async function af, with parallelism n. af
    must be a function of two arguments, the first an input value and
