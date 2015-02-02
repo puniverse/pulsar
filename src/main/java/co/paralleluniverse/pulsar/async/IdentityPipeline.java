@@ -22,6 +22,8 @@ import co.paralleluniverse.strands.channels.SendPort;
 import co.paralleluniverse.strands.channels.transfer.Pipeline;
 
 /**
+ * A {@link Pipeline} leaving inputs untouched. It is used (with `parallelism`set to 0) to implement core.async's `pipe`.
+ *
  * @author circlespainter
  */
 public class IdentityPipeline<T> extends Pipeline<T, T> {

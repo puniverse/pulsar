@@ -50,14 +50,12 @@ public class DelegatingChannel<Message> extends DelegatingSendPort<Message> impl
     
     @Override
     public void close() {
-        // TODO check the closing order and that double-closing doesn't cause trouble when the send and receive ports belong to the same channel.
         super.close();
         delegateReceivePort.close();
     }
 
     @Override
     public void close(final Throwable t) {
-        // TODO check the closing order and that double-closing doesn't cause trouble when the send and receive ports belong to the same channel.
         super.close(t);
         delegateReceivePort.close();
     }

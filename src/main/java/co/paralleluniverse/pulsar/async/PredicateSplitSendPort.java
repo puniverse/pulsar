@@ -18,6 +18,8 @@ import co.paralleluniverse.strands.channels.SplitSendPort;
 import com.google.common.base.Predicate;
 
 /**
+ * A {@link SplitSendPort} based on a binary predicate to implement core.async's `split`.
+ *
  * @author circlespainter
  */
 public class PredicateSplitSendPort<M> extends SplitSendPort<M> {

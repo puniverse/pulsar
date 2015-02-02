@@ -19,6 +19,8 @@ import co.paralleluniverse.strands.channels.DelegatingSendPort;
 import co.paralleluniverse.strands.channels.SendPort;
 
 /**
+ * A {@link DelegatingSendPort} delegating the send operation. It is used to implement core.async's transducing channels.
+ *
  * @author circlespainter
  */
 public class CoreAsyncSendPort<T> extends DelegatingSendPort<T> {

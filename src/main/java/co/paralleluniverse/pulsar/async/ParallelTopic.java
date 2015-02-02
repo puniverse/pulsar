@@ -34,8 +34,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * A topic that will spawn fibers from a factory and distribute messages to subscribers in parallel
- * using strands, optionally waiting for them to complete receive before delivering the next one.
+ * A {@link Topic} that will spawn fibers from a factory and distribute messages to subscribers in parallel
+ * using strands, optionally waiting for them to complete receive before delivering the next one. It is used
+ * to implement core.async's `mult`'s.
  * 
  * @author circlespainter
  */
