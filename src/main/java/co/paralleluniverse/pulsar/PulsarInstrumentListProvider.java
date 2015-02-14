@@ -255,7 +255,7 @@ public class PulsarInstrumentListProvider implements InstrumentListProvider {
                             return !intersection.isEmpty();
                         }
                     },
-                    SuspendableType.SUSPENDABLE_SUPER,
+                    SuspendableType.SUSPENDABLE,
                     a(cljSusProtoImplMsg)
             ),
         };
