@@ -506,8 +506,9 @@
        clojure.lang.IFn
        (invoke
         [this x]
-        (.set dv x)
-        this))))
+        (if (.isDone dv)
+          nil
+          (do (.set dv x) this))))))
   ([]
    (promise nil)))
 
