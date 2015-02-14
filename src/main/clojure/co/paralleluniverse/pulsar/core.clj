@@ -506,9 +506,10 @@
        clojure.lang.IFn
        (invoke
         [this x]
-        (if (.isDone dv)
-          nil
-          (do (.set dv x) this))))))
+        (try
+          (.set dv x)
+          this
+          (catch IllegalStateException _ nil))))))
   ([]
    (promise nil)))
 
