@@ -19,7 +19,8 @@
   (:import [java.util.concurrent TimeUnit TimeoutException ExecutionException]
            [co.paralleluniverse.common.util Debug]
            [co.paralleluniverse.strands Strand]
-           [co.paralleluniverse.fibers Fiber]))
+           [co.paralleluniverse.fibers Fiber]
+           (co.paralleluniverse.actors LocalActor)))
 
 ;; ## actors
 
@@ -52,12 +53,28 @@
                   (spawn #(let [m1 (receive-timed 50)
                                 m2 (receive-timed 50)
                                 m3 (receive-timed 50)]
+                           [m1 m2 m3]))]
+              (! actor 1)
+              (Thread/sleep 20)
+              (! actor 2)
+              (Thread/sleep 100)
+              (! actor 3)
+              (fact (.isFiber (LocalActor/getStrand actor)) => true)
+              (join actor) => [1 2 nil]))
+      (fact "When simple receive (on thread) and timeout then return nil"
+            (let [actor
+                  (spawn
+                    :scheduler :thread
+                    #(let [m1 (receive-timed 50)
+                                m2 (receive-timed 50)
+                                m3 (receive-timed 50)]
                             [m1 m2 m3]))]
               (! actor 1)
               (Thread/sleep 20)
               (! actor 2)
               (Thread/sleep 100)
               (! actor 3)
+              (fact (.isFiber (LocalActor/getStrand actor)) => false)
               (join actor) => [1 2 nil])))
 
 (fact "matching-receive"
@@ -128,10 +145,24 @@
              (let [actor1 (spawn #(Fiber/sleep 100))
                    actor2 (spawn
                             #(try
-                               (loop [] (receive [m] :foo :bar) (recur))
-                               (catch co.paralleluniverse.actors.LifecycleException e
-                                 true)))]
+                              (loop [] (receive [m] :foo :bar) (recur))
+                              (catch co.paralleluniverse.actors.LifecycleException e
+                                true)))]
                (link! actor1 actor2)
+               (fact (.isFiber (LocalActor/getStrand actor1)) => true)
+               (join actor1)
+               (join actor2)) => true)
+       (fact "When an actor (on a thread) dies, its link gets an exception"
+             (let [actor1 (spawn :scheduler :thread
+                                 #(Strand/sleep 100))
+                   actor2 (spawn
+                            :scheduler :thread
+                            #(try
+                              (loop [] (receive [m] :foo :bar) (recur))
+                              (catch co.paralleluniverse.actors.LifecycleException e
+                                true)))]
+               (link! actor1 actor2)
+               (fact (.isFiber (LocalActor/getStrand actor1)) => false)
                (join actor1)
                (join actor2)) => true)
        (fact "When an actor dies and lifecycle-handler is defined, then it gets a message"
@@ -343,8 +374,20 @@
                                       (init [_])
                                       (terminate [_ cause])
                                       (handle-call [_ from id [a b]]
-                                                   (Strand/sleep 50)
-                                                   (+ a b)))))]
+                                        (Strand/sleep 50)
+                                        (+ a b)))))]
+               (fact (.isFiber (LocalActor/getStrand gs)) => true)
+               (call! gs 3 4) => 7))
+       (fact "When gen-server (on thread) call! then result is returned (with sleep)"
+             (let [gs (spawn
+                        :scheduler :thread
+                        (gen-server (reify Server
+                                      (init [_])
+                                      (terminate [_ cause])
+                                      (handle-call [_ from id [a b]]
+                                        (Strand/sleep 50)
+                                        (+ a b)))))]
+               (fact (.isFiber (LocalActor/getStrand gs)) => false)
                (call! gs 3 4) => 7))
        (fact "When gen-server call! from fiber then result is returned"
              (let [gs (spawn

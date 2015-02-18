@@ -19,19 +19,20 @@
             [clojure.core.typed :refer [ann def-alias Option AnyInteger Any U I All IFn HVec]])
   (:refer-clojure :exclude [promise await bean])
   (:import [java.util.concurrent TimeUnit ExecutionException TimeoutException]
-           [co.paralleluniverse.fibers FiberScheduler]
-           [co.paralleluniverse.strands Strand]
+           [co.paralleluniverse.fibers FiberScheduler FiberFactory]
+           [co.paralleluniverse.strands Strand StrandFactory SuspendableCallable]
            [co.paralleluniverse.strands.channels Channel SendPort]
            [co.paralleluniverse.actors Actor ActorRef ActorRegistry PulsarActor ActorBuilder MailboxConfig
-            ActorUtil LocalActor
-            LifecycleListener ShutdownMessage]
+                                       ActorUtil LocalActor
+                                       LifecycleListener ShutdownMessage]
            [co.paralleluniverse.pulsar ClojureHelper]
            [co.paralleluniverse.actors.behaviors Behavior BehaviorActor Initializer
-            ServerActor ServerHandler
-            EventSource EventSourceActor EventHandler
-            Supervisor Supervisor$ChildSpec Supervisor$ChildMode SupervisorActor SupervisorActor$RestartStrategy]
+                                                 ServerActor ServerHandler
+                                                 EventSource EventSourceActor EventHandler
+                                                 Supervisor Supervisor$ChildSpec Supervisor$ChildMode SupervisorActor SupervisorActor$RestartStrategy]
            ; for types:
-           [clojure.lang Keyword IObj IMeta IDeref ISeq IPersistentCollection IPersistentVector IPersistentMap]))
+           [clojure.lang Keyword IObj IMeta IDeref ISeq IPersistentCollection IPersistentVector IPersistentMap]
+           (co.paralleluniverse.concurrent.util ThreadAccess)))
 
 ;; ## Private util functions
 ;; These are internal functions aided to assist other functions in handling variadic arguments and the like.
@@ -137,6 +138,22 @@
   [size overflow-policy]
   `(co.paralleluniverse.actors.MailboxConfig. (int ~size) (keyword->enum co.paralleluniverse.strands.channels.Channels$OverflowPolicy ~overflow-policy)))
 
+(defn ^StrandFactory strand-factory
+  [f]
+  (reify StrandFactory
+    (^Strand newStrand [this ^SuspendableCallable task]
+      (f task))))
+
+(defn thread-strand
+  {:no-doc true}
+  ([^SuspendableCallable task name]
+    (Strand/of
+      (if (nil? name)
+        (thread-strand task)
+        (Thread. (Strand/toRunnable task) ^String name))))
+  ([^SuspendableCallable task]
+    (Strand/of (Thread. (Strand/toRunnable task)))))
+
 (defmacro spawn
   "Creates and starts a new actor running in its own, newly-spawned fiber.
   
@@ -159,13 +176,13 @@
                           If set to `nil` (the default), the default handler is used, which is what you 
                           want in all circumstances, except for some actors that are meant to do some 
                           special tricks.
-  * `:scheduler` - The `FiberScheduler` in which the fiber will run.
+  * `:scheduler` - The `FiberScheduler` in which the fiber will run, or `:thread` to spawn the actor on a plain thread.
                  If `:fj-pool` is not specified, then the pool used will be either the pool of the fiber calling 
                  `spawn-fiber`, or, if `spawn-fiber` is not called from within a fiber, a default pool.
   * `:stack-size` - The initial fiber stack size."
   {:arglists '([:name? :mailbox-size? :overflow-policy? :lifecycle-handler? :stack-size? :pool? f & args])}
   [& args]
-  (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size overflow-policy ^IFn lifecycle-handler ^Integer stack-size ^FiberScheduler scheduler], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)]
+  (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size overflow-policy ^IFn lifecycle-handler ^Integer stack-size scheduler], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)]
     `(let [b#     (first ~body) ; eval body
            nme#   (when ~name (clojure.core/name ~name))
            f#     (when (not (instance? Actor b#))
@@ -177,9 +194,9 @@
                                                                          ~trap
                                                                          (->MailboxConfig ~mailbox-size ~overflow-policy)
                                                                          ~lifecycle-handler f#))
-           fiber# (co.paralleluniverse.fibers.Fiber. nme# (get-scheduler ~scheduler) (int ~stack-size) actor#)]
-       (.start fiber#)
-       (.ref actor#))))
+           ^StrandFactory sf# (when-not (nil? ~scheduler)
+                                (if (= ~scheduler :thread) (strand-factory #(thread-strand % nme#)) ~scheduler))]
+       (.spawn actor# sf#))))
 
 (defmacro recur-swap
   "Recurs to `f` (which is the actor function), checking for possible hot code swaps
