@@ -133,10 +133,11 @@
         (join fiber)) => [0 1 2 3 4])
 
 (facts "promises-promises"
-       (fact "When try to set promise twice, then throw exception"
-             (let [v (promise)]
-               (deliver v "hi!")
-               (deliver v "bye!")) => throws IllegalStateException)
+       (let [v (promise)]
+         (fact "When try to set promise twice, then return nil and the first value wins"
+               [(deliver v "hi!")
+                (deliver v "bye!")
+                (deref v)] => [v nil "hi!"]))
        (fact "This complex promises test passes"
              (let [v1 (promise)
                    v2 (promise)

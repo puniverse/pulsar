@@ -24,6 +24,13 @@
 
 ;; ## actors
 
+(fact "The spawn macro will evaluate arguments by value"
+      (let [a (spawn #(do
+                       (spawn (fn [parent] (! parent :something)) @self)
+                       (receive [m] :something m :after 1000 nil)))]
+        (join a))
+      => :something)
+
 (fact "When actor throws exception then join throws it"
       (let [actor (spawn #(throw (Exception. "my exception")))]
         (join actor))

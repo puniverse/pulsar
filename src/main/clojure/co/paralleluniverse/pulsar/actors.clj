@@ -176,21 +176,26 @@
                           If set to `nil` (the default), the default handler is used, which is what you 
                           want in all circumstances, except for some actors that are meant to do some 
                           special tricks.
-  * `:scheduler` - The `FiberScheduler` in which the fiber will run, or `:thread` to spawn the actor on a plain thread.
+  * `:scheduler` - The `FiberScheduler` in which the fiber will run.
                  If `:fj-pool` is not specified, then the pool used will be either the pool of the fiber calling 
                  `spawn-fiber`, or, if `spawn-fiber` is not called from within a fiber, a default pool.
   * `:stack-size` - The initial fiber stack size."
-  {:arglists '([:name? :mailbox-size? :overflow-policy? :lifecycle-handler? :stack-size? :pool? f & args])}
+  {:arglists '([:name? :mailbox-size? :overflow-policy? :trap? :lifecycle-handler? :scheduler? :stack-size? f & args])}
   [& args]
-  (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size overflow-policy ^IFn lifecycle-handler ^Integer stack-size scheduler], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)]
-    `(let [b#     (first ~body) ; eval body
+  (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size overflow-policy ^IFn lifecycle-handler ^Integer stack-size ^FiberScheduler scheduler], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)
+        b   (gensym 'b)    ; Using 'gensym' as autogen syms (e.g. 'sym#') seem not to behave as desired in unquote
+        cls (gensym 'cls)]
+    `(let [args#  (list ~@(rest body))     ; eval once all args
+           ~b     (first ~body)            ; eval once the function
+           ~cls   (fn [] (apply ~b args#)) ; => "call-by-value"-like behaviour for spawned function when args are being
+                                           ;    passed (so that e.g. arguments containing @self are correctly evaluated)
            nme#   (when ~name (clojure.core/name ~name))
-           f#     (when (not (instance? Actor b#))
-                    (suspendable! ~(if (== (count body) 1) (first body) `(fn [] (apply ~(first body) (list ~@(rest body)))))))
-           ^Actor actor# (if (instance? Actor b#)
-                                b#
+           f#     (when (not (instance? Actor ~b))
+                    (suspendable! ~(if (== (count body) 1) b cls)))
+           ^Actor actor# (if (instance? Actor ~b)
+                                ~b
                                 (co.paralleluniverse.actors.PulsarActor. nme#
-                                                                         b#
+                                                                         ~b
                                                                          ~trap
                                                                          (->MailboxConfig ~mailbox-size ~overflow-policy)
                                                                          ~lifecycle-handler f#))
