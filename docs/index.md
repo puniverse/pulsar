@@ -149,6 +149,12 @@ The function `suspendable!` marks a given function as a suspendable function (th
 **Note**: One thing to watch out for in suspendable functions is lazy-seqs. If the function consumes a seq, it's probably a good idea to force it with `doall` before passing it to the function.
 {% endcomment %}
 
+#### Automatic instrumentation
+
+Since version 0.6.3, Pulsar supports automatic instrumentation of all Clojure code, so that `suspendable!`, `sfn` and `defsfn` are not required anymore. Automatic instrumentation can be enabled by setting the `-Dco.paralleluniverse.pulsar.instrument.auto=all` system property.
+
+According to our benchmarks, the performance impact of automatic instrumentation should not exceed 20% in worst-case situations like articulated and math-intensive Clojure code, while in more common-case scenarios the slow-down should not be noticeable at all.
+
 #### Spawning Fibers
 
 To create a fiber of a function `f` that takes arguments `arg1` and `arg2`, run
