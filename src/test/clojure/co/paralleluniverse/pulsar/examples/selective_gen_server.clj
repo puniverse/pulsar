@@ -1,5 +1,5 @@
 (ns co.paralleluniverse.pulsar.examples.selective-gen-server
-  "An implementation of the selctive example using gen-server"
+  "An implementation of the selective example using gen-server"
   (:use [co.paralleluniverse.pulsar core actors])
   (:refer-clojure :exclude [promise await])
   (:import [co.paralleluniverse.strands Strand]))

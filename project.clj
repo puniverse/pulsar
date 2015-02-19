@@ -3,7 +3,7 @@
   :url "http://github.com/puniverse/pulsar"
   :licenses [{:name "Eclipse Public License - v 1.0" :url "http://www.eclipse.org/legal/epl-v10.html"}
              {:name "GNU Lesser General Public License - v 3" :url "http://www.gnu.org/licenses/lgpl.html"}]
-  :min-lein-version "2.2.0"
+  :min-lein-version "2.5.0"
   :distribution :repo
   :source-paths      ["src/main/clojure"]
   :test-paths        ["src/test/clojure"]
@@ -13,7 +13,7 @@
   :repositories {"snapshots" "https://oss.sonatype.org/content/repositories/snapshots"
                  "releases" "https://oss.sonatype.org/content/repositories/releases"}
   :test-selectors {:selected :selected}
-  :dependencies [[org.clojure/clojure "1.5.1"]
+  :dependencies [[org.clojure/clojure "1.6.0"]
                  [co.paralleluniverse/quasar-core   "0.6.3-SNAPSHOT"] ; :classifier "jdk8"
                  [co.paralleluniverse/quasar-actors "0.6.3-SNAPSHOT"]
                  [org.ow2.asm/asm "5.0.3"]
@@ -29,7 +29,7 @@
              "-XX:-UseBiasedLocking"
              "-XX:+UseCondCardMark"]
   ;:injections [(alter-var-root #'*compiler-options* (constantly {:disable-locals-clearing true}))]
-  :java-agents [[co.paralleluniverse/quasar-core "0.6.3-SNAPSHOT"]] ; :classifier "jdk8" :options "vd"
+  :java-agents [[co.paralleluniverse/quasar-core "0.6.2"]] ; :classifier "jdk8" :options "vd"
   :pedantic :warn
   :profiles {;; ----------- dev --------------------------------------
              :dev
@@ -53,7 +53,7 @@
              ;; ----------- cluster --------------------------------------
              :cluster
              {:repositories {"oracle" "http://download.oracle.com/maven/"}
-              :dependencies [[co.paralleluniverse/quasar-galaxy "0.6.1"]]
+              :dependencies [[co.paralleluniverse/quasar-galaxy "0.6.3-SNAPSHOT"]]
               :java-source-paths ["src/cluster/java"]
               :jvm-opts [;; Debugging
                          "-ea"
@@ -86,4 +86,7 @@
                                 co.paralleluniverse.pulsar.lazyseq
                                 co.paralleluniverse.pulsar.async]
                       :output-dir "docs/api"}
-              :global-vars {*warn-on-reflection* false}}})
+              :global-vars {*warn-on-reflection* false}}
+             ;; ----------- other instrumentation strategies ---------
+             :auto-instrument-all
+             {:jvm-opts ["-Dco.paralleluniverse.pulsar.instrument.auto=all"]}})
