@@ -70,5 +70,6 @@
          (area circle)
          (simple-fun)]))))
 
-(fact "Clojure language features work with auto-instrumentation" :auto-instrumentation
-  (res) => [1 8 2 56 17 45 -1 52 452.3893421169302 17])
+(if (= (System/getProperty "co.paralleluniverse.pulsar.instrument.auto") "all")
+  (fact "Clojure language features work with auto-instrumentation" :auto-instrumentation
+    (res) => [1 8 2 56 17 45 -1 52 452.3893421169302 17]))
