@@ -55,18 +55,20 @@
 
 (defn simple-fun [] (dbug "simple-fun before sleep") (stcktrc) (Fiber/sleep 100) (dbug "simple-fun after sleep") 17)
 
-(def res (join (spawn-fiber (fn []
-                               [ (foo t)
-                                 (bar-me t 5)
-                                 (foo r)
-                                 (bar-me r 56)
-                                 (foo a)
-                                 (bar-me a 45)
-                                 (.read px)
-                                 (area rect)
-                                 (area circle)
-                                 (simple-fun)
-                                ]))))
+(defn res []
+  (join
+    (spawn-fiber
+      (fn []
+        [(foo t)
+         (bar-me t 5)
+         (foo r)
+         (bar-me r 56)
+         (foo a)
+         (bar-me a 45)
+         (.read px)
+         (area rect)
+         (area circle)
+         (simple-fun)]))))
 
 (fact "Clojure language features work with auto-instrumentation" :auto-instrumentation
-  res => [1 8 2 56 17 45 -1 52 452.3893421169302 17])
+  (res) => [1 8 2 56 17 45 -1 52 452.3893421169302 17])
