@@ -66,96 +66,31 @@ public class PulsarInstrumentListProvider implements InstrumentListProvider {
         final String cljSusProtoImplMsg = "Pulsar's built-in matchlist found suspendable Clojure protocol impl";
         final String susPUMeth = "Pulsar's built-in matchlist found suspendable Parallel Universe stack methods";
 
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // AUTO-INSTRUMENTATION GUIDELINES
+        //
+        // 1. Runtime efficiency: instrument as little as possible while still making unnecessary any suspendable-marking
+        //    code.
+        //    - Due to http://dev.clojure.org/jira/browse/CLJ-1645, protocol heuristics can give false positives on
+        //      Java interfaces. for this reason widely used library code (either in JDK, Clojure or utility libraries)
+        //      is explicitly excluded.
+        //    - Clojure runtime methods that implement language constructs have to be explicitly instrumented.
+        //    - Some Pulsar runtime methods have to be explicitly instrumented.
+        //
+        // 2. Instrumentation efficiency: evaluate rules as fast as possible (globally).
+        //    - Rules likely to catch more methods should appear as close as possible to the top.
+        //    - Unnecessary rules should be left out.
+        //
+        // 3. Maintenance: minimize the number of rules.
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
         return new InstrumentMatcher[] {
-            // Already in suspendables but explicitly marking them suspendable as the rest of clojure/lang is marked NOT suspendable later
-            mClassAndMeth(eqN("clojure/lang/Reflector"), eqN("invokeNoArgInstanceMember"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
-            mClassAndMeth(eqN("clojure/lang/Reflector"), eqN("invokeInstanceMethod"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
-            mClassAndMeth(eqN("clojure/lang/Reflector"), eqN("invokeMatchingMethod"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
-            mClassAndMeth(eqN("clojure/lang/Reflector"), eqN("invokeStaticMethod"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
-            mClassAndMeth(eqN("clojure/lang/Reflector"), eqN("invokeStaticMethod"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
 
-            // Instrument function calls
-            mClassAndMeth(startsWithN("clojure/lang/IFn"), eqN("invoke"), SuspendableType.SUSPENDABLE_SUPER, a(cljSusFnCoreMsg)),
-            mClassAndMeth(startsWithN("clojure/lang/IFn"), eqN("invokePrim"), SuspendableType.SUSPENDABLE_SUPER, a(cljSusFnCoreMsg)),
-
-            mClassAndMeth(startsWithN("clojure/lang/AFunction"), eqN("call"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
-            mClassAndMeth(startsWithN("clojure/lang/AFunction"), eqN("doInvoke"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
-            mClassAndMeth(startsWithN("clojure/lang/AFunction"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
-            mClassAndMeth(startsWithN("clojure/lang/AFunction"), eqN("applyTo"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
-            mClassAndMeth(startsWithN("clojure/lang/AFunction"), eqN("applyToHelper"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
-            mClassAndMeth(eqN("clojure/lang/MultiFn"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
-            mClassAndMeth(eqN("clojure/lang/Var"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
-            mClassAndMeth(eqN("clojure/lang/Var"), eqN("applyTo"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
-            mClassAndMeth(eqN("clojure/lang/AFn"), eqN("applyTo"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
-            mClassAndMeth(eqN("clojure/lang/AFn"), eqN("applyToHelper"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
-            mClassAndMeth(eqN("clojure/lang/RestFn"), eqN("doInvoke"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
-            mClassAndMeth(eqN("clojure/lang/RestFn"), eqN("applyTo"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
-            mClassAndMeth(eqN("clojure/core$apply"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
-            mClassAndMeth(eqN("clojure/core$swap_BANG_"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
-            mClassAndMeth(startsWithN("clojure/core$partial"), eqN("doInvoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
-            mClassAndMeth(eqN("clojure/lang/RT"), eqN("first"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
-            mClassAndMeth(eqN("clojure/lang/Atom"), eqN("swap"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
-
-            // Instrument lazy seqs
-            mClassAndMeth(eqN("clojure/lang/LazySeq"), eqN("first"), SuspendableType.SUSPENDABLE, a(cljSusLsCoreMsg)),
-            mClassAndMeth(eqN("clojure/lang/LazySeq"), eqN("seq"), SuspendableType.SUSPENDABLE, a(cljSusLsCoreMsg)),
-            mClassAndMeth(eqN("clojure/lang/LazySeq"), eqN("sval"), SuspendableType.SUSPENDABLE, a(cljSusLsCoreMsg)),
-
-            // Instrument protocol extension
-            mClassAndMeth(eqN("clojure/core$_cache_protocol_fn"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
-            mClassAndMeth(eqN("clojure/core$expand_method_impl_cache"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
-            mClassAndMeth(eqN("clojure/core$maybe_min_hash"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
-            mClassAndMeth(eqN("clojure/core$first"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
-
-            // Instrument few more selected Parallel Universe stack methods
-            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$rcv"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$snd"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$rcv_into"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$sel"), eqN("doInvoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$do_sel"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$strampoline"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$sleep"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-            mClass(eqN("co/paralleluniverse/pulsar/actors$spawn"), SuspendableType.NON_SUSPENDABLE, a(susPUMeth)), // too large and not needed
-            mClass(eqN("co/paralleluniverse/pulsar/actors$receive"), SuspendableType.NON_SUSPENDABLE, a(susPUMeth)), // too large and not needed
-            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/actors$"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/actors$"), eqN("doInvoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-            mClassAndMeth(and(startsWithN("co/paralleluniverse/fiber/"), containsN("$")), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)), // Comsat
-
-            // Skip JDK and other known 3rd-party non-suspendable packages
-            mClass(startsWithN("java/"), SuspendableType.NON_SUSPENDABLE, a(jdkOr3rdMsg)),
-            mClass(startsWithN("jsr166e/"), SuspendableType.NON_SUSPENDABLE, a(jdkOr3rdMsg)),
-            mClass(startsWithN("sun/"), SuspendableType.NON_SUSPENDABLE, a(jdkOr3rdMsg)),
-            mClass(startsWithN("oracle/"), SuspendableType.NON_SUSPENDABLE, a(jdkOr3rdMsg)),
-            mClass(startsWithN("com/oracle/"), SuspendableType.NON_SUSPENDABLE, a(jdkOr3rdMsg)),
-            mClass(startsWithN("org/cliffc/high_scale_lib/"), SuspendableType.NON_SUSPENDABLE, a(jdkOr3rdMsg)),
-            mClass(startsWithN("manifold/"), SuspendableType.NON_SUSPENDABLE, a(jdkOr3rdMsg)),
-            mClass(startsWithN("gloss/"), SuspendableType.NON_SUSPENDABLE, a(jdkOr3rdMsg)),
-            mClass(startsWithN("swiss/"), SuspendableType.NON_SUSPENDABLE, a(jdkOr3rdMsg)),
-            mClass(startsWithN("potemkin/"), SuspendableType.NON_SUSPENDABLE, a(jdkOr3rdMsg)),
-
-            // Instrument Parall Universe Clojure tests and examples
-            mSrcAndClass(srcP, and(startsWithN("co/paralleluniverse"), or(containsCIN("test"), containsCIN("example"))), SuspendableType.SUSPENDABLE, a(testExamplePUMsg)),
-            mSrcAndMeth(srcP, or(containsCIN("test"), containsCIN("example")), SuspendableType.SUSPENDABLE, a(testExamplePUMsg)),
-
-            // Skip Clojure core
-            mClass(startsWithN("clojure/lang"), SuspendableType.NON_SUSPENDABLE, a(cljCoreMsg)),
-            mClass(startsWithN("clojure/core"), SuspendableType.NON_SUSPENDABLE, a(cljCoreMsg)),
-            // mClass(startsWithN("clojure/java"), SuspendableType.NON_SUSPENDABLE, a(cljCoreMsg)), // Ring needs this instrumented
-            mClass(startsWithN("clj_tuple"), SuspendableType.NON_SUSPENDABLE, a(cljCoreMsg)),
-            mClass(startsWithN("primitive_math$"), SuspendableType.NON_SUSPENDABLE, a(cljCoreMsg)),
-            mClass(startsWithN("byte_streams$"), SuspendableType.NON_SUSPENDABLE, a(cljCoreMsg)),
-            mClass(startsWithN("clojure/set"), SuspendableType.NON_SUSPENDABLE, a(cljCoreMsg)),
-            mClass(startsWithN("clojure/string"), SuspendableType.NON_SUSPENDABLE, a(cljCoreMsg)),
-            mClass(startsWithN("clojure/uuid"), SuspendableType.NON_SUSPENDABLE, a(cljCoreMsg)),
-            mClass(startsWithN("clojure/instant"), SuspendableType.NON_SUSPENDABLE, a(cljCoreMsg)),
-            mClass(startsWithN("clojure/main"), SuspendableType.NON_SUSPENDABLE, a(cljCoreMsg)),
-
-            // Skip Clojure utils
-            mClass(startsWithN("clojure/pprint"), SuspendableType.NON_SUSPENDABLE, a(cljUtilMsg)),
-            mClass(startsWithN("clojure/tools/logging"), SuspendableType.NON_SUSPENDABLE, a(cljUtilMsg)),
-            mClass(startsWithN("clojure/walk"), SuspendableType.NON_SUSPENDABLE, a(cljUtilMsg)),
-            mClass(startsWithN("clojure/test"), SuspendableType.NON_SUSPENDABLE, a(cljUtilMsg)),
-            mClass(startsWithN("clojure/tools/analyzer"), SuspendableType.NON_SUSPENDABLE, a(cljUtilMsg)),
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // NON-SUSPENDABLE GENERATED RUNTIME SUPPORT (comes before user code rules in order to avoid that Java and otherwise
+            // non-suspendable interfaces and methods are catched by imperfect protocol heuristics,
+            // see http://dev.clojure.org/jira/browse/CLJ-1645, or user code heuristics)
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
             // Skip module loading
             mClass(containsN("$loading__"), SuspendableType.NON_SUSPENDABLE, a(cljModMsg)),
@@ -208,11 +143,187 @@ public class PulsarInstrumentListProvider implements InstrumentListProvider {
             mMethAndIfs(startsWithN("entrySet"), arrayContainsN("clojure/lang/IRecord"), SuspendableType.NON_SUSPENDABLE, a(cljRecMsg)),
             mMethAndIfs(startsWithN("assoc"), arrayContainsN("clojure/lang/IRecord"), SuspendableType.NON_SUSPENDABLE, a(cljRecMsg)),
 
-           // Shortcut: don't change anything more about the rest of Parallel Universe (skip rule below)
-           mClass(startsWithN("co/paralleluniverse/"), null, a(puMsg)),
+            // Skip JDK and other known 3rd-party non-suspendable packages
+            mClass(startsWithN("java/"), SuspendableType.NON_SUSPENDABLE, a(jdkOr3rdMsg)),
+            mClass(startsWithN("jsr166e/"), SuspendableType.NON_SUSPENDABLE, a(jdkOr3rdMsg)),
+            mClass(startsWithN("sun/"), SuspendableType.NON_SUSPENDABLE, a(jdkOr3rdMsg)),
+            mClass(startsWithN("oracle/"), SuspendableType.NON_SUSPENDABLE, a(jdkOr3rdMsg)),
+            mClass(startsWithN("com/oracle/"), SuspendableType.NON_SUSPENDABLE, a(jdkOr3rdMsg)),
+            mClass(startsWithN("org/cliffc/high_scale_lib/"), SuspendableType.NON_SUSPENDABLE, a(jdkOr3rdMsg)),
+            mClass(startsWithN("manifold/"), SuspendableType.NON_SUSPENDABLE, a(jdkOr3rdMsg)),
+            mClass(startsWithN("gloss/"), SuspendableType.NON_SUSPENDABLE, a(jdkOr3rdMsg)),
+            mClass(startsWithN("swiss/"), SuspendableType.NON_SUSPENDABLE, a(jdkOr3rdMsg)),
+            mClass(startsWithN("potemkin/"), SuspendableType.NON_SUSPENDABLE, a(jdkOr3rdMsg)),
 
-           // Instrument interfaces from .clj or no source: missing better info, assuming they are all protocols
-           // TODO find a way to include (or get included) debug info in protocol classes
+
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // SUSPENDABLE CLOJURE RUNTIME LIBRARY (comes before the non-suspendable part as it is an exception to it)
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            // Already in suspendables but explicitly marking them as such as the rest of clojure/lang is marked NOT suspendable later
+            mClassAndMeth(eqN("clojure/lang/Reflector"), eqN("invokeNoArgInstanceMember"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
+            mClassAndMeth(eqN("clojure/lang/Reflector"), eqN("invokeInstanceMethod"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
+            mClassAndMeth(eqN("clojure/lang/Reflector"), eqN("invokeMatchingMethod"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
+            mClassAndMeth(eqN("clojure/lang/Reflector"), eqN("invokeStaticMethod"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
+            mClassAndMeth(eqN("clojure/lang/Reflector"), eqN("invokeStaticMethod"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
+
+            // Instrument function calls
+            mClassAndMeth(startsWithN("clojure/lang/IFn"), eqN("invoke"), SuspendableType.SUSPENDABLE_SUPER, a(cljSusFnCoreMsg)),
+            mClassAndMeth(startsWithN("clojure/lang/IFn"), eqN("invokePrim"), SuspendableType.SUSPENDABLE_SUPER, a(cljSusFnCoreMsg)),
+
+            mClassAndMeth(startsWithN("clojure/lang/AFunction"), eqN("call"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
+            mClassAndMeth(startsWithN("clojure/lang/AFunction"), eqN("doInvoke"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
+            mClassAndMeth(startsWithN("clojure/lang/AFunction"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
+            mClassAndMeth(startsWithN("clojure/lang/AFunction"), eqN("applyTo"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
+            mClassAndMeth(startsWithN("clojure/lang/AFunction"), eqN("applyToHelper"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
+            mClassAndMeth(eqN("clojure/lang/MultiFn"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
+            mClassAndMeth(eqN("clojure/lang/Var"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
+            mClassAndMeth(eqN("clojure/lang/Var"), eqN("applyTo"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
+            mClassAndMeth(eqN("clojure/lang/AFn"), eqN("applyTo"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
+            mClassAndMeth(eqN("clojure/lang/AFn"), eqN("applyToHelper"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
+            mClassAndMeth(eqN("clojure/lang/RestFn"), eqN("doInvoke"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
+            mClassAndMeth(eqN("clojure/lang/RestFn"), eqN("applyTo"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
+            mClassAndMeth(eqN("clojure/core$apply"), or(eqN("invoke"), eqN("doInvoke")), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(eqN("clojure/core$swap_BANG_"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(startsWithN("clojure/core$partial"), eqN("doInvoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+
+            mClassAndMeth(eqN("clojure/lang/Atom"), eqN("swap"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+
+            // Seqs
+            mClassAndMeth(eqN("clojure/lang/IPersistentCollection"), eqN("cons"), SuspendableType.SUSPENDABLE_SUPER, a(cljSusFnCoreMsg)),
+            mClassAndMeth(eqN("clojure/lang/RT"), eqN("cons"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
+            mClassAndMeth(eqN("clojure/lang/RT"), eqN("conj"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
+            mClassAndMeth(eqN("clojure/lang/RT"), eqN("first"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
+            mClassAndMeth(eqN("clojure/lang/RT"), eqN("second"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
+            mClassAndMeth(eqN("clojure/lang/RT"), eqN("more"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
+            mClassAndMeth(eqN("clojure/lang/RT"), eqN("next"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
+            mClassAndMeth(eqN("clojure/lang/RT"), eqN("seq"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
+            mClassAndMeth(eqN("clojure/lang/RT"), eqN("countFrom"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
+            mClassAndMeth(eqN("clojure/lang/RT"), eqN("count"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
+            mClassAndMeth(eqN("clojure/lang/Cons"), eqN("count"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
+            mClassAndMeth(eqN("clojure/lang/RT"), eqN("seqPassedToArray"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
+            mClassAndMeth(eqN("clojure/lang/RT"), eqN("keys"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
+            mClassAndMeth(eqN("clojure/lang/APersistentMap"), eqN("cons"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(eqN("clojure/lang/ASeq"), eqN("toArray"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(eqN("clojure/lang/ASeq"), eqN("size"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(eqN("clojure/lang/LazySeq"), eqN("first"), SuspendableType.SUSPENDABLE, a(cljSusLsCoreMsg)),
+            mClassAndMeth(eqN("clojure/lang/LazySeq"), eqN("seq"), SuspendableType.SUSPENDABLE, a(cljSusLsCoreMsg)),
+            mClassAndMeth(eqN("clojure/lang/LazySeq"), eqN("sval"), SuspendableType.SUSPENDABLE, a(cljSusLsCoreMsg)),
+            mClassAndMeth(eqN("clojure/lang/LazySeq"), eqN("more"), SuspendableType.SUSPENDABLE, a(cljSusLsCoreMsg)),
+            mClassAndMeth(eqN("clojure/lang/Cons"), eqN("next"), SuspendableType.SUSPENDABLE, a(cljSusLsCoreMsg)),
+            mClassAndMeth(eqN("clojure/core$vary_meta"), eqN("doInvoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(eqN("clojure/core$first"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(eqN("clojure/core$second"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(eqN("clojure/core$next"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(eqN("clojure/core$nnext"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(eqN("clojure/core$assoc"), eqN("doInvoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(eqN("clojure/core$last"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(eqN("clojure/core$rest"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(eqN("clojure/core$seq"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(eqN("clojure/core$cons"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(eqN("clojure/core$conj"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(eqN("clojure/core$get_in"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(eqN("clojure/core$dorun"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(eqN("clojure/core$doall"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(eqN("clojure/core$nthrest"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(eqN("clojure/core$nthnext"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(eqN("clojure/core$reduce"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(eqN("clojure/core$vec"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(eqN("clojure/core$zipmap"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(eqN("clojure/core$reduce1"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(eqN("clojure/core$into"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(eqN("clojure/core$into1"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(eqN("clojure/lang/PersistentHashMap"), eqN("create"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(eqN("clojure/core$update_in"), eqN("doInvoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(eqN("clojure/core$hash_map"), eqN("doInvoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(eqN("clojure/core$assoc_in"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(eqN("clojure/core$keys"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(eqN("clojure/core$some"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(eqN("clojure/core$every_QMARK_"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(eqN("clojure/core$list_STAR_"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(startsWithN("clojure/core$empty"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(startsWithN("clojure/core$take"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(startsWithN("clojure/core$partition"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(startsWithN("clojure/core$filter"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(startsWithN("clojure/core$concat"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(startsWithN("clojure/core$merge"), eqN("doInvoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(startsWithN("clojure/core$merge"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(startsWithN("clojure/core$map"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+
+            // Strings
+            mClassAndMeth(eqN("clojure/core$str"), eqN("doInvoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(eqN("clojure/string$join"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(startsWithN("clojure/core$str"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+
+            // Proto extension
+            mClassAndMeth(eqN("clojure/core$_cache_protocol_fn"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(eqN("clojure/core$expand_method_impl_cache"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(eqN("clojure/core$maybe_min_hash"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+            mClassAndMeth(startsWithN("clojure/core/protocols$"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusProtoSusCoreMsg)),
+
+
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // NON-SUSPENDABLE RUNTIME LIBRARY (comes before user code rules in order to avoid that Java and otherwise
+            // non-suspendable interfaces and methods are catched by imperfect protocol heuristics,
+            // see http://dev.clojure.org/jira/browse/CLJ-1645, or user code heuristics)
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            // Skip Clojure core
+            mClass(startsWithN("clojure/lang"), SuspendableType.NON_SUSPENDABLE, a(cljCoreMsg)),
+            mClass(startsWithN("clojure/core"), SuspendableType.NON_SUSPENDABLE, a(cljCoreMsg)),
+            mClass(startsWithN("clj_tuple"), SuspendableType.NON_SUSPENDABLE, a(cljCoreMsg)),
+            mClass(startsWithN("primitive_math$"), SuspendableType.NON_SUSPENDABLE, a(cljCoreMsg)),
+            mClass(startsWithN("byte_streams$"), SuspendableType.NON_SUSPENDABLE, a(cljCoreMsg)),
+            mClass(startsWithN("clojure/set"), SuspendableType.NON_SUSPENDABLE, a(cljCoreMsg)),
+            mClass(startsWithN("clojure/string"), SuspendableType.NON_SUSPENDABLE, a(cljCoreMsg)),
+            mClass(startsWithN("clojure/uuid"), SuspendableType.NON_SUSPENDABLE, a(cljCoreMsg)),
+            mClass(startsWithN("clojure/instant"), SuspendableType.NON_SUSPENDABLE, a(cljCoreMsg)),
+            mClass(startsWithN("clojure/main"), SuspendableType.NON_SUSPENDABLE, a(cljCoreMsg)),
+
+            // Skip Clojure utils
+            mClass(startsWithN("clojure/pprint"), SuspendableType.NON_SUSPENDABLE, a(cljUtilMsg)),
+            mClass(startsWithN("clojure/tools/logging"), SuspendableType.NON_SUSPENDABLE, a(cljUtilMsg)),
+            mClass(startsWithN("clojure/walk"), SuspendableType.NON_SUSPENDABLE, a(cljUtilMsg)),
+            mClass(startsWithN("clojure/test"), SuspendableType.NON_SUSPENDABLE, a(cljUtilMsg)),
+            mClass(startsWithN("clojure/tools/analyzer"), SuspendableType.NON_SUSPENDABLE, a(cljUtilMsg)),
+
+
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // SUSPENDABLE PARALLEL UNIVERSE RUNTIME LIBRARY AND TESTS (comes before user code rules in order to skip them
+            // altogether with a special last rule, as we want just specific things to be instrumented and to delegate
+            // decision about the remaining ones to the rest of the classifying chain)
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            // Instrument few more selected Parallel Universe stack methods
+            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$rcv"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$snd"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$rcv_into"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$sel"), eqN("doInvoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/core$do_sel"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$strampoline"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$sleep"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$sleep"), eqN("invokePrim"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(eqN("co/paralleluniverse/pulsar/rx$zip"), eqN("doInvoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClass(eqN("co/paralleluniverse/pulsar/actors$spawn"), SuspendableType.NON_SUSPENDABLE, a(susPUMeth)), // too large and not needed
+            mClass(eqN("co/paralleluniverse/pulsar/actors$receive"), SuspendableType.NON_SUSPENDABLE, a(susPUMeth)), // too large and not needed
+            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/actors$"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/actors$"), eqN("doInvoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(and(startsWithN("co/paralleluniverse/fiber/"), containsN("$")), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)), // Comsat
+
+            // Instrument Parallel Universe Clojure tests and examples
+            mSrcAndClass(srcP, and(startsWithN("co/paralleluniverse"), or(containsCIN("test"), containsCIN("example"))), SuspendableType.SUSPENDABLE, a(testExamplePUMsg)),
+            mSrcAndMeth(srcP, or(containsCIN("test"), containsCIN("example")), SuspendableType.SUSPENDABLE, a(testExamplePUMsg)),
+
+            // SHORTCIRCUIT: don't change anything else about the rest of Parallel Universe (skip rules below)
+            mClass(startsWithN("co/paralleluniverse/"), null, a(puMsg)),
+
+
+            ////////////////////////
+            // SUSPENDABLE USER CODE
+            ////////////////////////
+
+            // Instrument interfaces from .clj or no source: missing better info, assuming they are all protocols
+            // TODO waiting for http://dev.clojure.org/jira/browse/CLJ-1645
             mSrcAndIsIf(srcP, eq(true), SuspendableType.SUSPENDABLE_SUPER, a(cljSusProtoDefMsg)),
 
             // Instrument proxy user methods
