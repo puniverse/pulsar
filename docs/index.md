@@ -151,7 +151,7 @@ The function `suspendable!` marks a given function as a suspendable function (th
 
 #### Automatic instrumentation
 
-Since version 0.6.3, Pulsar supports automatic instrumentation of all Clojure code, so that `suspendable!`, `sfn` and `defsfn` are not required anymore. Automatic instrumentation can be enabled by setting the `-Dco.paralleluniverse.pulsar.instrument.auto=all` system property.
+Since version 0.6.3, Pulsar supports experimental automatic instrumentation of all Clojure code, so that `suspendable!`, `sfn` and `defsfn` are not required anymore. It can be enabled by setting the `-Dco.paralleluniverse.pulsar.instrument.auto=all` system property. Automatic instrumentation needs source code information in order to recognise Clojure code, as well as the ability to instrument some `synchronized` Clojure runtime methods, so the agent should be run with the `=xm` options.
 
 According to our benchmarks, the performance impact of automatic instrumentation should not exceed 20% in worst-case situations like articulated and math-intensive Clojure code, while in more common-case scenarios the slow-down should not be noticeable at all.
 
