@@ -45,11 +45,11 @@
                          ;"-Dco.paralleluniverse.globalFlightRecorder=true"
                          ;"-Dco.paralleluniverse.monitoring.flightRecorderLevel=2"
                          ;"-Dco.paralleluniverse.flightRecorderDumpFile=pulsar.log"
+                         ;"-Xdebug"
+                         ;"-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005"
                          ;; Logging
                          "-Dlog4j.configurationFile=log4j.xml"
                          "-DLog4jContextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector"
-                         ;"-Xdebug"
-                         ;"-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005"
                          ]
               :global-vars {*warn-on-reflection* true}}
 
