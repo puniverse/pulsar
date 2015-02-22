@@ -99,7 +99,7 @@
   (Channels/fiberTransform ^ReceivePort in ^SendPort out (fn->SuspendableAction2 f)))
 
 (defn ^SendPort snd-map
-  "Returns a channel that transforms messages by applying th given mapping function f
+  "Returns a channel that transforms messages by applying the given mapping function f
   before sending them to the given channel ch."
   [f ^SendPort ch]
   (Channels/mapSend ^SendPort ch (fn->guava-fn f)))

@@ -20,7 +20,7 @@
                  [org.clojure/core.match "0.2.2" :exclusions [org.ow2.asm/*]]
                  [useful "0.8.8"]
                  [gloss "0.2.4" :exclusions [com.yammer.metrics/metrics-core useful]]
-                 [org.clojure/core.typed "0.2.72" :exclusions [org.apache.ant/ant org.clojure/core.unify org.ow2.asm/*]]]
+                 [org.clojure/core.typed "0.2.77" :exclusions [org.apache.ant/ant org.clojure/core.unify org.ow2.asm/*]]]
   :manifest {"Premain-Class" "co.paralleluniverse.fibers.instrument.JavaAgent"
              "Can-Retransform-Classes" "true"}
   :jvm-opts ["-server"
@@ -33,11 +33,12 @@
   :pedantic :warn
   :profiles {;; ----------- dev --------------------------------------
              :dev
-             {:plugins [[lein-midje "3.1.1"]]
+             {:plugins [[lein-midje "3.1.3"]]
               :dependencies [[midje "1.6.3" :exclusions [org.clojure/tools.namespace]]]
               :jvm-opts [;; Debugging
                          "-ea"
-                         ;"-Dco.paralleluniverse.fibers.verifyInstrumentation"
+                         ;"-Dco.paralleluniverse.fibers.verifyInstrumentation=true"
+                         ;"-Dco.paralleluniverse.fibers.detectRunawayFibers=false"
                          ;"-Dco.paralleluniverse.fibers.traceInterrupt=true"
                          ;; Recording
                          ;"-Dco.paralleluniverse.debugMode=true"
@@ -47,6 +48,8 @@
                          ;; Logging
                          "-Dlog4j.configurationFile=log4j.xml"
                          "-DLog4jContextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector"
+                         ;"-Xdebug"
+                         ;"-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005"
                          ]
               :global-vars {*warn-on-reflection* true}}
 
@@ -73,9 +76,9 @@
 
              ;; ----------- doc --------------------------------------
              :doc
-             {:plugins [[lein-midje "3.1.1"]
-                        [codox "0.6.4"]
-                        [lein-marginalia "0.7.1"]]
+             {:plugins [[lein-midje "3.1.3"]
+                        [codox "0.8.10"]
+                        [lein-marginalia "0.8.0"]]
               :dependencies [[midje "1.6.3"]]
               :exclusions [org.clojure/tools.namespace]
               :injections [(require 'clojure.test)
