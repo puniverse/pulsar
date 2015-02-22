@@ -218,7 +218,16 @@ public class PulsarInstrumentListProvider implements InstrumentListProvider {
             mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$sleep"), or(eqN("invoke"), eqN("invokePrim")), SuspendableType.SUSPENDABLE, a(susPUMeth)),
             mClassAndMeth(eqN("co/paralleluniverse/pulsar/actors$receive_timed"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
             mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/actors$create_actor$"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-
+            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/async$put_BANG_"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/async$take_BANG_"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/async$_GT__BANG_"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/async$f__GT_chan"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/async$_LT__BANG_"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/async$last"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/async$reduce"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/async$pipe"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/async$onto_chan"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/async$rx_chan"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
             mClassAndMeth(and(startsWithN("co/paralleluniverse/fiber/"), containsN("$")), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)), // Comsat
 
             // Instrument Parallel Universe Clojure tests and examples
