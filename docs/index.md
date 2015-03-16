@@ -1362,7 +1362,7 @@ In the following example (taken from [codeswap.clj](https://github.com/puniverse
 
 core.async is a new [asynchronous programming library](https://github.com/clojure/core.async/) for Clojure built by Rich Hickey and other contributors. It provides something akin to fibers through `go` blocks (though more limited than fibers) and channels, and is also available in ClojureScript. Because core.async provides a subset of Pulsar's capability, Pulsar provides an optional API that's compatible with core.async which some people may prefer. The original core.async test suite has been ported as well in order to ensure API-level compatibility.
 
-The core.async implementation is found in the `co.paralleluniverse.pulsar.async` namespace. At present the support level is up to version `0.1.346.0-17112a-alpha`, excluding deprecated and experimental features. 
+The core.async implementation is found in the `co.paralleluniverse.pulsar.async` namespace. At present the support level is up to version `0.1.346.0-17112a-alpha`, excluding deprecated and experimental features.
 
 These definitions are no more than thin wrappers around Pulsar functions and macros:
 
