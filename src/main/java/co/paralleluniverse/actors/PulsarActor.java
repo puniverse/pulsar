@@ -18,6 +18,8 @@ import co.paralleluniverse.fibers.SuspendExecution;
 import co.paralleluniverse.pulsar.ClojureHelper;
 import co.paralleluniverse.pulsar.InstrumentedIFn;
 import co.paralleluniverse.strands.SuspendableCallable;
+import co.paralleluniverse.strands.queues.QueueIterator;
+
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -147,33 +149,33 @@ public class PulsarActor extends Actor<Object, Object> {
     ///////////////// Simple delegates ////////////////////////////
 
 
-    public static void processed(Actor a, Object n) {
-        a.monitorAddMessage();
-        a.mailbox().del(n);
+    public static QueueIterator<Object> iterator(Actor a) {
+        a.monitorResetSkippedMessages();
+        return a.mailbox().queue().iterator();
     }
 
-    public static void skipped(Actor a, Object n) {
+    public static void processed(Actor a, QueueIterator<Object> it) {
+        a.monitorAddMessage();
+        it.remove();
+    }
+
+    public static void skipped(Actor a, QueueIterator<Object> it) {
         a.monitorSkippedMessage();
-        final Object m = a.mailbox().value(n);
+        final Object m = it.value();
         if (m instanceof LifecycleMessage)
             handleLifecycleMessage(a, (LifecycleMessage) m);
+    }
+
+    public static Object next(Actor a, QueueIterator<Object> it) {
+        final Object m = it.next();
+        a.record(1, "PulsarActor", "receive", "Received %s <- %s", a, m);
+        return m;
     }
 
     public static void handleLifecycleMessage(Actor a, LifecycleMessage m) {
         a.handleLifecycleMessage(m);
     }
 
-    public static Object succ(Actor a, Object n) {
-        if (n == null)
-            a.monitorResetSkippedMessages();
-        return a.mailbox().succ(n);
-    }
-
-    public static Object value(Actor a, Object n) {
-        final Object m = a.mailbox().value(n);
-        a.record(1, "PulsarActor", "receive", "Received %s <- %s", a, m);
-        return m;
-    }
 
     public static void maybeSetCurrentStrandAsOwner(Actor a) {
         a.mailbox().maybeSetCurrentStrandAsOwner();
