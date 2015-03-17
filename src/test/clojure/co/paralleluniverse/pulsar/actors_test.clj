@@ -310,7 +310,7 @@
               (Thread/sleep 50)
               (! actor :bar)
               (join actor)) => :foobar)
-      (fact "Test trampolining actor with selctive receive"
+      (fact "Test trampolining actor with selective receive"
             (let [state2 (sfn []
                                 (receive
                                   :bar :foobar))
