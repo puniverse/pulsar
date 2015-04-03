@@ -34,8 +34,6 @@
 
 (alias 'core 'clojure.core)
 
-; TODO port (or run unmodified if possible) original async testsuite
-
 (defn buffer
   "Returns a fixed buffer of size n. When full, puts will block/park."
   [n]
