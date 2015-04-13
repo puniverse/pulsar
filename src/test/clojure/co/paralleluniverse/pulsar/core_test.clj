@@ -133,7 +133,7 @@
         (snd ch "m1")
         (snd ch "m2")
         (close! ch)
-        [(join fiber1) (join fiber2)])  => ["m1" "m2"])
+        #{(join fiber1) (join fiber2)}  => #{"m1" "m2"}))
 
 (fact "Test snd-seq and rcv-into"
       (let [ch (channel)
