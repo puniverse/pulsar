@@ -367,8 +367,13 @@
       (isDone [_] (.isDone fut))
       (cancel [_ interrupt?] (.cancel fut interrupt?)))))
 
+(defmacro run-fiber
+  "Runs the given body in a newly created fiber and returns it."
+  [& body]
+  `(spawn-fiber (fn [] ~@body)))
+
 (defmacro await
-  "Calls f, which takes a callback of a single argument as its last parameter,
+"Calls f, which takes a callback of a single argument as its last parameter,
   with arguments args, and blocks the current fiber until the callback is called,
   then returns the value passed to the callback."
   [f & args]

@@ -1,5 +1,5 @@
 ; Pulsar: lightweight threads and Erlang-like actors for Clojure.
-; Copyright (C) 2013-2014, Parallel Universe Software Co. All rights reserved.
+; Copyright (C) 2013-2015, Parallel Universe Software Co. All rights reserved.
 ;
 ; This program and the accompanying materials are dual-licensed under
 ; either the terms of the Eclipse Public License v1.0 as published by
@@ -90,6 +90,12 @@
             fut (fiber->future fiber)]
         (fact @fut => 42)
         (fact (realized? fut) => true)))
+
+(fact "'run-fiber' can be used to execute a whole block in a newly created fiber"
+      (let [fiber (run-fiber
+                    (sleep 20)
+                    0)]
+        (fact (join fiber) => 0)))
 
 (fact "await blocks the fiber and returns the value passed to the callback"
       (let [exec (java.util.concurrent.Executors/newSingleThreadExecutor)
