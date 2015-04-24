@@ -131,6 +131,16 @@
         (snd ch "m4")
         (join fiber))  => '("m1" "m2" "m3" nil))
 
+(fact "Test multi-consumer channels"
+      (let [ch (channel 0 :block true true)
+            f #(rcv ch)
+            fiber1 (spawn-fiber f)
+            fiber2 (spawn-fiber f)]
+        (snd ch "m1")
+        (snd ch "m2")
+        (close! ch)
+        #{(join fiber1) (join fiber2)}  => #{"m1" "m2"}))
+
 (fact "Test snd-seq and rcv-into"
       (let [ch (channel)
             fiber (spawn-fiber #(rcv-into [] ch 1000))]

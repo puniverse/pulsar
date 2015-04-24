@@ -539,10 +539,19 @@
                     * :block    - blocks until a message is consumed and room is available
                     * :drop     - the message is silently dropped
                     * :displace - the old message waiting in the queue is discarded to make room for the new message.
-                    
+
                     default: :block
-  
+
+  single-producer - specifies if the channel should be single-producer.
+
+                    default: false
+
+  single-consumer - specifies if the channel should be single-consumer.
+
+                    default: true
+
   The default channel capacity is 0 and the default policy is :block"
+  ([capacity overflow-policy ^Boolean single-producer ^Boolean single-consumer] (Channels/newChannel (int capacity) (keyword->enum Channels$OverflowPolicy overflow-policy) single-producer single-consumer))
   ([capacity overflow-policy] (Channels/newChannel (int capacity) (keyword->enum Channels$OverflowPolicy overflow-policy)))
   ([capacity]                 (Channels/newChannel (int capacity)))
   ([]                         (Channels/newChannel 0)))
