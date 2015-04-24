@@ -161,6 +161,12 @@ According to our benchmarks, the performance impact of automatic instrumentation
 
 #### Spawning Fibers
 
+To create a fiber that will start executing `body`, use
+
+~~~ clojure
+(fiber <body>)
+~~~
+
 To create a fiber of a function `f` that takes arguments `arg1` and `arg2`, run
 
 ~~~ clojure
