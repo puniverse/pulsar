@@ -521,32 +521,32 @@
   "Creates a new channel.
   
   Optional arguments:
-  capacity        - specifies how many messages the channel can contain (until they are consumed)
-                    * A value of `0` designates a *transfer channel*, that blocks both `snd` and `rcv` 
-                      until a corresponding operation (`rcv` or `snd` respectively) is called.
-                    * A value of `-1` creates an unbounded channel.
+  capacity         - specifies how many messages the channel can contain (until they are consumed)
+                     * A value of `0` designates a *transfer channel*, that blocks both `snd` and `rcv`
+                       until a corresponding operation (`rcv` or `snd` respectively) is called.
+                     * A value of `-1` creates an unbounded channel.
   
-                    default: 0
+                     default: 0
   
-  overflow-policy - specifies what `snd` does when the channel's capacity is exhausted.
-                    May be one of:
-                    * :throw    - throws an exception.
-                    * :block    - blocks until a message is consumed and room is available
-                    * :drop     - the message is silently dropped
-                    * :displace - the old message waiting in the queue is discarded to make room for the new message.
+  overflow-policy  - specifies what `snd` does when the channel's capacity is exhausted.
+                     May be one of:
+                     * :throw    - throws an exception.
+                     * :block    - blocks until a message is consumed and room is available
+                     * :drop     - the message is silently dropped
+                     * :displace - the old message waiting in the queue is discarded to make room for the new message.
 
-                    default: :block
+                     default: :block
 
-  single-producer - specifies if the channel should be single-producer.
+  single-producer? - specifies if the channel should be single-producer.
 
-                    default: false
+                     default: false
 
-  single-consumer - specifies if the channel should be single-consumer.
+  single-consumer? - specifies if the channel should be single-consumer.
 
-                    default: true
+                     default: true
 
   The default channel capacity is 0 and the default policy is :block"
-  ([capacity overflow-policy ^Boolean single-producer ^Boolean single-consumer] (Channels/newChannel (int capacity) (keyword->enum Channels$OverflowPolicy overflow-policy) single-producer single-consumer))
+  ([capacity overflow-policy ^Boolean single-producer? ^Boolean single-consumer?] (Channels/newChannel (int capacity) (keyword->enum Channels$OverflowPolicy overflow-policy) single-producer? single-consumer?))
   ([capacity overflow-policy] (Channels/newChannel (int capacity) (keyword->enum Channels$OverflowPolicy overflow-policy)))
   ([capacity]                 (Channels/newChannel (int capacity)))
   ([]                         (Channels/newChannel 0)))
