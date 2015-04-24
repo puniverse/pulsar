@@ -82,7 +82,7 @@
                (join fiber))
              => 30))
 
-(fact "Fiber can be used turned into a future"
+(fact "fiber->future can be used to turn a fiber into a future"
       (let [fiber (spawn-fiber
                     (fn []
                       (sleep 20)
@@ -91,8 +91,8 @@
         (fact @fut => 42)
         (fact (realized? fut) => true)))
 
-(fact "'run-fiber' can be used to execute a whole block in a newly created fiber"
-      (let [fiber (run-fiber
+(fact "fiber can be used to execute a whole block in a newly created fiber"
+      (let [fiber (fiber
                     (sleep 20)
                     0)]
         (fact (join fiber) => 0)))

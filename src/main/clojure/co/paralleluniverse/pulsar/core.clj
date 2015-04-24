@@ -307,8 +307,8 @@
   [^FiberScheduler scheduler]
   (or scheduler (current-scheduler) default-fiber-scheduler))
 
-(ann fiber [String FiberScheduler AnyInteger [Any -> Any] -> Fiber])
-(defn ^Fiber fiber
+(ann create-fiber [String FiberScheduler AnyInteger [Any -> Any] -> Fiber])
+(defn ^Fiber create-fiber
   "Creates, but does not start a new fiber (a lightweight thread) running in a fork/join pool.
   
   It is much preferable to use `spawn-fiber`."
@@ -318,7 +318,7 @@
 
 (ann start [Fiber -> Fiber])
 (defn start
-  "Starts a fiber created with `fiber`."
+  "Starts a fiber created with `create-fiber`."
   [^Fiber fiber]
   (.start fiber))
 
@@ -367,7 +367,7 @@
       (isDone [_] (.isDone fut))
       (cancel [_ interrupt?] (.cancel fut interrupt?)))))
 
-(defmacro run-fiber
+(defmacro fiber
   "Runs the given body in a newly created fiber and returns it."
   [& body]
   `(spawn-fiber (fn [] ~@body)))
