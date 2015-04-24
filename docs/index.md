@@ -338,7 +338,7 @@ creates and returns a new channel.
 A more general form of the `channel` function is:
 
 ~~~ clojure
-(channel capacity overflow-policy)
+(channel capacity overflow-policy single-producer? single-consumer?)
 ~~~
 
 The channel's `capacity` is the number of messages that can wait in the queue. A positive integer creates a bounded queue that can hold up to the given number of messages until they're consumed. A capacity of -1 specifies an unbounded channel (unlimited number of pending messages), and a capacity of 0 specifies a *transfer channel*, one where the producer is blocked until a consumer requests a message and vice-versa.
@@ -355,6 +355,8 @@ If you leave out the `overflow-policy` argument, the default policy of `:block` 
 Bounded channels are generally faster than unbounded channels.
 
 Use of the `:displace` policy places an additional restriction on the channel: its messages may be consumed by a single strand only.
+
+Finally you can specify if the channel will be single-producer (default: `false`) and/or single-consumer (default: `true`).
 
 #### Sending and receiving messages
 
