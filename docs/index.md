@@ -413,7 +413,7 @@ For example, in the following call,
 (sel [ch1 [ch2 msg1] ch3 [ch4 msg2]])
 ~~~
 
-a message will either be received from `ch1` or `ch2`, or one will be sent to either `ch2` or `ch4`. If, for instance, `ch2` will become available for reading (i.e. it has been sent a message) first, than only that operation, in this case a `rcv` will be performed on `ch1`. If `ch2` becomes available for writing before that happens, then only that operation, a `snd`, will be performed. If two operations are available at the same time, one will be chosen randomly (unless the `:priority` option is set, as we'll see later).
+a message will either be received from `ch1` or `ch3`, or one will be sent to either `ch2` or `ch4`. If, for instance, `ch1` will become available for reading (i.e. it has been sent a message) first, than only a `rcv` will be performed on it. If `ch2` becomes available for writing before that happens, then only that operation, a `snd`, will be performed. If two operations are available at the same time, one will be chosen randomly (unless the `:priority` option is set, as we'll see later).
 
 Note that if a channel's overflow policy is anything by `:block`, then `snd` operations are always available.
 
