@@ -63,7 +63,7 @@ or to the `:jvm-opts` section in project.clj:
 
 * [User Guide](http://docs.paralleluniverse.co/pulsar/)
 * [API](http://docs.paralleluniverse.co/pulsar/api/)
-* [Marginalia](http://docs.paralleluniverse.co/uberdoc.html) (of tests and examples)
+* [Marginalia](http://docs.paralleluniverse.co/pulsar/uberdoc.html) (of tests and examples)
 
 ## Community
 
