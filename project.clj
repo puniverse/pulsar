@@ -19,8 +19,8 @@
                  [org.ow2.asm/asm "5.0.3"]
                  [org.clojure/core.match "0.2.2" :exclusions [org.ow2.asm/*]]
                  [useful "0.8.8"]
-                 [gloss "0.2.4" :exclusions [com.yammer.metrics/metrics-core useful]]
-                 [org.clojure/core.typed "0.2.84" :exclusions [org.apache.ant/ant org.clojure/core.unify org.ow2.asm/*]]]
+                 [gloss "0.2.5" :exclusions [com.yammer.metrics/metrics-core useful]]
+                 [org.clojure/core.typed "0.2.92" :exclusions [org.apache.ant/ant org.clojure/core.unify org.ow2.asm/*]]]
   :manifest {"Premain-Class" "co.paralleluniverse.fibers.instrument.JavaAgent"
              "Can-Retransform-Classes" "true"}
   :jvm-opts ["-server"
@@ -77,7 +77,7 @@
              ;; ----------- doc --------------------------------------
              :doc
              {:plugins [[lein-midje "3.1.3"]
-                        [codox "0.8.11"]
+                        [codox "0.8.12"]
                         [lein-marginalia "0.8.0"]]
               :dependencies [[midje "1.6.3"]]
               :exclusions [org.clojure/tools.namespace]
