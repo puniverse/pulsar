@@ -87,6 +87,7 @@
 <li><ul><li><a href="#dependencies">Dependencies</a></li></ul></li>
 <li>
 <a href="#news" class="cat-link">News</a><ul>
+<li><a href="#may-29-2015">May 29, 2015</a></li>
 <li><a href="#december-23-2014">December 23, 2014</a></li>
 <li><a href="#september-23-2014">September 23, 2014</a></li>
 <li><a href="#july-23-2014">July 23, 2014</a></li>
@@ -112,6 +113,7 @@
 <a href="#pulsar-core" class="cat-link">Pulsar Core</a><ul>
 <li><a href="#quasar-and-pulsar">Quasar and Pulsar</a></li>
 <li><a href="#fibers">Fibers</a></li>
+<li><a href="#automatic-instrumentation">Automatic instrumentation</a></li>
 <li><a href="#transforming-any-asynchronous-callback-to-a-fiber-blocking-operation">Transforming any Asynchronous Callback to A Fiber-Blocking Operation</a></li>
 <li><a href="#promises-promises">Promises, Promises</a></li>
 <li><a href="#channels">Channels</a></li>
@@ -168,6 +170,10 @@ It is a Clojure <span class="caps">API</span> for the <a href="https://github.co
 
 <h2 id="news">News</h2>
 
+<h3 id="may-29-2015">May 29,&nbsp;2015</h3>
+
+<p>Pulsar <a href="https://github.com/puniverse/pulsar/releases/tag/v0.7.0"><span class="caps">0.7.0</span></a> has been&nbsp;released.</p>
+
 <h3 id="december-23-2014">December 23,&nbsp;2014</h3>
 
 <p>Pulsar <a href="https://github.com/puniverse/pulsar/releases/tag/v0.6.2"><span class="caps">0.6.2</span></a> has been&nbsp;released.</p>
@@ -210,11 +216,11 @@ It is a Clojure <span class="caps">API</span> for the <a href="https://github.co
 
 <p>Add the following dependency to <a href="http://github.com/technomancy/leiningen/">Leiningen</a>’s&nbsp;project.clj:</p>
 
-<div class="highlight"><pre><code><span id="line-1"><span class="p">[</span><span class="nv">co.paralleluniverse/pulsar</span> <span class="s">&quot;0.6.2&quot;</span><span class="p">]</span>
+<div class="highlight"><pre><code><span id="line-1"><span class="p">[</span><span class="nv">co.paralleluniverse/pulsar</span> <span class="s">&quot;0.7.0&quot;</span><span class="p">]</span>
 </span></code></pre></div>
 <p>Then, the following must be added to the project.clj&nbsp;file:</p>
 
-<div class="highlight"><pre><code><span id="line-1"><span class="ss">:java-agents</span> <span class="p">[[</span><span class="nv">co.paralleluniverse/quasar-core</span> <span class="s">&quot;0.6.2&quot;</span><span class="p">]]</span>
+<div class="highlight"><pre><code><span id="line-1"><span class="ss">:java-agents</span> <span class="p">[[</span><span class="nv">co.paralleluniverse/quasar-core</span> <span class="s">&quot;0.7.0&quot;</span><span class="p">]]</span>
 </span></code></pre></div>
 <p>or, add the following to the java command&nbsp;line:</p>
 
@@ -265,8 +271,18 @@ The function <code>suspendable!</code> marks a given function as a suspendable f
 
 <p class="alert alert-info"><strong>Note</strong>: All functions (i.e. <code>fn</code>s) passed to any of the Pulsar <span class="caps">API</span> functions and macros are automatically made suspendable, so in most simple cases you will never need to use <code>sfn</code>, <code>defsfn</code> or&nbsp;<code>suspendable!</code>.</p>
 
+<h3 id="automatic-instrumentation">Automatic&nbsp;instrumentation</h3>
+
+<p>Since version <span class="caps">0.6.3</span>, Pulsar supports experimental automatic instrumentation of all Clojure code, so that <code>suspendable!</code>, <code>sfn</code> and <code>defsfn</code> are not required anymore. It can be enabled by setting the <code>-Dco.paralleluniverse.pulsar.instrument.auto=all</code> system property. Automatic instrumentation needs the ability to instrument some <code>synchronized</code> Clojure runtime methods, so the agent should be run with the <code>=m</code>&nbsp;options.</p>
+
+<p>According to our benchmarks, the performance impact of automatic instrumentation should not exceed 20% in worst-case situations like articulated and math-intensive Clojure code, while in more common-case scenarios the slow-down should not be noticeable at&nbsp;all.</p>
+
 <h4 id="spawning-fibers">Spawning&nbsp;Fibers</h4>
 
+<p>To create a fiber that will start executing <code>body</code>,&nbsp;use</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">fiber</span> <span class="nv">&lt;body&gt;</span><span class="p">)</span>
+</span></code></pre></div>
 <p>To create a fiber of a function <code>f</code> that takes arguments <code>arg1</code> and <code>arg2</code>,&nbsp;run</p>
 
 <div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">spawn-fiber</span> <span class="nv">f</span> <span class="nv">arg1</span> <span class="nv">arg2</span><span class="p">)</span>
@@ -418,7 +434,7 @@ from the Pulsar test&nbsp;suite:</p>
 
 <p>A more general form of the <code>channel</code> function&nbsp;is:</p>
 
-<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">channel</span> <span class="nv">capacity</span> <span class="nv">overflow-policy</span><span class="p">)</span>
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">channel</span> <span class="nv">capacity</span> <span class="nv">overflow-policy</span> <span class="nv">single-producer?</span> <span class="nv">single-consumer?</span><span class="p">)</span>
 </span></code></pre></div>
 <p>The channel’s <code>capacity</code> is the number of messages that can wait in the queue. A positive integer creates a bounded queue that can hold up to the given number of messages until they’re consumed. A capacity of -1 specifies an unbounded channel (unlimited number of pending messages), and a capacity of 0 specifies a <em>transfer channel</em>, one where the producer is blocked until a consumer requests a message and&nbsp;vice-versa.</p>
 
@@ -436,6 +452,8 @@ from the Pulsar test&nbsp;suite:</p>
 <p>Bounded channels are generally faster than unbounded&nbsp;channels.</p>
 
 <p>Use of the <code>:displace</code> policy places an additional restriction on the channel: its messages may be consumed by a single strand&nbsp;only.</p>
+
+<p>Finally you can specify if the channel will be single-producer (default: <code>false</code>) and/or single-consumer (default:&nbsp;<code>true</code>).</p>
 
 <h4 id="sending-and-receiving-messages">Sending and receiving&nbsp;messages</h4>
 
@@ -479,7 +497,7 @@ from the Pulsar test&nbsp;suite:</p>
 
 <div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">sel</span> <span class="p">[</span><span class="nv">ch1</span> <span class="p">[</span><span class="nv">ch2</span> <span class="nv">msg1</span><span class="p">]</span> <span class="nv">ch3</span> <span class="p">[</span><span class="nv">ch4</span> <span class="nv">msg2</span><span class="p">]])</span>
 </span></code></pre></div>
-<p>a message will either be received from <code>ch1</code> or <code>ch2</code>, or one will be sent to either <code>ch2</code> or <code>ch4</code>. If, for instance, <code>ch2</code> will become available for reading (i.e. it has been sent a message) first, than only that operation, in this case a <code>rcv</code> will be performed on <code>ch1</code>. If <code>ch2</code> becomes available for writing before that happens, then only that operation, a <code>snd</code>, will be performed. If two operations are available at the same time, one will be chosen randomly (unless the <code>:priority</code> option is set, as we’ll see&nbsp;later).</p>
+<p>a message will either be received from <code>ch1</code> or <code>ch3</code>, or one will be sent to either <code>ch2</code> or <code>ch4</code>. If, for instance, <code>ch1</code> will become available for reading (i.e. it has been sent a message) first, than only a <code>rcv</code> will be performed on it. If <code>ch2</code> becomes available for writing before that happens, then only that operation, a <code>snd</code>, will be performed. If two operations are available at the same time, one will be chosen randomly (unless the <code>:priority</code> option is set, as we’ll see&nbsp;later).</p>
 
 <p>Note that if a channel’s overflow policy is anything by <code>:block</code>, then <code>snd</code> operations are always&nbsp;available.</p>
 
@@ -1247,9 +1265,9 @@ Pulsar supports this as an experimental feature (implemented internally with <co
 </span></code></pre></div>
 <h2 id="coreasync">core.async</h2>
 
-<p>core.async is a new <a href="https://github.com/clojure/core.async/">asynchronous programming library</a> for Clojure built by Rich Hickey and other contributors. It provides something akin to fibers (though more limited than fibers) and channels, and is also available in ClojureScript. Because core.async provides a subset of Pulsar’s capability, Pulsar provides an optional <span class="caps">API</span> that’s compatible with core.async which some people may&nbsp;prefer.</p>
+<p>core.async is a new <a href="https://github.com/clojure/core.async/">asynchronous programming library</a> for Clojure built by Rich Hickey and other contributors. It provides something akin to fibers through <code>go</code> blocks (though more limited than fibers) and channels, and is also available in ClojureScript. Because core.async provides a subset of Pulsar’s capability, Pulsar provides an optional <span class="caps">API</span> that’s compatible with core.async which some people may prefer. The original core.async test suite has been ported as well in order to ensure <span class="caps">API</span>-level&nbsp;compatibility.</p>
 
-<p>The core.async implementation is found in the <code>co.paralleluniverse.pulsar.async</code> namespace. It defines the following vars: <code>chan</code>, <code>buffer</code>, <code>dropping-buffer</code>, <code>sliding-buffer</code>, <code>go</code>, <code>thread-call</code>, <code>thread</code>, <code>close!</code>, <code>take!</code>, <code>put!</code>, <code>&gt;!</code>, <code>&gt;!!</code>, <code>&lt;!</code>, <code>&lt;!!</code>, <code>alts!</code>, <code>alts!!</code>, <code>alt!</code>, <code>alt!!</code> and&nbsp;<code>timeout</code>.</p>
+<p>The core.async implementation is found in the <code>co.paralleluniverse.pulsar.async</code> namespace. At present the support level is up to version <code>0.1.346.0-17112a-alpha</code>, excluding deprecated and experimental&nbsp;features.</p>
 
 <p>These definitions are no more than thin wrappers around Pulsar functions and&nbsp;macros:</p>
 
@@ -1272,6 +1290,7 @@ Pulsar supports this as an experimental feature (implemented internally with <co
 <ul>
   <li>Channels created with <code>(chan (sliding-buffer n))</code> are&nbsp;single-consumer.</li>
   <li>You may use the <code>!</code> and the <code>!!</code> defs interchangeably (the original implementation forces the use of the single-bang defs in go-blocks and the double-bang defs in regular threads). This means that in the Pulsar implementation all of the double-bang names (<code>&gt;!!</code>, <code>&lt;!!</code>, <code>alts!!</code> and <code>alt!!</code>) are actually redundant (but included for&nbsp;compatibility).</li>
+  <li>In addition to <code>thread</code> and <code>thread-call</code> there are <code>fiber</code> and <code>fiber-call</code> as well which are not part of the original core.async&nbsp;<span class="caps">API.</span></li>
 </ul>
 
 <p>In addition, there are performance differences, mostly resulting from the fact that Pulsar uses fork-join pools to schedule fibers, while core.async uses regular thread pools. In short, if there is little interaction between go blocks (say, each go block writes something to a channel and completes), you can expect better performance from the original implementation. If there is a lot of interaction between go blocks (there’s non-trivial message passing among them), then the Pulsar implementation will yield better&nbsp;performance.</p>
@@ -1286,7 +1305,7 @@ Pulsar supports this as an experimental feature (implemented internally with <co
 
 <p>First, you will need to add <code>quasar-galaxy</code> as a dependency to your&nbsp;project:</p>
 
-<div class="highlight"><pre><code><span id="line-1"><span class="p">[</span><span class="nv">co.paralleluniverse/quasar-galaxy</span> <span class="s">&quot;0.6.2&quot;</span><span class="p">]</span>
+<div class="highlight"><pre><code><span id="line-1"><span class="p">[</span><span class="nv">co.paralleluniverse/quasar-galaxy</span> <span class="s">&quot;0.7.0&quot;</span><span class="p">]</span>
 </span></code></pre></div>
 <p>To make an actor discoverable, all you need to do is register&nbsp;it:</p>
 
