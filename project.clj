@@ -1,4 +1,5 @@
-(defproject co.paralleluniverse/pulsar "0.6.3-SNAPSHOT"
+(def quasar-version "0.7.0")
+(defproject co.paralleluniverse/pulsar "0.7.0"
   :description "A Clojure lightweight thread, asynchronous programming, and actor library"
   :url "http://github.com/puniverse/pulsar"
   :licenses [{:name "Eclipse Public License - v 1.0" :url "http://www.eclipse.org/legal/epl-v10.html"}
@@ -14,8 +15,8 @@
                  "releases" "https://oss.sonatype.org/content/repositories/releases"}
   :test-selectors {:selected :selected}
   :dependencies [[org.clojure/clojure "1.6.0"]
-                 [co.paralleluniverse/quasar-core   "0.6.3-SNAPSHOT"] ; :classifier "jdk8"
-                 [co.paralleluniverse/quasar-actors "0.6.3-SNAPSHOT"]
+                 [co.paralleluniverse/quasar-core   ~quasar-version] ; :classifier "jdk8"
+                 [co.paralleluniverse/quasar-actors ~quasar-version]
                  [org.ow2.asm/asm "5.0.3"]
                  [org.clojure/core.match "0.2.2" :exclusions [org.ow2.asm/*]]
                  [useful "0.8.8"]
@@ -29,7 +30,7 @@
              "-XX:-UseBiasedLocking"
              "-XX:+UseCondCardMark"]
   ;:injections [(alter-var-root #'*compiler-options* (constantly {:disable-locals-clearing true}))]
-  :java-agents [[co.paralleluniverse/quasar-core "0.6.3-SNAPSHOT" :options "m"]] ; :classifier "jdk8" :options "vd"
+  :java-agents [[co.paralleluniverse/quasar-core ~quasar-version :options "m"]] ; :classifier "jdk8" :options "vd"
   :pedantic :warn
   :profiles {;; ----------- dev --------------------------------------
              :dev
@@ -56,7 +57,7 @@
              ;; ----------- cluster --------------------------------------
              :cluster
              {:repositories {"oracle" "http://download.oracle.com/maven/"}
-              :dependencies [[co.paralleluniverse/quasar-galaxy "0.6.3-SNAPSHOT"]]
+              :dependencies [[co.paralleluniverse/quasar-galaxy ~quasar-version]]
               :java-source-paths ["src/cluster/java"]
               :jvm-opts [;; Debugging
                          "-ea"
