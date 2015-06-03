@@ -452,7 +452,7 @@
   their result, if applicable.
   
   If a single strand is given, its result is returned;
-  if a collection - then a collection of the repsective results.
+  if a collection - then a collection of the respective results.
   
   Note that for threads, the result is always `nil`, as threads don't return a value.
   
