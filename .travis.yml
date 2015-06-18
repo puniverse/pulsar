@@ -3,7 +3,7 @@ sudo: false
 lein: lein2
 script:
   - lein2 midje :print-facts :filter -auto-instrumentation
-  - lein2 with-profiles +auto-instrument-all midje :print-facts :filter auto-instrumentation
+  - lein2 with-profiles +auto-instrument-all midje :print-facts
 jdk:
   - oraclejdk7
 branches:
