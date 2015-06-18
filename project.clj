@@ -40,7 +40,7 @@
               :jvm-opts [;; Debugging
                          "-ea"
                          ;"-Dco.paralleluniverse.fibers.verifyInstrumentation=true"
-                         ;"-Dco.paralleluniverse.fibers.detectRunawayFibers=false"
+                         "-Dco.paralleluniverse.fibers.detectRunawayFibers=false"
                          ;"-Dco.paralleluniverse.fibers.traceInterrupt=true"
                          ;; Recording
                          ;"-Dco.paralleluniverse.debugMode=true"
