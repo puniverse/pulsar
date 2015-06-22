@@ -427,7 +427,7 @@
        thread)))
 
 (ann join* [(U Joinable Thread) -> (Option Any)])
-(defn- join*
+(defsfn ^:private join*
   ([s]
    (unwrap-exception
      (cond
@@ -447,7 +447,7 @@
 
 (ann join (IFn [(U Joinable Thread) -> (Option Any)]
               [(Sequential (U Joinable Thread)) -> (ISeq Any)]))
-(defn join
+(defsfn join
   "Awaits the termination of the given strand or strands, and returns
   their result, if applicable.
   
