@@ -75,9 +75,7 @@ public class PulsarInstrumentListProvider implements InstrumentListProvider {
         //      Java interfaces. For this reason widely used library code (either in JDK, Clojure or utility libraries)
         //      is explicitly excluded.
         //    - Clojure runtime methods that implement language constructs have to be explicitly instrumented.
-        //    - Some Pulsar runtime methods have to be explicitly instrumented.
-        //    - Workaround: some interfaces aren't annotated as suspendable but some of their methods are and currently
-        //      Quasar don't seem to consider them, so they're explicitly mentioned in the rules below anyway.
+        //    - Some more Pulsar runtime methods have to be explicitly instrumented.
         //
         // 2. Instrumentation efficiency: evaluate rules as fast as possible (globally).
         //    - Rules likely to catch more methods should appear as close as possible to the top.
@@ -216,7 +214,6 @@ public class PulsarInstrumentListProvider implements InstrumentListProvider {
             // decision about the remaining ones to the rest of the classifying chain.
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-            mClassAndMeth(eqN("co/paralleluniverse/fibers/Joinable"), or(eqN("join"), eqN("get")), SuspendableType.SUSPENDABLE_SUPER, a(susPUMeth)),
             mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$join"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
             mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$join_STAR_"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
             mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$rcv"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
