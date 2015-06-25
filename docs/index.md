@@ -27,7 +27,7 @@ Aside from Pulsar's dependency on Quasar and its dependent libraries, Pulsar mak
 
 ### June 25, 2015
 
-Pulsar [0.7.1](https://github.com/puniverse/pulsar/releases/tag/v0.7.1) has been released.
+Pulsar [0.7.2](https://github.com/puniverse/pulsar/releases/tag/v0.7.2) has been released.
 
 ### May 29, 2015
 
