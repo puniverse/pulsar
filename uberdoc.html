@@ -2865,7 +2865,7 @@ net.brehaut.ClojureTools = (function (SH) {
     build_tree: build_tree
   };
 })(SyntaxHighlighter);
-</script><title>quasar-version -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">quasar-version</h1><h2 class="project-version">0.7.0</h2><br />
+</script><title>quasar-version -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">quasar-version</h1><h2 class="project-version">0.7.2</h2><br />
 </div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#co.paralleluniverse.pulsar.actors-test">co.paralleluniverse.pulsar.actors-test</a></li><li><a href="#co.paralleluniverse.pulsar.auto-instrumentation-test">co.paralleluniverse.pulsar.auto-instrumentation-test</a></li><li><a href="#co.paralleluniverse.pulsar.core-test">co.paralleluniverse.pulsar.core-test</a></li><li><a href="#co.paralleluniverse.pulsar.lazyseq-test">co.paralleluniverse.pulsar.lazyseq-test</a></li><li><a href="#co.paralleluniverse.pulsar.rx-test">co.paralleluniverse.pulsar.rx-test</a></li><li><a href="#co.paralleluniverse.pulsar.examples.binary">co.paralleluniverse.pulsar.examples.binary</a></li><li><a href="#co.paralleluniverse.pulsar.examples.codeswap">co.paralleluniverse.pulsar.examples.codeswap</a></li><li><a href="#co.paralleluniverse.pulsar.examples.graph">co.paralleluniverse.pulsar.examples.graph</a></li><li><a href="#co.paralleluniverse.pulsar.examples.io">co.paralleluniverse.pulsar.examples.io</a></li><li><a href="#co.paralleluniverse.pulsar.examples.pingpong">co.paralleluniverse.pulsar.examples.pingpong</a></li><li><a href="#co.paralleluniverse.pulsar.examples.pingpong-register">co.paralleluniverse.pulsar.examples.pingpong-register</a></li><li><a href="#co.paralleluniverse.pulsar.examples.primitive-ring-benchmark">co.paralleluniverse.pulsar.examples.primitive-ring-benchmark</a></li><li><a href="#co.paralleluniverse.pulsar.examples.priority">co.paralleluniverse.pulsar.examples.priority</a></li><li><a href="#co.paralleluniverse.pulsar.examples.ring-benchmark">co.paralleluniverse.pulsar.examples.ring-benchmark</a></li><li><a href="#co.paralleluniverse.pulsar.examples.selective">co.paralleluniverse.pulsar.examples.selective</a></li><li><a href="#co.paralleluniverse.pulsar.examples.selective-gen-server">co.paralleluniverse.pulsar.examples.selective-gen-server</a></li><li><a href="#co.paralleluniverse.pulsar.examples.tkb">co.paralleluniverse.pulsar.examples.tkb</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.actors-test" name="co.paralleluniverse.pulsar.actors-test"><h1 class="project-name">co.paralleluniverse.pulsar.actors-test</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar.actors-test
   (:use midje.sweet
@@ -3365,7 +3365,27 @@ net.brehaut.ClojureTools = (function (SH) {
         (join ge)) =&gt; nil
       (provided 
         (handler1 anything) =&gt; irrelevant :times 0
-        (handler2 &quot;hello&quot;) =&gt; nil))</pre></td></tr><tr><td class="docs"><h2>supervisor</h2>
+        (handler2 &quot;hello&quot;) =&gt; nil))</pre></td></tr><tr><td class="docs"><h2>gen-fsm</h2>
+</td><td class="codes"></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(unfinished handler1 handler2)</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(fact &quot;test gen-fsm&quot;
+      (let [x (atom 0)]
+        (letfn [(state1 []
+                        (receive
+                          :a (do
+                               (swap! x inc)
+                               state2)))
+                (state2 []
+                        (receive
+                          :b (do
+                               (swap! x inc)
+                               :done)))]
+          (let [gfsm (spawn (gen-fsm state1))]
+            (! gfsm :b)
+            (! gfsm :qqq)  ; ignore
+            (! gfsm :a)
+            (join gfsm)
+            @x))) =&gt; 2)</pre></td></tr><tr><td class="docs"><h2>supervisor</h2>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>This is cumbersome, but we don't normally obtain an actor from a supervisor, but rather
 manually add a known actor to a supervisor, so this ugly function is only useful for tests anyway.</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
@@ -3486,7 +3506,7 @@ manually add a known actor to a supervisor, so this ugly function is only useful
         a (receive)
         b (receive)]
     (call! adder a b)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(fact :selected &quot;Complex example test1&quot;
+</td><td class="codes"><pre class="brush: clojure">(fact :complex &quot;Complex example test1&quot;
       (let [prev       (atom nil)
             started    (atom 0)
             terminated (atom 0)
@@ -3498,22 +3518,22 @@ manually add a known actor to a supervisor, so this ugly function is only useful
         (let [a (sup-child sup &quot;actor1&quot; 200)]
           (! a 3)
           (! a 4)
-          (fact :selected
+          (fact :complex
             (join a) =&gt; 7)
           (reset! prev a))
         (let [a (sup-child sup &quot;actor1&quot; 200)]
-          (fact :selected
+          (fact :complex
             (identical? a @prev) =&gt; false)
           (! a 70)
           (! a 80)
-          (fact :selected
+          (fact :complex
             (join a) =&gt; throws Exception)
           (reset! prev a))
         (let [a (sup-child sup &quot;actor1&quot; 200)]
           (fact (identical? a @prev) =&gt; false)
           (! a 7)
           (! a 8)
-          (fact :selected
+          (fact :complex
             (join a) =&gt; 15))
         (Strand/sleep 2000) ; give the actor time to start the gen-server
         (shutdown! sup)
@@ -3578,8 +3598,14 @@ manually add a known actor to a supervisor, so this ugly function is only useful
          (area circle)
          (simple-fun)]))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(if (= (System/getProperty &quot;co.paralleluniverse.pulsar.instrument.auto&quot;) &quot;all&quot;)
-  (fact &quot;Clojure language features work with auto-instrumentation&quot; :auto-instrumentation
-    (res) =&gt; [1 8 2 56 17 45 -1 52 452.3893421169302 17]))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.core-test" name="co.paralleluniverse.pulsar.core-test"><h1 class="project-name">co.paralleluniverse.pulsar.core-test</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+  (do
+    (fact &quot;reduce-test&quot;
+          (let [action-fn #(reduce (sfn [acc v]
+                                        (conj acc (join (fiber (inc v)))))
+                                   [] (range 20))]
+            (join (fiber (action-fn)))) =&gt; [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20])
+    (fact &quot;Clojure language features work with auto-instrumentation&quot; :auto-instrumentation
+          (res) =&gt; [1 8 2 56 17 45 -1 52 452.3893421169302 17])))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.core-test" name="co.paralleluniverse.pulsar.core-test"><h1 class="project-name">co.paralleluniverse.pulsar.core-test</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar.core-test
   (:use midje.sweet
         co.paralleluniverse.pulsar.core)
