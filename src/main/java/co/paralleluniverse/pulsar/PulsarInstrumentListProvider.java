@@ -72,10 +72,10 @@ public class PulsarInstrumentListProvider implements InstrumentListProvider {
         // 1. Runtime efficiency: instrument as little as possible while still making unnecessary any suspendable-marking
         //    code.
         //    - Due to http://dev.clojure.org/jira/browse/CLJ-1645, protocol heuristics can give false positives on
-        //      Java interfaces. for this reason widely used library code (either in JDK, Clojure or utility libraries)
+        //      Java interfaces. For this reason widely used library code (either in JDK, Clojure or utility libraries)
         //      is explicitly excluded.
         //    - Clojure runtime methods that implement language constructs have to be explicitly instrumented.
-        //    - Some Pulsar runtime methods have to be explicitly instrumented.
+        //    - Some more Pulsar runtime methods have to be explicitly instrumented.
         //
         // 2. Instrumentation efficiency: evaluate rules as fast as possible (globally).
         //    - Rules likely to catch more methods should appear as close as possible to the top.
@@ -169,12 +169,18 @@ public class PulsarInstrumentListProvider implements InstrumentListProvider {
             mClassAndMeth(eqN("clojure/lang/Atom"), eqN("swap"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
             mClassAndMeth(eqN("clojure/core$swap_BANG_"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
 
+            // Reduce
+            mClassAndMeth(eqN("clojure/core$reduce"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
+            mClassAndMeth(startsWithN("clojure/core/protocols$"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
+            mClassAndMeth(eqN("clojure/lang/ArrayChunk"), eqN("reduce"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
+
             // Instrument function calls
             mClassAndMeth(startsWithN("clojure/lang/IFn"), eqN("invoke"), SuspendableType.SUSPENDABLE_SUPER, a(cljSusFnCoreMsg)),
             mClassAndMeth(startsWithN("clojure/lang/IFn"), eqN("invokePrim"), SuspendableType.SUSPENDABLE_SUPER, a(cljSusFnCoreMsg)),
             mClassAndMeth(startsWithN("clojure/lang/MultiFn"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
             mClassAndMeth(startsWithN("clojure/lang/AFunction$1"), eqN("doInvoke"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
             mClassAndMeth(startsWithN("clojure/lang/AFn"), eqN("applyTo"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
+
 
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // NON-SUSPENDABLE RUNTIME LIBRARY (comes before user code rules in order to avoid that Java and otherwise
@@ -203,11 +209,13 @@ public class PulsarInstrumentListProvider implements InstrumentListProvider {
 
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // SUSPENDABLE PARALLEL UNIVERSE RUNTIME LIBRARY AND TESTS (comes before user code rules in order to skip them
+            // SUSPENDABLE PARALLEL UNIVERSE RUNTIME LIBRARY AND TESTS: comes before user code rules in order to skip them
             // altogether with a special last rule, as we want just specific things to be instrumented and to delegate
-            // decision about the remaining ones to the rest of the classifying chain)
+            // decision about the remaining ones to the rest of the classifying chain.
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$join"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$join_STAR_"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
             mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$rcv"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
             mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$rcv_into"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
             mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$snd"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),

@@ -1,5 +1,5 @@
 # *Pulsar*<br/>Lightweight threads, Go-like channels, and Erlang-like actors for Clojure
-[![Build Status](http://img.shields.io/travis/puniverse/pulsar.svg?style=flat)](https://travis-ci.org/puniverse/pulsar) [![Dependency Status](https://www.versioneye.com/user/projects/52b019ccec137505ee00002e/badge.png?style=flat)](https://www.versioneye.com/user/projects/52b019ccec137505ee00002e) [![Version](http://img.shields.io/badge/version-0.7.0-blue.svg?style=flat)](https://github.com/puniverse/pulsar/releases) [![License](http://img.shields.io/badge/license-EPL-blue.svg?style=flat)](https://www.eclipse.org/legal/epl-v10.html) [![License](http://img.shields.io/badge/license-LGPL-blue.svg?style=flat)](https://www.gnu.org/licenses/lgpl.html)
+[![Build Status](http://img.shields.io/travis/puniverse/pulsar.svg?style=flat)](https://travis-ci.org/puniverse/pulsar) [![Dependency Status](https://www.versioneye.com/user/projects/52b019ccec137505ee00002e/badge.png?style=flat)](https://www.versioneye.com/user/projects/52b019ccec137505ee00002e) [![Version](http://img.shields.io/badge/version-0.7.2-blue.svg?style=flat)](https://github.com/puniverse/pulsar/releases) [![License](http://img.shields.io/badge/license-EPL-blue.svg?style=flat)](https://www.eclipse.org/legal/epl-v10.html) [![License](http://img.shields.io/badge/license-LGPL-blue.svg?style=flat)](https://www.gnu.org/licenses/lgpl.html)
 
 Pulsar wraps the [Quasar](https://github.com/puniverse/quasar) library with a Clojure API that's very similar to Erlang.
 
@@ -12,13 +12,13 @@ Java 7 and up and Clojure 1.5 and up are required to run Pulsar.
 Add the following dependency to [Leiningen](http://github.com/technomancy/leiningen/)'s project.clj:
 
 ```clojure
-[co.paralleluniverse/pulsar "0.7.0"]
+[co.paralleluniverse/pulsar "0.7.2"]
 ```
 
 Then, the following must be added to the project.clj file:
 
 ~~~ clojure
-:java-agents [[co.paralleluniverse/quasar-core "0.7.0"]]
+:java-agents [[co.paralleluniverse/quasar-core "0.7.2"]]
 ~~~
 
 or, add the following to the java command line:

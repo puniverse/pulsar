@@ -543,6 +543,29 @@
         (handler1 anything) => irrelevant :times 0
         (handler2 "hello") => nil))
 
+;; ## gen-fsm
+
+(unfinished handler1 handler2)
+
+(fact "test gen-fsm"
+      (let [x (atom 0)]
+        (letfn [(state1 []
+                        (receive
+                          :a (do
+                               (swap! x inc)
+                               state2)))
+                (state2 []
+                        (receive
+                          :b (do
+                               (swap! x inc)
+                               :done)))]
+          (let [gfsm (spawn (gen-fsm state1))]
+            (! gfsm :b)
+            (! gfsm :qqq)  ; ignore
+            (! gfsm :a)
+            (join gfsm)
+            @x))) => 2)
+
 ;; ## supervisor
 
 ;; This is cumbersome, but we don't normally obtain an actor from a supervisor, but rather
@@ -673,7 +696,7 @@
         b (receive)]
     (call! adder a b)))
 
-(fact :selected "Complex example test1"
+(fact :complex "Complex example test1"
       (let [prev       (atom nil)
             started    (atom 0)
             terminated (atom 0)
@@ -685,22 +708,22 @@
         (let [a (sup-child sup "actor1" 200)]
           (! a 3)
           (! a 4)
-          (fact :selected
+          (fact :complex
             (join a) => 7)
           (reset! prev a))
         (let [a (sup-child sup "actor1" 200)]
-          (fact :selected
+          (fact :complex
             (identical? a @prev) => false)
           (! a 70)
           (! a 80)
-          (fact :selected
+          (fact :complex
             (join a) => throws Exception)
           (reset! prev a))
         (let [a (sup-child sup "actor1" 200)]
           (fact (identical? a @prev) => false)
           (! a 7)
           (! a 8)
-          (fact :selected
+          (fact :complex
             (join a) => 15))
         (Strand/sleep 2000) ; give the actor time to start the gen-server
         (shutdown! sup)

@@ -1,5 +1,6 @@
-(def quasar-version "0.7.0")
-(defproject co.paralleluniverse/pulsar "0.7.0"
+(def quasar-version "0.7.2")
+
+(defproject co.paralleluniverse/pulsar "0.7.2"
   :description "A Clojure lightweight thread, asynchronous programming, and actor library"
   :url "http://github.com/puniverse/pulsar"
   :licenses [{:name "Eclipse Public License - v 1.0" :url "http://www.eclipse.org/legal/epl-v10.html"}
@@ -17,7 +18,7 @@
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [co.paralleluniverse/quasar-core   ~quasar-version] ; :classifier "jdk8"
                  [co.paralleluniverse/quasar-actors ~quasar-version]
-                 [org.ow2.asm/asm "5.0.3"]
+                 [org.ow2.asm/asm "5.0.4"]
                  [org.clojure/core.match "0.2.2" :exclusions [org.ow2.asm/*]]
                  [useful "0.8.8"]
                  [gloss "0.2.5" :exclusions [com.yammer.metrics/metrics-core useful]]
@@ -39,7 +40,7 @@
               :jvm-opts [;; Debugging
                          "-ea"
                          ;"-Dco.paralleluniverse.fibers.verifyInstrumentation=true"
-                         ;"-Dco.paralleluniverse.fibers.detectRunawayFibers=false"
+                         "-Dco.paralleluniverse.fibers.detectRunawayFibers=false"
                          ;"-Dco.paralleluniverse.fibers.traceInterrupt=true"
                          ;; Recording
                          ;"-Dco.paralleluniverse.debugMode=true"

@@ -83,5 +83,11 @@
          (simple-fun)]))))
 
 (if (= (System/getProperty "co.paralleluniverse.pulsar.instrument.auto") "all")
-  (fact "Clojure language features work with auto-instrumentation" :auto-instrumentation
-    (res) => [1 8 2 56 17 45 -1 52 452.3893421169302 17]))
+  (do
+    (fact "reduce-test"
+          (let [action-fn #(reduce (sfn [acc v]
+                                        (conj acc (join (fiber (inc v)))))
+                                   [] (range 20))]
+            (join (fiber (action-fn)))) => [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20])
+    (fact "Clojure language features work with auto-instrumentation" :auto-instrumentation
+          (res) => [1 8 2 56 17 45 -1 52 452.3893421169302 17])))

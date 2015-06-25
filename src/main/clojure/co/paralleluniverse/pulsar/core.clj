@@ -427,7 +427,7 @@
        thread)))
 
 (ann join* [(U Joinable Thread) -> (Option Any)])
-(defn- join*
+(defsfn ^:private join*
   ([s]
    (unwrap-exception
      (cond
@@ -447,12 +447,12 @@
 
 (ann join (IFn [(U Joinable Thread) -> (Option Any)]
               [(Sequential (U Joinable Thread)) -> (ISeq Any)]))
-(defn join
+(defsfn join
   "Awaits the termination of the given strand or strands, and returns
   their result, if applicable.
   
   If a single strand is given, its result is returned;
-  if a collection - then a collection of the repsective results.
+  if a collection - then a collection of the respective results.
   
   Note that for threads, the result is always `nil`, as threads don't return a value.
   

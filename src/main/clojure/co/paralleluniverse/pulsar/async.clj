@@ -122,7 +122,7 @@
    (cond
      (number? buf-or-n) (chan (buffer buf-or-n) xform ex-handler)
      (nil? buf-or-n)    (do (when xform (assert buf-or-n "buffer must be supplied when transducer is")) (rx-chan (TransferChannel.) nil nil))
-     :else              (let [buf (first buf-or-n) policy (second buf-or-n)] (rx-chan (QueueObjectChannel. buf policy false) xform ex-handler)))))
+     :else              (let [buf (first buf-or-n) policy (second buf-or-n)] (rx-chan (QueueObjectChannel. buf policy false false) xform ex-handler)))))
 
 (defsfn <!
   "Takes a val from port. Must be called inside a (go ...) block. Will

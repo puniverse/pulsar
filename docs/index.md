@@ -25,6 +25,10 @@ Aside from Pulsar's dependency on Quasar and its dependent libraries, Pulsar mak
 
 ## News
 
+### June 25, 2015
+
+Pulsar [0.7.2](https://github.com/puniverse/pulsar/releases/tag/v0.7.2) has been released.
+
 ### May 29, 2015
 
 Pulsar [0.7.0](https://github.com/puniverse/pulsar/releases/tag/v0.7.0) has been released.
@@ -1279,6 +1283,38 @@ Here's a complete example, taken from the tests:
 In this example, `handler1` is added in the `init` function (note how `@self` refers to the gen-event actor itself, as the init function is called from within the actor), and `handler2` is added later.
 
 When `notify!` is called, both handlers will be called and passed the event object (in this case, the `"hello"` string).
+
+
+#### gen-fsm
+
+gen-event is an actor behavior that helps manage actor state transitions.
+
+You spawn a gen-event like this:
+
+~~~ clojure
+(spawn (gen-fsm initial-state))
+~~~
+
+`initial-state` serves as the actor's first _state_. A state is a function that executes as part of the actor body, and returns the next actor state. If a state returns `:done`, the actor terminates.
+
+Here is a complete example:
+
+You can then add event handlers:
+
+~~~~ clojure
+(letfn [(state1 []
+                (receive
+                  :a state2))
+        (state2 []
+                (receive
+                  :b :done))]
+  (let [gfsm (spawn (gen-fsm state1))]
+    (! gfsm :b)    ; deferred until state2
+    (! gfsm :qqq)  ; ignored
+    (! gfsm :a)    ; received by state1, which transitions to state2, which then processes the :b message
+    (join gfsm)))
+~~~~
+
 
 ### Supervisors
 

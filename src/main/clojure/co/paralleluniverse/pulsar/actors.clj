@@ -30,6 +30,7 @@
            [co.paralleluniverse.actors.behaviors Behavior BehaviorActor Initializer
                                                  ServerActor ServerHandler
                                                  EventSource EventSourceActor EventHandler
+                                                 FiniteStateMachineActor
                                                  Supervisor Supervisor$ChildSpec Supervisor$ChildMode SupervisorActor SupervisorActor$RestartStrategy]
            ; for types:
            [clojure.lang Keyword IObj IMeta IDeref ISeq IPersistentCollection IPersistentVector IPersistentMap]
@@ -732,6 +733,26 @@
 (defn remove-handler!
   [^EventSource ge handler]
   (.removeHandler ge (->PulsarEventHandler (suspendable! handler))))
+
+;; ## gen-fsm
+
+(defn gen-fsm
+  "Creates (but doesn't start) a new gen-fsm"
+  {:arglists '([:name? :mailbox-size? :overflow-policy? initial-state])}
+  [& args]
+  (let [[{:keys [^String name ^Integer mailbox-size overflow-policy], :or {mailbox-size -1}} body] (kps-args args)
+        initial-state (first body)]
+    (letfn [(xform [f]
+                   (->suspendable-callable
+                     (sfn [] (let [y ((suspendable! f))]
+                               (if (= y :done)
+                                 FiniteStateMachineActor/TERMINATE
+                                 (xform y))))))]
+      (FiniteStateMachineActor. name
+                                nil
+                                nil (->MailboxConfig mailbox-size overflow-policy)
+                                (xform initial-state)))))
+
 
 ;; ## supervisor
 

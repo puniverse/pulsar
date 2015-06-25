@@ -23,8 +23,14 @@ import co.paralleluniverse.fibers.instrument.MethodDatabase;
 import co.paralleluniverse.fibers.instrument.MethodDatabase.ClassEntry;
 import co.paralleluniverse.fibers.instrument.Retransform;
 import co.paralleluniverse.strands.SuspendableCallable;
+import co.paralleluniverse.common.reflection.ClassLoaderUtil;
+import static co.paralleluniverse.common.reflection.ClassLoaderUtil.isClassFile;
+import static co.paralleluniverse.common.reflection.ClassLoaderUtil.resourceToClass;
 import java.lang.instrument.UnmodifiableClassException;
 import java.lang.reflect.Method;
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
@@ -94,6 +100,7 @@ public class ClojureHelper {
     }
 
     private static Object retransform1(Object thing, Collection<Class> protocols) throws UnmodifiableClassException {
+        // System.out.println("XXXX RETRANSFORM " + thing + " :: " + protocols);
         final boolean isClass = thing instanceof Class;
         final Class clazz = isClass ? (Class) thing : thing.getClass();
 
@@ -130,11 +137,32 @@ public class ClojureHelper {
 
         try {
             // Clojure might break up a single function into several classes. We must instrument them all.
+
+            // Force loading of inner classes (required for AOT)
+            if (clazz.getClassLoader() instanceof URLClassLoader) {
+                try {
+                    ClassLoaderUtil.accept((URLClassLoader) clazz.getClassLoader(), new ClassLoaderUtil.Visitor() {
+                        public void visit(String resource, URL url, ClassLoader cl) {
+                            if (isClassFile(resource)) {
+                                final String clsn = resourceToClass(resource);
+                                if (clsn.startsWith(clazz.getName() + "$")) {
+                                    try {
+                                        clazz.getClassLoader().loadClass(clsn);
+                                    } catch (ClassNotFoundException e) {
+                                    }
+                                }
+                            }
+                        }
+                    });
+                } catch(IOException e) {
+                    e.printStackTrace(System.err); // it's just a best effort
+                }
+            }
             for (Map.Entry<String, ClassEntry> entry : Retransform.getMethodDB().getInnerClassesEntries(Type.getInternalName(clazz)).entrySet()) {
                 final String className = entry.getKey();
                 final ClassEntry ce = entry.getValue();
                 final Class cls = Class.forName(className.replaceAll("/", "."), false, clazz.getClassLoader());
-                //System.out.println("---- " + cls + " " + IFn.class.isAssignableFrom(cls));
+                // System.out.println("---- " + clazz + ": " + cls + " " + IFn.class.isAssignableFrom(cls));
                 ce.setRequiresInstrumentation(true);
                 Method[] methods = cls.getMethods();
 
