@@ -1,4 +1,4 @@
-# *Pulsar*<br/>ibers, Channels and Actors for Clojure
+# *Pulsar*<br/>Fibers, Channels and Actors for Clojure
 [![Build Status](http://img.shields.io/travis/puniverse/pulsar.svg?style=flat)](https://travis-ci.org/puniverse/pulsar) [![Dependency Status](https://www.versioneye.com/user/projects/52b019ccec137505ee00002e/badge.png?style=flat)](https://www.versioneye.com/user/projects/52b019ccec137505ee00002e) [![Version](http://img.shields.io/badge/version-0.7.2-blue.svg?style=flat)](https://github.com/puniverse/pulsar/releases) [![License](http://img.shields.io/badge/license-EPL-blue.svg?style=flat)](https://www.eclipse.org/legal/epl-v10.html) [![License](http://img.shields.io/badge/license-LGPL-blue.svg?style=flat)](https://www.gnu.org/licenses/lgpl.html)
 
 Pulsar wraps the [Quasar](https://github.com/puniverse/quasar) library with a Clojure API that's very similar to Erlang.
