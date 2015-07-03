@@ -15,7 +15,7 @@
   :repositories {"snapshots" "https://oss.sonatype.org/content/repositories/snapshots"
                  "releases" "https://oss.sonatype.org/content/repositories/releases"}
   :test-selectors {:selected :selected}
-  :dependencies [[org.clojure/clojure "1.6.0"]
+  :dependencies [[org.clojure/clojure "1.7.0"]
                  [co.paralleluniverse/quasar-core   ~quasar-version] ; :classifier "jdk8"
                  [co.paralleluniverse/quasar-actors ~quasar-version]
                  [org.ow2.asm/asm "5.0.4"]

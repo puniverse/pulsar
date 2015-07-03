@@ -170,9 +170,13 @@ public class PulsarInstrumentListProvider implements InstrumentListProvider {
             mClassAndMeth(eqN("clojure/core$swap_BANG_"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
 
             // Reduce
-            mClassAndMeth(eqN("clojure/core$reduce"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
-            mClassAndMeth(startsWithN("clojure/core/protocols$"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
+            mClassAndMeth(eqN("clojure/lang/IReduceInit"), eqN("reduce"), SuspendableType.SUSPENDABLE_SUPER, a(cljSusFnCoreMsg)),
+            mClassAndMeth(eqN("clojure/lang/LongRange"), eqN("reduce"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
             mClassAndMeth(eqN("clojure/lang/ArrayChunk"), eqN("reduce"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
+            mClassAndMeth(eqN("clojure/core$reduce"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
+
+            // Protocols
+            mClassAndMeth(startsWithN("clojure/core/protocols$"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(cljSusFnCoreMsg)),
 
             // Instrument function calls
             mClassAndMeth(startsWithN("clojure/lang/IFn"), eqN("invoke"), SuspendableType.SUSPENDABLE_SUPER, a(cljSusFnCoreMsg)),
