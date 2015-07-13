@@ -2,9 +2,8 @@ package co.paralleluniverse.continuation;
 
 import clojure.lang.*;
 import clojure.lang.Compiler;
-import co.paralleluniverse.fibers.Callable;
-import co.paralleluniverse.fibers.Suspend;
-import co.paralleluniverse.fibers.ValuedContinuation;
+import co.paralleluniverse.fibers.*;
+import com.google.common.base.Function;
 
 
 /**
@@ -24,16 +23,37 @@ public class PulsarContinuation extends ValuedContinuation<ContinuationScope, Ob
         ((ContinuationScope)s).verifyScope(scope);
     }
 
-    public static void pause(Keyword scope) throws ContinuationScope {
-        ValuedContinuation.pause(new ContinuationScope(scope));
+    public static Object pause(Keyword scope) throws ContinuationScope {
+        return ValuedContinuation.pause(new ContinuationScope(scope));
     }
 
-    public static void pause(Keyword scope, Object arg) throws ContinuationScope {
+    public static Object pause(Keyword scope, Object arg) throws ContinuationScope {
         if (arg instanceof IFn)
-            ValuedContinuation.pause(new ContinuationScope(scope), fnToCallable((IFn) arg));
+            return ValuedContinuation.pause(new ContinuationScope(scope), PulsarContinuation.<Continuation<ContinuationScope, Object>,Object>fnToFunction((IFn) arg));
         else
-            ValuedContinuation.pause(new ContinuationScope(scope), arg);
+            return ValuedContinuation.pause(new ContinuationScope(scope), arg);
     }
+
+    public static Object pause(Keyword scope, Object val, IFn ccc) throws ContinuationScope {
+        return ValuedContinuation.pause(new ContinuationScope(scope), val, fnToCalledCC(ccc));
+    }
+
+    public static Continuation<ContinuationScope, Object> suspend(Keyword scope, IFn ccc) throws ContinuationScope {
+        return Continuation.suspend(new ContinuationScope(scope), fnToCalledCC(ccc));
+    }
+
+    public Object invoke() {
+        return retval((ValuedContinuation<ContinuationScope, Object, Object, Object>) go());
+    }
+
+    public Object invoke(Object arg) {
+        return retval(go(arg));
+    }
+
+    private static Object retval(ValuedContinuation<ContinuationScope, Object, Object, Object> c) {
+        return c.isDone() ? c.getResult() : c.getPauseValue();
+    }
+
 
     public static Callable<Object> fnToCallable(final IFn f) {
         return new Callable<Object>() {
@@ -44,17 +64,26 @@ public class PulsarContinuation extends ValuedContinuation<ContinuationScope, Ob
         };
     }
 
-    private Object retval() {
-            return isDone() ? getResult() : getPauseValue();
-    }
-    public Object invoke() {
-        run();
-        return retval();
+    public static <F, T> Function<F, T> fnToFunction(final IFn f) {
+        return new Function<F, T>() {
+            @Override
+            public T apply(F x) throws ContinuationScope {
+                return (T) f.invoke(x);
+            }
+        };
     }
 
-    public Object invoke(Object arg) {
-        run(arg);
-        return retval();
+    public static CalledCC<ContinuationScope> fnToCalledCC(final IFn f) {
+        return new CalledCC<ContinuationScope>() {
+            @Override
+            public <T> Continuation<ContinuationScope, T> suspended(Continuation<ContinuationScope, T> continuation) {
+                return (Continuation<ContinuationScope, T>) f.invoke(continuation);
+            }
+        };
+    }
+
+    public void run() {
+        invoke();
     }
 
     public Object call() {
