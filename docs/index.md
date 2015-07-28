@@ -171,7 +171,7 @@ To create a fiber that will start executing `body`, use
 (fiber <body>)
 ~~~
 
-To create a fiber of a function `f` that takes arguments `arg1` and `arg2`, run
+Alternatively, to create a fiber of a function `f` that takes arguments `arg1` and `arg2`, run
 
 ~~~ clojure
 (spawn-fiber f arg1 arg2)
@@ -179,7 +179,7 @@ To create a fiber of a function `f` that takes arguments `arg1` and `arg2`, run
 
 `spawn-fiber` automatically marks `f` as suspendable, so there's no need to do so explicitly.
 
-`spawn-fiber` takes optional keyword arguments:
+`fiber` and `spawn-fiber` takes optional keyword arguments:
 
 * `:name` - The fiber's name.
 * `:fj-pool` - The `ForkJoinPool` in which the fiber will run.
