@@ -121,6 +121,7 @@
 <li><a href="#channel-transformation-aka-reactive-extensions">Channel Transformation (AKA Reactive Extensions)</a></li>
 </ul>
 </li>
+<li><a href="#dataflow-reactive-programming" class="cat-link">Dataflow (Reactive) Programming</a></li>
 <li>
 <a href="#pulsars-actor-system" class="cat-link">Pulsar’s Actor System</a><ul>
 <li><a href="#sending-and-receiving-messages-1">Sending and Receiving Messages</a></li>
@@ -288,13 +289,13 @@ The function <code>suspendable!</code> marks a given function as a suspendable f
 
 <div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">fiber</span> <span class="nv">&lt;body&gt;</span><span class="p">)</span>
 </span></code></pre></div>
-<p>To create a fiber of a function <code>f</code> that takes arguments <code>arg1</code> and <code>arg2</code>,&nbsp;run</p>
+<p>Alternatively, to create a fiber of a function <code>f</code> that takes arguments <code>arg1</code> and <code>arg2</code>,&nbsp;run</p>
 
 <div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">spawn-fiber</span> <span class="nv">f</span> <span class="nv">arg1</span> <span class="nv">arg2</span><span class="p">)</span>
 </span></code></pre></div>
 <p><code>spawn-fiber</code> automatically marks <code>f</code> as suspendable, so there’s no need to do so&nbsp;explicitly.</p>
 
-<p><code>spawn-fiber</code> takes optional keyword&nbsp;arguments:</p>
+<p><code>fiber</code> and <code>spawn-fiber</code> takes optional keyword&nbsp;arguments:</p>
 
 <ul>
   <li><code>:name</code> - The fiber’s&nbsp;name.</li>
@@ -599,6 +600,35 @@ It takes an even number of expressions, ordered as (ops1, action1, ops2, action2
 </ul>
 
 <p>Examples of using all channel transformations can be found in the <a href="https://github.com/puniverse/pulsar/blob/master/src/test/clojure/co/paralleluniverse/pulsar/rx_test.clj">rx test suite</a>.</p>
+
+<h2 id="dataflow-reactive-programming">Dataflow (Reactive)&nbsp;Programming</h2>
+
+<p>Dataflow, or reactive programming, is a computation described by composing variables whose value may be set (and possibly changed) at any given time, without concern for when these values are set. Quasar provides two dataflow primitives: vals, created with <code>df-val</code>, and vars, created with <code>df-var</code>, both in the <code>co.paralleluniverse.pulsar.dataflow</code>&nbsp;namespace.</p>
+
+<p>A val is a dataflow constant. It can have its value set once, and read multiple times. Attempting to read the value of a <code>Val</code> before it’s been set, will block until a value is set. Vals are like Pulsar promises, with the only difference being the behavior when attempting to set the val’s value more than once. A promise will return <code>nil</code>, while a val will throw an&nbsp;<code>IllegalStateException</code>.</p>
+
+<p>A var is a dataflow variable. It can have it’s value set multiple times, and every new value can trigger the re-computation of other vars. You can set a <code>var</code> to retain historical values (consult the reference for more&nbsp;information).</p>
+
+<p>Here is a simple example of using vals and&nbsp;vars:</p>
+
+<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">a</span> <span class="p">(</span><span class="nf">df-val</span><span class="p">)</span>
+</span><span id="line-2">      <span class="nv">x</span> <span class="p">(</span><span class="nf">df-var</span><span class="p">)</span>
+</span><span id="line-3">      <span class="nv">y</span> <span class="p">(</span><span class="nf">df-var</span> <span class="o">#</span><span class="p">(</span><span class="nb">* </span><span class="o">@</span><span class="nv">a</span> <span class="o">@</span><span class="nv">x</span><span class="p">))</span> <span class="c1">; this var has a formula</span>
+</span><span id="line-4">      <span class="nv">z</span> <span class="p">(</span><span class="nf">df-var</span> <span class="o">#</span><span class="p">(</span><span class="nb">+ </span><span class="o">@</span><span class="nv">a</span> <span class="o">@</span><span class="nv">x</span><span class="p">))</span>
+</span><span id="line-5">      <span class="nv">r</span> <span class="p">(</span><span class="nf">df-var</span> <span class="o">#</span><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">v</span> <span class="p">(</span><span class="nb">+ </span><span class="o">@</span><span class="nv">a</span> <span class="o">@</span><span class="nv">y</span> <span class="o">@</span><span class="nv">z</span><span class="p">)]</span> <span class="c1">; a formula with side-effects</span>
+</span><span id="line-6">                      <span class="p">(</span><span class="nb">println </span><span class="s">&quot;res: &quot;</span> <span class="nv">v</span><span class="p">)</span>
+</span><span id="line-7">                      <span class="nv">v</span><span class="p">))</span>
+</span><span id="line-8">      <span class="nv">f</span> <span class="p">(</span><span class="nf">fiber</span>
+</span><span id="line-9">          <span class="p">(</span><span class="k">loop </span><span class="p">[</span><span class="nv">i</span> <span class="mi">0</span><span class="p">]</span>
+</span><span id="line-10">            <span class="p">(</span><span class="nb">when </span><span class="p">(</span><span class="nb">&lt; </span><span class="nv">i</span> <span class="mi">5</span><span class="p">)</span>
+</span><span id="line-11">              <span class="p">(</span><span class="nf">sleep</span> <span class="mi">50</span><span class="p">)</span>
+</span><span id="line-12">              <span class="p">(</span><span class="nf">x</span> <span class="nv">i</span><span class="p">)</span> <span class="c1">; sets the value of x</span>
+</span><span id="line-13">              <span class="p">(</span><span class="nf">recur</span> <span class="p">(</span><span class="nb">inc </span><span class="nv">i</span><span class="p">)))))]</span>
+</span><span id="line-14">    <span class="p">(</span><span class="nf">sleep</span> <span class="mi">10</span><span class="p">)</span>
+</span><span id="line-15">    <span class="p">(</span><span class="nf">a</span> <span class="mi">3</span><span class="p">)</span> <span class="c1">; triggers everything by setting a</span>
+</span><span id="line-16">    <span class="p">(</span><span class="nb">join </span><span class="nv">f</span><span class="p">))</span>
+</span></code></pre></div>
+<p>In this examples, vars <code>y</code> and <code>z</code>, are dependent on val <code>a</code> and var <code>x</code>, and will have their values recomputed – after <code>a</code> is set – whenever <code>x</code>&nbsp;changes.</p>
 
 <h2 id="pulsars-actor-system">Pulsar’s Actor&nbsp;System</h2>
 
