@@ -149,8 +149,8 @@
         (join fiber)) => [0 1 2 3 4])
 
 (facts "promises-promises"
-       (let [v (promise)]
-         (fact "When try to set promise twice, then return nil and the first value wins"
+       (fact "When try to set promise twice, then return nil and the first value wins"
+             (let [v (promise)]
                [(deliver v "hi!")
                 (deliver v "bye!")
                 (deref v)] => [v nil "hi!"]))

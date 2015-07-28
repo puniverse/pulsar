@@ -45,7 +45,7 @@
                          ;; Recording
                          ;"-Dco.paralleluniverse.debugMode=true"
                          ;"-Dco.paralleluniverse.globalFlightRecorder=true"
-                         ;"-Dco.paralleluniverse.monitoring.flightRecorderLevel=2"
+                         ;"-Dco.paralleluniverse.monitoring.flightRecorderLevel=1"
                          ;"-Dco.paralleluniverse.flightRecorderDumpFile=pulsar.log"
                          ;"-Xdebug"
                          ;"-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005"
