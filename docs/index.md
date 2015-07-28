@@ -588,6 +588,37 @@ The `co.paralleluniverse.pulsar.rx` namespace contains functions for transformin
 
 Examples of using all channel transformations can be found in the [rx test suite](https://github.com/puniverse/pulsar/blob/master/src/test/clojure/co/paralleluniverse/pulsar/rx_test.clj).
 
+## Dataflow (Reactive) Programming
+
+Dataflow, or reactive programming, is a computation described by composing variables whose value may be set (and possibly changed) at any given time, without concern for when these values are set. Quasar provides two dataflow primitives: vals, created with `df-val`, and vars, created with `df-var`, both in the `co.paralleluniverse.pulsar.dataflow` namespace.
+
+A val is a dataflow constant. It can have its value set once, and read multiple times. Attempting to read the value of a `Val` before it's been set, will block until a value is set. Vals are like Pulsar promises, with the only difference being the behavior when attempting to set the val's value more than once. A promise will return `nil`, while a val will throw an `IllegalStateException`.
+
+A var is a dataflow variable. It can have it's value set multiple times, and every new value can trigger the re-computation of other vars. You can set a `var` to retain historical values (consult the reference for more information).
+
+Here is a simple example of using vals and vars:
+
+~~~ clojure
+(let [a (df-val)
+      x (df-var)
+      y (df-var #(* @a @x)) ; this var has a formula
+      z (df-var #(+ @a @x))
+      r (df-var #(let [v (+ @a @y @z)] ; a formula with side-effects
+                      (println "res: " v)
+                      v))
+      f (fiber
+          (loop [i 0]
+            (when (< i 5)
+              (sleep 50)
+              (x i) ; sets the value of x
+              (recur (inc i)))))]
+    (sleep 10)
+    (a 3) ; triggers everything by setting a
+    (join f))
+~~~
+
+In this examples, vars `y` and `z`, are dependent on val `a` and var `x`, and will have their values recomputed -- after `a` is set -- whenever `x` changes.
+
 ## Pulsar's Actor System
 
 To use the terms we've learned so far, an *actor* is a strand that owns a single channel with some added lifecycle management and error handling. But this reductionist view of actors does them little justice. Actors are fundamental building blocks that are combined to build a fault-tolerant application. If you are familiar with Erlang, Pulsar actors are just like Erlang processes.
