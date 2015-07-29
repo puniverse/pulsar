@@ -171,7 +171,7 @@ To create a fiber that will start executing `body`, use
 (fiber <body>)
 ~~~
 
-To create a fiber of a function `f` that takes arguments `arg1` and `arg2`, run
+Alternatively, to create a fiber of a function `f` that takes arguments `arg1` and `arg2`, run
 
 ~~~ clojure
 (spawn-fiber f arg1 arg2)
@@ -179,7 +179,7 @@ To create a fiber of a function `f` that takes arguments `arg1` and `arg2`, run
 
 `spawn-fiber` automatically marks `f` as suspendable, so there's no need to do so explicitly.
 
-`spawn-fiber` takes optional keyword arguments:
+`fiber` and `spawn-fiber` takes optional keyword arguments:
 
 * `:name` - The fiber's name.
 * `:fj-pool` - The `ForkJoinPool` in which the fiber will run.
@@ -587,6 +587,37 @@ The `co.paralleluniverse.pulsar.rx` namespace contains functions for transformin
 * `group` - returns a channel that funnels messages from a set of given channels into one group channel.
 
 Examples of using all channel transformations can be found in the [rx test suite](https://github.com/puniverse/pulsar/blob/master/src/test/clojure/co/paralleluniverse/pulsar/rx_test.clj).
+
+## Dataflow (Reactive) Programming
+
+Dataflow, or reactive programming, is a computation described by composing variables whose value may be set (and possibly changed) at any given time, without concern for when these values are set. Quasar provides two dataflow primitives: vals, created with `df-val`, and vars, created with `df-var`, both in the `co.paralleluniverse.pulsar.dataflow` namespace.
+
+A val is a dataflow constant. It can have its value set once, and read multiple times. Attempting to read the value of a `Val` before it's been set, will block until a value is set. Vals are like Pulsar promises, with the only difference being the behavior when attempting to set the val's value more than once. A promise will return `nil`, while a val will throw an `IllegalStateException`.
+
+A var is a dataflow variable. It can have it's value set multiple times, and every new value can trigger the re-computation of other vars. You can set a `var` to retain historical values (consult the reference for more information).
+
+Here is a simple example of using vals and vars:
+
+~~~ clojure
+(let [a (df-val)
+      x (df-var)
+      y (df-var #(* @a @x)) ; this var has a formula
+      z (df-var #(+ @a @x))
+      r (df-var #(let [v (+ @a @y @z)] ; a formula with side-effects
+                      (println "res: " v)
+                      v))
+      f (fiber
+          (loop [i 0]
+            (when (< i 5)
+              (sleep 50)
+              (x i) ; sets the value of x
+              (recur (inc i)))))]
+    (sleep 10)
+    (a 3) ; triggers everything by setting a
+    (join f))
+~~~
+
+In this examples, vars `y` and `z`, are dependent on val `a` and var `x`, and will have their values recomputed -- after `a` is set -- whenever `x` changes.
 
 ## Pulsar's Actor System
 

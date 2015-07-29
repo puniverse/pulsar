@@ -54,7 +54,7 @@
   `(let [x# ~@body
          y#    (if (seq? x#) (take 20 x#) x#)
          more# (if (seq? x#) (nthnext x# 20) false)]
-     (println "dbg:" '~@body "=" y# (if more# "..." ""))
+     (println "dbg:" '~@body "=" (str y#) (if more# "..." ""))
      x#))
 
 ;; from core.clj:
