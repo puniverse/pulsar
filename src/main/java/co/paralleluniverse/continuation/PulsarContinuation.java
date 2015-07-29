@@ -43,15 +43,17 @@ public class PulsarContinuation extends ValuedContinuation<ContinuationScope, Ob
     }
 
     public Object invoke() {
-        return retval((ValuedContinuation<ContinuationScope, Object, Object, Object>) go());
+        run();
+        return retval();
     }
 
     public Object invoke(Object arg) {
-        return retval(go(arg));
+        run(arg);
+        return retval();
     }
 
-    private static Object retval(ValuedContinuation<ContinuationScope, Object, Object, Object> c) {
-        return c.isDone() ? c.getResult() : c.getPauseValue();
+    private Object retval() {
+        return self().isDone() ? self().getResult() : self().getPauseValue();
     }
 
 
@@ -82,9 +84,9 @@ public class PulsarContinuation extends ValuedContinuation<ContinuationScope, Ob
         };
     }
 
-    public void run() {
-        invoke();
-    }
+//    public void run() {
+//        invoke();
+//    }
 
     public Object call() {
         return invoke();
