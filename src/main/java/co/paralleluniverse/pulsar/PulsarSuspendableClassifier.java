@@ -51,7 +51,7 @@ public class PulsarSuspendableClassifier implements SuspendableClassifier {
 
             PulsarInstrumentListProvider.log(db, "auto", "evaluation of matchlist didn't say anything",
                                              sourceName, isInterface, className, superClassName, interfaces, methodName, methodSignature);
-        } else if (PulsarInstrumentListProvider.CLOJURE_FUNCTION_BASE_INTERFACES.contains(className) && PulsarInstrumentListProvider.CLOJURE_FUNCTION_BASE_INVOCATION_METHODS.contains(methodName)) {
+        } else if ((className.equals("clojure/lang/IFn") || className.startsWith("clojure/lang/IFn$")) && PulsarInstrumentListProvider.CLOJURE_FUNCTION_BASE_INVOCATION_METHODS.contains(methodName)) {
             return SuspendableType.SUSPENDABLE_SUPER;
         }
 

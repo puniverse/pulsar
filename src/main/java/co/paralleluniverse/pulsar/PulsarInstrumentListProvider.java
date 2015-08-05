@@ -28,7 +28,6 @@ import static co.paralleluniverse.fibers.instrument.MethodDatabase.*;
  * @author circlespainter
  */
 public class PulsarInstrumentListProvider implements InstrumentListProvider {
-    public static final List<String> CLOJURE_FUNCTION_BASE_INTERFACES = Arrays.asList("clojure/lang/IFn", "clojure/lang/IFn$");
     public static final List<String> CLOJURE_FUNCTION_BASE_INVOCATION_METHODS = Arrays.asList("invoke", "invokePrim");
 
     private static final String CLOJURE_PROXY_ANONYMOUS_CLASS_NAME_MARKER = "proxy$";
