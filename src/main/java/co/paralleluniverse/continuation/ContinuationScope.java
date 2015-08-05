@@ -32,9 +32,8 @@ public class ContinuationScope extends Suspend {
         return scope;
     }
 
-    public void verifyScope(Keyword pauseScope) {
-        if (!scope.equals(pauseScope))
-            throw this;
+    public boolean isScope(Keyword pauseScope) {
+        return scope.equals(pauseScope);
     }
 
     @Override

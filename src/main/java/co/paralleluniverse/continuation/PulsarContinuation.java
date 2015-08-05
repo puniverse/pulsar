@@ -14,13 +14,23 @@ public class PulsarContinuation extends ValuedContinuation<ContinuationScope, Ob
 
     public PulsarContinuation(Keyword scope, boolean detached, int stackSize, final IFn target) {
         super(ContinuationScope.class, detached, stackSize, fnToCallable(target));
+        if (scope == null)
+            throw new NullPointerException();
         this.scope = scope;
     }
 
+    protected PulsarContinuation self() {
+        return (PulsarContinuation)super.self();
+    }
+
     @Override
-    protected void verifyScope(Suspend s) {
-        super.verifyScope(s);
-        ((ContinuationScope)s).verifyScope(scope);
+    protected String getScopeName() {
+        return scope != null ? scope.getName() : null;
+    }
+
+    @Override
+    protected boolean isScope(Throwable s) {
+        return super.isScope(s) && ((ContinuationScope)s).isScope(scope);
     }
 
     public static Object pause(Keyword scope) throws ContinuationScope {
@@ -28,18 +38,15 @@ public class PulsarContinuation extends ValuedContinuation<ContinuationScope, Ob
     }
 
     public static Object pause(Keyword scope, Object arg) throws ContinuationScope {
-        if (arg instanceof IFn)
-            return ValuedContinuation.pause(new ContinuationScope(scope), PulsarContinuation.<Continuation<ContinuationScope, Object>,Object>fnToFunction((IFn) arg));
-        else
-            return ValuedContinuation.pause(new ContinuationScope(scope), arg);
+        return ValuedContinuation.pause(new ContinuationScope(scope), arg);
     }
 
-    public static Object pause(Keyword scope, Object val, IFn ccc) throws ContinuationScope {
-        return ValuedContinuation.pause(new ContinuationScope(scope), val, fnToCalledCC(ccc));
-    }
+//    public static Object pause(Keyword scope, Object val, IFn ccc) throws ContinuationScope {
+//        return ValuedContinuation.pause(new ContinuationScope(scope), val, fnToCalledCC(ccc));
+//    }
 
-    public static Continuation<ContinuationScope, Object> suspend(Keyword scope, IFn ccc) throws ContinuationScope {
-        return Continuation.suspend(new ContinuationScope(scope), fnToCalledCC(ccc));
+    public static Object suspend(Keyword scope, IFn ccc) throws ContinuationScope {
+        return ValuedContinuation.pause(new ContinuationScope(scope), fnToCalledCC(ccc));
     }
 
     public Object invoke() {
@@ -66,20 +73,11 @@ public class PulsarContinuation extends ValuedContinuation<ContinuationScope, Ob
         };
     }
 
-    public static <F, T> Function<F, T> fnToFunction(final IFn f) {
-        return new Function<F, T>() {
-            @Override
-            public T apply(F x) throws ContinuationScope {
-                return (T) f.invoke(x);
-            }
-        };
-    }
-
     public static CalledCC<ContinuationScope> fnToCalledCC(final IFn f) {
         return new CalledCC<ContinuationScope>() {
             @Override
-            public <T> Continuation<ContinuationScope, T> suspended(Continuation<ContinuationScope, T> continuation) {
-                return (Continuation<ContinuationScope, T>) f.invoke(continuation);
+            public <T> void suspended(Continuation<ContinuationScope, T> continuation) {
+                f.invoke(continuation);
             }
         };
     }

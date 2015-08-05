@@ -37,6 +37,7 @@ import clojure.lang.PersistentList;
 import clojure.lang.RT;
 import clojure.lang.Sequential;
 import clojure.lang.Util;
+import co.paralleluniverse.fibers.Suspendable;
 
 public final class SuspendableLazySeq extends Obj implements ISeq, Sequential, IPending, IHashEq {
     private volatile IFn fn;
@@ -62,7 +63,7 @@ public final class SuspendableLazySeq extends Obj implements ISeq, Sequential, I
         if (fn != null) {
             try {
                 sv = fn.invoke();
-                fn = null;
+                // fn = null; -- b/c of cloned continuations. the same lazy-seq object points to multiple clones via the fn ref
             } catch (RuntimeException e) {
                 throw e;
             } catch (Exception e) {
