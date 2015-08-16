@@ -3,7 +3,6 @@ package co.paralleluniverse.continuation;
 import clojure.lang.*;
 import clojure.lang.Compiler;
 import co.paralleluniverse.fibers.*;
-import com.google.common.base.Function;
 
 
 /**
@@ -73,11 +72,11 @@ public class PulsarContinuation extends ValuedContinuation<ContinuationScope, Ob
         };
     }
 
-    public static CalledCC<ContinuationScope> fnToCalledCC(final IFn f) {
-        return new CalledCC<ContinuationScope>() {
+    public static CalledCCReturn<ContinuationScope, Object> fnToCalledCC(final IFn f) {
+        return new CalledCCReturn<ContinuationScope, Object>() {
             @Override
-            public <T> void suspended(Continuation<ContinuationScope, T> continuation) {
-                f.invoke(continuation);
+            public <T, In> Object suspended(ValuedContinuation<ContinuationScope, T, Object, In> continuation) {
+                return f.invoke(continuation);
             }
         };
     }
