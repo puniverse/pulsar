@@ -41,8 +41,6 @@
 (defmacro pause
   ([scope]
    `(co.paralleluniverse.continuation.PulsarContinuation/pause ^Keyword ~(keyword (name scope))))
-  ;([scope x ccc]
-  ; `(co.paralleluniverse.continuation.PulsarContinuation/pause ^Keyword ~(keyword (name scope)) ~x ^IFn ~ccc))
   ([scope x]
    `(co.paralleluniverse.continuation.PulsarContinuation/pause ^Keyword ~(keyword (name scope)) ~x)))
 
