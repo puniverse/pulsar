@@ -36,7 +36,7 @@
   :profiles {;; ----------- dev --------------------------------------
              :dev
              {:plugins [[lein-midje "3.1.3"]]
-              :dependencies [[midje "1.6.3" :exclusions [org.clojure/tools.namespace]]]
+              :dependencies [[midje "1.7.0" :exclusions [org.clojure/tools.namespace]]]
               :jvm-opts [;; Debugging
                          "-ea"
                          ;"-Dco.paralleluniverse.fibers.verifyInstrumentation=true"
@@ -79,9 +79,9 @@
              ;; ----------- doc --------------------------------------
              :doc
              {:plugins [[lein-midje "3.1.3"]
-                        [codox "0.8.12"]
-                        [lein-marginalia "0.8.0"]]
-              :dependencies [[midje "1.6.3"]]
+                        [codox "0.8.13"]
+                        [lein-marginalia "0.9.0"]]
+              :dependencies [[midje "1.7.0"]]
               :exclusions [org.clojure/tools.namespace]
               :injections [(require 'clojure.test)
                            (alter-var-root #'clojure.test/*load-tests* (constantly false))]
