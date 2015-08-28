@@ -87,6 +87,7 @@
 <li><ul><li><a href="#dependencies">Dependencies</a></li></ul></li>
 <li>
 <a href="#news" class="cat-link">News</a><ul>
+<li><a href="#august-28-2015">August 28, 2015</a></li>
 <li><a href="#june-25-2015">June 25, 2015</a></li>
 <li><a href="#may-29-2015">May 29, 2015</a></li>
 <li><a href="#december-23-2014">December 23, 2014</a></li>
@@ -172,6 +173,10 @@ It is a Clojure <span class="caps">API</span> for the <a href="https://github.co
 
 <h2 id="news">News</h2>
 
+<h3 id="august-28-2015">August 28,&nbsp;2015</h3>
+
+<p>Pulsar <a href="https://github.com/puniverse/quasar/releases/tag/v0.7.3"><span class="caps">0.7.3</span></a> has been&nbsp;released.</p>
+
 <h3 id="june-25-2015">June 25,&nbsp;2015</h3>
 
 <p>Pulsar <a href="https://github.com/puniverse/pulsar/releases/tag/v0.7.2"><span class="caps">0.7.2</span></a> has been&nbsp;released.</p>
@@ -222,11 +227,11 @@ It is a Clojure <span class="caps">API</span> for the <a href="https://github.co
 
 <p>Add the following dependency to <a href="http://github.com/technomancy/leiningen/">Leiningen</a>’s&nbsp;project.clj:</p>
 
-<div class="highlight"><pre><code><span id="line-1"><span class="p">[</span><span class="nv">co.paralleluniverse/pulsar</span> <span class="s">&quot;0.7.2&quot;</span><span class="p">]</span>
+<div class="highlight"><pre><code><span id="line-1"><span class="p">[</span><span class="nv">co.paralleluniverse/pulsar</span> <span class="s">&quot;0.7.3&quot;</span><span class="p">]</span>
 </span></code></pre></div>
 <p>Then, the following must be added to the project.clj&nbsp;file:</p>
 
-<div class="highlight"><pre><code><span id="line-1"><span class="ss">:java-agents</span> <span class="p">[[</span><span class="nv">co.paralleluniverse/quasar-core</span> <span class="s">&quot;0.7.2&quot;</span><span class="p">]]</span>
+<div class="highlight"><pre><code><span id="line-1"><span class="ss">:java-agents</span> <span class="p">[[</span><span class="nv">co.paralleluniverse/quasar-core</span> <span class="s">&quot;0.7.3&quot;</span><span class="p">]]</span>
 </span></code></pre></div>
 <p>or, add the following to the java command&nbsp;line:</p>
 
@@ -603,11 +608,11 @@ It takes an even number of expressions, ordered as (ops1, action1, ops2, action2
 
 <h2 id="dataflow-reactive-programming">Dataflow (Reactive)&nbsp;Programming</h2>
 
-<p>Dataflow, or reactive programming, is a computation described by composing variables whose value may be set (and possibly changed) at any given time, without concern for when these values are set. Quasar provides two dataflow primitives: vals, created with <code>df-val</code>, and vars, created with <code>df-var</code>, both in the <code>co.paralleluniverse.pulsar.dataflow</code>&nbsp;namespace.</p>
+<p>Dataflow, or reactive programming, is a computation described by composing variables whose value may be set (and possibly changed) at any given time, without concern for when these values are set. Pulsar provides two dataflow primitives: vals, created with <code>df-val</code>, and vars, created with <code>df-var</code>, both in the <code>co.paralleluniverse.pulsar.dataflow</code>&nbsp;namespace.</p>
 
-<p>A val is a dataflow constant. It can have its value set once, and read multiple times. Attempting to read the value of a <code>Val</code> before it’s been set, will block until a value is set. Vals are like Pulsar promises, with the only difference being the behavior when attempting to set the val’s value more than once. A promise will return <code>nil</code>, while a val will throw an&nbsp;<code>IllegalStateException</code>.</p>
+<p>A val is a dataflow constant. It can have its value set once, and read multiple times. Attempting to read the value of a val before it’s been set, will block until a value is set. Vals are like Pulsar promises, with the only difference being the behavior when attempting to set the val’s value more than once. A promise will return <code>nil</code>, while a val will throw an&nbsp;<code>IllegalStateException</code>.</p>
 
-<p>A var is a dataflow variable. It can have it’s value set multiple times, and every new value can trigger the re-computation of other vars. You can set a <code>var</code> to retain historical values (consult the reference for more&nbsp;information).</p>
+<p>A var is a dataflow variable. It can have it’s value set multiple times, and every new value can trigger the re-computation of other vars. You can set a var to retain historical values (consult the reference for more&nbsp;information).</p>
 
 <p>Here is a simple example of using vals and&nbsp;vars:</p>
 
@@ -1366,7 +1371,7 @@ Pulsar supports this as an experimental feature (implemented internally with <co
 
 <p>First, you will need to add <code>quasar-galaxy</code> as a dependency to your&nbsp;project:</p>
 
-<div class="highlight"><pre><code><span id="line-1"><span class="p">[</span><span class="nv">co.paralleluniverse/quasar-galaxy</span> <span class="s">&quot;0.7.2&quot;</span><span class="p">]</span>
+<div class="highlight"><pre><code><span id="line-1"><span class="p">[</span><span class="nv">co.paralleluniverse/quasar-galaxy</span> <span class="s">&quot;0.7.3&quot;</span><span class="p">]</span>
 </span></code></pre></div>
 <p>To make an actor discoverable, all you need to do is register&nbsp;it:</p>
 
