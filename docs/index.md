@@ -594,11 +594,11 @@ Examples of using all channel transformations can be found in the [rx test suite
 
 ## Dataflow (Reactive) Programming
 
-Dataflow, or reactive programming, is a computation described by composing variables whose value may be set (and possibly changed) at any given time, without concern for when these values are set. Quasar provides two dataflow primitives: vals, created with `df-val`, and vars, created with `df-var`, both in the `co.paralleluniverse.pulsar.dataflow` namespace.
+Dataflow, or reactive programming, is a computation described by composing variables whose value may be set (and possibly changed) at any given time, without concern for when these values are set. Pulsar provides two dataflow primitives: vals, created with `df-val`, and vars, created with `df-var`, both in the `co.paralleluniverse.pulsar.dataflow` namespace.
 
-A val is a dataflow constant. It can have its value set once, and read multiple times. Attempting to read the value of a `Val` before it's been set, will block until a value is set. Vals are like Pulsar promises, with the only difference being the behavior when attempting to set the val's value more than once. A promise will return `nil`, while a val will throw an `IllegalStateException`.
+A val is a dataflow constant. It can have its value set once, and read multiple times. Attempting to read the value of a val before it's been set, will block until a value is set. Vals are like Pulsar promises, with the only difference being the behavior when attempting to set the val's value more than once. A promise will return `nil`, while a val will throw an `IllegalStateException`.
 
-A var is a dataflow variable. It can have it's value set multiple times, and every new value can trigger the re-computation of other vars. You can set a `var` to retain historical values (consult the reference for more information).
+A var is a dataflow variable. It can have it's value set multiple times, and every new value can trigger the re-computation of other vars. You can set a var to retain historical values (consult the reference for more information).
 
 Here is a simple example of using vals and vars:
 

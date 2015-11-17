@@ -243,7 +243,7 @@
   [& expr]
   `(do
      (defn ~@expr)
-     (def ~(first expr) (suspendable! ~(first expr)))))
+     (suspendable! ~(first expr))))
 
 (defmacro sreify
   "Creates a suspendable implementation of a protocol or interface.
