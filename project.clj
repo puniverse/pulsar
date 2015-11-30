@@ -20,9 +20,9 @@
                  [co.paralleluniverse/quasar-actors ~quasar-version]
                  [org.ow2.asm/asm "5.0.4"]
                  [org.clojure/core.match "0.2.2" :exclusions [org.ow2.asm/*]]
-                 [useful "0.8.8"]
+                 [org.flatland/useful "0.11.3"]
                  [gloss "0.2.5" :exclusions [com.yammer.metrics/metrics-core useful]]
-                 [org.clojure/core.typed "0.2.92" :exclusions [org.apache.ant/ant org.clojure/core.unify org.ow2.asm/*]]]
+                 [org.clojure/core.typed "0.3.18" :exclusions [org.apache.ant/ant org.clojure/core.unify org.ow2.asm/*]]]
   :manifest {"Premain-Class" "co.paralleluniverse.fibers.instrument.JavaAgent"
              "Can-Retransform-Classes" "true"}
   :jvm-opts ["-server"
@@ -35,8 +35,8 @@
   :pedantic :warn
   :profiles {;; ----------- dev --------------------------------------
              :dev
-             {:plugins [[lein-midje "3.1.3"]]
-              :dependencies [[midje "1.7.0" :exclusions [org.clojure/tools.namespace]]]
+             {:plugins [[lein-midje "3.2"]]
+              :dependencies [[midje "1.8.1" :exclusions [org.clojure/tools.namespace]]]
               :jvm-opts [;; Debugging
                          "-ea"
                          ;"-Dco.paralleluniverse.fibers.verifyInstrumentation=true"
@@ -78,10 +78,10 @@
 
              ;; ----------- doc --------------------------------------
              :doc
-             {:plugins [[lein-midje "3.1.3"]
-                        [codox "0.8.13"]
+             {:plugins [[lein-midje "3.2"]
+                        [codox "0.9.0"]
                         [lein-marginalia "0.9.0"]]
-              :dependencies [[midje "1.7.0"]]
+              :dependencies [[midje "1.8.1"]]
               :exclusions [org.clojure/tools.namespace]
               :injections [(require 'clojure.test)
                            (alter-var-root #'clojure.test/*load-tests* (constantly false))]
