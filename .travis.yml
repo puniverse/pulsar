@@ -4,6 +4,8 @@ lein: lein2
 script:
   - lein2 midje :print-facts :filter -auto-instrumentation
   - lein2 with-profiles +auto-instrument-all midje :print-facts
+  - chmod a+x travis/post_build.sh
+  - ./travis/post_build.sh
 jdk:
   - oraclejdk7
 branches:
@@ -14,10 +16,6 @@ env:
     - secure: "awdH1k9QfkxoeiS29nqnSEOMcY7tCvilNIM1pEtp3XkoPRxFzSqmCHNfDQnaqOVLr40dcDId08JP7CUWFZCkKPeQko+yTgHbr29R2+vAHlmSIiZiRrSP7I4yX+MN4ePrFjI+ltEx1cr5JWTGhtFPbILimKvpl4vCpmL5Kixqi30="
     - DOCS_BRANCH="0.7.0"
     - GEN_APIDOCS="lein2 with-profile doc do codox, marg src/test/clojure/co/paralleluniverse/pulsar/*.clj src/test/clojure/co/paralleluniverse/pulsar/async/*.clj src/test/clojure/co/paralleluniverse/pulsar/examples/*.clj"
-
-after_success:
-  - chmod a+x travis/post_build.sh
-  - ./travis/post_build.sh
 
 notifications:
   slack: puniverse:OsnbakHrYeTcLyalVgtUeI4F
