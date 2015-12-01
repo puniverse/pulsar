@@ -683,7 +683,7 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
 
 <h3 id="sending-and-receiving-messages-1">Sending and Receiving&nbsp;Messages</h3>
 
-<p>An actor’s mailbox is a channel, that can be obtained with the <code>mailbox-of</code> function. You can therefore send a message to an actor like&nbsp;so:</p>
+<p>An actor’s mailbox is a channel that can be obtained with the <code>mailbox-of</code> function. You can therefore send a message to an actor like&nbsp;so:</p>
 
 <div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">snd</span> <span class="p">(</span><span class="nf">mailbox-of</span> <span class="nv">actor</span><span class="p">)</span> <span class="nv">msg</span><span class="p">)</span>
 </span></code></pre></div>
@@ -699,19 +699,13 @@ If <code>:fj-pool</code> is not specified, then the pool used will be either 1) 
 
 <p>In many circumstances, an actor sends a message to another actor, and expects a reply. In those circumstances, using <code>!!</code> instead of <code>!</code> might offer reduced latency (but with the same semantics; both <code>!</code> and <code>!!</code> always return&nbsp;<code>nil</code>)</p>
 
-<p>The value <code>@self</code>, when evaluated in an actor, returns the actor. So, as you may guess, an actor can receive messages&nbsp;with:</p>
+<p>The value <code>@self</code>, when evaluated in an actor, returns the actor’s own handle; for example it can itself be communicated and then used to send&nbsp;messages.</p>
 
-<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">rcv</span> <span class="p">(</span><span class="nf">mailbox-of</span> <span class="o">@</span><span class="nv">self</span><span class="p">))</span>
-</span></code></pre></div>
-<p><code>@mailbox</code> returns the actor’s own mailbox channel, so the above may be written&nbsp;as:</p>
+<p>The value <code>@mailbox</code> instead, when evaluated in an actor, returns the receiving end of the actor’s own mailbox&nbsp;channel:</p>
 
 <div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">rcv</span> <span class="o">@</span><span class="nv">mailbox</span><span class="p">)</span>
 </span></code></pre></div>
-<p>… and because actors also implement the <code>ReceivePort</code> interface required by <code>rcv</code>, the following will also&nbsp;work:</p>
-
-<div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">rcv</span> <span class="o">@</span><span class="nv">self</span><span class="p">)</span>
-</span></code></pre></div>
-<p>But, again, while an actor can be treated as a fiber with a channel, it has some extra features that give it a super-extra punch. Actors normally receive messages with the <code>receive</code> function, like&nbsp;so:</p>
+<p>While an actor can be treated as a fiber with a channel, it has some extra features that give it a super-extra punch. Actors normally receive messages with the <code>receive</code> function, like&nbsp;so:</p>
 
 <div class="highlight"><pre><code><span id="line-1"><span class="p">(</span><span class="nf">receive</span><span class="p">)</span>
 </span></code></pre></div>
