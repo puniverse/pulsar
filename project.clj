@@ -90,7 +90,7 @@
                                 co.paralleluniverse.pulsar.actors
                                 co.paralleluniverse.pulsar.lazyseq
                                 co.paralleluniverse.pulsar.async]
-                      :output-dir "docs/api"}
+                      :output-path "docs/api"}
               :global-vars {*warn-on-reflection* false}}
              ;; ----------- other instrumentation strategies ---------
              :auto-instrument-all
