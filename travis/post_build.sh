@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+
 start=$(date +%s)
 echo -e "Current repo: $TRAVIS_REPO_SLUG Commit: $TRAVIS_COMMIT\n"
 
@@ -15,7 +17,7 @@ function error_exit
 if [ "$TRAVIS_BRANCH" == "$DOCS_BRANCH" ]; then
 	echo -e "Installing Jekyll...\n"
 	gem install kramdown
-	gem install jekyll
+	gem install jekyll -v 2.5.3
 	gem install typogruby
 	gem install nokogiri
 
@@ -32,6 +34,7 @@ if [ "$TRAVIS_BRANCH" == "$DOCS_BRANCH" ]; then
 	cd ..
 
 	echo -e "Updating gh-pages...\n"
+    set +e
     # Any command that using GH_OAUTH_TOKEN must pipe the output to /dev/null to not expose your oauth token
     git submodule add -b gh-pages https://${GH_OAUTH_TOKEN}@github.com/$TRAVIS_REPO_SLUG site > /dev/null 2>&1
     cd site

@@ -79,8 +79,8 @@
              ;; ----------- doc --------------------------------------
              :doc
              {:plugins [[lein-midje "3.2"]
-                        [codox "0.9.0"]
-                        [lein-marginalia "0.9.0"]]
+                        [lein-codox "0.9.0"]
+                        [michaelblume/lein-marginalia "0.9.0"]]
               :dependencies [[midje "1.8.1"]]
               :exclusions [org.clojure/tools.namespace]
               :injections [(require 'clojure.test)
@@ -90,7 +90,7 @@
                                 co.paralleluniverse.pulsar.actors
                                 co.paralleluniverse.pulsar.lazyseq
                                 co.paralleluniverse.pulsar.async]
-                      :output-dir "docs/api"}
+                      :output-path "docs/api"}
               :global-vars {*warn-on-reflection* false}}
              ;; ----------- other instrumentation strategies ---------
              :auto-instrument-all
