@@ -710,7 +710,7 @@ The value `@self`, when evaluated in an actor, returns the actor. So, as you may
 (rcv @self)
 ~~~
 
-But, again, while an actor can be treated as a fiber with a channel, it has some extra features that give it a super-extra punch. Actors normally receive messages with the `receive` function, like so:
+While an actor can be treated as a fiber with a channel, it has some extra features that give it a super-extra punch. Actors normally receive messages with the `receive` function, like so:
 
 ~~~ clojure
 (receive)
