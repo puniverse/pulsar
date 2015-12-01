@@ -79,8 +79,8 @@
              ;; ----------- doc --------------------------------------
              :doc
              {:plugins [[lein-midje "3.2"]
-                        [codox "0.9.0"]
                         [lein-marginalia "0.8.0"]]
+                        [lein-codox "0.9.0"]
               :dependencies [[midje "1.8.1"]]
               :exclusions [org.clojure/tools.namespace]
               :injections [(require 'clojure.test)
