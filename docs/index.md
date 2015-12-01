@@ -670,7 +670,7 @@ An actor can be `join`ed, just like a fiber.
 
 ### Sending and Receiving Messages
 
-An actor's mailbox is a channel, that can be obtained with the `mailbox-of` function. You can therefore send a message to an actor like so:
+An actor's mailbox is a channel that can be obtained with the `mailbox-of` function. You can therefore send a message to an actor like so:
 
 ~~~ clojure
 (snd (mailbox-of actor) msg)
