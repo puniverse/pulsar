@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+
 start=$(date +%s)
 echo -e "Current repo: $TRAVIS_REPO_SLUG Commit: $TRAVIS_COMMIT\n"
 
