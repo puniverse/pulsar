@@ -43,7 +43,6 @@ if [ "$TRAVIS_BRANCH" == "$DOCS_BRANCH" ]; then
     cp -R ../$site_dir/* .
     cp ../$site_dir/.* .
     touch .nojekyll
-    set -e
     git add -f .
     git config user.email $email
     git config user.name $username
