@@ -34,6 +34,7 @@ if [ "$TRAVIS_BRANCH" == "$DOCS_BRANCH" ]; then
 	cd ..
 
 	echo -e "Updating gh-pages...\n"
+    set +e
     # Any command that using GH_OAUTH_TOKEN must pipe the output to /dev/null to not expose your oauth token
     git submodule add -b gh-pages https://${GH_OAUTH_TOKEN}@github.com/$TRAVIS_REPO_SLUG site > /dev/null 2>&1
     cd site
@@ -42,6 +43,7 @@ if [ "$TRAVIS_BRANCH" == "$DOCS_BRANCH" ]; then
     cp -R ../$site_dir/* .
     cp ../$site_dir/.* .
     touch .nojekyll
+    set -e
     git add -f .
     git config user.email $email
     git config user.name $username
