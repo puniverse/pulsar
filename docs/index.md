@@ -692,22 +692,12 @@ The bang operator has a slightly different semantic than `snd`. While `snd` will
 
 In many circumstances, an actor sends a message to another actor, and expects a reply. In those circumstances, using `!!` instead of `!` might offer reduced latency (but with the same semantics; both `!` and `!!` always return `nil`)
 
-The value `@self`, when evaluated in an actor, returns the actor. So, as you may guess, an actor can receive messages with:
+The value `@self`, when evaluated in an actor, returns the actor's own handle; for example it can itself be communicated and then used to send messages.
 
-~~~ clojure
-(rcv (mailbox-of @self))
-~~~
-
-`@mailbox` returns the actor's own mailbox channel, so the above may be written as:
+The value `@mailbox` instead, when evaluated in an actor, returns the receiving end of the actor's own mailbox channel:
 
 ~~~ clojure
 (rcv @mailbox)
-~~~
-
-... and because actors also implement the `ReceivePort` interface required by `rcv`, the following will also work:
-
-~~~ clojure
-(rcv @self)
 ~~~
 
 While an actor can be treated as a fiber with a channel, it has some extra features that give it a super-extra punch. Actors normally receive messages with the `receive` function, like so:
