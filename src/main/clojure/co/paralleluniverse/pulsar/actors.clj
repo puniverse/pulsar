@@ -189,7 +189,7 @@
         cls (gensym 'cls)]
     `(let [args#  (list ~@(rest body))     ; eval once all args
            ~b     (first ~body)            ; eval once the function
-           ~cls   (fn [] (apply ~b args#)) ; => "call-by-value"-like behaviour for spawned function when args are being
+           ~cls   (fn [] (apply (suspendable! ~b) args#)) ; => "call-by-value"-like behaviour for spawned function when args are being
                                            ;    passed (so that e.g. arguments containing @self are correctly evaluated)
            nme#   (when ~name (clojure.core/name ~name))
            f#     (when (not (instance? Actor ~b))
