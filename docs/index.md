@@ -1079,7 +1079,7 @@ from within `actor1`.
 *Registering* an actor gives it a public name that can be used to locate the actor. You register an actor like so:
 
 ~~~ clojure
-(register! actor name)
+(register! name actor)
 ~~~
 
 or:
@@ -1099,14 +1099,14 @@ You obtain a reference to a registered actor with:
 but most actor-related functions can work directly with the registered name. For example, instead of this:
 
 ~~~ clojure
-(register! actor :foo)
+(register! :foo actor)
 (! (whereis :foo) "hi foo!")
 ~~~
 
 you can write:
 
 ~~~ clojure
-(register! actor :foo)
+(register! :foo actor)
 (! :foo "hi foo!")
 ~~~
 
@@ -1312,9 +1312,9 @@ When `notify!` is called, both handlers will be called and passed the event obje
 
 #### gen-fsm
 
-gen-event is an actor behavior that helps manage actor state transitions.
+gen-fsm is an actor behavior that helps manage actor state transitions.
 
-You spawn a gen-event like this:
+You spawn a gen-fsm like this:
 
 ~~~ clojure
 (spawn (gen-fsm initial-state))
@@ -1323,8 +1323,6 @@ You spawn a gen-event like this:
 `initial-state` serves as the actor's first _state_. A state is a function that executes as part of the actor body, and returns the next actor state. If a state returns `:done`, the actor terminates.
 
 Here is a complete example:
-
-You can then add event handlers:
 
 ~~~~ clojure
 (letfn [(state1 []
@@ -1474,7 +1472,7 @@ First, you will need to add `quasar-galaxy` as a dependency to your project:
 To make an actor discoverable, all you need to do is register it:
 
 ~~~ clojure
-(register! actor :global-actor1)
+(register! :global-actor1 actor)
 ~~~
 
 or, if the actor already has a name (set in `spawn`), simply call:
