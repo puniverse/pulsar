@@ -1,6 +1,6 @@
-(def quasar-version "0.7.4-SNAPSHOT")
+(def quasar-version "0.7.4")
 
-(defproject co.paralleluniverse/pulsar "0.7.4-SNAPSHOT"
+(defproject co.paralleluniverse/pulsar "0.7.4"
   :description "A Clojure lightweight thread, asynchronous programming, and actor library"
   :url "http://github.com/puniverse/pulsar"
   :licenses [{:name "Eclipse Public License - v 1.0" :url "http://www.eclipse.org/legal/epl-v10.html"}
