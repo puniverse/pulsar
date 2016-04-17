@@ -28,7 +28,7 @@ import static co.paralleluniverse.fibers.instrument.MethodDatabase.*;
  * @author circlespainter
  */
 public class PulsarInstrumentListProvider implements InstrumentListProvider {
-    public static final List<String> CLOJURE_FUNCTION_BASE_INVOCATION_METHODS = Arrays.asList("invoke", "invokePrim");
+    public static final List<String> CLOJURE_FUNCTION_BASE_INVOCATION_METHODS = Arrays.asList("invoke", "invokePrim", "invokeStatic");
 
     private static final String CLOJURE_PROXY_ANONYMOUS_CLASS_NAME_MARKER = "proxy$";
     private static final String CLOJURE_FUNCTION_CLASS_NAME_MARKER = "$";
@@ -82,6 +82,8 @@ public class PulsarInstrumentListProvider implements InstrumentListProvider {
         //
         // 3. Maintenance: minimize the number of rules.
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        final Predicate<String> anyInvokePred = or(eqN("invoke"), eqN("invokeStatic"), eqN("invokePrim"));
 
         return new InstrumentMatcher[] {
 
@@ -217,29 +219,29 @@ public class PulsarInstrumentListProvider implements InstrumentListProvider {
             // decision about the remaining ones to the rest of the classifying chain.
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$join"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$join_STAR_"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$rcv"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$rcv_into"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$snd"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$snd_seq"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$do_sel"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$sel"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$strampoline"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$join"), anyInvokePred, SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$join_STAR_"), anyInvokePred, SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$rcv"), anyInvokePred, SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$rcv_into"), anyInvokePred, SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$snd"), anyInvokePred, SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$snd_seq"), anyInvokePred, SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$do_sel"), anyInvokePred, SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$sel"), anyInvokePred, SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$strampoline"), anyInvokePred, SuspendableType.SUSPENDABLE, a(susPUMeth)),
             mClassAndMeth(eqN("co/paralleluniverse/pulsar/core$sleep"), or(eqN("invoke"), eqN("invokePrim")), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-            mClassAndMeth(eqN("co/paralleluniverse/pulsar/actors$receive_timed"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/actors$create_actor$"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/async$put_BANG_"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/async$take_BANG_"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/async$_GT__BANG_"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/async$f__GT_chan"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/async$_LT__BANG_"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/async$last"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/async$reduce"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/async$pipe"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/async$onto_chan"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/async$rx_chan"), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)),
-            mClassAndMeth(and(startsWithN("co/paralleluniverse/fiber/"), containsN("$")), eqN("invoke"), SuspendableType.SUSPENDABLE, a(susPUMeth)), // Comsat
+            mClassAndMeth(eqN("co/paralleluniverse/pulsar/actors$receive_timed"), anyInvokePred, SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/actors$create_actor$"), anyInvokePred, SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/async$put_BANG_"), anyInvokePred, SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/async$take_BANG_"), anyInvokePred, SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/async$_GT__BANG_"), anyInvokePred, SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/async$f__GT_chan"), anyInvokePred, SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/async$_LT__BANG_"), anyInvokePred, SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/async$last"), anyInvokePred, SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/async$reduce"), anyInvokePred, SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/async$pipe"), anyInvokePred, SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/async$onto_chan"), anyInvokePred, SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(startsWithN("co/paralleluniverse/pulsar/async$rx_chan"), anyInvokePred, SuspendableType.SUSPENDABLE, a(susPUMeth)),
+            mClassAndMeth(and(startsWithN("co/paralleluniverse/fiber/"), containsN("$")), anyInvokePred, SuspendableType.SUSPENDABLE, a(susPUMeth)), // Comsat
 
             // Instrument Parallel Universe Clojure tests and examples
             mSrcAndClass(srcP, and(startsWithN("co/paralleluniverse"), or(containsCIN("test"), containsCIN("example"))), SuspendableType.SUSPENDABLE, a(testExamplePUMsg)),
@@ -360,20 +362,31 @@ public class PulsarInstrumentListProvider implements InstrumentListProvider {
         return new InstrumentMatcher(null, null, null, null, null, null, methodNameP, null, null, null, t, a);
     }
 
-    private static Predicate<String> or(final Predicate<String> p1, final Predicate<String> p2) {
+    private static Predicate<String> or(final Predicate<String>... ps) {
         return new Predicate<String>() {
             @Override
             public boolean apply(final String v) {
-                return p1.apply(v) || p2.apply(v);
+                boolean res = true;
+                if (ps != null && ps.length > 0) {
+                    res = false;
+                    for (final Predicate<String> p : ps)
+                        res |= p.apply(v);
+                }
+                return res;
             }
         };
     }
 
-    private static Predicate<String> and(final Predicate<String> p1, final Predicate<String> p2) {
+    private static Predicate<String> and(final Predicate<String>... ps) {
         return new Predicate<String>() {
             @Override
             public boolean apply(final String v) {
-                return p1.apply(v) && p2.apply(v);
+                boolean res = true;
+                if (ps != null) {
+                    for (final Predicate<String> p : ps)
+                        res &= p.apply(v);
+                }
+                return res;
             }
         };
     }

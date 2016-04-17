@@ -15,13 +15,13 @@
   :repositories {"snapshots" "https://oss.sonatype.org/content/repositories/snapshots"
                  "releases" "https://oss.sonatype.org/content/repositories/releases"}
   :test-selectors {:selected :selected}
-  :dependencies [[org.clojure/clojure "1.7.0"]
+  :dependencies [[org.clojure/clojure "1.8.0"]
                  [co.paralleluniverse/quasar-core   ~quasar-version] ; :classifier "jdk8"
                  [co.paralleluniverse/quasar-actors ~quasar-version]
-                 [org.ow2.asm/asm "5.0.4"]
+                 [org.ow2.asm/asm "5.1"]
                  [org.clojure/core.match "0.2.2" :exclusions [org.ow2.asm/*]]
                  [org.flatland/useful "0.11.3"]
-                 [gloss "0.2.5" :exclusions [com.yammer.metrics/metrics-core useful]]
+                 [gloss "0.2.6" :exclusions [com.yammer.metrics/metrics-core useful]]
                  [org.clojure/core.typed "0.3.18" :exclusions [org.apache.ant/ant org.clojure/core.unify org.ow2.asm/*]]]
   :manifest {"Premain-Class" "co.paralleluniverse.fibers.instrument.JavaAgent"
              "Can-Retransform-Classes" "true"}
@@ -39,7 +39,7 @@
               :dependencies [[midje "1.8.3" :exclusions [org.clojure/tools.namespace]]]
               :jvm-opts [;; Debugging
                          "-ea"
-                         ;"-Dco.paralleluniverse.fibers.verifyInstrumentation=true"
+                         ; "-Dco.paralleluniverse.fibers.verifyInstrumentation=true"
                          "-Dco.paralleluniverse.fibers.detectRunawayFibers=false"
                          ;"-Dco.paralleluniverse.fibers.traceInterrupt=true"
                          ;; Recording

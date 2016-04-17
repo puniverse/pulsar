@@ -167,7 +167,7 @@ public class ClojureHelper {
                 Method[] methods = cls.getMethods();
 
                 for (Method method : methods) {
-                    if ((IFn.class.isAssignableFrom(cls) && (method.getName().equals("invoke") || method.getName().equals("doInvoke") || method.getName().equals("invokePrim")))
+                    if ((IFn.class.isAssignableFrom(cls) && (method.getName().equals("invoke") || method.getName().equals("invokeStatic")  || method.getName().equals("doInvoke") || method.getName().equals("invokePrim")))
                             || (cls == clazz && !isIFn && protocolMethods.contains(method.getName()))) { // method.getDeclaringClass().equals(clazz))) {
                         ce.set(method.getName(), Type.getMethodDescriptor(method), MethodDatabase.SuspendableType.SUSPENDABLE);
                     }
