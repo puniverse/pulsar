@@ -28,12 +28,12 @@ import static co.paralleluniverse.fibers.instrument.MethodDatabase.*;
  * @author circlespainter
  */
 public class PulsarInstrumentListProvider implements InstrumentListProvider {
-    public static final List<String> CLOJURE_FUNCTION_BASE_INVOCATION_METHODS = Arrays.asList("invoke", "invokePrim", "invokeStatic");
+    public static final List<String> CLOJURE_FUNCTION_BASE_INVOCATION_METHODS = Arrays.asList("invoke", "invokePrim", "applyTo", "invokeStatic");
+    public static final List<String> CLOJURE_FUNCTION_ADDITIONAL_INVOCATION_METHODS = Arrays.asList("doInvoke", "applyToHelper", "call", "run");
 
     private static final String CLOJURE_PROXY_ANONYMOUS_CLASS_NAME_MARKER = "proxy$";
     private static final String CLOJURE_FUNCTION_CLASS_NAME_MARKER = "$";
     private static final List<String> CLOJURE_FUNCTION_BASE_CLASSES = Arrays.asList("clojure/lang/AFn", "clojure/lang/AFunction", "clojure/lang/RestFn", "clojure/lang/MultiFn");
-    private static final List<String> CLOJURE_FUNCTION_ADDITIONAL_INVOCATION_METHODS = Arrays.asList("doInvoke", "applyTo", "applyToHelper", "call", "run");
 
     private static final String CLOJURE_SOURCE_EXTENSION = ".clj";
     private static final List<String> CLOJURE_DATATYPE_INTERFACES = Arrays.asList("clojure/lang/IObj", "clojure/lang/IType", "clojure/lang/IRecord");
