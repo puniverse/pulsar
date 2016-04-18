@@ -31,7 +31,7 @@
              "-XX:-UseBiasedLocking"
              "-XX:+UseCondCardMark"]
   ;:injections [(alter-var-root #'*compiler-options* (constantly {:disable-locals-clearing true}))]
-  :java-agents [[co.paralleluniverse/quasar-core ~quasar-version :options "m"]] ; :classifier "jdk8" :options "vd"
+  :java-agents [[co.paralleluniverse/quasar-core ~quasar-version :options "m"]] ; :classifier "jdk8" :options "vdc"
   :pedantic :warn
   :profiles {;; ----------- dev --------------------------------------
              :dev
