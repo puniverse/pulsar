@@ -519,6 +519,13 @@
 
 (unfinished handler1 handler2)
 
+(fact "When notify gen-event then call blocking handlers"
+      (let [ge (spawn (gen-event))]
+        (add-handler! ge (fn [& _] (Fiber/sleep 10)))
+        (notify! ge "hello")
+        (shutdown! ge)
+        (join ge)) => nil)
+
 (fact "When notify gen-event then call handlers"
       (let [ge (spawn (gen-event
                         #(add-handler! @self handler1)))]

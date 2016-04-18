@@ -1,4 +1,4 @@
-(def quasar-version "0.7.4")
+(def quasar-version "0.7.5-SNAPSHOT")
 
 (defproject co.paralleluniverse/pulsar "0.7.5-SNAPSHOT"
   :description "A Clojure lightweight thread, asynchronous programming, and actor library"
