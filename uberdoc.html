@@ -3344,6 +3344,12 @@ net.brehaut.ClojureTools = (function (SH) {
         (call! gs 3 4)) =&gt; &quot;7!!!&quot;)</pre></td></tr><tr><td class="docs"><h2>gen-event</h2>
 </td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(unfinished handler1 handler2)</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(fact &quot;When notify gen-event then call blocking handlers&quot;
+      (let [ge (spawn (gen-event))]
+        (add-handler! ge (fn [&amp; _] (Fiber/sleep 10)))
+        (notify! ge &quot;hello&quot;)
+        (shutdown! ge)
+        (join ge)) =&gt; nil)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(fact &quot;When notify gen-event then call handlers&quot;
       (let [ge (spawn (gen-event
                         #(add-handler! @self handler1)))]
