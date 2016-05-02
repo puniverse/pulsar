@@ -76,7 +76,7 @@ Pulsar is free software published under the following license:
 
 
 ```
-Copyright © 2013-2015 Parallel Universe
+Copyright © 2013-2016 Parallel Universe
 
 This program and the accompanying materials are dual-licensed under
 either the terms of the Eclipse Public License v1.0 as published by
