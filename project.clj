@@ -1,6 +1,6 @@
-(def quasar-version "0.7.5-SNAPSHOT")
+(def quasar-version "0.7.5")
 
-(defproject co.paralleluniverse/pulsar "0.7.5-SNAPSHOT"
+(defproject co.paralleluniverse/pulsar "0.7.5"
   :description "A Clojure lightweight thread, asynchronous programming, and actor library"
   :url "http://github.com/puniverse/pulsar"
   :licenses [{:name "Eclipse Public License - v 1.0" :url "http://www.eclipse.org/legal/epl-v10.html"}
@@ -20,9 +20,9 @@
                  [co.paralleluniverse/quasar-actors ~quasar-version]
                  [org.ow2.asm/asm "5.1"]
                  [org.clojure/core.match "0.2.2" :exclusions [org.ow2.asm/*]]
-                 [org.flatland/useful "0.11.3"]
+                 [org.flatland/useful "0.11.5"]
                  [gloss "0.2.6" :exclusions [com.yammer.metrics/metrics-core useful]]
-                 [org.clojure/core.typed "0.3.18" :exclusions [org.apache.ant/ant org.clojure/core.unify org.ow2.asm/*]]]
+                 [org.clojure/core.typed "0.3.23" :exclusions [org.apache.ant/ant org.clojure/core.unify org.ow2.asm/*]]]
   :manifest {"Premain-Class" "co.paralleluniverse.fibers.instrument.JavaAgent"
              "Can-Retransform-Classes" "true"}
   :jvm-opts ["-server"
@@ -79,7 +79,7 @@
              ;; ----------- doc --------------------------------------
              :doc
              {:plugins [[lein-midje "3.2"]
-                        [lein-codox "0.9.1"]
+                        [lein-codox "0.9.5"]
                         [michaelblume/lein-marginalia "0.9.0"]]
               :dependencies [[midje "1.8.3"]]
               :exclusions [org.clojure/tools.namespace]
