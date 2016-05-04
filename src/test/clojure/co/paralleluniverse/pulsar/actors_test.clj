@@ -183,10 +183,19 @@
                (link! actor1 actor2)
                (join actor1)
                (join actor2)) => :exit)
-       (fact "When an actor dies, and its link traps, then its link gets a message"
+       (fact "When an actor dies, and its link traps with :trap, then its link gets a message"
              (let [actor1 (spawn #(Fiber/sleep 100))
                    actor2 (spawn :trap true
                                  (fn []
+                                   (link! actor1)
+                                   (receive [m]
+                                            [:exit _ actor reason] actor)))]
+               (join actor1)
+               (fact (join actor2) => actor1)))
+       (fact "When an actor dies, and its link traps with trap!, then its link gets a message"
+             (let [actor1 (spawn #(Fiber/sleep 100))
+                   actor2 (spawn (fn []
+                                   (trap!)
                                    (link! actor1)
                                    (receive [m]
                                             [:exit _ actor reason] actor)))]
