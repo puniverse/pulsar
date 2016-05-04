@@ -281,7 +281,7 @@
   and turn them into exit messages.
   Same as adding `:trap true` to `spawn`."
   []
-  (.setTrap ^PulsarActor @self true))
+  (.setTrap ^PulsarActor (Actor/currentActor) true))
 
 
 (ann link! (IFn [ActorRef -> ActorRef]
