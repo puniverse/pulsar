@@ -79,7 +79,7 @@
              ;; ----------- doc --------------------------------------
              :doc
              {:plugins [[lein-midje "3.2"]
-                        [lein-codox "0.9.5"]
+                        [lein-codox "0.9.3"]
                         [michaelblume/lein-marginalia "0.9.0"]]
               :dependencies [[midje "1.8.3"]]
               :exclusions [org.clojure/tools.namespace]
