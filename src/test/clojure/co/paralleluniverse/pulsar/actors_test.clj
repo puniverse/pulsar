@@ -607,7 +607,6 @@
   (receive)
   (throw (RuntimeException. "Ha!")))
 
-
 (fact "child-modes"
       (fact "When permanent actor dies of natural causes then restart"
             (let [sup (spawn
