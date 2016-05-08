@@ -756,11 +756,11 @@
 
 (defn- ^ActorBuilder actor-builder
   [f]
-  (reify ActorBuilder
+  (sreify ActorBuilder
     (build [this]
            (f))))
 
-(defn- ^Actor create-actor
+(defsfn ^{:private true} ^Actor create-actor
   [& args]
   (let [[{:keys [^String name ^Boolean trap ^Integer mailbox-size overflow-policy ^IFn lifecycle-handler ^Integer stack-size], :or {trap false mailbox-size -1 stack-size -1}} body] (kps-args args)
         f  (when (not (instance? Actor (first body)))
@@ -787,7 +787,7 @@
                            (long shutdown-deadline-millis)
                            ^ActorBuilder (if (instance? ActorBuilder (first args))
                                            (first args)
-                                           (actor-builder #(apply create-actor args))))))
+                                           (actor-builder (sfn [] (apply create-actor args)))))))
 
 (defsfn add-child!
   "Adds an actor to a supervisor"

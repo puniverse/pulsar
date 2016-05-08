@@ -68,8 +68,13 @@ public class ClojureHelper {
         Retransform.addWaiver("clojure.lang.AFn", "applyTo");
         Retransform.addWaiver("clojure.lang.RestFn", "invoke");
         Retransform.addWaiver("clojure.lang.RestFn", "doInvoke");
+        Retransform.addWaiver("clojure.lang.RestFn", "applyTo");
+        Retransform.addWaiver("clojure.lang.AFunction$1", "doInvoke");
+
         Retransform.addWaiver("clojure.core$apply", "invoke");
+        Retransform.addWaiver("clojure.core$apply", "invokeStatic");
         Retransform.addWaiver("clojure.core$deref", "invoke");
+        Retransform.addWaiver("clojure.core$deref", "invokeStatic");
 
         Retransform.addWaiver("co.paralleluniverse.pulsar.InstrumentedIFn", "invoke");
         Retransform.addWaiver("co.paralleluniverse.pulsar.InstrumentedIFn", "applyTo");

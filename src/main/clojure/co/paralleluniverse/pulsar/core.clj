@@ -118,16 +118,6 @@
         (cons d (ops-args (rest pds) xs))))
     (seq xs)))
 
-#_(ann ^:no-check kps-args [(ISeq Any) -> (HVec (ISeq Any) (ISeq Any))])
-(defn kps-args
-  {:no-doc true}
-  [args]
-  (let [aps (partition-all 2 args)
-        [opts-and-vals ps] (split-with #(keyword? (first %)) aps)
-        options (into {} (map vec opts-and-vals))
-        positionals (reduce into [] ps)]
-    [options positionals]))
-
 (ann merge-meta (All [[x :< clojure.lang.IObj] [y :< (IPersistentMap Keyword Any)]]
                      [x y -> (I x (IMeta y))]))
 (defn merge-meta
@@ -137,12 +127,6 @@
 
 (defn tagged [tag sym]
   (vary-meta sym assoc :tag tag))
-
-(defn apply-variadic
-  "Calls a variadic function by applying a concat of all arguments with the last argument (which is supposedly a collection)"
-  {:no-doc true}
-  [f & args]
-  (apply f (concat (butlast args) (last args))))
 
 (ann keyword->timeunit [Keyword -> TimeUnit])
 (defn- ^TimeUnit keyword->timeunit
@@ -283,6 +267,22 @@
          ret)))
   ([f & args]
      (strampoline #(apply f args))))
+
+(defsfn apply-variadic
+  "Calls a variadic function by applying a concat of all arguments with the last argument (which is supposedly a collection)"
+  {:no-doc true}
+  [f & args]
+  (apply f (concat (butlast args) (last args))))
+
+#_(ann ^:no-check kps-args [(ISeq Any) -> (HVec (ISeq Any) (ISeq Any))])
+(defsfn kps-args
+        {:no-doc true}
+        [args]
+        (let [aps (partition-all 2 args)
+              [opts-and-vals ps] (split-with #(keyword? (first %)) aps)
+              options (into {} (map vec opts-and-vals))
+              positionals (reduce into [] ps)]
+          [options positionals]))
 
 ;; ## Fibers
 
