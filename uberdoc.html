@@ -3901,7 +3901,28 @@ manually add a known actor to a supervisor, so this ugly function is only useful
                    f (spawn-fiber #(snd c 10))]
                (select :timeout 100 
                        c ([v] (inc v)) 
-                       :else &quot;timeout!&quot;)) =&gt; 11))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.dataflow-test" name="co.paralleluniverse.pulsar.dataflow-test"><h1 class="project-name">co.paralleluniverse.pulsar.dataflow-test</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+                       :else &quot;timeout!&quot;)) =&gt; 11))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(declare skynet)</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defsfn subnet [num size div]
+  (loop [i 0
+         children []]
+    (if (= i div)
+      children
+      (recur
+        (+ i 1)
+        (conj children (fiber (skynet (int (+ num (* i (/ size div))))
+                                      (int (/ size div))
+                                      div)))))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defsfn skynet [num size div]
+  (if (= size 1)
+    num
+    (-&gt;&gt; (subnet num size div)
+         doall
+         join ;;comment if not fiber
+         (reduce +))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(fact &quot;skynet&quot;
+  (let [res (skynet 0 100 10)]
+    res) =&gt; 4950)</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#co.paralleluniverse.pulsar.dataflow-test" name="co.paralleluniverse.pulsar.dataflow-test"><h1 class="project-name">co.paralleluniverse.pulsar.dataflow-test</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns co.paralleluniverse.pulsar.dataflow-test
   (:refer-clojure :exclude [promise await])
   (:use midje.sweet
@@ -4700,7 +4721,7 @@ manually add a known actor to a supervisor, so this ugly function is only useful
     =&gt; times))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(p/defsfn slow-fib [n]
   (if (&lt; n 2) n (+ (slow-fib (- n 1)) (slow-fib (- n 2)))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(let [input (take 50 (cycle (range 15 38)))]
+</td><td class="codes"><pre class="brush: clojure">(let [input (take 5 (cycle (range 15 38)))]
   (fact &quot;Test compute&quot;
     (last (pipeline-tester pipeline 8 input (mapping slow-fib)))
     =&gt; (slow-fib (last input))))</pre></td></tr><tr><td class="docs">
