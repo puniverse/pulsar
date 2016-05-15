@@ -1,6 +1,6 @@
 /*
  * Pulsar: lightweight threads and Erlang-like actors for Clojure.
- * Copyright (C) 2013-2015, Parallel Universe Software Co. All rights reserved.
+ * Copyright (C) 2013-2016, Parallel Universe Software Co. All rights reserved.
  *
  * This program and the accompanying materials are dual-licensed under
  * either the terms of the Eclipse Public License v1.0 as published by
@@ -32,6 +32,7 @@ public class PulsarSuspendableClassifier implements SuspendableClassifier {
 
     private final List<InstrumentMatcher[]> matchLists;
     private final boolean autoInstrumentEverythingClojure;
+    private final SimpleSuspendableClassifier simpleClassifier;
 
     @Override
     public SuspendableType isSuspendable(final MethodDatabase db, final String sourceName, final String sourceDebugInfo,
@@ -42,6 +43,10 @@ public class PulsarSuspendableClassifier implements SuspendableClassifier {
             //////////////////////////////////////////////////////
             // Clojure auto-instrument support (EVAL/EXPERIMENTAL)
             //////////////////////////////////////////////////////
+            // First delegate to the resource files
+            final SuspendableType st = simpleClassifier.isSuspendable(db, sourceName, sourceDebugInfo, isInterface, className, superClassName, interfaces, methodName, methodDesc, methodSignature, methodExceptions);
+            if (st != null)
+                return st;
 
             final InstrumentMatcher.Match<SuspendableType> t =
                 match(db, matchLists, sourceName, sourceDebugInfo, isInterface, className, superClassName, interfaces,
@@ -63,6 +68,7 @@ public class PulsarSuspendableClassifier implements SuspendableClassifier {
         this.matchLists = loadMatchLists(classLoader);
         if (this.matchLists.size() == 0)
             this.matchLists.add(new PulsarInstrumentListProvider().getMatchList());
+        this.simpleClassifier = new SimpleSuspendableClassifier(classLoader);
     }
 
     public PulsarSuspendableClassifier() {
