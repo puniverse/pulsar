@@ -1,5 +1,5 @@
 ; Pulsar: lightweight threads and Erlang-like actors for Clojure.
-; Copyright (C) 2013-2015, Parallel Universe Software Co. All rights reserved.
+; Copyright (C) 2013-2016, Parallel Universe Software Co. All rights reserved.
 ;
 ; This program and the accompanying materials are dual-licensed under
 ; either the terms of the Eclipse Public License v1.0 as published by
@@ -114,7 +114,7 @@
 (p/defsfn slow-fib [n]
   (if (< n 2) n (+ (slow-fib (- n 1)) (slow-fib (- n 2)))))
 
-(let [input (take 50 (cycle (range 15 38)))]
+(let [input (take 5 (cycle (range 15 38)))]
   (fact "Test compute"
     (last (pipeline-tester pipeline 8 input (mapping slow-fib)))
     => (slow-fib (last input))))
