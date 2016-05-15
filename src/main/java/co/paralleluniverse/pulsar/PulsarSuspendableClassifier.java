@@ -19,6 +19,7 @@ package co.paralleluniverse.pulsar;
  */
 import co.paralleluniverse.fibers.instrument.MethodDatabase;
 import co.paralleluniverse.fibers.instrument.MethodDatabase.SuspendableType;
+import co.paralleluniverse.fibers.instrument.SimpleSuspendableClassifier;
 import co.paralleluniverse.fibers.instrument.SuspendableClassifier;
 
 import java.util.ArrayList;
