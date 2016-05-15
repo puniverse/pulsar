@@ -6,3 +6,4 @@ clojure.core$seq__4357.invokeStatic
 clojure.core$doall.invokeStatic
 clojure.core$doall.invoke
 clojure.core$dorun.invokeStatic
+clojure.core$map$fn__4785.invoke
