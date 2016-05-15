@@ -1,5 +1,5 @@
 ; Pulsar: lightweight threads and Erlang-like actors for Clojure.
-; Copyright (C) 2013-2015, Parallel Universe Software Co. All rights reserved.
+; Copyright (C) 2013-2016, Parallel Universe Software Co. All rights reserved.
 ;
 ; This program and the accompanying materials are dual-licensed under
 ; either the terms of the Eclipse Public License v1.0 as published by
@@ -295,21 +295,20 @@
                                    ~@a))))
                         (range) exprs))))))
 
-(defrecord ^:private f->chan-exc [^Throwable exc])
-(alter-meta! #'->f->chan-exc assoc :private true)
-(alter-meta! #'map->f->chan-exc assoc :private true)
+(defrecord ^:private FToChanExc [^Throwable exc])
+(alter-meta! #'->FToChanExc assoc :private true)
+(alter-meta! #'map->FToChanExc assoc :private true)
 
-(defn- f->chan
+(defn- f-to-chan
   [c f]
   (p/sfn []
-    ; TODO can't simply use finally (as in core.async) because it triggers an instrumentation problem in do-alts!
     (let [ret (try (f)
                 (catch Throwable t
-                  (->f->chan-exc t)))]
-      (when-not (or (nil? ret) (instance? f->chan-exc ret))
+                  (->FToChanExc t)))]
+      (when-not (or (nil? ret) (instance? FToChanExc ret))
         (>! c ret))
       (close! c)
-      (when (instance? f->chan-exc ret)
+      (when (instance? FToChanExc ret)
         (throw (:exc ret))))))
 
 (defonce ^:private ^Executor thread-macro-executor
@@ -325,7 +324,7 @@
       (.execute thread-macro-executor
                 (fn []
                   (clojure.lang.Var/resetThreadBindingFrame binds)
-                  ((f->chan c f)))))
+                  ((f-to-chan c f)))))
     c))
 
 (defmacro thread
@@ -342,7 +341,7 @@
    f when completed."
   [f]
   (let [c (chan 1)]
-    (p/spawn-fiber (f->chan c (p/suspendable! f)))
+    (p/spawn-fiber (f-to-chan c (p/suspendable! f)))
     c))
 
 ;; This function is not part of core.async. It is provided here for symmetry with thread
