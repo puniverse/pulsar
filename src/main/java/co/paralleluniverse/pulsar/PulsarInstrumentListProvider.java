@@ -27,7 +27,7 @@ import static co.paralleluniverse.fibers.instrument.MethodDatabase.*;
 /**
  * @author circlespainter
  */
-public class PulsarInstrumentListProvider implements InstrumentListProvider {
+public final class PulsarInstrumentListProvider implements InstrumentListProvider {
     public static final List<String> CLOJURE_FUNCTION_BASE_INVOCATION_METHODS = Arrays.asList("invoke", "invokePrim", "applyTo", "invokeStatic");
     public static final List<String> CLOJURE_FUNCTION_ADDITIONAL_INVOCATION_METHODS = Arrays.asList("doInvoke", "applyToHelper", "call", "run");
 

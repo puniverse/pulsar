@@ -27,7 +27,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ServiceLoader;
 
-public class PulsarSuspendableClassifier implements SuspendableClassifier {
+public final class PulsarSuspendableClassifier implements SuspendableClassifier {
     private static final String CLOJURE_AUTO_INSTRUMENT_STRATEGY_SYSTEM_PROPERTY_NAME = "co.paralleluniverse.pulsar.instrument.auto";
     private static final String CLOJURE_AUTO_INSTRUMENT_STRATEGY_SYSTEM_PROPERTY_VALUE_ALL = "all";
 
@@ -36,14 +36,11 @@ public class PulsarSuspendableClassifier implements SuspendableClassifier {
     private final SimpleSuspendableClassifier simpleClassifier;
 
     @Override
-    public SuspendableType isSuspendable(final MethodDatabase db, final String sourceName, final String sourceDebugInfo,
-                                         final boolean isInterface, final String className, final String superClassName,
-                                         final String[] interfaces, final String methodName, final String methodDesc,
-                                         final String methodSignature, final String[] methodExceptions) {
+    public final SuspendableType isSuspendable(final MethodDatabase db, final String sourceName, final String sourceDebugInfo,
+                                               final boolean isInterface, final String className, final String superClassName,
+                                               final String[] interfaces, final String methodName, final String methodDesc,
+                                               final String methodSignature, final String[] methodExceptions) {
         if (autoInstrumentEverythingClojure) {
-            //////////////////////////////////////////////////////
-            // Clojure auto-instrument support (EVAL/EXPERIMENTAL)
-            //////////////////////////////////////////////////////
             // First delegate to the resource files
             final SuspendableType st = simpleClassifier.isSuspendable(db, sourceName, sourceDebugInfo, isInterface, className, superClassName, interfaces, methodName, methodDesc, methodSignature, methodExceptions);
             if (st != null)
@@ -76,18 +73,17 @@ public class PulsarSuspendableClassifier implements SuspendableClassifier {
         this(PulsarSuspendableClassifier.class.getClassLoader());
     }
 
-    public static List<InstrumentMatcher[]> loadMatchLists(final ClassLoader classLoader) {
+    private static List<InstrumentMatcher[]> loadMatchLists(final ClassLoader classLoader) {
         final List<InstrumentMatcher[]> ret = new ArrayList<InstrumentMatcher[]>();
         final ServiceLoader<InstrumentListProvider> loader = ServiceLoader.load(InstrumentListProvider.class, classLoader);
 
-        for (InstrumentListProvider aLoader : loader) {
+        for (final InstrumentListProvider aLoader : loader)
             ret.add(aLoader.getMatchList());
-        }
 
         return ret;
     }
 
-    public static InstrumentMatcher.Match<SuspendableType> match(final MethodDatabase db, final List<InstrumentMatcher[]> matchLists, final String sourceName, final String sourceDebugInfo,
+    private static InstrumentMatcher.Match<SuspendableType> match(final MethodDatabase db, final List<InstrumentMatcher[]> matchLists, final String sourceName, final String sourceDebugInfo,
                                                                  final boolean isInterface, final String className, final String superClassName, final String[] interfaces,
                                                                  final String methodName, final String methodDesc, final String methodSignature, final String[] methodExceptions) {
         for (final InstrumentMatcher[] ml : matchLists) {

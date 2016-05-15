@@ -1,6 +1,6 @@
 /*
  * Pulsar: lightweight threads and Erlang-like actors for Clojure.
- * Copyright (C) 2013-2015, Parallel Universe Software Co. All rights reserved.
+ * Copyright (C) 2013-2016, Parallel Universe Software Co. All rights reserved.
  *
  * This program and the accompanying materials are dual-licensed under
  * either the terms of the Eclipse Public License v1.0 as published by
@@ -20,7 +20,7 @@ import com.google.common.base.Predicate;
 /**
  * @author circlespainter
  */
-public class InstrumentMatcher {
+public final class InstrumentMatcher {
     final Predicate<String> sourceNameP;
     final Predicate<String> sourceDebugInfoP;
     final Predicate<Boolean> isInterfaceP;
@@ -52,7 +52,7 @@ public class InstrumentMatcher {
         this.action = action;
     }
 
-    Match<MethodDatabase.SuspendableType> eval(final MethodDatabase db, final String sourceName, final String sourceDebugInfo,
+    final Match<MethodDatabase.SuspendableType> eval(final MethodDatabase db, final String sourceName, final String sourceDebugInfo,
                          final boolean isInterface, final String className, final String superClassName, final String[] interfaces,
                          final String methodName, final String methodDesc, final String methodSignature, final String[] methodExceptions) {
         final Match<MethodDatabase.SuspendableType> ret =
@@ -71,7 +71,7 @@ public class InstrumentMatcher {
         return ret;
     }
 
-    public class Match<T> {
+    public final class Match<T> {
         private final T value;
 
         public Match(T v) {
@@ -90,7 +90,7 @@ public class InstrumentMatcher {
         }
     }
 
-    public class EvalCriteria {
+    public final class EvalCriteria {
         final MethodDatabase db;
         final String sourceName;
         final String sourceDebugInfo;
