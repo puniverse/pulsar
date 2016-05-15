@@ -8,6 +8,7 @@ script:
   - ./travis/post_build.sh
 jdk:
   - oraclejdk7
+  - oraclejdk8
 branches:
   except:
     - gh-pages
