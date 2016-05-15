@@ -1,5 +1,5 @@
 ; Pulsar: lightweight threads and Erlang-like actors for Clojure.
-; Copyright (C) 2013-2015, Parallel Universe Software Co. All rights reserved.
+; Copyright (C) 2013-2016, Parallel Universe Software Co. All rights reserved.
 ;
 ; This program and the accompanying materials are dual-licensed under
 ; either the terms of the Eclipse Public License v1.0 as published by
@@ -314,3 +314,30 @@
                (select :timeout 100 
                        c ([v] (inc v)) 
                        :else "timeout!")) => 11))
+
+(declare skynet)
+
+(defsfn subnet [num size div]
+  (loop [i 0
+         children []]
+    (if (= i div)
+      children
+      (recur
+        (+ i 1)
+        (conj children (fiber (skynet (int (+ num (* i (/ size div))))
+                                      (int (/ size div))
+                                      div)))
+        ))))
+
+(defsfn skynet [num size div]
+  (if (= size 1)
+    num
+    (->> (subnet num size div)
+         doall
+         join ;;comment if not fiber
+         (reduce +))
+    ))
+
+(fact "skynet"
+  (let [res (skynet 0 100 10)]
+    res) => 4950)
