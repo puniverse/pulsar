@@ -340,4 +340,4 @@
 
 (fact "skynet"
   (let [res (skynet 0 100 10)]
-    res) => 4950)
+    res) => 945)
