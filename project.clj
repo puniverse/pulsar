@@ -39,7 +39,7 @@
               :dependencies [[midje "1.8.3" :exclusions [org.clojure/tools.namespace]]]
               :jvm-opts [;; Debugging
                          "-ea"
-                         "-Dco.paralleluniverse.fibers.verifyInstrumentation=true"
+                         ;"-Dco.paralleluniverse.fibers.verifyInstrumentation=true"
                          "-Dco.paralleluniverse.fibers.detectRunawayFibers=false"
                          ;"-Dco.paralleluniverse.fibers.traceInterrupt=true"
                          ;; Recording
