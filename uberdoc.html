@@ -3068,7 +3068,17 @@ net.brehaut.ClojureTools = (function (SH) {
                                (receive
                                  [:exit w actor reason] actor))))]
               (join actor1)
-              (fact (join actor2) =&gt; actor1))))</pre></td></tr><tr><td class="docs">
+              (fact (join actor2) =&gt; actor1)))
+      (fact &quot;When an actor dies, its watch gets a message3&quot;
+            (let [actor1 (spawn #(Fiber/sleep 200))
+                  actor2 (spawn
+                           (fn []
+                               (let [w (watch! actor1)]
+                                    (receive
+                                      [:exit w actor reason] actor
+                                      :else &quot;fail&quot;))))]
+                 (join actor1)
+                 (fact (join actor2) =&gt; actor1))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(facts &quot;actor-state&quot;
        (fact &quot;Test recur actor-state&quot;
              (let [actor
