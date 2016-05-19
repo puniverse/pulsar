@@ -1,5 +1,5 @@
 ; Pulsar: lightweight threads and Erlang-like actors for Clojure.
-; Copyright (C) 2013-2014, Parallel Universe Software Co. All rights reserved.
+; Copyright (C) 2013-2016, Parallel Universe Software Co. All rights reserved.
 ;
 ; This program and the accompanying materials are dual-licensed under
 ; either the terms of the Eclipse Public License v1.0 as published by
@@ -512,67 +512,88 @@
          body        (if odd-forms (next body) body)
          m           (if bind-clause (first bind-clause) (gensym "m"))
          timeout     (gensym "timeout")
-         i        (gensym "i")]
-     (if (seq (filter #(= % :else) (take-nth 2 body)))
-       ; if we have an :else then every message is processed and our job is easy
-       `(let ~(into [] (concat
-                         (if after-clause `[~timeout ~(second after-clause)] [])
-                         `[~m ~(concat `(PulsarActor/selfReceive) (if after-clause `(~timeout java.util.concurrent.TimeUnit/MILLISECONDS) ()))]
-                         (if transform `[~m (~transform ~m)] [])))
-          ~@(surround-with (when after-clause `(if (nil? ~m) ~(nth after-clause 2)))
-                           `(match ~m ~@body)))
-       ; if we don't, well, we have our work cut out for us
-       (let [pbody   (partition 2 body)
-             mailbox (tagged `Actor (gensym "mailbox"))
-             it (tagged `QueueIterator (gensym "it"))
-             m2 (gensym "m2") mtc (gensym "mtc") exp (gensym "exp")] ; symbols
-         `(let [[~mtc ~m]
-                (let ~(into [] (concat `[~mailbox (PulsarActor/currentActor)]
-                                       (if after-clause `[~timeout ~(second after-clause)
-                                                          ~exp (if (pos? ~timeout) (long (+ (long (System/nanoTime)) (long (* 1000000 ~timeout)))) 0)] [])))
-                  (PulsarActor/maybeSetCurrentStrandAsOwner ~mailbox)
+         i           (gensym "i")
+         has-else    (seq (filter #(= % :else) (take-nth 2 body)))]
+     (let [pbody   (partition 2 body)
+           mailbox (tagged `Actor (gensym "mailbox"))
+           it      (tagged `QueueIterator (gensym "it"))
+           m2      (gensym "m2")
+           mtc     (gensym "mtc")
+           exp     (gensym "exp")] ; symbols
+       `(let [[~mtc ~m]
+              (let ~(into [] (concat `[~mailbox (PulsarActor/currentActor)]
+                                     (if after-clause
+                                       `[~timeout
+                                           ~(second after-clause)
+                                           ~exp
+                                             (if (pos? ~timeout)
+                                               (long (+
+                                                 (long (System/nanoTime))
+                                                 (long (* 1000000 ~timeout))))
+                                               0)]
+                                       [])))
+                (PulsarActor/maybeSetCurrentStrandAsOwner ~mailbox)
 
-                  (let [~it (PulsarActor/iterator ~mailbox)]
-                    (loop [~i 0]
-                     (PulsarActor/lock ~mailbox)
-                     ~(let [quick-match (concat             ; ((pat1 act1) (pat2 act2)...) => (pat1 (do (co.paralleluniverse.actors.PulsarActor/processed mailbox# n#) 0) pat2 (do (del mailbox# n#) 1)... :else -1)
-                                          (mapcat #(list (first %1) `(do (PulsarActor/processed ~mailbox ~it) ~%2)) pbody (range)) ; for each match pattern, call processed and return an ordinal
-                                          `(:else (do (PulsarActor/skipped ~mailbox ~it) -1)))]
-                        `(if (.hasNext ~it)
-                           (do
-                             (PulsarActor/unlock ~mailbox)
-                             (let [m1# (PulsarActor/next ~mailbox ~it)]
-                               (when (and (instance? co.paralleluniverse.actors.LifecycleMessage m1#)
-                                          (or (not (instance? PulsarActor ~mailbox))
-                                              (not (.isTrap ~(tagged `PulsarActor `(cast PulsarActor ~mailbox))))))
-                                 (PulsarActor/handleLifecycleMessage ~mailbox m1#))
-                               (let [~m2 (PulsarActor/convert m1#)
-                                     ~m ~(if transform `(~transform ~m2) `~m2)
-                                     act# (int (match ~m ~@quick-match))]
-                                 (if (>= act# 0)
-                                   [act# ~m]                ; we've got a match!
-                                   (recur (inc ~i))))))     ; no match. try the next
-                           ; !it.hasNext()
-                           ~(if after-clause
-                              `(if-not (== ~timeout 0)
-                                 (do                        ; timeout != 0 and ~n == nil
-                                   (try
-                                     (PulsarActor/await ~mailbox ~i (- ~exp (long (System/nanoTime))) java.util.concurrent.TimeUnit/NANOSECONDS)
-                                     (finally
-                                       (PulsarActor/unlock ~mailbox)))
-                                   (when-not (> (long (System/nanoTime)) ~exp)
-                                     (recur (inc ~i))))
-                                 (PulsarActor/unlock ~mailbox))
-                              `(do
+                (let [~it (PulsarActor/iterator ~mailbox)]
+                  (loop [~i 0]
+                   (PulsarActor/lock ~mailbox)
+                   ~(let [quick-match (concat             ; ((pat1 act1) (pat2 act2)...) => (pat1 (do (co.paralleluniverse.actors.PulsarActor/processed mailbox# n#) 0) pat2 (do (del mailbox# n#) 1)... :else -1)
+                                        (mapcat
+                                          #(list
+                                            (first %1)
+                                            `(do
+                                               (PulsarActor/processed ~mailbox ~it)
+                                               ~%2))
+                                          pbody
+                                          (range)) ; for each match pattern, call processed and return an ordinal
+                                        (if has-else () `(:else (do (PulsarActor/skipped ~mailbox ~it) -1))))]
+                      `(if (.hasNext ~it)
+                         (do
+                           (PulsarActor/unlock ~mailbox)
+                           (let [m1# (PulsarActor/next ~mailbox ~it)]
+                             (when (and (instance? co.paralleluniverse.actors.LifecycleMessage m1#)
+                                        (or (not (instance? PulsarActor ~mailbox))
+                                            (not (.isTrap ~(tagged `PulsarActor `(cast PulsarActor ~mailbox))))))
+                               (PulsarActor/handleLifecycleMessage ~mailbox m1#))
+                             (let [~m2  (PulsarActor/convert m1#)
+                                   ~m   ~(if transform `(~transform ~m2) `~m2)
+                                   act# (int (match ~m ~@quick-match))]
+                               (if (>= act# 0)
+                                 [act# ~m]                ; we've got a match!
+                                 (recur (inc ~i))))))     ; no match. try the next
+                         ; !it.hasNext()
+                         ~(if after-clause
+                            `(if-not (== ~timeout 0)
+                               (do                        ; timeout != 0 and ~n == nil
                                  (try
-                                   (PulsarActor/await ~mailbox ~i)
+                                   (PulsarActor/await
+                                     ~mailbox ~i
+                                     (- ~exp (long (System/nanoTime)))
+                                     TimeUnit/NANOSECONDS)
                                    (finally
                                      (PulsarActor/unlock ~mailbox)))
-                                 (recur (inc ~i)))))))))]
-            ~@(surround-with (when after-clause `(if (nil? ~mtc) ~(nth after-clause 2)))
-                             ; now, mtc# is the number of the matching clause and m# is the message.
-                             ; but the patterns might have wildcards so we need to match again (for the bindings)
-                             `(case (int ~mtc) ~@(mapcat #(list %2 `(match [~m] [~(first %1)] ~(second %1))) pbody (range))))))))))
+                                 (when-not (> (long (System/nanoTime)) ~exp)
+                                   (recur (inc ~i))))
+                               (PulsarActor/unlock ~mailbox))
+                            `(do
+                               (try
+                                 (PulsarActor/await ~mailbox ~i)
+                                 (finally
+                                   (PulsarActor/unlock ~mailbox)))
+                               (recur (inc ~i)))))))))]
+          ~@(surround-with (when after-clause `(if (nil? ~mtc) ~(nth after-clause 2)))
+                           ; now, mtc# is the number of the matching clause and m# is the message.
+                           ; but the patterns might have wildcards so we need to match again (for the bindings)
+                           `(case
+                              (int ~mtc)
+                                ~@(mapcat
+                                    #(list
+                                      %2
+                                      `(match ~m
+                                              ~(first %1)
+                                              ~(second %1)))
+                                    pbody
+                                    (range)))))))))
 ;`(match [~mtc ~m] ~@(mapcat #(list [%2 (first %1)] (second %1)) pbody (range))))))))))
 
 (defn shutdown!
@@ -657,7 +678,7 @@
         s (first body)]
     `(co.paralleluniverse.actors.behaviors.ServerActor. ~name
                                                         (Server->java ~(if (symbol? s) `(var ~s) `(vref ~s)))
-                                                        (long ~timeout) java.util.concurrent.TimeUnit/MILLISECONDS
+                                                        (long ~timeout) TimeUnit/MILLISECONDS
                                                         nil (->MailboxConfig ~mailbox-size ~overflow-policy))))
 
 (defsfn call!

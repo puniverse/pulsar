@@ -220,7 +220,17 @@
                                (receive
                                  [:exit w actor reason] actor))))]
               (join actor1)
-              (fact (join actor2) => actor1))))
+              (fact (join actor2) => actor1)))
+      (fact "When an actor dies, its watch gets a message3"
+            (let [actor1 (spawn #(Fiber/sleep 200))
+                  actor2 (spawn
+                           (fn []
+                               (let [w (watch! actor1)]
+                                    (receive
+                                      [:exit w actor reason] actor
+                                      :else "fail"))))]
+                 (join actor1)
+                 (fact (join actor2) => actor1))))
 
 (facts "actor-state"
        (fact "Test recur actor-state"
