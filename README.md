@@ -70,6 +70,10 @@ or to the `:jvm-opts` section in project.clj:
 
 * [Google group](https://groups.google.com/forum/?fromgroups#!forum/quasar-pulsar-user).
 
+## Contributions (including Pull Requests)
+
+Please have a look at some brief [information for contributors](https://github.com/puniverse/quasar/blob/master/CONTRIBUTING.md).
+
 ## License
 
 Pulsar is free software published under the following license:
