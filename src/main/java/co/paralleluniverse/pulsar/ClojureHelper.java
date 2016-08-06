@@ -82,7 +82,7 @@ public class ClojureHelper {
         Retransform.addWaiver("co.paralleluniverse.actors.behaviors.EventHandler", "handleEvent");
 
         // mark all IFn methods as suspendable
-        Retransform.getMethodDB().getClassEntry(Type.getInternalName(IFn.class)).setAll(MethodDatabase.SuspendableType.SUSPENDABLE_SUPER);
+        Retransform.getMethodDB(IFn.class.getClassLoader()).getClassEntry(Type.getInternalName(IFn.class)).setAll(MethodDatabase.SuspendableType.SUSPENDABLE_SUPER);
 
         // register kryo serializers for clojure types
         if (ActorRegistry.hasGlobalRegistry()) {
@@ -119,7 +119,8 @@ public class ClojureHelper {
         }
 
         if (!isIFn && clazz.isInterface()) {
-            Retransform.getMethodDB().getClassEntry(Type.getInternalName(clazz)).setAll(MethodDatabase.SuspendableType.SUSPENDABLE_SUPER);
+            System.out.println("XXXX DB: " + Retransform.getMethodDB(clazz.getClassLoader()));
+            Retransform.getMethodDB(clazz.getClassLoader()).getClassEntry(Type.getInternalName(clazz)).setAll(MethodDatabase.SuspendableType.SUSPENDABLE_SUPER);
             return thing;
         }
 
@@ -162,7 +163,7 @@ public class ClojureHelper {
                     e.printStackTrace(System.err); // it's just a best effort
                 }
             }
-            for (Map.Entry<String, ClassEntry> entry : Retransform.getMethodDB().getInnerClassesEntries(Type.getInternalName(clazz)).entrySet()) {
+            for (Map.Entry<String, ClassEntry> entry : Retransform.getMethodDB(clazz.getClassLoader()).getInnerClassesEntries(Type.getInternalName(clazz)).entrySet()) {
                 final String className = entry.getKey();
                 final ClassEntry ce = entry.getValue();
                 final Class cls = Class.forName(className.replaceAll("/", "."), false, clazz.getClassLoader());
