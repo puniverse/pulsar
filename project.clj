@@ -54,6 +54,10 @@
                          ]
               :global-vars {*warn-on-reflection* true}}
 
+             ;; ----------- other instrumentation strategies ---------
+             :auto-instrument-all
+             {:jvm-opts ["-Dco.paralleluniverse.pulsar.instrument.auto=all"]}
+
              ;; ----------- cluster --------------------------------------
              :cluster
              {:repositories {"oracle" "http://download.oracle.com/maven/"}
@@ -90,7 +94,4 @@
                                 co.paralleluniverse.pulsar.lazyseq
                                 co.paralleluniverse.pulsar.async]
                       :output-path "docs/api"}
-              :global-vars {*warn-on-reflection* false}}
-             ;; ----------- other instrumentation strategies ---------
-             :auto-instrument-all
-             {:jvm-opts ["-Dco.paralleluniverse.pulsar.instrument.auto=all"]}})
+              :global-vars {*warn-on-reflection* false}}})
