@@ -15,8 +15,7 @@
   (:require [co.paralleluniverse.pulsar.core :refer :all]
             [co.paralleluniverse.pulsar.interop :refer :all]
             [clojure.string :as str]
-            [clojure.core.match :refer [match]]
-            [clojure.core.typed :refer [ann def-alias Option AnyInteger Any U I All IFn HVec]])
+            [clojure.core.match :refer [match]])
   (:refer-clojure :exclude [promise await bean])
   (:import [java.util.concurrent TimeUnit ExecutionException TimeoutException]
            [co.paralleluniverse.fibers FiberScheduler FiberFactory]
@@ -32,9 +31,7 @@
                                                  EventSource EventSourceActor EventHandler
                                                  FiniteStateMachineActor
                                                  Supervisor Supervisor$ChildSpec Supervisor$ChildMode SupervisorActor SupervisorActor$RestartStrategy]
-           ; for types:
-           [clojure.lang Keyword IObj IMeta IDeref ISeq IPersistentCollection IPersistentVector IPersistentMap]
-           (co.paralleluniverse.concurrent.util ThreadAccess)))
+           [clojure.lang IDeref]))
 
 ;; ## Private util functions
 ;; These are internal functions aided to assist other functions in handling variadic arguments and the like.
@@ -49,7 +46,7 @@
         (when more
           (list* `assert-args more)))))
 
-(ann nth-from-last (All [x y]
+#_(ann nth-from-last (All [x y]
                         (IFn [(IPersistentCollection x) Long -> x]
                             [(IPersistentCollection x) Long y -> (U x y)])))
 (defn- nth-from-last
@@ -237,7 +234,7 @@
     clojure.lang.IDeref
     (deref [_] (LocalActor/self))))
 
-(ann state (IDeref Any))
+;(ann state (IDeref Any))
 (def state
   "@state is the state of the currently running actor.
   The state can be set with `set-state!`"
@@ -245,14 +242,14 @@
     clojure.lang.IDeref
     (deref [_] (PulsarActor/selfGetState))))
 
-(ann set-state! (All [x] [x -> x]))
+;(ann set-state! (All [x] [x -> x]))
 (defn set-state!
   "Sets the state of the currently running actor.
   The state can be read with `@state`."
   [x]
   (PulsarActor/selfSetState x))
 
-(ann mailbox (IDeref Channel))
+;(ann mailbox (IDeref Channel))
 (def mailbox
   "@mailbox is the mailbox channel of the currently running actor"
   (reify
@@ -260,7 +257,7 @@
     (deref [_] (PulsarActor/selfMailbox))))
 
 
-(ann get-actor [Any -> Actor])
+;(ann get-actor [Any -> Actor])
 (defsfn ^ActorRef get-actor
   "If the argument is an actor -- returns it. If not, looks up a registered 
   actor with the argument as its name.
@@ -273,7 +270,7 @@
       a
       (ActorRegistry/getActor (name a)))))
 
-(ann trap! [-> nil])
+;(ann trap! [-> nil])
 (defn trap!
   "Sets the current actor to trap lifecycle events (like a dead linked actor) 
   and turn them into exit messages.
@@ -282,7 +279,7 @@
   (.setTrap ^PulsarActor (Actor/currentActor) true))
 
 
-(ann link! (IFn [ActorRef -> ActorRef]
+#_(ann link! (IFn [ActorRef -> ActorRef]
                [ActorRef ActorRef -> ActorRef]))
 (defn link!
   "Links two actors. If only one actor is specified, links the current actor with the
@@ -302,7 +299,7 @@
   ([actor1 actor2]
    (LocalActor/link (get-actor actor1) (get-actor actor2))))
 
-(ann unlink! (IFn [Actor -> Actor]
+#_(ann unlink! (IFn [Actor -> Actor]
                  [Actor Actor -> Actor]))
 (defn unlink!
   "Unlinks two actors. If only one actor is specified, unlinks the current actor from the
@@ -314,7 +311,7 @@
   ([actor1 actor2]
    (LocalActor/unlink (get-actor actor1) (get-actor actor2))))
 
-(ann watch! (IFn [Actor Actor -> LifecycleListener]
+#_(ann watch! (IFn [Actor Actor -> LifecycleListener]
                  [Actor -> LifecycleListener]))
 (defn watch!
   "Makes the current actor watch another actor. Returns a watch object which is then
@@ -339,14 +336,14 @@
   [actor]
    (.watch (Actor/currentActor) actor))
 
-(ann unwatch! (IFn [Actor Actor LifecycleListener -> nil]
+#_(ann unwatch! (IFn [Actor Actor LifecycleListener -> nil]
                  [Actor LifecycleListener -> nil]))
 (defn unwatch!
   "Makes an actor stop watching another actor"
   ([actor2 monitor]
    (.unwatch ^Actor (Actor/currentActor) actor2 monitor)))
 
-(ann register (IFn [String LocalActor -> LocalActor]
+#_(ann register (IFn [String LocalActor -> LocalActor]
                   [LocalActor -> LocalActor]))
 (defn register!
   "Registers an actor in the actor registry.
@@ -377,7 +374,7 @@
   [^ActorRef actor]
   actor)
 
-(ann whereis [Any -> Actor])
+;(ann whereis [Any -> Actor])
 (defn ^ActorRef whereis
   "Returns a registered actor by name, blocking until one is registered"
   ([actor-name]
@@ -386,14 +383,14 @@
    (ActorRegistry/getActor (name actor-name) (long timeout) (->timeunit unit))))
 
 
-(ann maketag [-> Number])
+;(ann maketag [-> Number])
 (defn maketag
   "Returns a random, probably unique, identifier.
   (this is similar to Erlang's makeref)."
   []
   (ActorUtil/randtag))
 
-(ann tagged-tuple? [Any -> Boolean])
+;(ann tagged-tuple? [Any -> Boolean])
 (defn tagged-tuple?
   "Tests whether argument x is a vector whose first element is a keyword."
   {:no-doc true}
@@ -432,7 +429,7 @@
   ([actor arg & args]
    `(PulsarActor/sendSync (get-actor ~actor) (clojure->java-msg [~arg ~@args]))))
 
-(ann receive-timed [AnyInteger -> (Option Any)])
+;(ann receive-timed [AnyInteger -> (Option Any)])
 (defsfn receive-timed
   "Waits (and returns) for a message for up to timeout ms. If time elapses -- returns nil."
   [^Integer timeout]
