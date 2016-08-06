@@ -14,16 +14,13 @@
   "Functions transform channels"
   (:require
     [co.paralleluniverse.pulsar.core :refer :all]
-    [clojure.core.match :refer [match]]
-    [clojure.core.typed :refer [ann Option AnyInteger I U Any All]])
+    [clojure.core.match :refer [match]])
   (:refer-clojure :exclude [promise await
                              foreach map mapcat filter zip])
   (:import
     [co.paralleluniverse.strands.channels Channels Channel ReceivePort SendPort]
     [co.paralleluniverse.strands SuspendableAction2]
-    [com.google.common.base Function Predicate]
-    ; for types:
-    [clojure.lang Seqable LazySeq ISeq]))
+    [com.google.common.base Function Predicate]))
 
 (defn- ^Function fn->guava-fn
   [f]

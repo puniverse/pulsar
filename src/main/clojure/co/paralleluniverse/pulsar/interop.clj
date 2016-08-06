@@ -15,27 +15,24 @@
   (:refer-clojure :exclude [bean])
   (:import
     [com.google.common.collect Multiset Multiset$Entry Multimap ListMultimap SetMultimap]
-    [java.util Collection Map Map$Entry Set List]
-    ; for types:
-    [clojure.lang Seqable LazySeq ISeq])
+    [java.util Collection Map Map$Entry Set List])
   (:require
-    [clojure.string :as str]
-    [clojure.core.typed :refer [ann Option AnyInteger I U Any All]]))
+    [clojure.string :as str]))
 
 
-(ann camel-to-dash [String -> String])
+;(ann camel-to-dash [String -> String])
 (defn camel-to-dash ; there are many ways of doing this, but it doesn't have to be fast
   [^String s]
   (.toLowerCase (str/replace s #"[a-z0-9][A-Z]" #(str (first %) \- (second %)))))
 ;  (apply str (cons (Character/toLowerCase (first s))
 ;                   (map #(if (Character/isUpperCase %) (str "-" (Character/toLowerCase %)) %) (next s)))))
 
-(ann underscore-to-dash [String -> String])
+;(ann underscore-to-dash [String -> String])
 (defn underscore-to-dash
   [^String s]
   (.toLowerCase (.replace s \_ \-)))
 
-(ann java-name->clojure [String -> String])
+;(ann java-name->clojure [String -> String])
 (defn java-name->clojure
   [^String s]
   (-> s camel-to-dash underscore-to-dash))

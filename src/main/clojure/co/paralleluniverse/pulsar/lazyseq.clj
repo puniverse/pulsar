@@ -14,16 +14,13 @@
    "Functions to transform a channel into a laze seq"
    (:require
      [co.paralleluniverse.pulsar.core :refer :all]
-     [clojure.core.match :refer [match]]
-     [clojure.core.typed :refer [ann Option AnyInteger I U Any All]])
+     [clojure.core.match :refer [match]])
    (:refer-clojure :exclude [promise await
                              ;filter
                              ])
    (:import
      [co.paralleluniverse.strands.channels Channel SendPort ReceivePort]
-     [co.paralleluniverse.pulsar ClojureHelper SuspendableLazySeq]
-     ; for types:
-     [clojure.lang Seqable LazySeq ISeq]))
+     [co.paralleluniverse.pulsar ClojureHelper SuspendableLazySeq]))
  
  ;; We don't need to make most seq functions suspendable because of the way lazy-seqs work
  ;; but we do need to call the lazy-seq body more than once (on each resume), and the default

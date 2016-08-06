@@ -14,13 +14,10 @@
   "Dataflow vals and vars"
   (:refer-clojure :exclude [promise await])
   (:require
-    [co.paralleluniverse.pulsar.core :refer :all]
-    [clojure.core.typed :refer [ann Option AnyInteger I U Any All]])
+    [co.paralleluniverse.pulsar.core :refer :all])
   (:import
     [co.paralleluniverse.strands.dataflow Val Var]
-    [java.util.concurrent TimeUnit TimeoutException]
-    ; for types:
-    [clojure.lang Seqable LazySeq ISeq]))
+    [java.util.concurrent TimeUnit TimeoutException]))
 
 
 (defn df-val

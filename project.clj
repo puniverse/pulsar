@@ -21,8 +21,7 @@
                  [org.ow2.asm/asm "5.1"]
                  [org.clojure/core.match "0.2.2" :exclusions [org.ow2.asm/*]]
                  [org.flatland/useful "0.11.5"]
-                 [gloss "0.2.6" :exclusions [com.yammer.metrics/metrics-core useful]]
-                 [org.clojure/core.typed "0.3.23" :exclusions [org.apache.ant/ant org.clojure/core.unify org.ow2.asm/*]]]
+                 [gloss "0.2.6" :exclusions [com.yammer.metrics/metrics-core useful]]]
   :manifest {"Premain-Class" "co.paralleluniverse.fibers.instrument.JavaAgent"
              "Can-Retransform-Classes" "true"}
   :jvm-opts ["-server"
@@ -36,7 +35,7 @@
   :profiles {;; ----------- dev --------------------------------------
              :dev
              {:plugins [[lein-midje "3.2"]]
-              :dependencies [[midje "1.8.3" :exclusions [org.clojure/tools.namespace]]]
+              :dependencies [[midje "1.8.3"]]
               :jvm-opts [;; Debugging
                          "-ea"
                          ;"-Dco.paralleluniverse.fibers.verifyInstrumentation=true"
@@ -54,6 +53,10 @@
                          "-DLog4jContextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector"
                          ]
               :global-vars {*warn-on-reflection* true}}
+
+             ;; ----------- other instrumentation strategies ---------
+             :auto-instrument-all
+             {:jvm-opts ["-Dco.paralleluniverse.pulsar.instrument.auto=all"]}
 
              ;; ----------- cluster --------------------------------------
              :cluster
@@ -91,7 +94,4 @@
                                 co.paralleluniverse.pulsar.lazyseq
                                 co.paralleluniverse.pulsar.async]
                       :output-path "docs/api"}
-              :global-vars {*warn-on-reflection* false}}
-             ;; ----------- other instrumentation strategies ---------
-             :auto-instrument-all
-             {:jvm-opts ["-Dco.paralleluniverse.pulsar.instrument.auto=all"]}})
+              :global-vars {*warn-on-reflection* false}}})

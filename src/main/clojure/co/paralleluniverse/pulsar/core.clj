@@ -34,17 +34,16 @@
          [co.paralleluniverse.pulsar ClojureHelper ChannelsHelper ClojureFiberAsync]
          ; for types:
          [clojure.lang Keyword Sequential IObj IMeta IDeref ISeq IPersistentCollection IPersistentVector IPersistentMap])
-(:require [co.paralleluniverse.pulsar.interop :refer :all]
-          [clojure.core.typed :refer [ann def-alias Option AnyInteger Any U I All IFn HVec]]))
+(:require [co.paralleluniverse.pulsar.interop :refer :all]))
 
 ;; ## clojure.core type annotations
 
-(ann clojure.core/split-at (All [x] (IFn [Long (IPersistentCollection x) -> (IPersistentVector (IPersistentCollection x))])))
-(ann clojure.core/coll? [Any -> Boolean :filters {:then (is (IPersistentCollection Any) 0) :else (! (IPersistentCollection Any) 0)}])
-(ann clojure.core/partition-all (All [x] (IFn [Long (ISeq x) -> (ISeq (U (ISeq x) x))])))
-(ann clojure.core/into (All [[xs :< (IPersistentCollection Any)]] (IFn [xs (IPersistentCollection Any) -> xs])))
-(ann clojure.core/set-agent-send-executor! [java.util.concurrent.ExecutorService -> nil])
-(ann clojure.core/set-agent-send-off-executor! [java.util.concurrent.ExecutorService -> nil])
+;(ann clojure.core/split-at (All [x] (IFn [Long (IPersistentCollection x) -> (IPersistentVector (IPersistentCollection x))])))
+;(ann clojure.core/coll? [Any -> Boolean :filters {:then (is (IPersistentCollection Any) 0) :else (! (IPersistentCollection Any) 0)}])
+;(ann clojure.core/partition-all (All [x] (IFn [Long (ISeq x) -> (ISeq (U (ISeq x) x))])))
+;(ann clojure.core/into (All [[xs :< (IPersistentCollection Any)]] (IFn [xs (IPersistentCollection Any) -> xs])))
+;(ann clojure.core/set-agent-send-executor! [java.util.concurrent.ExecutorService -> nil])
+;(ann clojure.core/set-agent-send-off-executor! [java.util.concurrent.ExecutorService -> nil])
 
 ;; ## Private util functions
 ;; These are internal functions aided to assist other functions in handling variadic arguments and the like.
@@ -67,7 +66,7 @@
         (when more
           (list* `assert-args more)))))
 
-(ann sequentialize (All [x y]
+#_(ann sequentialize (All [x y]
                         (IFn
                          [(IFn [x -> y]) ->
                           (IFn [x -> y]
@@ -84,7 +83,7 @@
 ;;     (surround-with nil 4 5 6) -> (4 5 6)
 ;;     (surround-with '(1 2 3) 4 5 6) -> ((1 2 3 4 5 6))
 ;;     (surround-with '(1 (2)) '(3 4)) -> ((1 (2) (3 4)))
-(ann surround-with [(ISeq Any) Any * -> (ISeq Any)])
+;(ann surround-with [(ISeq Any) Any * -> (ISeq Any)])
 (defn surround-with
   {:no-doc true}
   [expr & exprs]
@@ -95,14 +94,14 @@
 ;;     (deep-surround-with '(1 2 3) 4 5 6) -> (1 2 3 4 5 6)
 ;;     (deep-surround-with '(1 2 (3)) 4 5 6) -> (1 2 (3 4 5 6))
 ;;     (deep-surround-with '(1 2 (3 (4))) 5 6 7) -> (1 2 (3 (4 5 6 7)))
-(ann ^:no-check deep-surround-with [(ISeq Any) Any * -> (ISeq Any)])
+;(ann ^:no-check deep-surround-with [(ISeq Any) Any * -> (ISeq Any)])
 (defn- deep-surround-with
   [expr & exprs]
   (if (not (coll? (last expr)))
     (concat expr exprs)
     (concat (butlast expr) (list (apply deep-surround-with (cons (last expr) exprs))))))
 
-#_(ann ops-args [(ISeq (HVec (IFn [Any -> Boolean]) Any)) (ISeq Any) -> (ISeq Any)])
+;(ann ops-args [(ISeq (HVec (IFn [Any -> Boolean]) Any)) (ISeq Any) -> (ISeq Any)])
 (defn- ops-args
   "Used to simplify optional parameters in functions.
   Takes a sequence of [predicate? default] pairs, and a sequence of arguments. Tests the first predicate against
@@ -118,7 +117,7 @@
         (cons d (ops-args (rest pds) xs))))
     (seq xs)))
 
-(ann merge-meta (All [[x :< clojure.lang.IObj] [y :< (IPersistentMap Keyword Any)]]
+#_(ann merge-meta (All [[x :< clojure.lang.IObj] [y :< (IPersistentMap Keyword Any)]]
                      [x y -> (I x (IMeta y))]))
 (defn merge-meta
   {:no-doc true}
@@ -128,7 +127,7 @@
 (defn tagged [tag sym]
   (vary-meta sym assoc :tag tag))
 
-(ann keyword->timeunit [Keyword -> TimeUnit])
+;(ann keyword->timeunit [Keyword -> TimeUnit])
 (defn- ^TimeUnit keyword->timeunit
   [x]
   (case x
@@ -140,7 +139,7 @@
     (:hours :hrs)               TimeUnit/HOURS
     :days                       TimeUnit/DAYS))
 
-(ann ->timeunit [(U TimeUnit Keyword) -> TimeUnit])
+;(ann ->timeunit [(U TimeUnit Keyword) -> TimeUnit])
 (defn ^TimeUnit ->timeunit
   "Constructs an instance of `java.util.concurrent.TimeUnit`.
   If argument x is already an instance of `TimeUnit`, the function returns x.
@@ -168,7 +167,7 @@
   [x from-unit to-unit]
   (.convert (->timeunit to-unit) x (->timeunit from-unit)))
 
-(ann unwrap-exception* [Throwable -> Throwable])
+;(ann unwrap-exception* [Throwable -> Throwable])
 (defn unwrap-exception*
   {:no-doc true}
   [^Throwable e]
@@ -190,14 +189,14 @@
 ;; Only functions that have been especially instrumented can perform blocking actions
 ;; while running in a fiber.
 
-(ann suspendable? [IFn -> Boolean])
+;(ann suspendable? [IFn -> Boolean])
 (defn suspendable?
   "Returns true of a function has been instrumented as suspendable; false otherwise."
   [f]
   (or (instance? co.paralleluniverse.pulsar.IInstrumented f)
       (.isAnnotationPresent (.getClass ^Object f) co.paralleluniverse.fibers.Instrumented)))
 
-(ann suspendable! (IFn [IFn -> IFn]
+#_(ann suspendable! (IFn [IFn -> IFn]
                       [IFn * -> (ISeq IFn)]
                       [(ISeq IFn) -> (ISeq IFn)]))
 (defn suspendable!
@@ -208,7 +207,7 @@
   ([x prot]
    (ClojureHelper/retransform x prot)))
 
-(ann ->suspendable-callable [[Any -> Any] -> SuspendableCallable])
+;(ann ->suspendable-callable [[Any -> Any] -> SuspendableCallable])
 (defn ^SuspendableCallable ->suspendable-callable
   "wrap a clojure function as a SuspendableCallable"
   {:no-doc true}
@@ -245,7 +244,7 @@
                         (map #(cons `sfn %) fnspecs)))
    ~@body))
 
-(ann ^:no-check strampoline (All [v1 v2 ...]
+#_(ann ^:no-check strampoline (All [v1 v2 ...]
                                 (IFn
                                  [(IFn [v1 v2 ... v2 -> Any]) v1 v2 ... v2 -> Any]
                                  [[-> Any] -> Any])))
@@ -286,7 +285,7 @@
 
 ;; ## Fibers
 
-(ann current-fiber [-> Fiber])
+;(ann current-fiber [-> Fiber])
 (defn current-fiber
   "Returns the currently running lightweight-thread or `nil` if none."
   []
@@ -296,18 +295,18 @@
   (when-let [^Fiber f (current-fiber)]
     (.getScheduler f)))
 
-(ann default-fiber-scheduler FiberScheduler)
+;(ann default-fiber-scheduler FiberScheduler)
 (def ^FiberScheduler default-fiber-scheduler
   "A global fiber scheduler. The scheduler uses all available processor cores."
   (DefaultFiberScheduler/getInstance))
 
-(ann get-scheduler [-> FiberScheduler])
+;(ann get-scheduler [-> FiberScheduler])
 (defn ^FiberScheduler get-scheduler
   {:no-doc true}
   [^FiberScheduler scheduler]
   (or scheduler (current-scheduler) default-fiber-scheduler))
 
-(ann create-fiber [String FiberScheduler AnyInteger [Any -> Any] -> Fiber])
+;(ann create-fiber [String FiberScheduler AnyInteger [Any -> Any] -> Fiber])
 (defn ^Fiber create-fiber
   "Creates, but does not start a new fiber (a lightweight thread) running in a fork/join pool.
   
@@ -316,7 +315,7 @@
   (let [[^String name ^FiberScheduler scheduler ^Integer stacksize f] (ops-args [[string? nil] [#(instance? FiberScheduler %) default-fiber-scheduler] [integer? -1]] args)]
     (Fiber. name (get-scheduler scheduler) (int stacksize) (->suspendable-callable f))))
 
-(ann start [Fiber -> Fiber])
+;(ann start [Fiber -> Fiber])
 (defn start
   "Starts a fiber created with `create-fiber`."
   [^Fiber fiber]
@@ -340,7 +339,7 @@
            fiber# (co.paralleluniverse.fibers.Fiber. ~name (get-scheduler ~scheduler) (int ~stack-size) (->suspendable-callable f#))]
        (.start fiber#))))
 
-(ann current-fiber [-> Fiber])
+;(ann current-fiber [-> Fiber])
 (defn fiber->future
   "Takes a spawned fiber yields a future object that will
   invoke the function in another thread, and will cache the result and
@@ -389,14 +388,14 @@
 ;; ## Strands
 ;; A strand is either a thread or a fiber.
 
-(ann current-strand [-> Strand])
+;(ann current-strand [-> Strand])
 (defn ^Strand current-strand
   "Returns the currently running fiber (if running in fiber)
   or current thread (if not)."
   []
   (Strand/currentStrand))
 
-(ann alive? [Strand -> Boolean])
+;(ann alive? [Strand -> Boolean])
 (defn alive?
   "Tests whether or not a strand is alive. 
   A strand is alive if it has been started but has not yet died."
@@ -426,7 +425,7 @@
        (.start thread)
        thread)))
 
-(ann join* [(U Joinable Thread) -> (Option Any)])
+;(ann join* [(U Joinable Thread) -> (Option Any)])
 (defsfn ^:private join*
   ([s]
    (unwrap-exception
@@ -445,7 +444,7 @@
        (instance? co.paralleluniverse.actors.ActorRef s) (co.paralleluniverse.actors.LocalActor/get s timeout (->timeunit unit))
        :else (throw (IllegalArgumentException. (str "Cannot join " s)))))))
 
-(ann join (IFn [(U Joinable Thread) -> (Option Any)]
+#_(ann join (IFn [(U Joinable Thread) -> (Option Any)]
               [(Sequential (U Joinable Thread)) -> (ISeq Any)]))
 (defsfn join
   "Awaits the termination of the given strand or strands, and returns
@@ -520,7 +519,7 @@
 
 ;; ## Channels
 
-(ann channel (IFn [AnyInteger -> Channel]
+#_(ann channel (IFn [AnyInteger -> Channel]
                  [-> Channel]))
 (defn ^Channel channel
   "Creates a new channel.
@@ -571,7 +570,7 @@
     (instance? DoubleChannel ticker) (Channels/newTickerConsumerFor ^DoubleChannel ticker)
     :else                            (Channels/newTickerConsumerFor ticker)))
 
-(ann snd (All [x] [Channel x -> x]))
+;(ann snd (All [x] [Channel x -> x]))
 (defsfn snd
   "Sends a message to a channel.
   If the channel's overflow policy is `:block` than this function will block
@@ -579,7 +578,7 @@
   [^SendPort channel message]
   (.send channel message))
 
-(ann snd (All [x] [Channel x -> x]))
+;(ann snd (All [x] [Channel x -> x]))
 (defn try-snd
   "Tries to immediately send a message to a channel.
   If the channel's capacity is exceeded, this function fails and returns `false`.
@@ -588,7 +587,7 @@
   [^SendPort channel message]
   (.trySend channel message))
 
-(ann rcv (IFn [Channel -> Any]
+#_(ann rcv (IFn [Channel -> Any]
              [Channel Long (U TimeUnit Keyword) -> (Option Any)]))
 (defsfn rcv
   "Receives a message from a channel.
@@ -791,7 +790,7 @@
 
 ;; ### Primitive channels
 
-(ann int-channel (IFn [AnyInteger -> IntChannel]
+#_(ann int-channel (IFn [AnyInteger -> IntChannel]
                      [-> IntChannel]))
 (defn ^IntChannel int-channel
   "Creates an int channel"
@@ -823,7 +822,7 @@
   ([channel timeout unit]
    `(int (.receiveInt ~(tagged `IntReceivePort channel) (long ~timeout) (->timeunit ~unit)))))
 
-(ann long-channel (IFn [AnyInteger -> LongChannel]
+#_(ann long-channel (IFn [AnyInteger -> LongChannel]
                       [-> LongChannel]))
 (defn ^LongChannel long-channel
   "Creates a long channel"
@@ -855,7 +854,7 @@
   ([channel timeout unit]
    `(long (.receiveLong ~(tagged `LongReceivePort channel) (long ~timeout) (->timeunit ~unit)))))
 
-(ann float-channel (IFn [AnyInteger -> FloatChannel]
+#_(ann float-channel (IFn [AnyInteger -> FloatChannel]
                        [-> FloatChannel]))
 (defn ^FloatChannel float-channel
   "Creates a float channel"
@@ -887,7 +886,7 @@
   ([channel timeout unit]
    `(float (.receiveFloat ~(tagged `FloatReceivePort channel) (long ~timeout) (->timeunit ~unit)))))
 
-(ann double-channel (IFn [AnyInteger -> DoubleChannel]
+#_(ann double-channel (IFn [AnyInteger -> DoubleChannel]
                         [-> DoubleChannel]))
 (defn ^DoubleChannel double-channel
   "Creates a double channel"

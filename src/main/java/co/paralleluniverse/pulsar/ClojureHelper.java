@@ -119,7 +119,7 @@ public class ClojureHelper {
         }
 
         if (!isIFn && clazz.isInterface()) {
-            System.out.println("XXXX DB: " + Retransform.getMethodDB(clazz.getClassLoader()));
+            // System.out.println("XXXX DB: " + Retransform.getMethodDB(clazz.getClassLoader()));
             Retransform.getMethodDB(clazz.getClassLoader()).getClassEntry(Type.getInternalName(clazz)).setAll(MethodDatabase.SuspendableType.SUSPENDABLE_SUPER);
             return thing;
         }
