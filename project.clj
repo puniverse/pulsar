@@ -28,7 +28,8 @@
              ;"-Dclojure.compiler.disable-locals-clearing=true"
              ;; ForkJoin wants these:
              "-XX:-UseBiasedLocking"
-             "-XX:+UseCondCardMark"]
+             "-XX:+UseCondCardMark"
+	     "-Xmx2048M"]
   ;:injections [(alter-var-root #'*compiler-options* (constantly {:disable-locals-clearing true}))]
   :java-agents [[co.paralleluniverse/quasar-core ~quasar-version :options "m"]] ; :classifier "jdk8" :options "vdc"
   :pedantic :warn
