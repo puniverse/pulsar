@@ -21,8 +21,9 @@
   (:require
     [co.paralleluniverse.pulsar.core :as p :refer [defsfn sfn]])
   (:import
-    [co.paralleluniverse.strands.channels QueueObjectChannel TransferChannel TimeoutChannel Channels$OverflowPolicy SendPort ReceivePort Selector SelectAction Channels ReceivePortGroup Mix$SoloEffect Mix$State Mix$Mode]
+    [co.paralleluniverse.strands.channels Channel QueueObjectChannel TransferChannel TimeoutChannel Channels$OverflowPolicy SendPort ReceivePort Selector SelectAction Channels ReceivePortGroup Mix$SoloEffect Mix$State Mix$Mode]
     [co.paralleluniverse.strands.queues ArrayQueue BoxQueue CircularObjectBuffer]
+    [java.util Collection]
     [java.util.concurrent TimeUnit Executors Executor]
     [com.google.common.util.concurrent ThreadFactoryBuilder]
     (java.util List)
@@ -40,13 +41,13 @@
   [(if (= n 1) (BoxQueue. false false) (ArrayQueue. n)) Channels$OverflowPolicy/BLOCK])
 
 (defn dropping-buffer
-  "Returns a buffer of size n. When full, puts will complete but 
+  "Returns a buffer of size n. When full, puts will complete but
    val will be dropped (no transfer)."
   [n]
   [(if (= n 1) (BoxQueue. false false) (ArrayQueue. n)) Channels$OverflowPolicy/DROP])
 
 (defn sliding-buffer
-  "Returns a buffer of size n. When full, puts will complete, and be 
+  "Returns a buffer of size n. When full, puts will complete, and be
    buffered, but oldest elements in buffer will be dropped (not
    transferred)."
   [n]
@@ -99,7 +100,7 @@
           (CoreAsyncSendPort.
             chan
             (p/sreify SuspendableAction1
-              (call [_ v] ((xf-add-reducer-builder (sfn [v] (.send chan v))) chan v))))]
+              (call [_ v] ((xf-add-reducer-builder (sfn [v] (.send ^Channel chan v))) chan v))))]
      (cond
        (and (nil? xform) (nil? exh))
          chan
@@ -127,12 +128,12 @@
 (defsfn <!
   "Takes a val from port. Must be called inside a (go ...) block. Will
    return nil if closed. Will park if nothing is available.
-  
+
    Pulsar implementation: Identical to <!!. May be used outside go blocks as well."
   [port]
   (p/rcv port))
 
-;; Unlike in core.async take! is a second-class citizen of this implementation. 
+;; Unlike in core.async take! is a second-class citizen of this implementation.
 ;; It gives no performance benefits over using go <!
 (defn take!
   "Asynchronously takes a val from port, passing to fn1. Will pass nil
@@ -149,7 +150,7 @@
   "Puts a val into port. nil values are not allowed. Must be called
    inside a (go ...) block. Will park if no buffer space is available.
    Returns true unless port is already closed.
-  
+
    Pulsar implementation: Identical to >!!. May be used outside go blocks as well."
   [port val]
   (if (not (p/closed? port))
@@ -225,12 +226,12 @@
    be returned, otherwise alts! will park until the first operation to
    become ready completes. Returns [val port] of the completed
    operation, where val is the value taken for takes, and nil for puts.
-  
+
    opts are passed as :key val ... Supported options:
-  
+
    :default val - the value to use if none of the operations are immediately ready
    :priority true - (default nil) when true, the operations will be tried in order.
-  
+
    Note: there is no guarantee that the port exps or val exprs will be
    used, nor in what order should they be, so they should not be
    depended upon for side effects.
@@ -243,34 +244,34 @@
   "Makes a single choice between one of several channel operations,
    as if by alts!, returning the value of the result expr corresponding
    to the operation completed. Must be called inside a (go ...) block.
-  
+
    Each clause takes the form of:
-  
+
    channel-op[s] result-expr
-  
+
    where channel-ops is one of:
-  
+
    take-port - a single port to take
    [take-port | [put-port put-val] ...] - a vector of ports as per alts!
    :default | :priority - an option for alts!
-  
+
    and result-expr is either a list beginning with a vector, whereupon that
    vector will be treated as a binding for the [val port] return of the
    operation, else any other expression.
-  
+
    (alt!
    [c t] ([val ch] (foo ch val))
    x ([v] v)
    [[out val]] :wrote
    :default 42)
-  
+
    Each option may appear at most once. The choice and parking
    characteristics are those of alts!.
 
    Pulsar implementation: Identical to alt!!. May be used outside go blocks as well."
   [& clauses]
   (let [clauses (core/partition 2 clauses)
-        opt? #(keyword? (first %)) 
+        opt? #(keyword? (first %))
         opts (filter opt? clauses)
         opts (zipmap (core/map first opts) (core/map second opts))
         clauses (remove opt? clauses)
@@ -286,7 +287,7 @@
        ~@(p/surround-with (when dflt
                    `(if (nil? ~sa) ~(:default opts)))
                  `(case (.index ~sa)
-                    ~@(mapcat 
+                    ~@(mapcat
                         (fn [i e]
                           (let [b (if (and (list? e) (vector? (first e))) (first e) []) ; binding
                                 a (if (and (list? e) (vector? (first e))) (rest e)  (list e))] ; action
@@ -359,7 +360,7 @@
    'parking' the calling thread rather than tying up an OS thread (or
    the only JS thread when in ClojureScript). Upon completion of the
    operation, the body will be resumed.
-  
+
    Returns a channel which will receive the result of the body when
    completed"
   [& body]
@@ -370,14 +371,14 @@
 (def <!!
   "Takes a val from port. Will return nil if closed. Will block
    if nothing is available.
-  
+
    Pulsar implementation: Identical to <!. May be used outside go blocks as well."
   <!)
 
 (def >!!
   "Puts a val into port. nil values are not allowed. Will block if no
    buffer space is available. Returns true unless port is already closed.
-  
+
    Pulsar implementation: Identical to >!. May be used outside go blocks as well."
   >!)
 
@@ -385,7 +386,7 @@
   "Like alts!, except takes will be made as if by <!!, and puts will
    be made as if by >!!, will block until completed, and not intended
    for use in (go ...) blocks.
- 
+
    Pulsar implementation: identical to alt! and may be
    used in go blocks"
   [& args]
@@ -394,7 +395,7 @@
 (defmacro alt!!
   "Like alt!, except as if by alts!!, will block until completed, and
    not intended for use in (go ...) blocks.
-  
+
    Pulsar implementation: identical to alt! and may be
    used in go blocks"
   [& args]
@@ -516,7 +517,7 @@
   ([chs] (merge chs nil))
   ([chs buf-or-n]
     (let [out (chan buf-or-n)]
-      (pipe (Channels/group chs) out)
+      (pipe (Channels/group ^Collection chs) out)
       out)))
 
 (defprotocol Mix
@@ -548,7 +549,7 @@
     :mute - muted channels will have their contents consumed but not included in the mix
     :pause - paused channels will not have their contents consumed (and thus also not included in the mix)"
    [out]
-   (let [rp-array #(let [a (make-array ReceivePort 1)] (aset a 0 %) a)
+   (let [rp-array #(let [a (make-array ReceivePort 1)] (aset ^"[Lco.paralleluniverse.strands.channels.ReceivePort;" a 0 ^ReceivePort %) a)
          empty-rp-array (make-array ReceivePort 0)
          flatten-coll-map (fn [coll-map f-key f-val]
                             (reduce-kv
@@ -579,9 +580,9 @@
              (unmix* [_ ch] (.remove g (rp-array ch)))
              (unmix-all* [_] (.remove g empty-rp-array))
              (toggle* [_ state-map] (.setState g (to-mix-state-map state-map)))
-             (solo-mode* [_ mode]
+             (solo-mode* [this mode]
                (assert (solo-modes mode) (str "mode must be one of: " solo-modes))
-               (.setSoloEffect (condp mode = :mute Mix$SoloEffect/MUTE_OTHERS :pause Mix$SoloEffect/PAUSE_OTHERS))))]
+               (.setSoloEffect ^Mix this (condp mode = :mute Mix$SoloEffect/MUTE_OTHERS :pause Mix$SoloEffect/PAUSE_OTHERS))))]
      (pipe g out)
      m))
 

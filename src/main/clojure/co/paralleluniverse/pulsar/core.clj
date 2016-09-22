@@ -24,7 +24,7 @@
          [co.paralleluniverse.strands SuspendableCallable]
          [co.paralleluniverse.fibers DefaultFiberScheduler FiberScheduler Fiber Joinable FiberUtil]
          [co.paralleluniverse.fibers.instrument]
-         [co.paralleluniverse.strands.channels Channel Channels Channels$OverflowPolicy ReceivePort SendPort 
+         [co.paralleluniverse.strands.channels Channel Channels Channels$OverflowPolicy ReceivePort SendPort
           Selectable Selector SelectAction
           TickerChannelConsumer Topic ReceivePortGroup
           IntChannel LongChannel FloatChannel DoubleChannel
@@ -145,7 +145,7 @@
   If argument x is already an instance of `TimeUnit`, the function returns x.
   Otherwise, x *must* be a keyword, in which case the following conversion
   is performed:
-  
+
   :nanoseconds | :nanos | :ns   -> TimeUnit/NANOSECONDS
   :microseconds | :us           -> TimeUnit/MICROSECONDS
   :milliseconds | :millis | :ms -> TimeUnit/MILLISECONDS
@@ -239,8 +239,8 @@
 (defmacro letsfn
   "Defines a local suspendable function that can be used by a fiber or actor.
   Used exactly like `letfn`"
-[fnspecs & body] 
-`(let ~(vec (interleave (map first fnspecs) 
+[fnspecs & body]
+`(let ~(vec (interleave (map first fnspecs)
                         (map #(cons `sfn %) fnspecs)))
    ~@body))
 
@@ -309,7 +309,7 @@
 ;(ann create-fiber [String FiberScheduler AnyInteger [Any -> Any] -> Fiber])
 (defn ^Fiber create-fiber
   "Creates, but does not start a new fiber (a lightweight thread) running in a fork/join pool.
-  
+
   It is much preferable to use `spawn-fiber`."
   [& args]
   (let [[^String name ^FiberScheduler scheduler ^Integer stacksize f] (ops-args [[string? nil] [#(instance? FiberScheduler %) default-fiber-scheduler] [integer? -1]] args)]
@@ -323,10 +323,10 @@
 
 (defmacro spawn-fiber
   "Creates and starts a new fiber.
-  
+
   f - the function to run in the fiber.
   args - (optional) arguments for the function
-  
+
   Options:
   :name str     - the fiber's name
   :stack-size n - the fiber's initial stack size
@@ -397,7 +397,7 @@
 
 ;(ann alive? [Strand -> Boolean])
 (defn alive?
-  "Tests whether or not a strand is alive. 
+  "Tests whether or not a strand is alive.
   A strand is alive if it has been started but has not yet died."
   [^Strand a]
   (.isAlive a))
@@ -411,17 +411,17 @@
 
 (defn spawn-thread
   "Creates and starts a new thread.
-  
+
   f - the function to run in the thread.
   args - (optional) arguments to pass to the function
-  
+
   Options:
   :name str     - the thread's name"
   {:arglists '([:name? f & args])}
   [& args]
   (let [[{:keys [^String name]} body] (kps-args args)]
     (let [f      (if (== (count body) 1) (first body) (fn [] (apply (first body) (rest body))))
-          thread (if name (Thread. ^Runnable f name) (Thread. ^Runnable f))]
+          thread (if name (Thread. ^Runnable f ^String name) (Thread. ^Runnable f))]
        (.start thread)
        thread)))
 
@@ -449,15 +449,15 @@
 (defsfn join
   "Awaits the termination of the given strand or strands, and returns
   their result, if applicable.
-  
+
   If a single strand is given, its result is returned;
   if a collection - then a collection of the respective results.
-  
+
   Note that for threads, the result is always `nil`, as threads don't return a value.
-  
+
   If a timeout is supplied and it elapses before the strand has terminated,
   a j.u.c.TimeoutException is thrown.
-  
+
   s       - either a strand or a collection of strands.
   timeout - how long to wait for the strands termination
   unit    - the unit of the timeout duration. TimeUnit or keyword as in `->timeunit`"
@@ -523,15 +523,15 @@
                  [-> Channel]))
 (defn ^Channel channel
   "Creates a new channel.
-  
+
   Optional arguments:
   capacity         - specifies how many messages the channel can contain (until they are consumed)
                      * A value of `0` designates a *transfer channel*, that blocks both `snd` and `rcv`
                        until a corresponding operation (`rcv` or `snd` respectively) is called.
                      * A value of `-1` creates an unbounded channel.
-  
+
                      default: 0
-  
+
   overflow-policy  - specifies what `snd` does when the channel's capacity is exhausted.
                      May be one of:
                      * :throw    - throws an exception.
@@ -558,12 +558,12 @@
 (defn ^TickerChannelConsumer ticker-consumer
   "Creates a rcv-port (read-only channel) that returns messages from a *ticker channel*.
   A ticker channel is a bounded channel with an overflow policy of :displace.
-  
+
   Different ticker consumers are independent (a message received from one is not removed from others),
   and guarantee monotonicty (messages are received in order), but if messages are sent to the
   ticker channel faster than they are consumed then messages can be lost."
   [^Channel ticker]
-  (cond 
+  (cond
     (instance? IntChannel ticker)    (Channels/newTickerConsumerFor ^IntChannel ticker)
     (instance? LongChannel ticker)   (Channels/newTickerConsumerFor ^LongChannel ticker)
     (instance? FloatChannel ticker)  (Channels/newTickerConsumerFor ^FloatChannel ticker)
@@ -625,7 +625,7 @@
    (.close ^SendPort channel exception)))
 
 (defn closed?
-  "Tests whether a channel has been closed and contains no more messages that 
+  "Tests whether a channel has been closed and contains no more messages that
   can be received."
   [^ReceivePort channel]
   (.isClosed channel))
@@ -691,7 +691,7 @@
   [ports priority millis]
   (let [^TimeUnit unit (when millis TimeUnit/MILLISECONDS)
         millis (long (or millis 0))]
-    (Selector/select 
+    (Selector/select
       ^boolean (if priority true false)
       millis unit
       ^java.util.List (doall (map #(if (vector? %)
@@ -701,24 +701,24 @@
 
 (defsfn sel
   "Performs up to one of several given channel operations.
-  sel takes a collection containing *channel operation descriptors*. A descriptor is 
-  either a channel or a pair (vector) of a channel and a message. 
-  Each channel in the sequence represents a `rcv` attempt, and each channel-message pair 
-  represents a `snd` attempt. 
-  The `sel` function performs at most one operation on the sequence, a `rcv` or a `snd`, 
-  which is determined by the first operation that can succeed. If no operation can be 
+  sel takes a collection containing *channel operation descriptors*. A descriptor is
+  either a channel or a pair (vector) of a channel and a message.
+  Each channel in the sequence represents a `rcv` attempt, and each channel-message pair
+  represents a `snd` attempt.
+  The `sel` function performs at most one operation on the sequence, a `rcv` or a `snd`,
+  which is determined by the first operation that can succeed. If no operation can be
   carried out immediately, `sel` will block until an operation can be performed, or the
   optionally specified timeout expires.
   If two or more operations are available at the same time, one of them will be chosen
   at random, unless the `:priority` option is set to `true`.
-  
+
   Options:
   :priority bool -  If set to `true`, then whenever two or more operations are available
                     the first among them, in the order they are listed in the `ports` collection,
                     will be the one executed.
   :timeout millis - If timeout is set and expires before any of the operations are available,
                     the function will return `nil`
-  
+
   Returns:
   If an operation succeeds, returns a vector `[m ch]` with `m` being the message received if the
   operation is a `rcv`, or `nil` if it's a `snd`, and `ch` is the channel on which the succesful
@@ -730,39 +730,39 @@
       [(.message sa) (.port sa)])))
 
 (defmacro select
-  "Performs a very similar operation to `sel`, but allows you to specify an action to perform depending 
+  "Performs a very similar operation to `sel`, but allows you to specify an action to perform depending
   on which operation has succeeded.
-  Takes an even number of expressions, ordered as (ops1, action1, ops2, action2 ...) with the ops being 
-  a channel operation descriptior (remember: a descriptor is either a channel for an `rcv` operation, 
-  or a vector of a channel and a message specifying a `snd` operation) or a collection of descriptors, 
-  and the actions are Clojure expressions. 
-  Like `sel`, `select` performs at most one operation, in which case it will run the operation's 
+  Takes an even number of expressions, ordered as (ops1, action1, ops2, action2 ...) with the ops being
+  a channel operation descriptior (remember: a descriptor is either a channel for an `rcv` operation,
+  or a vector of a channel and a message specifying a `snd` operation) or a collection of descriptors,
+  and the actions are Clojure expressions.
+  Like `sel`, `select` performs at most one operation, in which case it will run the operation's
   respective action and return its result.
 
-  An action expression can bind values to the operations results. 
-  The action expression may begin with a vector of one or two symbols. In that case, the first symbol 
-  will be bound to the message returned from the successful receive in the respective ops clause 
-  (or `nil` if the successful operation is a `snd`), and the second symbol, if present, will be bound 
+  An action expression can bind values to the operations results.
+  The action expression may begin with a vector of one or two symbols. In that case, the first symbol
+  will be bound to the message returned from the successful receive in the respective ops clause
+  (or `nil` if the successful operation is a `snd`), and the second symbol, if present, will be bound
   to the successful operation's channel.
 
-  Like `sel`, `select` blocks until an operation succeeds, or, if a `:timeout` option is specified, 
-  until the timeout (in milliseconds) elapses. If a timeout is specfied and elapses, `select` will run 
-  the action in an optional `:else` clause and return its result, or, if an `:else` clause is not present, 
+  Like `sel`, `select` blocks until an operation succeeds, or, if a `:timeout` option is specified,
+  until the timeout (in milliseconds) elapses. If a timeout is specfied and elapses, `select` will run
+  the action in an optional `:else` clause and return its result, or, if an `:else` clause is not present,
   `select` will return `nil`.
 
   Example:
 
-  (select :timeout 100 
+  (select :timeout 100
          c1 ([v] (println \"received\" v))
          [[c2 m2] [c3 m3]] ([v c] (println \"sent to\" c))
          :else \"timeout!\")
 
-  In the example, if a message is received from channel `c1`, then it will be printed. 
-  If a message is sent to either `c2` or `c3`, then the identity of the channel will be printed, 
+  In the example, if a message is received from channel `c1`, then it will be printed.
+  If a message is sent to either `c2` or `c3`, then the identity of the channel will be printed,
   and if the 100 ms timeout elapses then \"timeout!\" will be printed."
   [& clauses]
   (let [clauses (partition 2 clauses)
-        opt? #(keyword? (first %)) 
+        opt? #(keyword? (first %))
         opts (filter opt? clauses)
         opts (zipmap (map first opts) (map second opts))
         clauses (remove opt? clauses)
@@ -775,11 +775,11 @@
         dflt (contains? opts :else)
         sa (tagged `SelectAction (gensym "sa"))]
     `(let [~sa (do-sel (list ~@ports) ~priority ~timeout)]
-       ~@(surround-with 
+       ~@(surround-with
            (when dflt
              `(if (nil? ~sa) ~(:else opts)))
            `(case (.index ~sa)
-              ~@(mapcat 
+              ~@(mapcat
                   (fn [i e]
                     (let [b (if (and (list? e) (vector? (first e))) (first e) []) ; binding
                           a (if (and (list? e) (vector? (first e))) (rest e)  (list e))] ; action
@@ -800,7 +800,7 @@
 
 (defmacro snd-int
   "Sends an int value to an int-channel.
-  
+
   See: `snd`"
   [channel message]
   `(co.paralleluniverse.pulsar.ChannelsHelper/sendInt ~(tagged `IntSendPort channel) (int ~message)))
@@ -808,14 +808,14 @@
 (defmacro try-snd-int
   "Tries to immediately send an int value to an int-channel.
   Returns `true` if successful, `false` otherwise.
-  
+
   See: `try-snd`"
   [channel message]
   `(co.paralleluniverse.pulsar.ChannelsHelper/trySendInt ~(tagged `IntSendPort channel) (int ~message)))
 
 (defmacro rcv-int
   "Receives an int value from an int-channel.
-  
+
   See: `rcv`"
   ([channel]
    `(int (.receiveInt ~(tagged `IntReceivePort channel))))
@@ -831,23 +831,23 @@
   ([]                     (Channels/newLongChannel -1)))
 
 (defmacro snd-long
-  "Sends a long value to a long-channel.  
-  
+  "Sends a long value to a long-channel.
+
   See: `snd`"
   [channel message]
   `(co.paralleluniverse.pulsar.ChannelsHelper/sendLong ~(tagged `LongSendPort channel) (long ~message)))
 
 (defmacro try-snd-long
   "Tries to immediately send a long value to a long-channel.
-  Returns `true` if successful, `false` otherwise.  
-  
+  Returns `true` if successful, `false` otherwise.
+
   See: `try-snd`"
   [channel message]
   `(co.paralleluniverse.pulsar.ChannelsHelper/trySendLong ~(tagged `LongSendPort channel) (long ~message)))
 
 (defmacro rcv-long
   "Receives a long value from a long-channel.
-  
+
   See: `rcv`"
   ([channel]
    `(long (.receiveLong ~(tagged `LongReceivePort channel))))
@@ -863,23 +863,23 @@
   ([]                     (Channels/newFloatChannel -1)))
 
 (defmacro snd-float
-  "Sends a float value to a float-channel.  
-  
+  "Sends a float value to a float-channel.
+
   See: `snd`"
   [channel message]
   `(co.paralleluniverse.pulsar.ChannelsHelper/sendFloat ~(tagged `FloatSendPort channel) (float ~message)))
 
 (defmacro try-snd-float
   "Tries to immediately send a float value to a float-channel.
-  Returns `true` if successful, `false` otherwise.  
-  
+  Returns `true` if successful, `false` otherwise.
+
   See: `try-snd`"
   [channel message]
   `(co.paralleluniverse.pulsar.ChannelsHelper/trySendFloat ~(tagged `FloatSendPort channel) (float ~message)))
 
 (defmacro rcv-float
   "Receives a float value from a float-channel.
-  
+
   See: `rcv`"
   ([channel]
    `(float (.receiveFloat ~(tagged `FloatReceivePort channel))))
@@ -895,23 +895,23 @@
   ([]                     (Channels/newDoubleChannel -1)))
 
 (defmacro snd-double
-  "Sends a double value to a double-channel.  
-  
+  "Sends a double value to a double-channel.
+
   See: `snd`"
   [channel message]
   `(co.paralleluniverse.pulsar.ChannelsHelper/sendDouble ~(tagged `DoubleSendPort channel) (double ~message)))
 
 (defmacro try-snd-double
   "Tries to immediately send a double value to a double-channel.
-  Returns `true` if successful, `false` otherwise.  
-  
+  Returns `true` if successful, `false` otherwise.
+
   See: `try-snd`"
   [channel message]
   `(co.paralleluniverse.pulsar.ChannelsHelper/trySendDouble ~(tagged `DoubleSendPort channel) (double ~message)))
 
 (defmacro rcv-double
   "Receives a double value from a double-channel.
-  
+
   See: `rcv`"
   ([channel]
    `(double (.receiveDouble ~(tagged `DoubleReceivePort channel))))
