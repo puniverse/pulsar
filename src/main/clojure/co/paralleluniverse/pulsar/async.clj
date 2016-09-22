@@ -582,7 +582,7 @@
              (toggle* [_ state-map] (.setState g (to-mix-state-map state-map)))
              (solo-mode* [this mode]
                (assert (solo-modes mode) (str "mode must be one of: " solo-modes))
-               (.setSoloEffect ^Mix this (condp mode = :mute Mix$SoloEffect/MUTE_OTHERS :pause Mix$SoloEffect/PAUSE_OTHERS))))]
+               (.setSoloEffect ^co.paralleluniverse.strands.channels.Mix this (condp mode = :mute Mix$SoloEffect/MUTE_OTHERS :pause Mix$SoloEffect/PAUSE_OTHERS))))]
      (pipe g out)
      m))
 
