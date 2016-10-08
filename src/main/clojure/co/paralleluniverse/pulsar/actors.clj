@@ -133,7 +133,7 @@
              (def ~n sn#)
              sn#)))))
 
-(defmacro ->MailboxConfig 
+(defmacro ->MailboxConfig
   [size overflow-policy]
   `(co.paralleluniverse.actors.MailboxConfig. (int ~size) (keyword->enum co.paralleluniverse.strands.channels.Channels$OverflowPolicy ~overflow-policy)))
 
@@ -155,7 +155,7 @@
 
 (defmacro spawn
   "Creates and starts a new actor running in its own, newly-spawned fiber.
-  
+
   f - the actor function, or an actor created with actor, gen-server etc..
   args - (optional) arguments to for the function.
 
@@ -164,19 +164,19 @@
   Options:
   * `:name` - The actor's name (that's also given to the fiber running the actor). The name can be a string
               or a keyword, in which case it's identical to the keyword's name (i.e. a name of `\"foo\"` is the same as `:foo`).
-  * `:mailbox-size` - The number of messages that can wait in the mailbox, 
+  * `:mailbox-size` - The number of messages that can wait in the mailbox,
                       or -1 (the default) for an unbounded mailbox.
   * `:overflow-policy` - What to do if a bounded mailbox overflows. Can be on of:
      - `:throw` - an exception will be thrown *into the receiving actor*
-     - `:drop`  -  the message will be silently discarded 
-     - `:block` - the sender will block until there's room in the mailbox.  
+     - `:drop`  -  the message will be silently discarded
+     - `:block` - the sender will block until there's room in the mailbox.
   * `:trap` - If set to `true`, linked actors' death will send an exit message rather than throw an exception.
-  * `:lifecycle-handle` - A function that will be called to handle special messages sent to the actor. 
-                          If set to `nil` (the default), the default handler is used, which is what you 
-                          want in all circumstances, except for some actors that are meant to do some 
+  * `:lifecycle-handle` - A function that will be called to handle special messages sent to the actor.
+                          If set to `nil` (the default), the default handler is used, which is what you
+                          want in all circumstances, except for some actors that are meant to do some
                           special tricks.
   * `:scheduler` - The `FiberScheduler` in which the fiber will run.
-                 If `:fj-pool` is not specified, then the pool used will be either the pool of the fiber calling 
+                 If `:fj-pool` is not specified, then the pool used will be either the pool of the fiber calling
                  `spawn-fiber`, or, if `spawn-fiber` is not called from within a fiber, a default pool.
   * `:stack-size` - The initial fiber stack size."
   {:arglists '([:name? :mailbox-size? :overflow-policy? :trap? :lifecycle-handler? :scheduler? :stack-size? f & args])}
@@ -212,7 +212,7 @@
 
 (defmacro spawn-link
   "Creates and starts, as by `spawn`, a new actor, and links it to @self.
-  
+
   See: `link!`"
   {:arglists '([:name? :mailbox-size? :overflow-policy? :lifecycle-handler? :stack-size? :pool? f & args])}
   [& args]
@@ -259,10 +259,10 @@
 
 ;(ann get-actor [Any -> Actor])
 (defsfn ^ActorRef get-actor
-  "If the argument is an actor -- returns it. If not, looks up a registered 
+  "If the argument is an actor -- returns it. If not, looks up a registered
   actor with the argument as its name.
-  
-  The name can be a string or a keyword, in which case it's identical to the keyword's name 
+
+  The name can be a string or a keyword, in which case it's identical to the keyword's name
   (i.e. a name of `\"foo\"` is the same as `:foo`)."
   [a]
   (when a
@@ -272,7 +272,7 @@
 
 ;(ann trap! [-> nil])
 (defn trap!
-  "Sets the current actor to trap lifecycle events (like a dead linked actor) 
+  "Sets the current actor to trap lifecycle events (like a dead linked actor)
   and turn them into exit messages.
   Same as adding `:trap true` to `spawn`."
   []
@@ -284,15 +284,15 @@
 (defn link!
   "Links two actors. If only one actor is specified, links the current actor with the
   specified actor.
-  
-  A link is symmetrical. When two actors are linked, when one of them dies, the other throws 
-  a `co.paralleluniverse.actors.LifecycleException` exception which, unless caught, kills it 
+
+  A link is symmetrical. When two actors are linked, when one of them dies, the other throws
+  a `co.paralleluniverse.actors.LifecycleException` exception which, unless caught, kills it
   as well.
   If `:trap true` was added to the actor's `spawn` call, or if `(trap!)` has been called by
   the actor, rather than an exception being thrown, an exit message is sent to the actor.
   The message is of the same structure as the one sent as a result of `watch!` except that
   the watch element is `nil`.
-  
+
   See: `unlink!`, `watch!`"
   ([actor2]
    (.link ^Actor (Actor/currentActor) actor2))
@@ -304,7 +304,7 @@
 (defn unlink!
   "Unlinks two actors. If only one actor is specified, unlinks the current actor from the
   specified actor.
-  
+
   See: `link!`"
   ([actor2]
    (.unlink ^Actor (Actor/currentActor) actor2))
@@ -316,14 +316,14 @@
 (defn watch!
   "Makes the current actor watch another actor. Returns a watch object which is then
   used in all relevant exit messages, and should also be used when calling `unwatch!`.
-  
-  Unlike links, watches are assymetrical. If a the watched actor dies, the watching 
-  actor (the actor calling this function), receives an exit message. 
-  
+
+  Unlike links, watches are assymetrical. If a the watched actor dies, the watching
+  actor (the actor calling this function), receives an exit message.
+
   The message is a vector of 4 elements, of the following structure:
-  
+
   [:exit w actor cause]
-  
+
   `w` - the watch object returned from the call to `watch!`, which is responsible for the
         message being sent. If the `watch!` function is called more than once to watch
         the same actor, an exit message will be received several times, each one corresponding
@@ -348,7 +348,7 @@
 (defn register!
   "Registers an actor in the actor registry.
   The actor is registered by its name, or, if it doesn't have a name, one must be supplied
-  to this function. The name can be a string or a keyword, in which case it's identical to the 
+  to this function. The name can be a string or a keyword, in which case it's identical to the
   keyword's name (i.e. a name of `\"foo\"` is the same as `:foo`)."
   ([actor-name ^ActorRef actor]
    (LocalActor/register actor (name actor-name)))
@@ -361,7 +361,7 @@
 
 (defn unregister!
   "Unregisters an actor.
-  
+
   If no argument is supplied, unregisters the current actor."
 ([x]
  (let [^ActorRef actor x]
@@ -411,7 +411,7 @@
   This function returns `nil`.
   If the actor's mailbox capacity has been exceeded, this function's behavior
   is determined by the `overflow-policy` set by the receiving actor's `spawn`.
-  
+
   See: `spawn`"
   ([actor message]
    `(PulsarActor/send (get-actor ~actor) (clojure->java-msg ~message)))
@@ -420,9 +420,9 @@
 
 (defmacro !!
   "Sends a message to an actor synchronously.
-  This has the exact same semantics as !, but hints to the scheduler that the 
+  This has the exact same semantics as !, but hints to the scheduler that the
   current actor is about to wait for a response from the message's addressee.
-  
+
   See: `!`"
   ([actor message]
    `(PulsarActor/sendSync (get-actor ~actor) (clojure->java-msg ~message)))
@@ -452,7 +452,7 @@
 
 (defmacro receive
   "Receives a message in the current actor and processes it.
-  
+
   Receive performs pattern matching (with free var binding) on the message.
   Example:
     (let [actor (spawn
@@ -462,21 +462,21 @@
                      :else \"oy\"))]
        (! actor [:why? \"because!\"])
        (join actor)) ; => \"because!\"
-  
+
   `receive` performs a *selective receive*. If the next message in the mailbox does
-  not match any of the patterns (and an `:else` clause is not present), it is skipped, 
+  not match any of the patterns (and an `:else` clause is not present), it is skipped,
   and the next message will be attempted.
   `receive` will block until a matching message arrives, and will return the value of
   the matching clause.
-  
-  Skipped messages are not discarded, but are left in the mailbox. Every call to `receive` 
-  will attempt to match any message in the mailbox, starting with the oldest. 
+
+  Skipped messages are not discarded, but are left in the mailbox. Every call to `receive`
+  will attempt to match any message in the mailbox, starting with the oldest.
   (Skipped messages migh accumulate in the mailbox if not matched, so it's good practice
   to at least occasionally call a `receive` that has an `:else` clause.)
-  
+
   If the first element of the `receive` expression is a vector, it is used for binding:
   The vector's first element is the name assigned to the entire message, and the second,
-  if it exists, is a transformation function, of one argument, that will be applied to 
+  if it exists, is a transformation function, of one argument, that will be applied to
   the message before binding and before pattern-matching:
 
      (receive [m transform]
@@ -600,7 +600,7 @@
   ([]
    (.shutdown ^Behavior @self)))
 
-(defn ^Initializer ->Initializer 
+(defn ^Initializer ->Initializer
   ([init terminate]
    (let [init      (when init (suspendable! init))
          terminate (when terminate (suspendable! terminate))]
@@ -615,13 +615,13 @@
 
 (defmacro request!
   [actor & message]
-  `(join (spawn (fn [] 
+  `(join (spawn (fn []
                   (! ~actor ~@message)
                   (receive)))))
 
 (defmacro request-timed!
   [timeout actor & message]
-  `(join (spawn (fn [] 
+  `(join (spawn (fn []
                   (! ~actor ~@message)
                   (receive-timed ~timeout)))))
 
@@ -772,11 +772,11 @@
 
 ;; ## supervisor
 
-(defn- ^ActorBuilder actor-builder
-  [f]
+(defn ^ActorBuilder actor-builder
+  [f & args]
   (sreify ActorBuilder
     (build [this]
-           (f))))
+           (apply f args))))
 
 (defsfn ^{:private true} ^Actor create-actor
   [& args]
@@ -837,5 +837,3 @@
                                 (apply add-child! (cons @self child)))))))
   ([restart-strategy init]
    (supervisor nil restart-strategy init)))
-
-
