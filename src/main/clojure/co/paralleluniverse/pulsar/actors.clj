@@ -772,11 +772,11 @@
 
 ;; ## supervisor
 
-(defn- ^ActorBuilder actor-builder
-  [f]
+(defn ^ActorBuilder actor-builder
+  [f & args]
   (sreify ActorBuilder
     (build [this]
-           (f))))
+           (apply f args))))
 
 (defsfn ^{:private true} ^Actor create-actor
   [& args]
