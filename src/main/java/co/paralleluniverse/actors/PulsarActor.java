@@ -135,7 +135,7 @@ public class PulsarActor extends Actor<Object, Object> {
         if (msg instanceof ExitMessage) {
             final ExitMessage m = (ExitMessage) msg;
             return PersistentVector.create(keyword("exit"), m.watch, m.actor, m.cause);
-        } else if(msg instanceof ShutdownMessage) {
+        } else if (msg instanceof ShutdownMessage) {
             final ShutdownMessage m = (ShutdownMessage) msg;
             return PersistentVector.create(keyword("shutdown"), m.requester);
         }
