@@ -1,13 +1,13 @@
 /*
  * Pulsar: lightweight threads and Erlang-like actors for Clojure.
- * Copyright (C) 2013-2015, Parallel Universe Software Co. All rights reserved.
- * 
+ * Copyright (C) 2013-2016 Parallel Universe Software Co. All rights reserved.
+ *
  * This program and the accompanying materials are dual-licensed under
  * either the terms of the Eclipse Public License v1.0 as published by
  * the Eclipse Foundation
- *  
+ *
  *   or (per the licensee's choosing)
- *  
+ *
  * under the terms of the GNU Lesser General Public License version 3.0
  * as published by the Free Software Foundation.
  */
@@ -108,7 +108,7 @@ public class PulsarActor extends Actor<Object, Object> {
 
     @Override
     protected Object filterMessage(Object m) {
-        if(!trap && !(m instanceof ShutdownMessage))
+        if (!trap && !(m instanceof ShutdownMessage))
             m = super.filterMessage(m);
         return convert(m);
     }
@@ -135,7 +135,7 @@ public class PulsarActor extends Actor<Object, Object> {
         if (msg instanceof ExitMessage) {
             final ExitMessage m = (ExitMessage) msg;
             return PersistentVector.create(keyword("exit"), m.watch, m.actor, m.cause);
-        } else if(msg instanceof ShutdownMessage) {
+        } else if (msg instanceof ShutdownMessage) {
             final ShutdownMessage m = (ShutdownMessage) msg;
             return PersistentVector.create(keyword("shutdown"), m.requester);
         }
@@ -145,7 +145,7 @@ public class PulsarActor extends Actor<Object, Object> {
     private static Keyword keyword(String s) {
         return Keyword.intern(s);
     }
-    
+
     ///////////////// Simple delegates ////////////////////////////
 
 

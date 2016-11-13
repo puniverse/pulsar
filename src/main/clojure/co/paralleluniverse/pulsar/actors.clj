@@ -635,6 +635,9 @@
      (if (. log# ~(symbol (str "is" (capitalize (name level)) "Enabled")))
        (. log# ~(symbol (name level)) ~message (to-array (vector ~@args))))))
 
+(defn- ->msg [msg]
+    (PulsarActor/convert msg))
+
 ;; ## gen-server
 
 (defprotocol Server
@@ -656,11 +659,11 @@
     (^void init [this]
       (init @server))
     (handleCall [this ^ActorRef from id message]
-      (handle-call @server from id message))
+      (handle-call @server from id (->msg message)))
     (^void handleCast [this ^ActorRef from id message]
-      (handle-cast @server from id message))
+      (handle-cast @server from id (->msg message)))
     (^void handleInfo [this message]
-      (handle-info @server message))
+      (handle-info @server (->msg message)))
     (^void handleTimeout [this]
       (handle-timeout @server))
     (^void terminate  [this ^Throwable cause]
@@ -673,10 +676,12 @@
   [& args]
   (let [[{:keys [^String name ^Integer timeout ^Integer mailbox-size overflow-policy], :or {timeout -1 mailbox-size -1}} body] (kps-args args)
         s (first body)]
-    `(co.paralleluniverse.actors.behaviors.ServerActor. ~name
+    `(->
+      (co.paralleluniverse.actors.behaviors.ServerActor. ~name
                                                         (Server->java ~(if (symbol? s) `(var ~s) `(vref ~s)))
                                                         (long ~timeout) TimeUnit/MILLISECONDS
-                                                        nil (->MailboxConfig ~mailbox-size ~overflow-policy))))
+                                                        nil (->MailboxConfig ~mailbox-size ~overflow-policy))
+      (.setForwardWatch true))))
 
 (defsfn call!
   "Makes a synchronous call to a gen-server and returns the response"
@@ -733,7 +738,7 @@
   [handler]
   EventHandler
   (handleEvent [this event]
-               (handler event))
+               (handler (->msg event)))
   Object
   (equals [this other]
           (and (instance? PulsarEventHandler other) (= handler (.handler ^PulsarEventHandler other)))))
