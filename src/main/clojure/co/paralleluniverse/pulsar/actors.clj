@@ -727,7 +727,7 @@
 
 (defn gen-event
   "Creates (but doesn't start) a new gen-event"
-  {:arglists '([:name? :timeout? :mailbox-size? :overflow-policy? server & args])}
+  {:arglists '([:name? :timeout? :mailbox-size? :overflow-policy? gen-event & args])}
   [& args]
   (let [[{:keys [^String name ^Integer mailbox-size overflow-policy], :or {mailbox-size -1}} body] (kps-args args)]
     (EventSourceActor. name
