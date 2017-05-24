@@ -73,9 +73,9 @@
                   (spawn
                     :scheduler :thread
                     #(let [m1 (receive-timed 50)
-                                m2 (receive-timed 50)
+                              m2 (receive-timed 50)
                                 m3 (receive-timed 50)]
-                            [m1 m2 m3]))]
+                          [m1 m2 m3]))]
               (! actor 1)
               (Thread/sleep 20)
               (! actor 2)
@@ -318,11 +318,11 @@
 (fact "strampoline-test"
       (fact "Test trampolining actor"
             (let [state2 (sfn []
-                                (receive
-                                  :bar :foobar))
+                              (receive
+                                :bar :foobar))
                   state1 (sfn []
-                                (receive
-                                  :foo state2))
+                              (receive
+                                :foo state2))
                   actor (spawn (fn []
                                  (strampoline state1)))]
               (! actor :foo)
@@ -331,11 +331,11 @@
               (join actor)) => :foobar)
       (fact "Test trampolining actor with selective receive"
             (let [state2 (sfn []
-                                (receive
-                                  :bar :foobar))
+                              (receive
+                                :bar :foobar))
                   state1 (sfn []
-                                (receive
-                                  :foo state2))
+                              (receive
+                                :foo state2))
                   actor (spawn (fn []
                                  (strampoline state1)))]
               (! actor :bar)
@@ -552,7 +552,7 @@
         (notify! ge "hello")
         (shutdown! ge)
         (join ge)) => nil
-      (provided 
+      (provided
         (handler1 "hello") => nil
         (handler2 "hello") => nil))
 
@@ -565,7 +565,7 @@
         (notify! ge "hello")
         (shutdown! ge)
         (join ge)) => nil
-      (provided 
+      (provided
         (handler1 anything) => irrelevant :times 0
         (handler2 "hello") => nil))
 

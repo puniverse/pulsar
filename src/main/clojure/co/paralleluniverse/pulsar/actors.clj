@@ -653,21 +653,21 @@
 (defn ^co.paralleluniverse.actors.behaviors.Server Server->java
   {:no-doc true}
   [server]
-  (suspendable! @server [co.paralleluniverse.pulsar.actors.Server])
+  (suspendable! server [co.paralleluniverse.pulsar.actors.Server])
   (reify
     ServerHandler
     (^void init [this]
-      (init @server))
+      (init server))
     (handleCall [this ^ActorRef from id message]
-      (handle-call @server from id (->msg message)))
+      (handle-call server from id (->msg message)))
     (^void handleCast [this ^ActorRef from id message]
-      (handle-cast @server from id (->msg message)))
+      (handle-cast server from id (->msg message)))
     (^void handleInfo [this message]
-      (handle-info @server (->msg message)))
+      (handle-info server (->msg message)))
     (^void handleTimeout [this]
-      (handle-timeout @server))
+      (handle-timeout server))
     (^void terminate  [this ^Throwable cause]
-      (terminate @server cause))))
+      (terminate server cause))))
 
 
 (defmacro gen-server
@@ -678,7 +678,7 @@
         s (first body)]
     `(->
       (co.paralleluniverse.actors.behaviors.ServerActor. ~name
-                                                        (Server->java ~(if (symbol? s) `(var ~s) `(vref ~s)))
+                                                        (Server->java ~s)
                                                         (long ~timeout) TimeUnit/MILLISECONDS
                                                         nil (->MailboxConfig ~mailbox-size ~overflow-policy))
       (.setForwardWatch true))))
@@ -727,7 +727,7 @@
 
 (defn gen-event
   "Creates (but doesn't start) a new gen-event"
-  {:arglists '([:name? :timeout? :mailbox-size? :overflow-policy? server & args])}
+  {:arglists '([:name? :timeout? :mailbox-size? :overflow-policy? gen-event & args])}
   [& args]
   (let [[{:keys [^String name ^Integer mailbox-size overflow-policy], :or {mailbox-size -1}} body] (kps-args args)]
     (EventSourceActor. name
