@@ -443,7 +443,7 @@ For example, in the following call,
 
 a message will either be received from `ch1` or `ch3`, or one will be sent to either `ch2` or `ch4`. If, for instance, `ch1` will become available for reading (i.e. it has been sent a message) first, than only a `rcv` will be performed on it. If `ch2` becomes available for writing before that happens, then only that operation, a `snd`, will be performed. If two operations are available at the same time, one will be chosen randomly (unless the `:priority` option is set, as we'll see later).
 
-Note that if a channel's overflow policy is anything by `:block`, then `snd` operations are always available.
+Note that if a channel's overflow policy is anything but `:block`, then `snd` operations are always available.
 
 The general form of the `sel` function is
 
@@ -466,9 +466,9 @@ So, for example, calling
 Will return, `[msg ch]` if any of the channels was immediately available for a `rcv`, or `nil` if none of them were.
 
 The `select` macro performs a very similar operation as `sel`, but allows you to specify an action to perform depending on which operation has succeeded.
-It takes an even number of expressions, ordered as (ops1, action1, ops2, action2 ...) with the ops being a channel operation descriptor (remember: a descriptor is either a channel for an `rcv` operation, or a vector of a channel and a message specifying a `snd` operation) or a collection of descriptors, and the actions are Clojure expressions. Like `sel`, `select` performs at most one operation, in which case it will run the operation's respective action and return its result.
+It takes an even number of expressions, ordered as (ops1, action1, ops2, action2 ...) with the ops being a channel operation descriptor (remember: a descriptor is either a channel for a `rcv` operation, or a vector of a channel and a message specifying a `snd` operation) or a collection of descriptors, and the actions are Clojure expressions. Like `sel`, `select` performs at most one operation, in which case it will run the operation's respective action and return its result.
 
-An action expression can bind values to the operations results. The action expression may begin with a vector of one or two symbols. In that case, the first symbol will be bound to the message returned from the successful receive in the respective ops clause (or `nil` if the successful operation is a `snd`), and the second symbol, if present, will be bound to the successful operation's channel.
+An action expression can bind values to the operation's results. The action expression may begin with a vector of one or two symbols. In that case, the first symbol will be bound to the message returned from the successful receive in the respective ops clause (or `nil` if the successful operation is a `snd`), and the second symbol, if present, will be bound to the successful operation's channel.
 
 Like `sel`, `select` blocks until an operation succeeds, or, if a `:timeout` option is specified, until the timeout (in milliseconds) elapses. If a timeout is specified and elapses, `select` will run the action in an optional `:else` clause and return its result, or, if an `:else` clause is not present, `select` will return `nil`.
 
@@ -504,10 +504,10 @@ When a channel *subscribes* to the topic, it will receive all messages sent to t
 You can also unsubscribe a channel:
 
 ~~~ clojure
-(subscribe! tpc ch)
+(unsubscribe! tpc ch)
 ~~~
 
-Note that a messages sent to the topic is essentially replicated to all subscribers, i.e. it will be received once in each channel.
+Note that a message sent to the topic is essentially replicated to all subscribers, i.e. it will be received once in each channel.
 
 #### Ticker Channels
 
@@ -618,7 +618,7 @@ Dataflow, or reactive programming, is a computation described by composing varia
 
 A val is a dataflow constant. It can have its value set once, and read multiple times. Attempting to read the value of a val before it's been set, will block until a value is set. Vals are like Pulsar promises, with the only difference being the behavior when attempting to set the val's value more than once. A promise will return `nil`, while a val will throw an `IllegalStateException`.
 
-A var is a dataflow variable. It can have it's value set multiple times, and every new value can trigger the re-computation of other vars. You can set a var to retain historical values (consult the reference for more information).
+A var is a dataflow variable. It can have its value set multiple times, and every new value can trigger the re-computation of other vars. You can set a var to retain historical values (consult the reference for more information).
 
 Here is a simple example of using vals and vars:
 
@@ -710,7 +710,7 @@ While the above is a perfectly valid way of sending a message to an actor, this 
 
 The bang operator has a slightly different semantic than `snd`. While `snd` will always place the message in the mailbox, `!` will only do it if the actor is alive. It will not place a message in the mailbox if there is no one to receive it on the other end (and never will be, as mailboxes, like all channels, cannot change ownership).
 
-In many circumstances, an actor sends a message to another actor, and expects a reply. In those circumstances, using `!!` instead of `!` might offer reduced latency (but with the same semantics; both `!` and `!!` always return `nil`)
+In many circumstances, an actor sends a message to another actor, and expects a reply. In those circumstances, using `!!` instead of `!` might offer reduced latency (but with the same semantics; both `!` and `!!` always return `nil`).
 
 The value `@self`, when evaluated in an actor, returns the actor's own handle; for example it can itself be communicated and then used to send messages.
 
@@ -756,7 +756,7 @@ We can also match not on the raw message as its been received, but transform it 
    :else      (println "got" m))
 ~~~
 
-Now `m` – and the value we're matching – is the the transformed value.
+Now `m`, the value we're matching, is the transformed value.
 
 `receive` also deals with timeouts. Say we want to do something if a message has not been received within 30 milliseconds (all `receive` timeouts are specified in milliseconds):
 
@@ -944,7 +944,7 @@ These are three different ways of managing actor state. Eventually, we’ll sett
 
 ### State Machines with Strampoline
 
-As we've seen, the `receive` form defines which messages the actor is willing to accept and process. You can nest `receive` statements, or place them in other functions that the actor calls (in which case the must be defined with `defsfn`). It is often useful to treat the actor as a state machine, going from one state to another, executing a different `receive` at each state (to define the acceptable transitions from the state). To change state, all we would have to do is call a different function, each with its own receive, but here we face a technical limitation of Clojure. As Clojure (due to JVM limitations) does not perform true tail-call optimization, every state transition (i.e. every function call), would add a frame to the stack, eventually throwing a stack overflow. Clojure solves it with the `clojure.core/trampoline` function. It takes a function and calls it. When the function returns, if the returned value is a function, `trampoline` calls it.
+As we've seen, the `receive` form defines which messages the actor is willing to accept and process. You can nest `receive` statements, or place them in other functions that the actor calls (in which case they must be defined with `defsfn`). It is often useful to treat the actor as a state machine, going from one state to another, executing a different `receive` at each state (to define the acceptable transitions from the state). To change state, all we would have to do is call a different function, each with its own receive, but here we face a technical limitation of Clojure. As Clojure (due to JVM limitations) does not perform true tail-call optimization, every state transition (i.e. every function call), would add a frame to the stack, eventually throwing a stack overflow. Clojure solves it with the `clojure.core/trampoline` function. It takes a function and calls it. When the function returns, if the returned value is a function, `trampoline` calls it.
 
 Pulsar comes with a version of `trampoline` for suspendable functions called `strampoline` (with the exact same API as `trampoline`).
 
@@ -965,7 +965,7 @@ Consider this example:
   (join actor)) ; => :foobar
 ~~~
 
-The actor starts at `state1` (represented by the function with the same name), by calling `(strampoline state1)`. In `state1` we expect to receive the message `:foo`. When it arrives, we transition to `state2` by returning the `state2` function (which will immediately be called by `strampoline`). In `state1` we await the `:bar` message, and then terminate.
+The actor starts at `state1` (represented by the function with the same name), by calling `(strampoline state1)`. In `state1` we expect to receive the message `:foo`. When it arrives, we transition to `state2` by returning the `state2` function (which will immediately be called by `strampoline`). In `state2` we await the `:bar` message, and then terminate.
 
 What happens if the messages `:foo` and `:bar` arrive in reverse order? Thanks to selective receive the result will be exactly the same! `state1` will skip the `:bar` message, and transition to `state2` when `:foo` arrives; the `receive` statement in `state2` will then find the `:bar` message waiting in the mailbox:
 
@@ -986,9 +986,9 @@ What happens if the messages `:foo` and `:bar` arrive in reverse order? Thanks t
 
 ### Error Handling
 
-The actor model does not only make concurrency easy; it also helps build fault-tolerant systems by compartmentalizing failure. Each actor is it's own execution context - if it encounters an exception, only the actor is directly affected (like a thread, only actors are lightweight). Unlike regular functions/objects, where an exception has to be caught and handled immediately on the call stack, with actors we can completely separate code execution from error handling.
+The actor model does not only make concurrency easy; it also helps build fault-tolerant systems by compartmentalizing failure. Each actor is its own execution context - if it encounters an exception, only the actor is directly affected (like a thread, only actors are lightweight). Unlike regular functions/objects, where an exception has to be caught and handled immediately on the call stack, with actors we can completely separate code execution from error handling.
 
-In fact, when using actors, it is often best to to follow the [philosophy laid out by Joe Armstrong](http://www.erlang.org/download/armstrong_thesis_2003.pdf), Erlang's chief designer, of "let it crash". The idea is not to try and catch exceptions inside an actor, because attempting to catch and handle all exceptions is futile. Instead, we just let the actor crash, monitor its death elsewhere, and then take some action.
+In fact, when using actors, it is often best to follow the [philosophy laid out by Joe Armstrong](http://www.erlang.org/download/armstrong_thesis_2003.pdf), Erlang's chief designer, of "let it crash". The idea is not to try and catch exceptions inside an actor, because attempting to catch and handle all exceptions is futile. Instead, we just let the actor crash, monitor its death elsewhere, and then take some action.
 
 The principle of actor error handling is that an actor can be asked to be notified of another actor's death. This is done through *linking* and *watching*.
 
@@ -1152,9 +1152,9 @@ Details TBD.
 
 Erlang's designers have realized that many actors follow some common patterns - like an actor that receives requests for work and then sends back a result to the requester. They've turned those patterns into actor templates, called behaviors, in order to save people work and avoid some common errors. Some of these behaviors have been ported to Pulsar.
 
-Behaviors have two sides. One is the provider side, and is modeled in Pulsar as a protocols. You implement the protocol, and Pulsar provides the full actor implementation that uses your protocol. The other is the consumer side -- functions used by other actors to access the functionality provided by the behavior.
+Behaviors have two sides. One is the provider side, and is modeled in Pulsar as a protocol. You implement the protocol, and Pulsar provides the full actor implementation that uses your protocol. The other is the consumer side -- functions used by other actors to access the functionality provided by the behavior.
 
-All behaviors (gen-server, gen-event and supervisors) support the `shutdown!` function, which requests an orderly shutdown of the actor:
+All behaviors (gen-server, gen-event, gen-fsm and supervisors) support the `shutdown!` function, which requests an orderly shutdown of the actor:
 
 ~~~ clojure
 (shutdown! behavior-actor)
@@ -1190,7 +1190,7 @@ Finally, you can shutdown a gen-server with the shutdown function:
 (shutdown! actor)
 ~~~
 
-In order to create a gen-server actor(the provider side), you need to implement the following protocol:
+In order to create a gen-server actor (the provider side), you need to implement the following protocol:
 
 ~~~ clojure
 (defprotocol Server
@@ -1274,7 +1274,7 @@ If the `handle-call` function returns `nil`, then no response is sent to the cal
 
 In the example, `handle-call` saves the request in the actor's state, and later, in `handle-timeout` sends the response using `reply!`. The response is returned by `call-timed!`.
 
-If an error is encountered during the generation of the delayed repsonse, an exception can be returned to the caller (and will be thrown by `call!`), using `reply-error!`:
+If an error is encountered during the generation of the delayed response, an exception can be returned to the caller (and will be thrown by `call!`), using `reply-error!`:
 
 ~~~ clojure
 (reply-error! to id (Exception. "does not compute"))
@@ -1365,9 +1365,9 @@ A supervisor is an actor behavior designed to standardize error handling. Intern
 
 The general idea is that actors performing business logic, "worker actors", are supervised by a supervisor actor that detects when they die and takes one of several pre-configured actions. Supervisors may, in turn, be supervised by other supervisors, thus forming a supervision hierarchy that compartmentalizes failure and recovery.
 
-A supervisor works as follows: it has a number of *children*, worker actors or other supervisors that are registered to be supervised wether at the supervisor's construction time or at a later time. Each child has a mode, `:permanent`, `:transient` or `:temporary` that determines whether its death will trigger the supervisor's *recovery event*. When the recovery event is triggered, the supervisor takes action specified by its *restart strategy*, or it will give up and fail, depending on predefined failure modes.
+A supervisor works as follows: it has a number of *children*, worker actors or other supervisors that are registered to be supervised whether at the supervisor's construction time or at a later time. Each child has a mode, `:permanent`, `:transient` or `:temporary` that determines whether its death will trigger the supervisor's *recovery event*. When the recovery event is triggered, the supervisor takes action specified by its *restart strategy*, or it will give up and fail, depending on predefined failure modes.
 
-When a child actor in the `:permanent` mode dies, it will always trigger its supervisor's recovery event. When a child in the `:transient` mode dies, it will trigger a recovery event only if it has died as a result of an exception, but not if it has simply finished its operation. A `:temporary` child never triggers it supervisor's recovery event.
+When a child actor in the `:permanent` mode dies, it will always trigger its supervisor's recovery event. When a child in the `:transient` mode dies, it will trigger a recovery event only if it has died as a result of an exception, but not if it has simply finished its operation. A `:temporary` child never triggers its supervisor's recovery event.
 
 A supervisor's *restart strategy* determines what it does during a *recovery event*: A strategy of `:escalate` means that the supervisor will shut down ("kill") all its surviving children and then die; a `:one-for-one` strategy will restart the dead child; an `:all-for-one` strategy will shut down all children and then restart them all; a `:rest-for-one` strategy will shut down and restart all those children added to the supervisor after the dead child.
 
@@ -1419,7 +1419,7 @@ An example of hot code swapping is found in the [codeswap.clj](https://github.co
 
 #### Swapping plain actors
 
-In the actor's main loop, using the `recur-swap` macro rather than `recur`, would use the new definition of the actor function, if one is found. The only difference in syntax between `recur-swap` and `recur` is that `recur-swap` takes the name of the function is the first parameter.
+In the actor's main loop, using the `recur-swap` macro rather than `recur`, would use the new definition of the actor function, if one is found. The only difference in syntax between `recur-swap` and `recur` is that `recur-swap` takes the name of the function as the first parameter.
 
 In the following example (taken from [codeswap.clj](https://github.com/puniverse/pulsar/blob/master/src/test/clojure/co/paralleluniverse/pulsar/examples/codeswap.clj)) if `a` is redefined, its new definition will be used in the next iteration.
 
