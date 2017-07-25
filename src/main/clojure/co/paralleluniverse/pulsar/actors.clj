@@ -365,8 +365,10 @@
   If no argument is supplied, unregisters the current actor."
 ([x]
  (let [^ActorRef actor x]
+   (LocalActor/stopMonitor actor)
    (LocalActor/unregister actor)))
 ([]
+ (.stopMonitor (Actor/currentActor))
  (.unregister (Actor/currentActor))))
 
 (defn ^SendPort mailbox-of
