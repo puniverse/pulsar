@@ -1,5 +1,5 @@
 # *Pulsar*<br/>Fibers, Channels and Actors for Clojure
-[![Build Status](https://travis-ci.org/puniverse/pulsar.svg?branch=master)](https://travis-ci.org/puniverse/pulsar) [![Dependency Status](https://www.versioneye.com/user/projects/52b019ccec137505ee00002e/badge.png?style=flat)](https://www.versioneye.com/user/projects/52b019ccec137505ee00002e) [![Version](http://img.shields.io/badge/version-0.7.8-blue.svg?style=flat)](https://github.com/puniverse/pulsar/releases) [![License](http://img.shields.io/badge/license-EPL-blue.svg?style=flat)](https://www.eclipse.org/legal/epl-v10.html) [![License](http://img.shields.io/badge/license-LGPL-blue.svg?style=flat)](https://www.gnu.org/licenses/lgpl.html)
+[![Build Status](https://travis-ci.org/puniverse/pulsar.svg?branch=master)](https://travis-ci.org/puniverse/pulsar) [![Dependency Status](https://www.versioneye.com/user/projects/52b019ccec137505ee00002e/badge.png?style=flat)](https://www.versioneye.com/user/projects/52b019ccec137505ee00002e) [![Version](http://img.shields.io/badge/version-0.7.9-blue.svg?style=flat)](https://github.com/puniverse/pulsar/releases) [![License](http://img.shields.io/badge/license-EPL-blue.svg?style=flat)](https://www.eclipse.org/legal/epl-v10.html) [![License](http://img.shields.io/badge/license-LGPL-blue.svg?style=flat)](https://www.gnu.org/licenses/lgpl.html)
 
 Pulsar wraps the [Quasar](https://github.com/puniverse/quasar) library with a Clojure API that's very similar to Erlang.
 
@@ -12,14 +12,14 @@ Java 7 and up and Clojure 1.5 and up are required to run Pulsar.
 Add the following dependencies to [Leiningen](http://github.com/technomancy/leiningen/)'s project.clj:
 
 ```clojure
-[co.paralleluniverse/quasar-core "0.7.8"]
-[co.paralleluniverse/pulsar "0.7.8"]
+[co.paralleluniverse/quasar-core "0.7.9"]
+[co.paralleluniverse/pulsar "0.7.9"]
 ```
 
 Then, the following must be added to the project.clj file:
 
 ~~~ clojure
-:java-agents [[co.paralleluniverse/quasar-core "0.7.8"]]
+:java-agents [[co.paralleluniverse/quasar-core "0.7.9"]]
 ~~~
 
 or, add the following to the java command line:
@@ -80,7 +80,7 @@ Pulsar is free software published under the following license:
 
 
 ```
-Copyright © 2013-2016 Parallel Universe
+Copyright © 2013-2017 Parallel Universe
 
 This program and the accompanying materials are dual-licensed under
 either the terms of the Eclipse Public License v1.0 as published by
