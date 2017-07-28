@@ -1,6 +1,6 @@
-(def quasar-version "0.7.8")
+(def quasar-version "0.7.9-SNAPSHOT")
 
-(defproject co.paralleluniverse/pulsar "0.7.8"
+(defproject co.paralleluniverse/pulsar "0.7.9-SNAPSHOT"
   :description "A Clojure lightweight thread, asynchronous programming, and actor library"
   :url "http://github.com/puniverse/pulsar"
   :licenses [{:name "Eclipse Public License - v 1.0" :url "http://www.eclipse.org/legal/epl-v10.html"}
@@ -18,7 +18,7 @@
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [co.paralleluniverse/quasar-core   ~quasar-version] ; :classifier "jdk8"
                  [co.paralleluniverse/quasar-actors ~quasar-version]
-                 [org.ow2.asm/asm "5.1"]
+                 [org.ow2.asm/asm "5.2"]
                  [org.clojure/core.match "0.2.2" :exclusions [org.ow2.asm/*]]
                  [org.flatland/useful "0.11.5"]
                  [gloss "0.2.6" :exclusions [com.yammer.metrics/metrics-core useful]]]
