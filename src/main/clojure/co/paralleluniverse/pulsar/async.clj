@@ -17,7 +17,7 @@
 ;
 (ns co.paralleluniverse.pulsar.async
   "Fiber-based implementation of [org.clojure/core.async \"0.1.346.0-17112a-alpha\"]"
-  (:refer-clojure :exclude [reduce into merge map take partition partition-by last] :as core)
+  (:refer-clojure :exclude [reduce into merge map take partition partition-by last])
   (:require
     [co.paralleluniverse.pulsar.core :as p :refer [defsfn sfn]])
   (:import
