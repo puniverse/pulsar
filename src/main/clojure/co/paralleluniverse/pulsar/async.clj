@@ -17,21 +17,21 @@
 ;
 (ns co.paralleluniverse.pulsar.async
   "Fiber-based implementation of [org.clojure/core.async \"0.1.346.0-17112a-alpha\"]"
-  (:refer-clojure :exclude [reduce into merge map take partition partition-by last] :as core)
+  (:refer-clojure :exclude [reduce into merge map take partition partition-by last])
   (:require
-    [co.paralleluniverse.pulsar.core :as p :refer [defsfn sfn]])
+   [co.paralleluniverse.pulsar.core :as p :refer [defsfn sfn]])
   (:import
-    [co.paralleluniverse.strands.channels Channel QueueObjectChannel TransferChannel TimeoutChannel Channels$OverflowPolicy SendPort ReceivePort Selector SelectAction Channels ReceivePortGroup Mix$SoloEffect Mix$State Mix$Mode]
-    [co.paralleluniverse.strands.queues ArrayQueue BoxQueue CircularObjectBuffer]
-    [java.util Collection]
-    [java.util.concurrent TimeUnit Executors Executor]
-    [com.google.common.util.concurrent ThreadFactoryBuilder]
-    (java.util List)
-    (co.paralleluniverse.strands Strand SuspendableAction1 SuspendableAction2 SuspendableCallable)
-    (co.paralleluniverse.pulsar.async DelegatingChannel CoreAsyncSendPort IdentityPipeline PredicateSplitSendPort ParallelTopic PubSplitSendPort)
-    (co.paralleluniverse.common.util Function2 Pair)
-    (com.google.common.base Predicate Function)
-    (co.paralleluniverse.strands.channels.transfer Pipeline)))
+   [co.paralleluniverse.strands.channels Channel QueueObjectChannel TransferChannel TimeoutChannel Channels$OverflowPolicy SendPort ReceivePort Selector SelectAction Channels ReceivePortGroup Mix$SoloEffect Mix$State Mix$Mode]
+   [co.paralleluniverse.strands.queues ArrayQueue BoxQueue CircularObjectBuffer]
+   [java.util Collection]
+   [java.util.concurrent TimeUnit Executors Executor]
+   [com.google.common.util.concurrent ThreadFactoryBuilder]
+   (java.util List)
+   (co.paralleluniverse.strands Strand SuspendableAction1 SuspendableAction2 SuspendableCallable)
+   (co.paralleluniverse.pulsar.async DelegatingChannel CoreAsyncSendPort IdentityPipeline PredicateSplitSendPort ParallelTopic PubSplitSendPort)
+   (co.paralleluniverse.common.util Function2 Pair)
+   (com.google.common.base Predicate Function)
+   (co.paralleluniverse.strands.channels.transfer Pipeline)))
 
 (alias 'core 'clojure.core)
 
